@@ -71,6 +71,21 @@ function computeLikelihoodOfTree() {
         });
 }
 
+function uploadFile(textAreaName = 'newickText', textFileName = 'newickTextFile') {
+    let textFile = document.getElementById(textFileName).files[0];
+    let textArea = document.getElementById(textAreaName);
+    {
+        if (textFile) {
+            let reader = new FileReader();
+
+            reader.onload = function(event) {
+                textArea.value = event.target.result.trim();
+            };
+            reader.readAsText(textFile);
+        }
+    }
+}
+
 function setVisibilityLoader(visible = true, loaderID) {
     if (visible) {
         document.getElementById(loaderID).classList.remove('invisible');
