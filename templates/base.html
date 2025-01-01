@@ -1,0 +1,63 @@
+<!doctype html>
+{% import 'base_newick_tools.html' as nwt %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>GLOOME {%- block title -%}{{title}}{%- endblock -%}</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
+    {%- block scripts -%}
+    <script src="{{ url_for('static', filename='js/javascript_functions.js') }}" defer></script>
+    {%- endblock -%}
+</head>
+<body>
+{%- block menu -%}
+<header>
+<div class="d-flex gap-2 horizontal-gradient flex-row">
+    <div class="navbar-brand mx-2 my-1">{{nwt.svg()}}</div>
+    <div class="d-flex gap-2 flex-row flex-grow-1 justify-content-center">
+    <div class="m-2 d-flex gap-2 ">
+        {%- for m in menu -%}
+            {%- if m.submenu -%}
+            <div class="dropdown">
+                <button type="button" class="w-auto h-auto float-star form-control btn btn-outline-success rounded-2 btn-secondary dropbtn">{{m.name}}</button>
+                <div class="dropdown-content">
+                    {%- for submenu in m.submenu -%}
+                        <a class="w-auto float-star form-control btn btn-outline-success rounded-2" href="{{url_for(submenu.url)}}">{{submenu.name}}</a>
+                    {% endfor -%}
+                </div>
+            </div>
+            {% else -%}
+                <a class="w-auto float-star form-control btn btn-outline-success rounded-2" href="{{url_for(m.url)}}">{{m.name}}</a>
+            {% endif -%}
+        {% endfor -%}
+    </div>
+    </div>
+</div>
+{%- endblock -%}
+{%- block header -%}
+<!--<div class="container w-100">-->
+<!--    <div class="justify-content-xxl-center">-->
+<!--        Sorry, the site is under construction-->
+<!--    </div>-->
+<!--</div>-->
+<div class="px-3 d-flex gap-2 horizontal-gradient">
+    <div class="text-lg-start text-success h4"><sub> GLOOME
+        {{title[0]|safe}}<small class="text-warning-emphasis text-opacity-25">{{title[1]|safe}}</small></sub>
+    </div>
+</div>
+</header>
+{%- endblock -%}
+
+{%- block content -%}
+{%- endblock -%}
+
+{%- block messages -%}
+{%- for cat, msg in get_flashed_messages() -%}
+<div class="alert {{cat}}">{{msg}}</div>
+{% endfor -%}
+{%- endblock -%}
+</body>
+</html>

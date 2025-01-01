@@ -1,0 +1,97 @@
+{%- macro svg() -%}
+<svg height="70" width="120">
+    <defs>
+        <linearGradient gradientTransform="rotate(90)" id="gradient">
+            <stop offset="5%" stop-color="white">
+                <animate id="animation5" begin="0s; animation8.end" attributeName="stop-color" from="#fff" to="#dff" dur="5"/>
+                <animate id="animation6" begin="animation5.end" attributeName="stop-color" from="#dff" to="#fff" dur="5"/>
+                <animate id="animation7" begin="animation6.end" attributeName="stop-color" from="#fff" to="#f99" dur="5"/>
+                <animate id="animation8" begin="animation7.end" attributeName="stop-color" from="#f99" to="#fff" dur="5"/>
+            </stop>
+            <stop offset="30%" stop-color="#fd0">
+                <animate id="animation9" begin="0s; animation12.end" attributeName="stop-color" from="#fd0" to="#FFD700" dur="10"/>
+                <animate id="animation10" begin="animation9.end" attributeName="stop-color" from="#FFD700" to="#fd0" dur="10"/>
+                <animate id="animation11" begin="animation10.end" attributeName="stop-color" from="#fd0" to="#dff" dur="10"/>
+                <animate id="animation12" begin="animation11.end" attributeName="stop-color" from="#dff" to="#fd0" dur="10"/>
+            </stop>
+            <stop offset="50%" stop-color="#fff">
+                <animate id="animation1" begin="0s; animation4.end" attributeName="stop-color" from="#fff" to="#dff" dur="15"/>
+                <animate id="animation2" begin="animation1.end" attributeName="stop-color" from="#dff" to="#fff" dur="15"/>
+                <animate id="animation3" begin="animation2.end" attributeName="stop-color" from="#fff" to="#f99" dur="15"/>
+                <animate id="animation4" begin="animation3.end" attributeName="stop-color" from="#f99" to="#fff" dur="15"/>
+            </stop>
+            <stop offset="60%" stop-color="#dff">
+                <animate id="animation13" begin="0s; animation16.end" attributeName="stop-color" from="#dff" to="MediumSpringGreen" dur="15"/>
+                <animate id="animation14" begin="animation13.end" attributeName="stop-color" from="MediumSpringGreen" to="#DarkCyan" dur="15"/>
+                <animate id="animation15" begin="animation14.end" attributeName="stop-color" from="#DarkCyan" to="#ffd" dur="15"/>
+                <animate id="animation16" begin="animation15.end" attributeName="stop-color" from="#ffd" to="#dff" dur="15"/>
+            </stop>
+            <stop offset="80%" stop-color="navy">
+                <animate id="animation21" begin="0s; animation24.end" attributeName="stop-color" from="navy" to="#dff" dur="10"/>
+                <animate id="animation22" begin="animation21.end" attributeName="stop-color" from="#dff" to="FFD700" dur="15"/>
+                <animate id="animation23" begin="animation22.end" attributeName="stop-color" from="FFD700" to="#f99" dur="20"/>
+                <animate id="animation24" begin="animation23.end" attributeName="stop-color" from="#f99" to="navy" dur="10"/>
+            </stop>
+            <stop offset="100%" stop-color="black">
+                <animate id="animation17" begin="0s; animation20.end" attributeName="stop-color" from="Indigo" to="#dff" dur="20"/>
+                <animate id="animation18" begin="animation17.end" attributeName="stop-color" from="#dff" to="#aff" dur="20"/>
+                <animate id="animation19" begin="animation18.end" attributeName="stop-color" from="#aff" to="#FFD700" dur="20"/>
+                <animate id="animation20" begin="animation19.end" attributeName="stop-color" from="#FFD700" to="Indigo" dur="20"/>
+            </stop>
+        </linearGradient>
+    </defs>
+    <ellipse cx="50" cy="35" rx="45" ry="30" fill="url(#gradient)"/>
+    <text fill="#fff" font-size="18" font-family="Verdana" x="20" y="35">gloome</text>
+    Sorry, your browser does not support inline SVG.
+</svg>
+{%- endmacro -%}
+
+{%- macro tree_html() -%}
+    <div class="mx-3 mt-3 mb-1 gap-2 d-flex h-auto">
+        <input id="printButton" name="printButton" type="button" class="form-control btn btn-light rounded-pill"
+               value="draw a tree" onclick="printTree()"/>
+    </div>
+    <div class="mx-3 gap-2 d-flex h-auto">
+        <input id="openButton" name="printButton" type="button" class="form-control btn btn-light rounded-pill"
+               value="draw and open a tree" onclick="printTree('open')"/>
+    </div>
+    <div id="result" class="m-6 text-end gap-2 d-flex h-75">
+        {{content_result}}
+    </div>
+{%- endmacro -%}
+
+{%- macro alerts(width=45) -%}
+<div id="divInfo" style="visibility: hidden; position: absolute"
+     class="alert-dismissible w-{{width}} d-flex gap-2 flex-column justify-content-center alert alert-info text-break text-start">
+</div>
+<div id="divDanger" style="visibility: hidden; position: absolute"
+     class="alert-dismissible w-{{width}} d-flex gap-2 flex-column justify-content-center alert alert-danger text-break text-start">
+</div>
+<div id="divWarning" style="visibility: hidden; position: absolute"
+     class="alert-dismissible w-{{width}} d-flex gap-2 flex-column justify-content-center alert alert-warning text-break text-start">
+</div>
+<div id="divSuccess" style="visibility: hidden; position: absolute"
+     class="alert-dismissible w-{{width}} d-flex gap-2 flex-column justify-content-center alert alert-success text-break text-start">
+</div>
+<div id="divSecondary" style="visibility: hidden; position: absolute"
+     class="alert-dismissible w-{{width}} d-flex gap-2 flex-column justify-content-center alert alert-secondary text-break text-start">
+</div>
+{%- endmacro -%}
+
+{%- macro loaderSquare() -%}
+<div id="loaderSquare" class="loaderSquare m-9 invisible d-flex gap-2">
+    <div class="square1 square"></div>
+    <div class="square2 square"></div>
+    <div class="square3 square"></div>
+    <div class="square4 square"></div>
+</div>
+{%- endmacro -%}
+
+{%- macro loaderCube() -%}
+<div id="loaderCube" class="loaderCube m-9 invisible d-flex gap-2">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+{%- endmacro -%}
