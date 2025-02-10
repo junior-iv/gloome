@@ -7,6 +7,8 @@ import design_functions as df
 import service_functions as serv_f
 import statistical_functions as stat_f
 
+DATA_PATH = ('src/initial_data', 'src/result_data')
+
 
 app = Flask(__name__)
 app.config.update(MAX_CONTENT_LENGTH=16 * 1024 * 1024,
@@ -14,6 +16,9 @@ app.config.update(MAX_CONTENT_LENGTH=16 * 1024 * 1024,
                   DEBUG=True)
 
 MENU = ({'name': 'HOME', 'url': 'index',
+         'submenu': ()
+         },
+        {'name': 'HOME #2', 'url': 'index2',
          'submenu': ()
          },
         {'name': 'OVERVIEW', 'url': 'overview',
@@ -47,7 +52,12 @@ ERRORS = {'incorrect_newick': f'<b>{err[0]}{df.value_design("((S1:0.3,S2:0.15):0
 @app.route('/')
 @app.route('/index', methods=['GET'])
 def index():
-    return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("name")}'))
+    return render_template('index.html', menu=MENU, newick_tree='', title=(':', f'  {MENU[0].get("name")}'))
+
+
+@app.route('/index2', methods=['GET'])
+def index2():
+    return render_template('index2.html', menu=MENU, newick_tree='', title=(':', f'  {MENU[0].get("name")}'))
 
 
 @app.route('/overview', methods=['GET'])
@@ -92,4 +102,56 @@ def compute_likelihood_of_tree():
             statistics = serv_f.compute_likelihood_of_tree(newick_text, pattern_msa)
             result = df.result_design(statistics)
 
+        return jsonify(message=result)
+
+
+@app.route('/get_exemple', methods=['GET'])
+def get_exemple():
+    if request.method == 'GET':
+        mode = request.args['mode']
+        result = []
+        for i in (f'msa/patternMSA{mode}.msa', f'tree/newickTree{mode}.tree'):
+            full_file_name = f'{DATA_PATH[0]}/{i}'
+            with open(full_file_name, 'r') as f:
+                result.append(f.read())
+
+        return jsonify(message=result)
+
+
+@app.route('/get_file', methods=['GET'])
+def get_file():
+    if request.method == 'GET':
+        file_name = request.args['file_name']
+        file_path = request.args['file_path']
+        file_type = int(request.args['file_type'])
+        full_file_name = f'{DATA_PATH[file_type]}/{file_path}/{file_name}'
+        with open(full_file_name, 'r') as f:
+            result = f.read()
+
+        return jsonify(message=result)
+
+
+@app.route('/draw_tree', methods=['POST'])
+def draw_tree():
+    if request.method == 'POST':
+        newick_text = request.form.get('newickText')
+        pattern_msa = request.form.get('patternMSA')
+        if not Tree.check_newick(newick_text):
+            result = ERRORS.get('incorrect_newick')
+        else:
+            newick_tree = Tree.rename_nodes(newick_text)
+            pattern_dict = newick_tree.get_pattern_dict(pattern_msa)
+            alphabet = Tree.get_alphabet_from_dict(pattern_dict)
+            newick_tree.calculate_tree_for_fasta(pattern_dict, alphabet)
+            json_text = str(newick_tree.get_json_structure()).replace(f'\'', r'"')
+            result = json_text
+
+        return jsonify(message=result)
+
+
+@app.route('/test', methods=['POST'])
+def test():
+    if request.method == 'POST':
+        result = request.form.get('testData')
+        print(result)
         return jsonify(message=result)

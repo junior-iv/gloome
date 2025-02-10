@@ -19,7 +19,7 @@
 {% block content %}
 {{ super() }}
 <div class="gap-2 d-flex flex-row justify-content-start h-50 w-100 text-center">
-    <div class="container gap-2 d-flex flex-column h-75 w-50 m-3">
+    <div class="container gap-2 d-flex flex-column h-75 w-30 m-3">
         <label for="patternMSA" class="text-success-emphasis my-2">please provide a phyletic pattern MSA into a text field or upload from file
             <a href="https://en.wikipedia.org/wiki/FASTA_format" target="_blank">(FASTA format)</a>
             <sup><svg width="16" height="16" fill="currentColor" class="text-success-emphasis" viewBox="0 0 16 16">
@@ -41,8 +41,10 @@
         <div class="d-flex gap-2 flex-row justify-content-end my-1">
             <input id="newickTextFile" name="newickTextFile" type="file" accept="*.*"
                    class="form-control rounded-pill" onchange="uploadFile('newickText', 'newickTextFile')"/>
+            <input id="theDrawTreeButton" name="theDrawTreeButton" type="button" class="w-10 form-control btn btn-outline-success rounded-pill"
+                  value="draw tree" onclick="drawTree()"/>
         </div>
-        <textarea spellcheck="false" id="newickText" name="newickText" autocomplete="on" rows="6" class="form-control btn-light"
+        <textarea spellcheck="false" id="newickText" name="newickText" autocomplete="on" rows="6" class="form-control btn-light" onchange="drawTree()"
                   placeholder="please provide a phylogenetic tree here"></textarea>
         <div class="gap-2 d-flex flex-column my-1">
             <div class="d-flex gap-2 flex-row justify-content-end">
@@ -50,14 +52,6 @@
                       value="execute" onclick="computeLikelihoodOfTree()"/>
                 <input id="theСleaning" name="theСleaning" type="button" class="w-10 form-control btn btn-outline-success rounded-pill"
                       value="clear" onclick="clearForm()"/>
-<!--                <div class="dropdown">-->
-<!--                    <input id="theExample" name="theExample" type="button" class="w-20 form-control btn btn-outline-success rounded-top-4"-->
-<!--                          value="load an example" onclick=""/>-->
-<!--                    <div class="dropdown-content">-->
-<!--                        <input class="w-20 form-control btn btn-outline-success" onclick="loadExample(1)" value="example 1"/>-->
-<!--                        <input class="w-20 form-control btn btn-outline-success rounded-bottom-4" onclick="loadExample(2)" value="example 2"/>-->
-<!--                    </div>-->
-<!--                </div>-->
                 <input id="theExample1" name="theExample2" type="button" class="w-20 form-control btn btn-outline-success rounded-pill"
                       value="load an example #1" onclick="loadExample(1)"/>
                 <input id="theExample2" name="theExample2" type="button" class="w-20 form-control btn btn-outline-success rounded-pill"
@@ -65,12 +59,19 @@
             </div>
         </div>
     </div>
-    <div class="d-flex gap-2 flex-column text-end w-50 justify-content-start mx-3 my-5">
-        <div id="result" class="container gap-2 d-flex h-50">
+    <div class="d-flex gap-2 flex-row text-start w-70 justify-content-start mx-3 my-5">
+<!--        <script src="//d3js.org/d3.v7.js"></script>-->
+        <script src="//d3js.org/d3.v7.js"></script>
+<!--        <script src="https://d3js.org/d3.v4.js"></script>-->
+        <div id="result" class="container gap-2 d-flex w-60">
             {{nwt.loaderCube()}}
             {{nwt.alerts()}}
+            <div id="tree" class="m-0 p-0" style="height: 500px; width: 500px"></div>
+<!--            <div id="tree" class="m-0 p-0 h-100 w-100"></div>-->
+            <div id="tooltip"></div>
         </div>
-        <div id="newick_tree" style="width: 100%; height: 100vh;"></div>
+        <div id="nodeInfo" class="text-dark container gap-2 d-flex w-40 m-5">
+        </div>
     </div>
 </div>
 {% endblock %}

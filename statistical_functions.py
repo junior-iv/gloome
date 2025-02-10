@@ -1,5 +1,5 @@
-from math import exp, log
-from typing import List, Union, Tuple, Optional, Dict, Set
+from math import log
+from typing import List, Union, Tuple, Optional, Dict
 from tree import Tree
 from node import Node
 import numpy as np
@@ -17,7 +17,7 @@ def compute_likelihood_of_tree(newick_text: str, pattern_msa: Optional[str] = No
     newick_tree = Tree(newick_text)
     alphabet_size = len(alphabet)
 
-    leaves_info = newick_tree.get_list_nodes_info(False, True, 'pre-order', {'node_type': ['leaf']})
+    leaves_info = newick_tree.get_list_nodes_info(True, 'pre-order', {'node_type': ['leaf']})
 
     len_seq = len(list(pattern_msa_dict.values())[0])
     likelihood = 1
