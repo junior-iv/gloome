@@ -1,25 +1,21 @@
-function clearForm() {
-    let newickText = document.getElementById('newickText');
-    let patternMSA = document.getElementById('patternMSA');
-    newickText.innerHTML = ''
-    patternMSA.innerHTML = ''
-}
-
 function convertJSONToTable(jsonData) {
     let headers = Object.keys(jsonData);
-    let table = `<table class="w-90 p-4 tborder table-danger">`;
+    let table = `<details class="w-95 h-100 h6" open><summary>Node information</summary><table class="w-97 p-4 tborder table-danger">`;
 
     headers.forEach(header => {
+        let colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen",
+            "mediumturquoise", "dodgerblue", "slateblue", "darkviolet"]
         let value = ``;
         let jsonValue = jsonData[header];
-        table += `<tr><th class="p-2 tborder-2 table-danger">${header}</th>`;
+        table += `<tr><th class="p-2 h6 w-auto tborder-2 table-danger">${header}</th>`;
         typeof jsonValue === "object" ? Object.values(jsonValue).forEach(i => {
-            value += `<td class="w-2 text-center tborder-1 table-danger bg-light">${i}</td>`;
-        }) : value = `<td class="text-center">${jsonValue}</td>`;
+            value += `<td style="color: ${colors[Math.floor(i * 9)]}" class="h6 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+            // value += `<td style="color: ${colors[Math.floor((i < 0.25 ? 1 : i) * 6)]}" class="h6 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+        }) : value = `<td class="h6 w-auto text-center">${jsonValue}</td>`;
         table += `<th>${value}</th></tr>`;
     });
 
-    table += `</table>`;
+    table += `</table></details>`;
     document.getElementById('nodeInfo').innerHTML = table;
 }
 
@@ -32,19 +28,32 @@ function loadExample(mode = 1) {
     })
         .then(response => response.json())
         .then(data => {
-            patternMSA.innerHTML = data.message[0]
-            newickText.innerHTML = data.message[1]
+            patternMSA.innerHTML = data.message[0];
+            newickText.innerHTML = data.message[1];
         })
         .catch(error => {
             console.error(`Error:`, error);
-            showMessage(3, error.message)
+            showMessage(3, error.message);
         });
+}
+
+function getNodeStyle(d, nodeType, mode = 0){
+    const answers = [["crimson", "darkorange", "forestgreen"], ["coral", "gold", "limegreen"], [20, 15, 10], [22, 17, 12]]
+    if (nodeType === "root"){
+        return answers[mode][0];
+    }
+    else if (d.children && nodeType !== "root") {
+        return answers[mode][1];
+    }
+    else {
+        return answers[mode][2];
+    }
 }
 
 function phylogeneticTree(jsonData) {
     const margin = { top: 20, right: 40, bottom: 20, left: 40 };
-    const width = 500 - margin.left - margin.right;
-    const height = 500 - margin.top - margin.bottom;
+    const width = 600 - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
     let scale = 0.9;
     const svg =  d3.select("#tree")
         .append("svg")
@@ -89,26 +98,28 @@ function phylogeneticTree(jsonData) {
         .attr("transform", d => `translate(${d.y}, ${d.x})`);
 
     nodes.append("circle")
-        .attr("r", d => d.children ? 15 : 10)
-        .style("fill", d => d.children ? "darkorange" : "forestgreen")
+        .attr("r", d => getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 2))
+        .style("fill", d => getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 0))
         .style("stroke", "steelblue")
         .style("stroke-width", 2)
         .on("mouseover", function(event, d) {
-            d3.select(this).style("fill", d => d.children ? "gold" : "limegreen")
+            d3.select(this).style("fill", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 1))
+                .attr("r", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 3))
             d3.select("#tooltip")
                 .style("left", `${event.pageX + 10}px`)
                 .style("top", `${event.pageY - 20}px`)
                 .style("opacity", 1)
                 .html(d.data.info);
         })
-        .on("mouseout", function() {
-            d3.select(this).style("fill", d => d.children ? "darkorange" : "forestgreen")
+        .on("mouseout", function(event, d) {
+            d3.select(this).style("fill", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 0))
+                .attr("r", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 2))
             d3.select("#tooltip")
                 .style("opacity", 0);
         })
         .on("click", function(event, d) {
             convertJSONToTable(jsonData[1][d.data.name]);
-        });
+        })
 
     nodes.append("text")
       .attr("dy", -18)
@@ -119,31 +130,7 @@ function phylogeneticTree(jsonData) {
       .text(d => d.data.name);
 }
 
-function test(testData) {
-    const formData = new FormData();
-    formData.append(`svgData`, testData);
-
-    const loaderID = `loaderCube`;
-    hide_all();
-    // document.getElementById('tree').innerText = ''
-    setVisibilityLoader(true, loaderID);
-
-    fetch(`/test`, {
-        method: `POST`,
-        body: formData
-    })
-        .then(response => response.json())
-        .then(data => {
-            // document.getElementById('tree').data = data.message;
-        })
-        .catch(error => {
-            setVisibilityLoader(false, loaderID);
-            console.error(`Error:`, error);
-            showMessage(3, error.message)
-        });
-}
-
-function drawTree() {
+function initialize_variables() {
     const newickText = document.getElementById(`newickText`);
     const patternMSA = document.getElementById(`patternMSA`);
     const formData = new FormData();
@@ -153,43 +140,24 @@ function drawTree() {
     const loaderID = `loaderCube`;
     setVisibilityLoader(true, loaderID);
 
-    fetch(`/draw_tree`, {
-        method: `POST`,
-        body: formData
-    })
-        .then(response => response.json())
-        .then(data => {
-            setVisibilityLoader(false, loaderID);
-            phylogeneticTree(data.message)
-        })
-        .catch(error => {
-            setVisibilityLoader(false, loaderID);
-            console.error(`Error:`, error);
-            showMessage(3, error.message)
-        });
+    return {"formData": formData, "loaderID": loaderID}
 }
 
-function computeLikelihoodOfTree() {
-    const newickText = document.getElementById(`newickText`);
-    const patternMSA = document.getElementById(`patternMSA`);
-    const formData = new FormData();
-    formData.append(`newickText`, newickText.value.trim());
-    formData.append(`patternMSA`, patternMSA.value.trim());
+function makeTree(mode = 0) {
+    let funcData = initialize_variables()
+    let absolutePath = [`/draw_tree`, `/compute_likelihood_of_tree`][mode]
 
-    const loaderID = `loaderCube`;
-    setVisibilityLoader(true, loaderID);
-
-    fetch(`/compute_likelihood_of_tree`, {
+    fetch(absolutePath, {
         method: `POST`,
-        body: formData
+        body: funcData.formData
     })
         .then(response => response.json())
         .then(data => {
-            setVisibilityLoader(false, loaderID);
-            showMessage(1, data.message)
+            setVisibilityLoader(false, funcData.loaderID);
+            mode === 0 ? phylogeneticTree(data.message) : showMessage(1, data.message)
         })
         .catch(error => {
-            setVisibilityLoader(false, loaderID);
+            setVisibilityLoader(false, funcData.loaderID);
             console.error(`Error:`, error);
             showMessage(3, error.message)
         });
@@ -237,4 +205,35 @@ function showMessage(variant = 1, message = null) {
         }
         document.getElementById(elementNames[i]).innerHTML = message;
     }
+}
+
+function clearForm() {
+    let newickText = document.getElementById('newickText');
+    let patternMSA = document.getElementById('patternMSA');
+    newickText.innerHTML = '';
+    patternMSA.innerHTML = '';
+}
+
+function test(testData) {
+    const formData = new FormData();
+    formData.append(`svgData`, testData);
+
+    const loaderID = `loaderCube`;
+    hide_all();
+    // document.getElementById('tree').innerText = ''
+    setVisibilityLoader(true, loaderID);
+
+    fetch(`/test`, {
+        method: `POST`,
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            // document.getElementById('tree').data = data.message;
+        })
+        .catch(error => {
+            setVisibilityLoader(false, loaderID);
+            console.error(`Error:`, error);
+            showMessage(3, error.message)
+        });
 }
