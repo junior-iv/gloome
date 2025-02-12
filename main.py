@@ -1,7 +1,6 @@
 from flask import Flask, request, render_template, url_for, flash, jsonify
 from tree import Tree
 from os import getenv
-
 import array_functions as af
 import design_functions as df
 import service_functions as serv_f
@@ -9,16 +8,12 @@ import statistical_functions as stat_f
 
 DATA_PATH = ('src/initial_data', 'src/result_data')
 
-
 app = Flask(__name__)
 app.config.update(MAX_CONTENT_LENGTH=16 * 1024 * 1024,
                   SECRET_KEY=getenv('SECRET_KEY'),
                   DEBUG=True)
 
 MENU = ({'name': 'HOME', 'url': 'index',
-         'submenu': ()
-         },
-        {'name': 'HOME #2', 'url': 'index2',
          'submenu': ()
          },
         {'name': 'OVERVIEW', 'url': 'overview',
@@ -53,11 +48,6 @@ ERRORS = {'incorrect_newick': f'<b>{err[0]}{df.value_design("((S1:0.3,S2:0.15):0
 @app.route('/index', methods=['GET'])
 def index():
     return render_template('index.html', menu=MENU, newick_tree='', title=(':', f'  {MENU[0].get("name")}'))
-
-
-@app.route('/index2', methods=['GET'])
-def index2():
-    return render_template('index2.html', menu=MENU, newick_tree='', title=(':', f'  {MENU[0].get("name")}'))
 
 
 @app.route('/overview', methods=['GET'])

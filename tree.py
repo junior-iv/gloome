@@ -458,7 +458,7 @@ class Tree:
             newick_tree = Tree.check_tree(newick_tree)
 
         Tree.make_dir(file_name)
-        tmp_file = f'result_files/{Tree.get_random_name()}.tree'
+        tmp_file = f'result_data/tmp/{Tree.get_random_name()}.tree'
         Tree.make_dir(tmp_file)
         Tree.tree_to_newick_file(newick_tree, tmp_file, with_internal_nodes)
         phylogenetic_tree = Phylo.read(tmp_file, 'newick')
