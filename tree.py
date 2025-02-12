@@ -4,14 +4,10 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 from d3blocks import D3Blocks
-# from ete3 import TreeStyle
-
 from node import Node
-from typing import Optional, List, Union, Dict, Tuple, Set, Any
+from typing import Optional, List, Union, Dict, Tuple, Set
 from Bio import Phylo
-
-# from Bio import SeqIO
-# import plotly.graph_objects as go
+import json
 
 
 class Tree:
@@ -249,7 +245,8 @@ class Tree:
 
     def tree_to_table(self, sort_values_by: Optional[Tuple[str, ...]] = None, decimal_length: int = 8, columns: Optional
                       [Dict[str, str]] = None, filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] =
-                      None, distance_type: type = str) -> pd.DataFrame:
+                      None, distance_type: type = str, l_type: type = str, lists: Optional[Tuple[str, ...]] = None
+                      ) -> pd.DataFrame:
         nodes_info = self.get_list_nodes_info(True, None, filters)
         columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to father',
                                            'children': 'child', 'lavel': 'Lavel', 'node_type': 'Node type',
@@ -258,20 +255,29 @@ class Tree:
                                            'probability_vector': 'Probability vector', 'probable_character':
                                            'Probable character', 'sequence': 'Sequence',
                                            'probabilities_sequence_characters': 'Probabilities sequence characters'}
+        lists = lists if lists else ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector',
+                                     'probability_vector', 'probabilities_sequence_characters')
+
         for node_info in nodes_info:
             for i in set(node_info.keys()) - set(columns.keys()):
                 node_info.pop(i)
             if not node_info.get('father_name'):
                 node_info.update({'father_name': 'root'})
             if columns.get('distance'):
-                if isinstance(distance_type, str):
+                # if isinstance(distance_type, str):
+                if distance_type is str:
+
                     node_info.update({'distance': ' ' * (decimal_length // 2) if not node_info.get('distance') else
                                      f'{str(node_info.pop("distance")).ljust(decimal_length, "0")}'})
                 else:
                     node_info.update({'distance': distance_type(node_info.get('distance'))})
-            for i in ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector', 'probability_vector'):
+            for i in lists:
                 if columns.get(i):
-                    node_info.update({i: ' '.join(map(str, node_info.get(i)))})
+                    if l_type in (list, tuple, set):
+                        info = l_type(map(lambda x: f'{x:.2f}' if isinstance(x, (int, float)) else x, node_info.get(i)))
+                    else:
+                        info = ' '.join(map(str, node_info.get(i)))
+                    node_info.update({i: info})
 
         tree_table = pd.DataFrame([i for i in nodes_info], index=None)
         tree_table = tree_table.rename(columns=columns)
@@ -376,9 +382,23 @@ class Tree:
 
         return fasta_text[:-1]
 
-    def get_json_structure(self) -> Dict[str, Union[str, List[Any], float, np.ndarray]]:
+    def get_json_structure(self, return_table: bool = False) -> str:
+        if return_table:
+            cols = {'node': 'Name', 'distance': 'Distance to father', 'node_type': 'Node type', 'sequence': 'Sequence',
+                    'probabilities_sequence_characters': 'Probability coefficient'}
+            lists = ('probabilities_sequence_characters', 'sequence')
 
-        return self.root.node_to_json(dict())
+            table = self.tree_to_table(columns=cols, l_type=list, lists=lists, distance_type=float)
+            dict_json = dict()
+            for row in table.T:
+                dict_row = dict()
+                for key in cols.values():
+                    dict_row.update({key: table[key][row]})
+                dict_json.update({table['Name'][row]: dict_row})
+        else:
+            dict_json = self.root.node_to_json(dict())
+
+        return json.loads(str(dict_json).replace(f'\'', r'"'))
 
     @staticmethod
     def tree_to_fasta(newick_tree: Union[str, 'Tree'], file_name: str = 'file.fasta', node_name: Optional[str] = None

@@ -8,6 +8,18 @@
 /*}*/
     /*background-image: url("images/bg_atgc_137_137.png");*/
     /*display: block;*/
+.tborder-1 {
+    border-collapse: collapse;
+    border-width: 0.03em;
+    border-radius: 0.3em;
+}
+
+.tborder-2 {
+    border-collapse: collapse;
+    border-bottom-width: 0.03em;
+    border-radius: 0.3em;
+}
+
 #tooltip {
     position: absolute;
     padding: 8px;
@@ -9840,6 +9852,11 @@ textarea.form-control-lg {
 
 .lh-lg {
     line-height: 2 !important
+}
+
+.text-justify {
+    display: flex; flex-wrap: nowrap;
+    justify-content: space-between;
 }
 
 .text-start {

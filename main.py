@@ -139,12 +139,13 @@ def draw_tree():
         if not Tree.check_newick(newick_text):
             result = ERRORS.get('incorrect_newick')
         else:
+            result = []
             newick_tree = Tree.rename_nodes(newick_text)
             pattern_dict = newick_tree.get_pattern_dict(pattern_msa)
             alphabet = Tree.get_alphabet_from_dict(pattern_dict)
             newick_tree.calculate_tree_for_fasta(pattern_dict, alphabet)
-            json_text = str(newick_tree.get_json_structure()).replace(f'\'', r'"')
-            result = json_text
+            result.append(newick_tree.get_json_structure())
+            result.append(newick_tree.get_json_structure(return_table=True))
 
         return jsonify(message=result)
 

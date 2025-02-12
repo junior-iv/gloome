@@ -5,6 +5,24 @@ function clearForm() {
     patternMSA.innerHTML = ''
 }
 
+function convertJSONToTable(jsonData) {
+    let headers = Object.keys(jsonData);
+    let table = `<table class="w-90 p-4 tborder table-danger">`;
+
+    headers.forEach(header => {
+        let value = ``;
+        let jsonValue = jsonData[header];
+        table += `<tr><th class="p-2 tborder-2 table-danger">${header}</th>`;
+        typeof jsonValue === "object" ? Object.values(jsonValue).forEach(i => {
+            value += `<td class="w-2 text-center tborder-1 table-danger bg-light">${i}</td>`;
+        }) : value = `<td class="text-center">${jsonValue}</td>`;
+        table += `<th>${value}</th></tr>`;
+    });
+
+    table += `</table>`;
+    document.getElementById('nodeInfo').innerHTML = table;
+}
+
 function loadExample(mode = 1) {
     let newickText = document.getElementById('newickText');
     let patternMSA = document.getElementById('patternMSA');
@@ -23,7 +41,7 @@ function loadExample(mode = 1) {
         });
 }
 
-function phylogeneticTree(treeData) {
+function phylogeneticTree(jsonData) {
     const margin = { top: 20, right: 40, bottom: 20, left: 40 };
     const width = 500 - margin.left - margin.right;
     const height = 500 - margin.top - margin.bottom;
@@ -39,7 +57,7 @@ function phylogeneticTree(treeData) {
             .attr("transform", `translate(${margin.left}, ${margin.top}) scale(${scale})`);
 
     const tree = d3.tree().size([height, width]);
-    const root = d3.hierarchy(JSON.parse(treeData));
+    const root = d3.hierarchy(jsonData[0]);
     tree(root);
 
     svg.selectAll(".link")
@@ -89,7 +107,7 @@ function phylogeneticTree(treeData) {
                 .style("opacity", 0);
         })
         .on("click", function(event, d) {
-            document.getElementById("nodeInfo").innerHTML = d.data.info;
+            convertJSONToTable(jsonData[1][d.data.name]);
         });
 
     nodes.append("text")
@@ -133,8 +151,6 @@ function drawTree() {
     formData.append(`patternMSA`, patternMSA.value.trim());
 
     const loaderID = `loaderCube`;
-    hide_all();
-    document.getElementById('tree').innerText = ''
     setVisibilityLoader(true, loaderID);
 
     fetch(`/draw_tree`, {
@@ -196,13 +212,9 @@ function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`
 
 function setVisibilityLoader(visible = true, loaderID) {
     if (visible) {
+        document.getElementById('tree').innerText = '';
         document.getElementById(loaderID).classList.remove(`invisible`);
-
-        document.getElementById(`divWarning`).style.visibility = `hidden`;
-        document.getElementById(`divDanger`).style.visibility = `hidden`;
-        document.getElementById(`divInfo`).style.visibility = `hidden`;
-        document.getElementById(`divSuccess`).style.visibility = `hidden`;
-        document.getElementById(`divSecondary`).style.visibility = `hidden`;
+        hide_all();
     } else {
         document.getElementById(loaderID).classList.add(`invisible`);
     }
@@ -223,6 +235,6 @@ function showMessage(variant = 1, message = null) {
         } else {
             document.getElementById(elementNames[i]).style.visibility = `hidden`;
         }
-        document.getElementById(elementNames[i]).innerText = message;
+        document.getElementById(elementNames[i]).innerHTML = message;
     }
 }
