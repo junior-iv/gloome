@@ -22,7 +22,7 @@
         {%- for m in menu -%}
             {%- if m.submenu -%}
             <div class="dropdown">
-                <button type="button" class="w-auto h-auto float-star form-control btn btn-outline-success rounded-2 btn-secondary dropbtn">{{m.name}}</button>
+                <button type="button" class="w-auto h-auto form-control btn btn-outline-success rounded-2 btn-secondary dropbtn">{{m.name}}</button>
                 <div class="dropdown-content">
                     {%- for submenu in m.submenu -%}
                         <a class="w-auto float-star form-control btn btn-outline-success rounded-2" href="{{url_for(submenu.url)}}">{{submenu.name}}</a>

@@ -1,10 +1,8 @@
-from flask import Flask, request, render_template, url_for, flash, jsonify
+from flask import Flask, request, render_template, url_for, flash, jsonify, send_file
 from tree import Tree
 from os import getenv
-import array_functions as af
 import design_functions as df
-import service_functions as serv_f
-import statistical_functions as stat_f
+import service_functions as sf
 
 DATA_PATH = ('src/initial_data', 'src/result_data')
 
@@ -75,26 +73,6 @@ def citing_and_credits():
     return render_template('citing_and_credits.html', menu=MENU, title=(':', f'  {MENU[5].get("name")}'))
 
 
-@app.route('/compute_likelihood_of_tree', methods=['POST'])
-def compute_likelihood_of_tree():
-    if request.method == 'POST':
-        newick_text = request.form.get('newickText')
-        pattern_msa = request.form.get('patternMSA')
-
-        if not Tree.check_newick(newick_text):
-            result = ERRORS.get('incorrect_newick')
-        elif (Tree(newick_text).get_node_count({'node_type': ['leaf']}) != len(pattern_msa.split('\n')) / 2 !=
-              pattern_msa.count('>')):
-            result = ERRORS.get('incorrect_sequence')
-        elif not Tree(newick_text).check_tree_for_binary():
-            result = ERRORS.get('incorrect_tree')
-        else:
-            statistics = serv_f.compute_likelihood_of_tree(newick_text, pattern_msa)
-            result = df.result_design(statistics)
-
-        return jsonify(message=result)
-
-
 @app.route('/get_exemple', methods=['GET'])
 def get_exemple():
     if request.method == 'GET':
@@ -108,15 +86,27 @@ def get_exemple():
         return jsonify(message=result)
 
 
-@app.route('/get_file', methods=['GET'])
-def get_file():
+@app.route('/file', methods=['GET'])
+def file():
     if request.method == 'GET':
-        file_name = request.args['file_name']
         file_path = request.args['file_path']
-        file_type = int(request.args['file_type'])
-        full_file_name = f'{DATA_PATH[file_type]}/{file_path}/{file_name}'
-        with open(full_file_name, 'r') as f:
-            result = f.read()
+
+        return send_file(file_path, as_attachment=False)
+
+
+@app.route('/create_all_file_types', methods=['POST'])
+def create_all_file_types():
+    if request.method == 'POST':
+        newick_text = request.form.get('newickText')
+        pattern_msa = request.form.get('patternMSA')
+        if not Tree.check_newick(newick_text):
+            result = ERRORS.get('incorrect_newick')
+        elif (Tree(newick_text).get_node_count({'node_type': ['leaf']}) != len(pattern_msa.split('\n')) / 2 !=
+              pattern_msa.count('>')):
+            result = ERRORS.get('incorrect_sequence')
+        else:
+            file_list = sf.create_all_file_types(newick_text, pattern_msa, DATA_PATH[1])
+            result = df.result_design(file_list)
 
         return jsonify(message=result)
 
@@ -128,6 +118,9 @@ def draw_tree():
         pattern_msa = request.form.get('patternMSA')
         if not Tree.check_newick(newick_text):
             result = ERRORS.get('incorrect_newick')
+        elif (Tree(newick_text).get_node_count({'node_type': ['leaf']}) != len(pattern_msa.split('\n')) / 2 !=
+              pattern_msa.count('>')):
+            result = ERRORS.get('incorrect_sequence')
         else:
             result = []
             newick_tree = Tree.rename_nodes(newick_text)
@@ -136,6 +129,24 @@ def draw_tree():
             newick_tree.calculate_tree_for_fasta(pattern_dict, alphabet)
             result.append(newick_tree.get_json_structure())
             result.append(newick_tree.get_json_structure(return_table=True))
+
+        return jsonify(message=result)
+
+
+@app.route('/compute_likelihood_of_tree', methods=['POST'])
+def compute_likelihood_of_tree():
+    if request.method == 'POST':
+        newick_text = request.form.get('newickText')
+        pattern_msa = request.form.get('patternMSA')
+
+        if not Tree.check_newick(newick_text):
+            result = ERRORS.get('incorrect_newick')
+        elif (Tree(newick_text).get_node_count({'node_type': ['leaf']}) != len(pattern_msa.split('\n')) / 2 !=
+              pattern_msa.count('>')):
+            result = ERRORS.get('incorrect_sequence')
+        else:
+            statistics = sf.compute_likelihood_of_tree(newick_text, pattern_msa)
+            result = df.result_design(statistics)
 
         return jsonify(message=result)
 

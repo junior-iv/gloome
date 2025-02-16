@@ -4,7 +4,7 @@ from tree import Tree
 from node import Node
 import numpy as np
 import array_functions as af
-import service_functions as serv_f
+import service_functions as sf
 
 
 def compute_likelihood_of_tree(newick_text: str, pattern_msa: Optional[str] = None) -> Tuple[List[float], float, float]:
@@ -13,7 +13,7 @@ def compute_likelihood_of_tree(newick_text: str, pattern_msa: Optional[str] = No
     for j in range(len(pattern_msa_list) // 2):
         pattern_msa_dict.update({pattern_msa_list[j + j][1::]: pattern_msa_list[j + j + 1]})
 
-    alphabet = serv_f.get_alphabet_from_dict(pattern_msa_dict)
+    alphabet = sf.get_alphabet_from_dict(pattern_msa_dict)
     newick_tree = Tree(newick_text)
     alphabet_size = len(alphabet)
 

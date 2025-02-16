@@ -1,0 +1,30 @@
+
+{% extends "base.html" %}
+{% import 'base_newick_tools.html' as nwt %}
+
+{% block title %}
+{{ super() }}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% endblock %}
+
+{% block menu %}
+{{ super() }}
+{% endblock %}
+
+{% block header %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<div class="gap-2 d-flex flex-row justify-content-center h-50 w-100 text-start my-3">
+    {{ data|safe }}
+</div>
+{% endblock %}
+{% block messages %}
+{{ super() }}
+{% endblock %}

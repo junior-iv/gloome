@@ -46,17 +46,19 @@
             <textarea spellcheck="false" id="newickText" name="newickText" autocomplete="on" rows="3" class="form-control btn-light" onchange="makeTree(0)"
                       placeholder="please provide a phylogenetic tree here"></textarea>
             <div class="gap-2 d-flex flex-column my-1">
-                <div class="d-flex gap-2 flex-row justify-content-end">
-                    <input id="theButton" name="theButton" type="button" class="w-10 form-control btn btn-outline-success rounded-pill"
-                          value="execute" onclick="makeTree(1)"/>
-                    <input id="theСleaning" name="theСleaning" type="button" class="w-10 form-control btn btn-outline-success rounded-pill"
+                <div class=" gap-2 row navbar">
+                    <input id="theСleaning" name="theСleaning" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
                           value="clear" onclick="clearForm()"/>
-                    <input id="theExample1" name="theExample2" type="button" class="w-20 form-control btn btn-outline-success rounded-pill"
-                          value="load an example #1" onclick="loadExample(1)"/>
-                    <input id="theExample2" name="theExample2" type="button" class="w-20 form-control btn btn-outline-success rounded-pill"
-                          value="load an example #2" onclick="loadExample(2)"/>
-                    <input id="theDrawTreeButton" name="theDrawTreeButton" type="button" class="w-10 form-control btn btn-outline-success rounded-pill"
+                    <input id="theDrawTreeButton" name="theDrawTreeButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
                           value="draw tree" onclick="makeTree(0)"/>
+                    <input id="theButton" name="theButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
+                          value="execute" onclick="makeTree(1)"/>
+                    <input id="theAllFileTypesButton" name="theDrawTreeButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
+                          value="create all file types" onclick="createAllFileTypes()"/>
+                    <input id="theExample1" name="theExample2" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
+                          value="load an example #1" onclick="loadExample(0)"/>
+                    <input id="theExample2" name="theExample2" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
+                          value="load an example #2" onclick="loadExample(1)"/>
                 </div>
             </div>
         </div>

@@ -143,6 +143,25 @@ function initialize_variables() {
     return {"formData": formData, "loaderID": loaderID}
 }
 
+function createAllFileTypes() {
+    let funcData = initialize_variables()
+
+    fetch('/create_all_file_types', {
+        method: `POST`,
+        body: funcData.formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            setVisibilityLoader(false, funcData.loaderID);
+            showMessage(1, data.message)
+        })
+        .catch(error => {
+            setVisibilityLoader(false, funcData.loaderID);
+            console.error(`Error:`, error);
+            showMessage(3, error.message)
+        });
+}
+
 function makeTree(mode = 0) {
     let funcData = initialize_variables()
     let absolutePath = [`/draw_tree`, `/compute_likelihood_of_tree`][mode]

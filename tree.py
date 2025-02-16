@@ -3,11 +3,11 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
+import json
 from d3blocks import D3Blocks
 from node import Node
 from typing import Optional, List, Union, Dict, Tuple, Set
 from Bio import Phylo
-import json
 
 
 class Tree:
@@ -245,8 +245,8 @@ class Tree:
 
     def tree_to_table(self, sort_values_by: Optional[Tuple[str, ...]] = None, decimal_length: int = 8, columns: Optional
                       [Dict[str, str]] = None, filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] =
-                      None, distance_type: type = str, l_type: type = str, lists: Optional[Tuple[str, ...]] = None
-                      ) -> pd.DataFrame:
+                      None, distance_type: type = str, list_type: type = str, lists: Optional[Tuple[str, ...]] = None,
+                      change_content_type: bool = False) -> pd.DataFrame:
         nodes_info = self.get_list_nodes_info(True, None, filters)
         columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to father',
                                            'children': 'child', 'lavel': 'Lavel', 'node_type': 'Node type',
@@ -273,8 +273,9 @@ class Tree:
                     node_info.update({'distance': distance_type(node_info.get('distance'))})
             for i in lists:
                 if columns.get(i):
-                    if l_type in (list, tuple, set):
-                        info = l_type(map(lambda x: f'{x:.2f}' if isinstance(x, (int, float)) else x, node_info.get(i)))
+                    if list_type in (list, tuple, set):
+                        info = list_type(map(lambda x: f'{x:.2f}' if (isinstance(x, (int, float)) and
+                                                                      change_content_type) else x, node_info.get(i)))
                     else:
                         info = ' '.join(map(str, node_info.get(i)))
                     node_info.update({i: info})
@@ -320,7 +321,7 @@ class Tree:
         self.root.calculate_down(self.get_tree_info(), len(alphabet))
 
     def get_pattern_dict(self, pattern: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None, only_leaves:
-                         bool = True, value_is_string: bool = False) -> Dict[str, Union[Tuple[int, ...], str]]:
+                         bool = True, value_is_string: bool = True) -> Dict[str, Union[Tuple[int, ...], str]]:
         node_types = ['leaf'] if only_leaves else ['leaf', 'node', 'root']
         nodes_info = self.get_list_nodes_info(True, 'pre-order', {'node_type': node_types})
         pattern_list = pattern.strip().split()
@@ -388,7 +389,8 @@ class Tree:
                     'probabilities_sequence_characters': 'Probability coefficient'}
             lists = ('probabilities_sequence_characters', 'sequence')
 
-            table = self.tree_to_table(columns=cols, l_type=list, lists=lists, distance_type=float)
+            table = self.tree_to_table(columns=cols, list_type=list, lists=lists, distance_type=float,
+                                       change_content_type=True)
             dict_json = dict()
             for row in table.T:
                 dict_row = dict()
@@ -400,24 +402,31 @@ class Tree:
 
         return json.loads(str(dict_json).replace(f'\'', r'"'))
 
+    def tree_to_newick_text(self, with_internal_nodes: bool = False, decimal_length: int = 0) -> str:
+
+        return f'{self.root.subtree_to_newick(with_internal_nodes, decimal_length)};'
+
     @staticmethod
-    def tree_to_fasta(newick_tree: Union[str, 'Tree'], file_name: str = 'file.fasta', node_name: Optional[str] = None
-                      ) -> None:
+    def tree_to_fasta(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],
+                      file_name: str = 'file.fasta', node_name: Optional[str] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
             newick_tree = Tree.check_tree(newick_tree)
 
+        newick_tree.calculate_tree_for_fasta(newick_tree.get_pattern_dict(pattern), alphabet)
         Tree.make_dir(file_name)
         fasta_text = newick_tree.get_fasta_text()
         with open(file_name, 'w') as f:
             f.write(fasta_text)
 
+        return file_name
+
     @staticmethod
     def tree_to_csv(newick_tree: Union[str, 'Tree'], file_name: str = 'file.csv', sep: str = '\t', sort_values_by:
-                    Optional[Tuple[str, ...]] = None, decimal_length: int = 8, columns: Optional[Dict[str, str]] = None,
+                    Optional[Tuple[str, ...]] = None, decimal_length: int = 0, columns: Optional[Dict[str, str]] = None,
                     filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None, node_name:
-                    Optional[str] = None) -> None:
+                    Optional[str] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
@@ -429,13 +438,11 @@ class Tree:
         table = newick_tree.tree_to_table(sort_values_by, decimal_length, columns, filters)
         table.to_csv(file_name, index=False, sep=sep)
 
-    def tree_to_newick_text(self, with_internal_nodes: bool = False, decimal_length: int = 8) -> str:
-
-        return f'{self.root.subtree_to_newick(with_internal_nodes, decimal_length)};'
+        return file_name
 
     @staticmethod
     def tree_to_newick_file(newick_tree: Union[str, 'Tree'], file_name: str = 'tree_file.tree', with_internal_nodes:
-                            bool = False, decimal_length: int = 8, node_name: Optional[str] = None) -> None:
+                            bool = False, decimal_length: int = 0, node_name: Optional[str] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
@@ -447,10 +454,12 @@ class Tree:
         with open(file_name, 'w') as f:
             f.write(newick_text)
 
+        return file_name
+
     @staticmethod
     def tree_to_visual_format(newick_tree: Union[str, 'Tree'], file_name: str = 'tree_file.svg', file_extensions:
                               Optional[Union[str, Tuple[str, ...]]] = None, with_internal_nodes: bool = False,
-                              show_axes: bool = False, node_name: Optional[str] = None) -> None:
+                              show_axes: bool = False, node_name: Optional[str] = None) -> Dict[str, str]:
         file_extensions = Tree.check_file_extensions_tuple(file_extensions, 'svg')
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
@@ -463,9 +472,11 @@ class Tree:
         Tree.tree_to_newick_file(newick_tree, tmp_file, with_internal_nodes)
         phylogenetic_tree = Phylo.read(tmp_file, 'newick')
         j = file_name[::-1].find('.')
+        file_names = dict()
         for file_extension in file_extensions:
             file_name = f'{file_name[:-(j + 1)]}.{file_extension}' if len(file_name) > j > -1 else (f'{file_name}.'
                                                                                                     f'{file_extension}')
+            file_names.update({f'Newick tree ({file_extension})': file_name})
             if file_extension == 'txt':
                 with open(file_name, 'w') as f:
                     Phylo.draw_ascii(phylogenetic_tree, f)
@@ -478,9 +489,11 @@ class Tree:
                 plt.close()
         os.remove(tmp_file)
 
+        return file_names
+
     @staticmethod
     def tree_to_interactive_html(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],
-                                 file_name: str = 'interactive_tree.svg', node_name: Optional[str] = None) -> None:
+                                 file_name: str = 'interactive_tree.svg', node_name: Optional[str] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
@@ -491,7 +504,7 @@ class Tree:
         df = newick_tree.tree_to_table(columns={'node': 'target', 'father_name': 'source', 'distance': 'weight',
                                        'sequence': 'sequence', 'probabilities_sequence_characters': 'prob_characters',
                                                 'node_type': 'node_type'}, distance_type=float, filters={'node_type':
-                                       ['leaf', 'node', 'root']})
+                                       ['leaf', 'node', 'root']}, list_type=list)
         df_copy = df.copy()
         del df['sequence'], df['node_type'], df['prob_characters']
         df = df.iloc[1:]
@@ -535,32 +548,35 @@ class Tree:
         d3.set_edge_properties(df)
         d3.show()
         # html = d3.chart.show(d3.edge_properties, config=d3.config, node_properties=d3.node_properties)
+        return file_name
 
     @staticmethod
-    def tree_to_interactive_svg(newick_tree: Union[str, 'Tree'], pattern_msa_dict: Dict[str, str], file_name:
-                                str = 'interactive_tree.svg', node_name: Optional[str] = None) -> None:
+    def tree_to_interactive_svg(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],
+                                file_name: str = 'interactive_tree.svg', node_name: Optional[str] = None) -> str:
         from ete3 import Tree as eteTree, NodeStyle as eteNodeStyle, TreeStyle as eteTreeStyle, TextFace as eteTextFace
 
-        def my_layout(newick_node):
-            if newick_node.is_leaf():
-                newick_node.img_style["size"] = 10
-                newick_node.img_style["fgcolor"] = "red"
-            else:
-                newick_node.img_style["size"] = 20
-                newick_node.img_style["fgcolor"] = "blue"
+        # def my_layout(newick_node):
+        #     if newick_node.is_leaf():
+        #         newick_node.img_style["size"] = 10
+        #         newick_node.img_style["fgcolor"] = "red"
+        #     else:
+        #         newick_node.img_style["size"] = 20
+        #         newick_node.img_style["fgcolor"] = "blue"
 
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
             newick_tree = Tree.check_tree(newick_tree)
 
+        pattern_msa_dict = newick_tree.get_pattern_dict(pattern)
+        newick_tree.calculate_tree_for_fasta(pattern_msa_dict, alphabet)
         newick_text = newick_tree.tree_to_newick_text(True)
 
         Tree.make_dir(file_name)
 
         ete_tree = eteTree(newick_text, format=1)
         tr_style = eteTreeStyle()
-        tr_style.layout_fn = my_layout
+        # tr_style.layout_fn = my_layout
         tr_style.show_branch_support = True
         tr_style.mode = 'r'
         tr_style.branch_vertical_margin = 40
@@ -576,15 +592,18 @@ class Tree:
             # fg_colors={'r': 255, 'g': 255, 'b': 255, 'alpha':1}, bg_colors={'r': 255, 'g': 255, 'b': 255, 'alpha':1})
             probability = ''.join(['9' if i == 1 else f'{int(i * 10)}'
                                    for i in newick_tree.get_node_by_name(n.name).probabilities_sequence_characters])
-            n.add_face(eteTextFace(pattern_msa_dict.get(n.name), fsize=10, fgcolor='navy'), column=0)
+            n.add_face(eteTextFace(newick_tree.get_node_by_name(n.name).sequence, fsize=10, fgcolor='navy'), column=0)
             n.add_face(eteTextFace(probability, fsize=10, fgcolor='darkgray'), column=0)
             n.set_style(nd_style)
         ete_tree.render(file_name, tree_style=tr_style)
-        ete_tree.show(tree_style=tr_style)
+        # ete_tree.show(tree_style=tr_style)
+
+        return file_name
 
     @staticmethod
     def tree_to_graph(newick_tree: Union[str, 'Tree'], file_name: str = 'graph.svg', file_extensions:
-                      Optional[Union[str, Tuple[str, ...]]] = None, node_name: Optional[str] = None) -> None:
+                      Optional[Union[str, Tuple[str, ...]]] = None, node_name: Optional[str] = None
+                      ) -> Union[str, Dict[str, str]]:
         file_extensions = Tree.check_file_extensions_tuple(file_extensions, 'png')
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
@@ -594,10 +613,13 @@ class Tree:
         Tree.make_dir(file_name)
         columns = {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to father'}
         table = newick_tree.tree_to_table(None, 0, columns)
+        table = table.drop(0)
         j = file_name[::-1].find('.')
+        file_names = dict()
         for file_extension in file_extensions:
             file_name = f'{file_name[:-(j + 1)]}.{file_extension}' if len(file_name) > j > -1 else (f'{file_name}.'
                                                                                                     f'{file_extension}')
+            file_names.update({f'Graph ({file_extension})': file_name})
             graph = nx.Graph()
             for row in table.values:
                 graph.add_edge(row[1], row[0], length=(float(row[2]) if row[2] else 0.0))
@@ -608,6 +630,8 @@ class Tree:
                 plt.close()
             if file_extension in ('dot', ):
                 nx.drawing.nx_pydot.write_dot(graph, file_name)
+
+        return file_names
 
     @staticmethod
     def get_random_name(lenght: int = 24) -> str:
