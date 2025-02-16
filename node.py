@@ -19,6 +19,7 @@ class Node:
     probable_character: str
     sequence: str
     probabilities_sequence_characters: List[Union[float, np.ndarray]]
+    ancestral_sequence: str
 
     def __init__(self, name: Optional[str]) -> None:
         self.father = None
@@ -33,6 +34,7 @@ class Node:
         self.probable_character = ''
         self.sequence = ''
         self.probabilities_sequence_characters = []
+        self.ancestral_sequence = ''
 
     def __str__(self) -> str:
         return self.get_name(True)
@@ -40,7 +42,7 @@ class Node:
     def __dir__(self) -> list:
         return ['children', 'distance_to_father', 'father', 'name', 'up_vector', 'down_vector', 'likelihood',
                 'marginal_vector', 'probability_vector', 'probable_character', 'sequence',
-                'probabilities_sequence_characters']
+                'probabilities_sequence_characters', 'ancestral_sequence']
 
     def get_list_nodes_info(self, with_additional_details: bool = False, mode: Optional[str] = None, filters:
                             Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None, only_node_list:
@@ -130,7 +132,7 @@ class Node:
                 self.up_vector, 'down_vector': self.down_vector, 'likelihood': self.likelihood, 'marginal_vector':
                 self.marginal_vector, 'probability_vector': self.probability_vector, 'probable_character':
                 self.probable_character, 'sequence': self.sequence, 'probabilities_sequence_characters':
-                self.probabilities_sequence_characters}
+                self.probabilities_sequence_characters, 'ancestral_sequence': self.ancestral_sequence}
 
     def get_node_by_name(self, node_name: str) -> Optional['Node']:
         if node_name == self.name:

@@ -286,6 +286,30 @@ class Tree:
 
         return tree_table.sort_values(by=list(sort_values_by)) if sort_values_by else tree_table
 
+    def calculate_ancestral_sequence(self, newick_node: Optional[Union[Node, str]] = None) -> None:
+        node_list = []
+        if not newick_node:
+            node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
+        else:
+            node_list.append(newick_node)
+
+        ancestral_alphabet = Tree.get_ancestral_alphabet()
+        alphabet = Tree.get_alphabet(0)
+        for current_node in node_list:
+            current_node.ancestral_sequence = ''
+            if current_node.father:
+                for i in range(len(current_node.sequence)):
+                    if current_node.sequence[i] == current_node.father.sequence[i] == alphabet[0]:
+                        current_node.ancestral_sequence += ancestral_alphabet[0]
+                    elif ((current_node.sequence[i] != current_node.father.sequence[i])
+                          and (current_node.sequence[i] == alphabet[0])):
+                        current_node.ancestral_sequence += ancestral_alphabet[1]
+                    elif ((current_node.sequence[i] != current_node.father.sequence[i])
+                          and (current_node.sequence[i] == alphabet[1])):
+                        current_node.ancestral_sequence += ancestral_alphabet[2]
+                    elif current_node.sequence[i] == current_node.father.sequence[i] == alphabet[1]:
+                        current_node.ancestral_sequence += ancestral_alphabet[3]
+
     def calculate_marginal(self, newick_node: Optional[Union[Node, str]], alphabet: Union[Tuple[str, ...], str],
                            pattern: Optional[str] = None, node_name: Optional[str] = None
                            ) -> Tuple[Union[List[np.ndarray], List[float]], Union[np.ndarray, float]]:
@@ -293,7 +317,7 @@ class Tree:
         if node_name and isinstance(node_name, str):
             Tree.rename_nodes(self, node_name)
         if not newick_node:
-            node_list = self.root.get_list_nodes_info(False, None, {'node_type': ['node', 'root']}, True)
+            node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'root']}, only_node_list=True)
             if node_list:
                 newick_node = np.random.choice(np.array(node_list))
         else:
@@ -349,6 +373,10 @@ class Tree:
 
     def calculate_tree_for_fasta(self, pattern: Union[Dict[str, str], str], alphabet: Union[Tuple[str, ...], str]
                                  ) -> str:
+        node_list = self.root.get_list_nodes_info(only_node_list=True)
+        for current_node in node_list:
+            current_node.sequence = ''
+
         if isinstance(pattern, str):
             self.calculate_up(pattern, alphabet)
             self.calculate_down(alphabet)
@@ -365,6 +393,8 @@ class Tree:
                 self.calculate_down(alphabet)
                 self.calculate_marginal(None, alphabet, current_pattern)
 
+        self.calculate_ancestral_sequence()
+
         return self.get_fasta_text()
 
     def calculate_likelihood_for_msa(self, pattern: str, alphabet: Union[Tuple[str, ...], str]) -> Tuple[List[float],
@@ -373,8 +403,8 @@ class Tree:
         return self.root.calculate_likelihood_for_msa(self.get_pattern_dict(pattern), alphabet)
 
     def get_fasta_text(self) -> str:
-        columns = {'node': 'Name', 'sequence': 'Sequence', 'children': 'child', 'lavel': 'Lavel',
-                   'node_type': 'Node Type'}
+        columns = {'node': 'Name', 'sequence': 'Sequence', 'ancestral_sequence': 'Ancestral sequence', 'children':
+                   'child', 'lavel': 'Lavel', 'node_type': 'Node Type'}
         table = self.tree_to_table(('Node Type', 'Name'), columns=columns)
         fasta_text = ''
         dict_table = table.to_dict()
@@ -386,8 +416,9 @@ class Tree:
     def get_json_structure(self, return_table: bool = False) -> str:
         if return_table:
             cols = {'node': 'Name', 'distance': 'Distance to father', 'node_type': 'Node type', 'sequence': 'Sequence',
-                    'probabilities_sequence_characters': 'Probability coefficient'}
-            lists = ('probabilities_sequence_characters', 'sequence')
+                    'ancestral_sequence': 'Ancestral sequence', 'probabilities_sequence_characters':
+                    'Probability coefficient'}
+            lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
 
             table = self.tree_to_table(columns=cols, list_type=list, lists=lists, distance_type=float,
                                        change_content_type=True)
@@ -638,6 +669,11 @@ class Tree:
         abc_list = [_ for _ in 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890']
 
         return ''.join(np.random.choice(abc_list, lenght))
+
+    @staticmethod
+    def get_ancestral_alphabet() -> Tuple[str, ...]:
+
+        return 'A', 'G', 'L', 'P'
 
     @staticmethod
     def get_alphabet(search_argument: Union[Set[str], int, str]) -> Tuple[str, ...]:

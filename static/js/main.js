@@ -4,7 +4,7 @@ function convertJSONToTable(jsonData) {
 
     headers.forEach(header => {
         let colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen",
-            "mediumturquoise", "dodgerblue", "slateblue", "darkviolet"]
+            "mediumturquoise", "dodgerblue", "slateblue", "darkviolet"];
         let value = ``;
         let jsonValue = jsonData[header];
         table += `<tr><th class="p-2 h6 w-auto tborder-2 table-danger">${header}</th>`;
@@ -38,7 +38,7 @@ function loadExample(mode = 1) {
 }
 
 function getNodeStyle(d, nodeType, mode = 0){
-    const answers = [["crimson", "darkorange", "forestgreen"], ["coral", "gold", "limegreen"], [20, 15, 10], [22, 17, 12]]
+    const answers = [["crimson", "darkorange", "forestgreen"], ["coral", "gold", "limegreen"], [20, 15, 10], [22, 17, 12]];
     if (nodeType === "root"){
         return answers[mode][0];
     }
@@ -50,7 +50,7 @@ function getNodeStyle(d, nodeType, mode = 0){
     }
 }
 
-function phylogeneticTree(jsonData) {
+function drawPhylogeneticTree(jsonData) {
     const margin = { top: 20, right: 40, bottom: 20, left: 40 };
     const width = 600 - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
@@ -60,7 +60,7 @@ function phylogeneticTree(jsonData) {
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .call(d3.zoom().on("zoom", function (event) {
-                svg.attr("transform", event.transform)
+                svg.attr("transform", event.transform);
             }))
         .append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top}) scale(${scale})`);
@@ -80,7 +80,6 @@ function phylogeneticTree(jsonData) {
         .each(function(d) {
             const midpointX = (d.source.y + d.target.y) / 2;
             const midpointY = (d.source.x + d.target.x) / 2;
-
             svg.append("text")
                 .attr("dy", 6)
                 .attr("dx", -12)
@@ -89,6 +88,14 @@ function phylogeneticTree(jsonData) {
                 .text(`[${d.target.data.distance}]`)
                 .style("font-size", "1em")
                 .style("fill", "navy");
+            svg.append("text")
+                .attr("dy", 18)
+                .attr("dx", -12)
+                .attr("x", midpointX)
+                .attr("y", midpointY)
+                .text(`[${jsonData[1][d.target.data.name]['Ancestral sequence']}]`)
+                .style("font-size", "0.75em")
+                .style("fill", "maroon");
         });
 
     const nodes = svg.selectAll(".node")
@@ -143,28 +150,9 @@ function initialize_variables() {
     return {"formData": formData, "loaderID": loaderID}
 }
 
-function createAllFileTypes() {
-    let funcData = initialize_variables()
-
-    fetch('/create_all_file_types', {
-        method: `POST`,
-        body: funcData.formData
-    })
-        .then(response => response.json())
-        .then(data => {
-            setVisibilityLoader(false, funcData.loaderID);
-            showMessage(1, data.message)
-        })
-        .catch(error => {
-            setVisibilityLoader(false, funcData.loaderID);
-            console.error(`Error:`, error);
-            showMessage(3, error.message)
-        });
-}
-
 function makeTree(mode = 0) {
-    let funcData = initialize_variables()
-    let absolutePath = [`/draw_tree`, `/compute_likelihood_of_tree`][mode]
+    let funcData = initialize_variables();
+    let absolutePath = [`/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
 
     fetch(absolutePath, {
         method: `POST`,
@@ -173,12 +161,12 @@ function makeTree(mode = 0) {
         .then(response => response.json())
         .then(data => {
             setVisibilityLoader(false, funcData.loaderID);
-            mode === 0 ? phylogeneticTree(data.message) : showMessage(1, data.message)
+            mode === 0 ? drawPhylogeneticTree(data.message) : showMessage(1, data.message);
         })
         .catch(error => {
             setVisibilityLoader(false, funcData.loaderID);
             console.error(`Error:`, error);
-            showMessage(3, error.message)
+            showMessage(3, error.message);
         });
 }
 
@@ -253,6 +241,6 @@ function test(testData) {
         .catch(error => {
             setVisibilityLoader(false, loaderID);
             console.error(`Error:`, error);
-            showMessage(3, error.message)
+            showMessage(3, error.message);
         });
 }
