@@ -127,8 +127,10 @@ def draw_tree():
             pattern_dict = newick_tree.get_pattern_dict(pattern_msa)
             alphabet = Tree.get_alphabet_from_dict(pattern_dict)
             newick_tree.calculate_tree_for_fasta(pattern_dict, alphabet)
+            newick_tree.calculate_ancestral_sequence()
             result.append(newick_tree.get_json_structure())
             result.append(newick_tree.get_json_structure(return_table=True))
+            result.append(Tree.get_columns_list_for_sorting())
 
         return jsonify(message=result)
 

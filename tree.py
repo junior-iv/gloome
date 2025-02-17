@@ -393,8 +393,8 @@ class Tree:
                 self.calculate_down(alphabet)
                 self.calculate_marginal(None, alphabet, current_pattern)
 
-        self.calculate_ancestral_sequence()
-
+        # self.calculate_ancestral_sequence()
+        #
         return self.get_fasta_text()
 
     def calculate_likelihood_for_msa(self, pattern: str, alphabet: Union[Tuple[str, ...], str]) -> Tuple[List[float],
@@ -402,9 +402,10 @@ class Tree:
 
         return self.root.calculate_likelihood_for_msa(self.get_pattern_dict(pattern), alphabet)
 
-    def get_fasta_text(self) -> str:
-        columns = {'node': 'Name', 'sequence': 'Sequence', 'ancestral_sequence': 'Ancestral sequence', 'children':
-                   'child', 'lavel': 'Lavel', 'node_type': 'Node Type'}
+    def get_fasta_text(self, columns: Optional[Dict[str, str]] = None) -> str:
+        columns = columns if columns else {'node': 'Name', 'sequence': 'Sequence', 'ancestral_sequence':
+                                           'Ancestral sequence', 'children': 'child', 'lavel': 'Lavel', 'node_type':
+                                           'Node Type'}
         table = self.tree_to_table(('Node Type', 'Name'), columns=columns)
         fasta_text = ''
         dict_table = table.to_dict()
@@ -413,19 +414,21 @@ class Tree:
 
         return fasta_text[:-1]
 
-    def get_json_structure(self, return_table: bool = False) -> str:
+    def get_json_structure(self, return_table: bool = False, columns: Optional[Dict[str, str]] = None
+                           ) -> Dict[str, Union[List[str], str]]:
         if return_table:
-            cols = {'node': 'Name', 'distance': 'Distance to father', 'node_type': 'Node type', 'sequence': 'Sequence',
-                    'ancestral_sequence': 'Ancestral sequence', 'probabilities_sequence_characters':
-                    'Probability coefficient'}
+            columns = columns if columns else {'node': 'Name', 'node_type': 'Node type', 'distance':
+                                               'Distance to father', 'sequence': 'Sequence',
+                                               'probabilities_sequence_characters': 'Probability coefficient',
+                                               'ancestral_sequence': 'Ancestral sequence'}
             lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
 
-            table = self.tree_to_table(columns=cols, list_type=list, lists=lists, distance_type=float,
+            table = self.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float,
                                        change_content_type=True)
             dict_json = dict()
             for row in table.T:
                 dict_row = dict()
-                for key in cols.values():
+                for key in columns.values():
                     dict_row.update({key: table[key][row]})
                 dict_json.update({table['Name'][row]: dict_row})
         else:
@@ -436,6 +439,13 @@ class Tree:
     def tree_to_newick_text(self, with_internal_nodes: bool = False, decimal_length: int = 0) -> str:
 
         return f'{self.root.subtree_to_newick(with_internal_nodes, decimal_length)};'
+
+    @staticmethod
+    def get_columns_list_for_sorting() -> Dict[str, List[str]]:
+        result = {'List for sorting': ['Name', 'Node type', 'Distance to father', 'Sequence',
+                                       'Probability coefficient', 'Ancestral sequence']}
+
+        return json.loads(str(result).replace(f'\'', r'"'))
 
     @staticmethod
     def tree_to_fasta(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],

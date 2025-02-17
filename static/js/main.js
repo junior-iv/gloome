@@ -1,17 +1,26 @@
-function convertJSONToTable(jsonData) {
-    let headers = Object.keys(jsonData);
-    let table = `<details class="w-95 h-100 h6" open><summary>Node information</summary><table class="w-97 p-4 tborder table-danger">`;
+function convertJSONToTable(jsonData, jsonSort) {
+    // const headers = Object.keys(jsonData);
+    const sortingList = jsonSort["List for sorting"];
+    let table = `<details class="w-95 h-100 h7" open><summary>Node information</summary><table class="w-97 p-4 tborder table-danger">`;
 
-    headers.forEach(header => {
-        let colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen",
+    sortingList.forEach(header => {
+        const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen",
             "mediumturquoise", "dodgerblue", "slateblue", "darkviolet"];
+        const colorsAS = {"A": "crimson", "G": "darkorange", "L": "forestgreen", "P": "slateblue"}
         let value = ``;
         let jsonValue = jsonData[header];
-        table += `<tr><th class="p-2 h6 w-auto tborder-2 table-danger">${header}</th>`;
-        typeof jsonValue === "object" ? Object.values(jsonValue).forEach(i => {
-            value += `<td style="color: ${colors[Math.floor(i * 9)]}" class="h6 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
-            // value += `<td style="color: ${colors[Math.floor((i < 0.25 ? 1 : i) * 6)]}" class="h6 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
-        }) : value = `<td class="h6 w-auto text-center">${jsonValue}</td>`;
+        table += `<tr><th class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;
+        if (typeof jsonValue === "object" && header !== "Ancestral sequence") {Object.values(jsonValue).forEach(i => {
+            value += `<td style="color: ${colors[Math.trunc(i * 9)]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+        })}
+        else if (typeof jsonValue === "object" && header === "Ancestral sequence") {Object.values(jsonValue).forEach(i => {
+            value += `<td style="color: ${colorsAS[i]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+        })}
+        else {value = `<td class="h7 w-auto text-center">${jsonValue}</td>`}
+        // typeof jsonValue === "object" ? Object.values(jsonValue).forEach(i => {
+        //     value += `<td style="color: ${colors[Math.floor(i * 9)]}" class="h6 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+        //     // value += `<td style="color: ${colors[Math.floor((i < 0.25 ? 1 : i) * 6)]}" class="h6 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+        // }) : value = `<td class="h6 w-auto text-center">${jsonValue}</td>`;
         table += `<th>${value}</th></tr>`;
     });
 
@@ -88,14 +97,14 @@ function drawPhylogeneticTree(jsonData) {
                 .text(`[${d.target.data.distance}]`)
                 .style("font-size", "1em")
                 .style("fill", "navy");
-            svg.append("text")
-                .attr("dy", 18)
-                .attr("dx", -12)
-                .attr("x", midpointX)
-                .attr("y", midpointY)
-                .text(`[${jsonData[1][d.target.data.name]['Ancestral sequence']}]`)
-                .style("font-size", "0.75em")
-                .style("fill", "maroon");
+            // svg.append("text")
+            //     .attr("dy", 18)
+            //     .attr("dx", -12)
+            //     .attr("x", midpointX)
+            //     .attr("y", midpointY)
+            //     .text(`[${jsonData[1][d.target.data.name]['Ancestral sequence']}]`)
+            //     .style("font-size", "0.75em")
+            //     .style("fill", "maroon");
         });
 
     const nodes = svg.selectAll(".node")
@@ -125,7 +134,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("opacity", 0);
         })
         .on("click", function(event, d) {
-            convertJSONToTable(jsonData[1][d.data.name]);
+            convertJSONToTable(jsonData[1][d.data.name], jsonData[2]);
         })
 
     nodes.append("text")

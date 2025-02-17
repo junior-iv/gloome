@@ -262,11 +262,10 @@ class Node:
         sequence = '\t'.join([j for j in self.sequence])
         info = f'Name: {self.name}<br>Distance: {str(self.distance_to_father)}<br>Sequence: <br>{sequence}'
         dict_json.update({'name': self.name})
-        dict_json.update({'info': info})
         dict_json.update({'distance': str(self.distance_to_father)})
         if self.children:
-            probability_mark = '\t'.join(['9' if j == 1 else f'{int(j * 10)}'
-                                          for j in self.probabilities_sequence_characters])
+            probability_mark = '\t'.join(['9' if i == 1 else f'{int(i * 10)}'
+                                          for i in self.probabilities_sequence_characters])
             probability_coefficient = ' '.join([f'{self.sequence[i]} [{j:.2f}]' for i, j in
                                                 enumerate(self.probabilities_sequence_characters)])
             info += (f'<br>Probability mark (0-9): <br>{probability_mark}<br>Probability coefficient: <br>'
@@ -274,7 +273,11 @@ class Node:
             dict_json.update({'children': []})
             for child in self.children:
                 dict_json['children'].append(child.node_to_json(dict()))
-                dict_json.update({'info': info})
+        if self.father:
+            ancestral_sequence = '\t'.join([i for i in self.ancestral_sequence])
+            info += f'<br>Ancestral sequence: <br>{ancestral_sequence}'
+
+        dict_json.update({'info': info})
 
         return dict_json
 

@@ -720,7 +720,7 @@ hr {
     opacity: .25
 }
 
-.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+.h1, .h2, .h3, .h4, .h5, .h6, .h7, h1, h2, h3, h4, h5, h6, h7 {
     margin-top: 0;
     margin-bottom: .5rem;
     font-weight: 500;
@@ -783,6 +783,15 @@ hr {
 @media (min-width: 1200px) {
     .h6, h6 {
         font-size: 1rem
+    }
+}
+
+.h7, h7 {
+    font-size: calc(1.200rem + .1vw)
+}
+@media (min-width: 1200px) {
+    .h7, h7 {
+        font-size: .75rem
     }
 }
 
