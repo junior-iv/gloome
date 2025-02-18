@@ -159,3 +159,7 @@ def test():
         result = request.form.get('testData')
         print(result)
         return jsonify(message=result)
+
+
+if __name__ == '__main__':
+    app.run(port=3000, debug=True)

@@ -17,10 +17,6 @@ function convertJSONToTable(jsonData, jsonSort) {
             value += `<td style="color: ${colorsAS[i]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
         })}
         else {value = `<td class="h7 w-auto text-center">${jsonValue}</td>`}
-        // typeof jsonValue === "object" ? Object.values(jsonValue).forEach(i => {
-        //     value += `<td style="color: ${colors[Math.floor(i * 9)]}" class="h6 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
-        //     // value += `<td style="color: ${colors[Math.floor((i < 0.25 ? 1 : i) * 6)]}" class="h6 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
-        // }) : value = `<td class="h6 w-auto text-center">${jsonValue}</td>`;
         table += `<th>${value}</th></tr>`;
     });
 
@@ -197,6 +193,7 @@ function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`
 function setVisibilityLoader(visible = true, loaderID) {
     if (visible) {
         document.getElementById('tree').innerText = '';
+        document.getElementById('nodeInfo').innerText = '';
         document.getElementById(loaderID).classList.remove(`invisible`);
         hide_all();
     } else {

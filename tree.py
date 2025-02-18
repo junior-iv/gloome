@@ -442,8 +442,8 @@ class Tree:
 
     @staticmethod
     def get_columns_list_for_sorting() -> Dict[str, List[str]]:
-        result = {'List for sorting': ['Name', 'Node type', 'Distance to father', 'Sequence',
-                                       'Probability coefficient', 'Ancestral sequence']}
+        result = {'List for sorting': ['Name', 'Node type', 'Distance to father', 'Sequence', 'Probability coefficient',
+                                       'Ancestral sequence']}
 
         return json.loads(str(result).replace(f'\'', r'"'))
 
@@ -590,56 +590,56 @@ class Tree:
         d3.show()
         # html = d3.chart.show(d3.edge_properties, config=d3.config, node_properties=d3.node_properties)
         return file_name
-
-    @staticmethod
-    def tree_to_interactive_svg(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],
-                                file_name: str = 'interactive_tree.svg', node_name: Optional[str] = None) -> str:
-        from ete3 import Tree as eteTree, NodeStyle as eteNodeStyle, TreeStyle as eteTreeStyle, TextFace as eteTextFace
-
-        # def my_layout(newick_node):
-        #     if newick_node.is_leaf():
-        #         newick_node.img_style["size"] = 10
-        #         newick_node.img_style["fgcolor"] = "red"
-        #     else:
-        #         newick_node.img_style["size"] = 20
-        #         newick_node.img_style["fgcolor"] = "blue"
-
-        if node_name and isinstance(node_name, str):
-            newick_tree = Tree.rename_nodes(newick_tree, node_name)
-        else:
-            newick_tree = Tree.check_tree(newick_tree)
-
-        pattern_msa_dict = newick_tree.get_pattern_dict(pattern)
-        newick_tree.calculate_tree_for_fasta(pattern_msa_dict, alphabet)
-        newick_text = newick_tree.tree_to_newick_text(True)
-
-        Tree.make_dir(file_name)
-
-        ete_tree = eteTree(newick_text, format=1)
-        tr_style = eteTreeStyle()
-        # tr_style.layout_fn = my_layout
-        tr_style.show_branch_support = True
-        tr_style.mode = 'r'
-        tr_style.branch_vertical_margin = 40
-        tr_style.title.add_face(eteTextFace(newick_text, fsize=5, fgcolor='darkred'), column=0)
-        tr_style.show_leaf_name, tr_style.show_scale, tr_style.show_branch_length = False, False, True
-        tr_style.margin_left, tr_style.margin_right, tr_style.margin_top, tr_style.margin_bottom = 20, 20, 20, 20
-
-        nd_style = eteNodeStyle(shape='sphere', size=6, fgcolor='darkred', vt_line_type=0, vt_line_color='darkgray',
-                                hz_line_type=0, hz_line_color='darkgray', bgcolor='white')
-        for n in ete_tree.traverse():
-            n.add_face(eteTextFace(n.name, fsize=10, fgcolor='maroon'), column=0)
-            # sequence_face = ete.SequenceFace(pattern_msa_dict.get(n.name),
-            # fg_colors={'r': 255, 'g': 255, 'b': 255, 'alpha':1}, bg_colors={'r': 255, 'g': 255, 'b': 255, 'alpha':1})
-            probability = ''.join(['9' if i == 1 else f'{int(i * 10)}'
-                                   for i in newick_tree.get_node_by_name(n.name).probabilities_sequence_characters])
-            n.add_face(eteTextFace(newick_tree.get_node_by_name(n.name).sequence, fsize=10, fgcolor='navy'), column=0)
-            n.add_face(eteTextFace(probability, fsize=10, fgcolor='darkgray'), column=0)
-            n.set_style(nd_style)
-        ete_tree.render(file_name, tree_style=tr_style)
-        # ete_tree.show(tree_style=tr_style)
-
-        return file_name
+    #
+    # @staticmethod
+    # def tree_to_interactive_svg(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],
+    #                             file_name: str = 'interactive_tree.svg', node_name: Optional[str] = None) -> str:
+    #     from ete3 import Tree as eteTree, NodeStyle as eteNodeStyle, TreeStyle as eteTreeStyle, TextFace as eteTextFace
+    #
+    #     # def my_layout(newick_node):
+    #     #     if newick_node.is_leaf():
+    #     #         newick_node.img_style["size"] = 10
+    #     #         newick_node.img_style["fgcolor"] = "red"
+    #     #     else:
+    #     #         newick_node.img_style["size"] = 20
+    #     #         newick_node.img_style["fgcolor"] = "blue"
+    #
+    #     if node_name and isinstance(node_name, str):
+    #         newick_tree = Tree.rename_nodes(newick_tree, node_name)
+    #     else:
+    #         newick_tree = Tree.check_tree(newick_tree)
+    #
+    #     pattern_msa_dict = newick_tree.get_pattern_dict(pattern)
+    #     newick_tree.calculate_tree_for_fasta(pattern_msa_dict, alphabet)
+    #     newick_text = newick_tree.tree_to_newick_text(True)
+    #
+    #     Tree.make_dir(file_name)
+    #
+    #     ete_tree = eteTree(newick_text, format=1)
+    #     tr_style = eteTreeStyle()
+    #     # tr_style.layout_fn = my_layout
+    #     tr_style.show_branch_support = True
+    #     tr_style.mode = 'r'
+    #     tr_style.branch_vertical_margin = 40
+    #     tr_style.title.add_face(eteTextFace(newick_text, fsize=5, fgcolor='darkred'), column=0)
+    #     tr_style.show_leaf_name, tr_style.show_scale, tr_style.show_branch_length = False, False, True
+    #     tr_style.margin_left, tr_style.margin_right, tr_style.margin_top, tr_style.margin_bottom = 20, 20, 20, 20
+    #
+    #     nd_style = eteNodeStyle(shape='sphere', size=6, fgcolor='darkred', vt_line_type=0, vt_line_color='darkgray',
+    #                             hz_line_type=0, hz_line_color='darkgray', bgcolor='white')
+    #     for n in ete_tree.traverse():
+    #         n.add_face(eteTextFace(n.name, fsize=10, fgcolor='maroon'), column=0)
+    #         # sequence_face = ete.SequenceFace(pattern_msa_dict.get(n.name),
+    #         # fg_colors={'r': 255, 'g': 255, 'b': 255, 'alpha':1}, bg_colors={'r': 255, 'g': 255, 'b': 255, 'alpha':1})
+    #         probability = ''.join(['9' if i == 1 else f'{int(i * 10)}'
+    #                                for i in newick_tree.get_node_by_name(n.name).probabilities_sequence_characters])
+    #         n.add_face(eteTextFace(newick_tree.get_node_by_name(n.name).sequence, fsize=10, fgcolor='navy'), column=0)
+    #         n.add_face(eteTextFace(probability, fsize=10, fgcolor='darkgray'), column=0)
+    #         n.set_style(nd_style)
+    #     ete_tree.render(file_name, tree_style=tr_style)
+    #     # ete_tree.show(tree_style=tr_style)
+    #
+    #     return file_name
 
     @staticmethod
     def tree_to_graph(newick_tree: Union[str, 'Tree'], file_name: str = 'graph.svg', file_extensions:

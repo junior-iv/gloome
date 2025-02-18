@@ -43,11 +43,11 @@ def create_all_file_types(newick_text, pattern_msa, file_path) -> Dict[str, Unio
     alphabet = Tree.get_alphabet_from_dict(pattern_dict)
     path_dict.update({'Interactive tree (html)': Tree.tree_to_interactive_html(newick_text, pattern_msa, alphabet,
                      file_name=f'{file_path}/interactive_tree.html', node_name='N')})
-    path_dict.update({'Interactive tree (svg)': Tree.tree_to_interactive_svg(newick_text, pattern_msa, alphabet,
-                     file_name=f'{file_path}/interactive_tree.svg', node_name='N')})
+    # path_dict.update({'Interactive tree (svg)': Tree.tree_to_interactive_svg(newick_text, pattern_msa, alphabet,
+    #                  file_name=f'{file_path}/interactive_tree.svg', node_name='N')})
     path_dict.update(Tree.tree_to_graph(newick_text, file_name=f'{file_path}/graph.txt',
                      file_extensions=('dot', 'png', 'svg'), node_name='N'))
-    path_dict.update(Tree.tree_to_visual_format(newick_text, file_name=f'{file_path}/newick_tree.svg',
+    path_dict.update(Tree.tree_to_visual_format(newick_text, file_name=f'{file_path}/tree.svg',
                      file_extensions=('txt', 'png', 'svg'), with_internal_nodes=True, node_name='N'))
     path_dict.update({'Newick text (tree)': Tree.tree_to_newick_file(newick_text,
                      file_name=f'{file_path}/newick_tree.tree', with_internal_nodes=True, node_name='N')})
@@ -57,8 +57,10 @@ def create_all_file_types(newick_text, pattern_msa, file_path) -> Dict[str, Unio
                      f'{file_path}/fasta_file.fasta')})
 
     result = {'execution_time': convert_seconds(time() - start_time)}
-    result.update({f'{key}': '<a href="' + url_for('file', file_path=value) + '" target="_blank">' + value + '</a>'
-                   for key, value in zip(path_dict.keys(), path_dict.values())})
+    for key, value in zip(path_dict.keys(), path_dict.values()):
+        # # 'text/plain'
+        # content_type = 'type="text/csv"' if sum([i in key for i in ('(dot)', '(csv)', '(fasta)')]) > 0 else ''
+        result.update({f'{key}': f'<a href="{url_for("file", file_path=value)}" target="_blank">{value}</a>'})
 
     return result
 
