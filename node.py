@@ -229,8 +229,8 @@ class Node:
             for child in self.children:
                 child.calculate_down(tree_info, alphabet_size)
 
-    def calculate_likelihood_for_msa(self, pattern_msa_dict: Dict[str, str], alphabet: Union[Tuple[str, ...], str]
-                                     ) -> Tuple[List[float], float, float]:
+    def calculate_likelihood(self, pattern_msa_dict: Dict[str, str], alphabet: Union[Tuple[str, ...], str]
+                             ) -> Tuple[List[float], float, float]:
 
         leaves_info = self.get_list_nodes_info(True, 'pre-order', {'node_type': ['leaf']})
 

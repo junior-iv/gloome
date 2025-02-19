@@ -12,6 +12,9 @@ from Bio import Phylo
 
 class Tree:
     root: Optional[Node]
+    log_likelihood_vector: List[Union[float, np.ndarray]]
+    log_likelihood: Union[float, np.ndarray]
+    likelihood: Union[float, np.ndarray]
 
     def __init__(self, data: Union[str, Node, None] = None, node_name: Optional[str] = None) -> None:
         if isinstance(data, str):
@@ -397,10 +400,15 @@ class Tree:
         #
         return self.get_fasta_text()
 
-    def calculate_likelihood_for_msa(self, pattern: str, alphabet: Union[Tuple[str, ...], str]) -> Tuple[List[float],
-                                                                                                         float, float]:
+    def calculate_likelihood(self, pattern: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None
+                             ) -> Tuple[List[float], float, float]:
+        pattern_dict = self.get_pattern_dict(pattern)
+        alphabet = alphabet if alphabet else Tree.get_alphabet_from_dict(pattern_dict)
 
-        return self.root.calculate_likelihood_for_msa(self.get_pattern_dict(pattern), alphabet)
+        self.log_likelihood_vector, self.log_likelihood, self.likelihood = self.root.calculate_likelihood(pattern_dict,
+                                                                                                          alphabet)
+
+        return self.log_likelihood_vector, self.log_likelihood, self.likelihood
 
     def get_fasta_text(self, columns: Optional[Dict[str, str]] = None) -> str:
         columns = columns if columns else {'node': 'Name', 'sequence': 'Sequence', 'ancestral_sequence':

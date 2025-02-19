@@ -1,31 +1,14 @@
-import statistical_functions as stf
 from time import time
-from typing import Union, Tuple, Optional, Dict, Set
+from typing import Union, Dict
 from datetime import timedelta
 from tree import Tree
 from flask import url_for
 
 
-def get_alphabet(character_set: Set[str]) -> Tuple[str]:
-    alphabets = ({'0', '1'}, {'A', 'C', 'G', 'T'},
-                 {'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V'})
-    for alphabet in alphabets:
-        if not character_set - alphabet:
-            return tuple(alphabet)
-
-
-def get_alphabet_from_dict(pattern_msa_dict: Dict[str, str]) -> Tuple[str]:
-    character_list = []
-    for sequence in pattern_msa_dict.values():
-        character_list += [i for i in sequence]
-
-    return get_alphabet(set(character_list))
-
-
-def compute_likelihood_of_tree(newick_text: str, pattern_msa: Optional[str] = None) -> Dict[str, Union[str, float,
-                                                                                            int]]:
+def compute_likelihood_of_tree(newick_text: str, pattern_msa: str) -> Dict[str, Union[str, float, int]]:
     start_time = time()
-    log_likelihood_list, log_likelihood, likelihood = stf.compute_likelihood_of_tree(newick_text, pattern_msa)
+    newick_tree = Tree.rename_nodes(newick_text)
+    log_likelihood_list, log_likelihood, likelihood = newick_tree.calculate_likelihood(pattern_msa)
 
     result = {'execution_time': convert_seconds(time() - start_time)}
     result.update({'likelihood_of_the_tree': likelihood})
@@ -35,7 +18,7 @@ def compute_likelihood_of_tree(newick_text: str, pattern_msa: Optional[str] = No
     return result
 
 
-def create_all_file_types(newick_text, pattern_msa, file_path) -> Dict[str, Union[str, float, int]]:
+def create_all_file_types(newick_text: str, pattern_msa: str, file_path: str) -> Dict[str, Union[str, float, int]]:
     start_time = time()
     path_dict = dict()
     newick_tree = Tree.rename_nodes(newick_text)
