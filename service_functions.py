@@ -8,12 +8,12 @@ from flask import url_for
 def compute_likelihood_of_tree(newick_text: str, pattern_msa: str) -> Dict[str, Union[str, float, int]]:
     start_time = time()
     newick_tree = Tree.rename_nodes(newick_text)
-    log_likelihood_list, log_likelihood, likelihood = newick_tree.calculate_likelihood(pattern_msa)
+    newick_tree.calculate_likelihood(pattern_msa)
 
     result = {'execution_time': convert_seconds(time() - start_time)}
-    result.update({'likelihood_of_the_tree': likelihood})
-    result.update({'log_likelihood_of_the_tree': log_likelihood})
-    result.update({'log_likelihood_list': log_likelihood_list})
+    result.update({'likelihood_of_the_tree': newick_tree.likelihood})
+    result.update({'log_likelihood_of_the_tree': newick_tree.log_likelihood})
+    result.update({'log_likelihood_list': newick_tree.log_likelihood_vector})
 
     return result
 

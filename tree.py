@@ -400,15 +400,12 @@ class Tree:
         #
         return self.get_fasta_text()
 
-    def calculate_likelihood(self, pattern: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None
-                             ) -> Tuple[List[float], float, float]:
+    def calculate_likelihood(self, pattern: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None) -> None:
         pattern_dict = self.get_pattern_dict(pattern)
         alphabet = alphabet if alphabet else Tree.get_alphabet_from_dict(pattern_dict)
 
         self.log_likelihood_vector, self.log_likelihood, self.likelihood = self.root.calculate_likelihood(pattern_dict,
                                                                                                           alphabet)
-
-        return self.log_likelihood_vector, self.log_likelihood, self.likelihood
 
     def get_fasta_text(self, columns: Optional[Dict[str, str]] = None) -> str:
         columns = columns if columns else {'node': 'Name', 'sequence': 'Sequence', 'ancestral_sequence':
