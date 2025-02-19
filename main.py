@@ -1,8 +1,8 @@
+import design_functions as df
+import service_functions as sf
 from flask import Flask, request, render_template, url_for, flash, jsonify, send_file
 from tree import Tree
 from os import getenv
-import design_functions as df
-import service_functions as sf
 
 DATA_PATH = ('src/initial_data', 'src/result_data')
 

@@ -1,5 +1,4 @@
 import numpy as np
-# from tree import Tree, Node
 from scipy.linalg import expm
 
 

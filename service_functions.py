@@ -1,9 +1,9 @@
+import statistical_functions as stf
 from time import time
 from typing import Union, Tuple, Optional, Dict, Set
 from datetime import timedelta
 from tree import Tree
 from flask import url_for
-import statistical_functions as stf
 
 
 def get_alphabet(character_set: Set[str]) -> Tuple[str]:

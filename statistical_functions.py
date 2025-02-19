@@ -1,10 +1,10 @@
+import numpy as np
+import array_functions as af
+import service_functions as sf
 from math import log
 from typing import List, Union, Tuple, Optional, Dict
 from tree import Tree
 from node import Node
-import numpy as np
-import array_functions as af
-import service_functions as sf
 
 
 def compute_likelihood_of_tree(newick_text: str, pattern_msa: Optional[str] = None) -> Tuple[List[float], float, float]:

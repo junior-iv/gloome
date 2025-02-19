@@ -508,7 +508,9 @@ class Tree:
             newick_tree = Tree.check_tree(newick_tree)
 
         Tree.make_dir(file_name)
-        tmp_file = f'result_data/tmp/{Tree.get_random_name()}.tree'
+        j = file_name[::-1].find('/')
+        tmp_file = (f'{file_name[:-(j + 1)]}/tmp/{Tree.get_random_name()}'
+                    f'.tree') if len(file_name) > j > -1 else f'tmp/{Tree.get_random_name()}.tree'
         Tree.make_dir(tmp_file)
         Tree.tree_to_newick_file(newick_tree, tmp_file, with_internal_nodes)
         phylogenetic_tree = Phylo.read(tmp_file, 'newick')
@@ -594,7 +596,8 @@ class Tree:
     # @staticmethod
     # def tree_to_interactive_svg(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],
     #                             file_name: str = 'interactive_tree.svg', node_name: Optional[str] = None) -> str:
-    #     from ete3 import Tree as eteTree, NodeStyle as eteNodeStyle, TreeStyle as eteTreeStyle, TextFace as eteTextFace
+    #     from ete3 import (Tree as eteTree, NodeStyle as eteNodeStyle, TreeStyle as eteTreeStyle,
+    #                       TextFace as eteTextFace)
     #
     #     # def my_layout(newick_node):
     #     #     if newick_node.is_leaf():
@@ -629,8 +632,6 @@ class Tree:
     #                             hz_line_type=0, hz_line_color='darkgray', bgcolor='white')
     #     for n in ete_tree.traverse():
     #         n.add_face(eteTextFace(n.name, fsize=10, fgcolor='maroon'), column=0)
-    #         # sequence_face = ete.SequenceFace(pattern_msa_dict.get(n.name),
-    #         # fg_colors={'r': 255, 'g': 255, 'b': 255, 'alpha':1}, bg_colors={'r': 255, 'g': 255, 'b': 255, 'alpha':1})
     #         probability = ''.join(['9' if i == 1 else f'{int(i * 10)}'
     #                                for i in newick_tree.get_node_by_name(n.name).probabilities_sequence_characters])
     #         n.add_face(eteTextFace(newick_tree.get_node_by_name(n.name).sequence, fsize=10, fgcolor='navy'), column=0)
@@ -718,9 +719,10 @@ class Tree:
 
     @staticmethod
     def make_dir(path: str) -> None:
-        path = '/'.join(path.split('/')[:-1])
-        if not os.path.exists(path):
-            os.makedirs(path)
+        if path.find('/') > -1:
+            path = '/'.join(path.split('/')[:-1])
+            if not os.path.exists(path):
+                os.makedirs(path)
 
     @staticmethod
     def check_tree(newick_tree: Union[str, 'Tree']) -> 'Tree':
