@@ -24,26 +24,30 @@ def create_all_file_types(newick_text: str, pattern_msa: str, file_path: str) ->
     newick_tree = Tree.rename_nodes(newick_text)
     pattern_dict = newick_tree.get_pattern_dict(pattern_msa)
     alphabet = Tree.get_alphabet_from_dict(pattern_dict)
-    path_dict.update({'Interactive tree (html)': Tree.tree_to_interactive_html(newick_text, pattern_msa, alphabet,
-                     file_name=f'{file_path}/interactive_tree.html', node_name='N')})
+    path_dict.update({'Interactive tree (html)': Tree.tree_to_interactive_html(newick_tree, pattern_msa, alphabet,
+                     file_name=f'{file_path}/interactive_tree.html')})
     # path_dict.update({'Interactive tree (svg)': Tree.tree_to_interactive_svg(newick_text, pattern_msa, alphabet,
-    #                  file_name=f'{file_path}/interactive_tree.svg', node_name='N')})
-    path_dict.update(Tree.tree_to_graph(newick_text, file_name=f'{file_path}/graph.txt',
-                     file_extensions=('dot', 'png', 'svg'), node_name='N'))
-    path_dict.update(Tree.tree_to_visual_format(newick_text, file_name=f'{file_path}/tree.svg',
-                     file_extensions=('txt', 'png', 'svg'), with_internal_nodes=True, node_name='N'))
-    path_dict.update({'Newick text (tree)': Tree.tree_to_newick_file(newick_text,
-                     file_name=f'{file_path}/newick_tree.tree', with_internal_nodes=True, node_name='N')})
-    path_dict.update({'Table of nodes (csv)': Tree.tree_to_csv(newick_text, file_name=f'{file_path}/tree.csv',
-                     sep='\t', sort_values_by=('child', 'Name'), decimal_length=8, node_name='N')})
-    path_dict.update({'Fasta (fasta)': Tree.tree_to_fasta(newick_text, pattern_msa, alphabet,
+    #                  file_name=f'{file_path}/interactive_tree.svg')})
+    path_dict.update(Tree.tree_to_graph(newick_tree, file_name=f'{file_path}/graph.txt',
+                     file_extensions=('dot', 'png', 'svg')))
+    path_dict.update(Tree.tree_to_visual_format(newick_tree, file_name=f'{file_path}/tree.svg',
+                     file_extensions=('txt', 'png', 'svg'), with_internal_nodes=True))
+    path_dict.update({'Newick text (tree)': Tree.tree_to_newick_file(newick_tree,
+                     file_name=f'{file_path}/newick_tree.tree', with_internal_nodes=True)})
+    path_dict.update({'Table of nodes (csv)': Tree.tree_to_csv(newick_tree, file_name=f'{file_path}/tree.csv',
+                     sep='\t', sort_values_by=('child', 'Name'), decimal_length=8)})
+    path_dict.update({'Fasta (fasta)': Tree.tree_to_fasta(newick_tree, pattern_msa, alphabet,
                      f'{file_path}/fasta_file.fasta')})
 
     result = {'execution_time': convert_seconds(time() - start_time)}
     for key, value in zip(path_dict.keys(), path_dict.values()):
         # # 'text/plain'
         # content_type = 'type="text/csv"' if sum([i in key for i in ('(dot)', '(csv)', '(fasta)')]) > 0 else ''
-        result.update({f'{key}': f'<a href="{url_for("file", file_path=value)}" target="_blank">{value}</a>'})
+        result.update({f'{key}': f'<a mx-2 class="w-auto mw-auto form-control h7 btn btn-outline-link rounded-pill" '
+                                 f'href="{url_for("download_file", file_path=value)}" target="_blank" download>download'
+                                 f'</a>\t<a mx-2 class="w-auto mw-auto form-control h7 btn btn-outline-link rounded'
+                                 f'-pill" href="{url_for("view_file", file_path=value)}" target="_blank">link</a>'})
+        # result.update({f'{key}': f'<a href="{url_for("file", file_path=value)}" target="_blank">{value}</a>'})
 
     return result
 

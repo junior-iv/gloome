@@ -86,10 +86,22 @@ def get_exemple():
         return jsonify(message=result)
 
 
-@app.route('/file', methods=['GET'])
-def file():
+@app.route('/download_file', methods=['GET'])
+def download_file():
     if request.method == 'GET':
         file_path = request.args['file_path']
+
+        return send_file(file_path, as_attachment=False)
+
+
+@app.route('/view_file', methods=['GET'])
+def view_file():
+    if request.method == 'GET':
+        file_path = request.args['file_path']
+        j = file_path[::-1].find('.')
+        file_name = file_path[:-j]
+        file_extension = file_path[-j:]
+        file_path = f'{file_name}{"txt" if file_extension in ("csv", "tree", "dot", "fasta") else file_extension}'
 
         return send_file(file_path, as_attachment=False)
 
