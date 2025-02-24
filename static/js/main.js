@@ -1,12 +1,11 @@
 function convertJSONToTable(jsonData, jsonSort) {
-    // const headers = Object.keys(jsonData);
     const sortingList = jsonSort["List for sorting"];
+    const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
+        "dodgerblue", "slateblue", "darkviolet"];
+    const colorsAS = {"A": "crimson", "G": "darkorange", "L": "forestgreen", "P": "slateblue"}
     let table = `<details class="w-95 h-100 h7" open><summary>Node information</summary><table class="w-97 p-4 tborder table-danger">`;
 
     sortingList.forEach(header => {
-        const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen",
-            "mediumturquoise", "dodgerblue", "slateblue", "darkviolet"];
-        const colorsAS = {"A": "crimson", "G": "darkorange", "L": "forestgreen", "P": "slateblue"}
         let value = ``;
         let jsonValue = jsonData[header];
         table += `<tr><th class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;

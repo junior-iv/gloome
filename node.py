@@ -281,8 +281,7 @@ class Node:
 
         return dict_json
 
-    def subtree_to_newick(self, with_internal_nodes: bool = False, decimal_length: int = 0
-                          ) -> str:
+    def subtree_to_newick(self, with_internal_nodes: bool = False, decimal_length: int = 0) -> str:
         """This method is for internal use only."""
         node_list = self.children
         if node_list:

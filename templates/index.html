@@ -21,11 +21,8 @@
 <div class="gap-2 d-flex flex-column justify-content-start h-100 w-100 text-center">
     <div class="gap-2 d-flex flex-row justify-content-start h-50 w-100 text-center">
         <div class="container gap-2 d-flex flex-column h-75 w-50 m-3">
-            <label for="patternMSA" class="h6 text-success-emphasis my-2">please provide a phyletic pattern MSA into a text field or upload from file
-                <a href="https://en.wikipedia.org/wiki/FASTA_format" target="_blank">(FASTA format)</a>
-                <sup><svg width="16" height="16" fill="currentColor" class="text-success-emphasis" viewBox="0 0 16 16">
-                    <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94"/>
-                </svg></sup>
+            <label for="patternMSA" class="h7 text-success-emphasis my-2">please provide a phyletic pattern MSA into a text field or upload from file
+                (<a href="https://en.wikipedia.org/wiki/FASTA_format" target="_blank">FASTA format</a>)<sup>&quest;</sup>
             </label>
             <div class="d-flex gap-2 flex-row justify-content-end my-1">
                 <input id="patternMSAFile" name="patternMSAFile" type="file" accept="*.*"
@@ -33,11 +30,8 @@
             </div>
             <textarea spellcheck="false" id="patternMSA" name="patternMSA" autocomplete="on" rows="4" class="form-control btn-light"
                       placeholder="please provide a phyletic pattern MSA here"></textarea>
-            <label for="newickText" class="h6 text-success-emphasis my-2">please provide a phylogenetic tree into a text field or upload from file
-                <a href="https://en.wikipedia.org/wiki/Newick_format" target="_blank">(Newick format)</a>
-                <sup><svg width="16" height="16" fill="currentColor" class="text-success-emphasis" viewBox="0 0 16 16">
-                    <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94"/>
-                </svg></sup>
+            <label for="newickText" class="h7 text-success-emphasis my-2">please provide a phylogenetic tree into a text field or upload from file
+                (<a href="https://en.wikipedia.org/wiki/Newick_format" target="_blank">Newick format</a>)<sup>&quest;</sup>
             </label>
             <div class="d-flex gap-2 flex-row justify-content-end my-1">
                 <input id="newickTextFile" name="newickTextFile" type="file" accept="*.*"
@@ -63,7 +57,7 @@
             </div>
         </div>
         <div class="d-flex gap-2 flex-row text-start w-50 justify-content-start mx-3 mt-4">
-            <script src="//d3js.org/d3.v7.js"></script>
+            <script src="https://d3js.org/d3.v7.js"></script>
     <!--        <script src="https://d3js.org/d3.v4.js"></script>-->
             <div id="result" class="container gap-2 d-flex w-100">
                 {{nwt.loaderCube()}}

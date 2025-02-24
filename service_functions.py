@@ -41,13 +41,11 @@ def create_all_file_types(newick_text: str, pattern_msa: str, file_path: str) ->
 
     result = {'execution_time': convert_seconds(time() - start_time)}
     for key, value in zip(path_dict.keys(), path_dict.values()):
-        # # 'text/plain'
-        # content_type = 'type="text/csv"' if sum([i in key for i in ('(dot)', '(csv)', '(fasta)')]) > 0 else ''
-        result.update({f'{key}': f'<a mx-2 class="w-auto mw-auto form-control h7 btn btn-outline-link rounded-pill" '
-                                 f'href="{url_for("download_file", file_path=value)}" target="_blank" download>download'
-                                 f'</a>\t<a mx-2 class="w-auto mw-auto form-control h7 btn btn-outline-link rounded'
-                                 f'-pill" href="{url_for("view_file", file_path=value)}" target="_blank">link</a>'})
-        # result.update({f'{key}': f'<a href="{url_for("file", file_path=value)}" target="_blank">{value}</a>'})
+        result.update({f'{key}': f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+                                 f'href="{url_for("download_file", file_path=value)}" target="_blank" download><h7>'
+                                 f'download</h7></a>\t<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link '
+                                 f'rounded-pill" href="{url_for("view_file", file_path=value)}" target="_blank"><h7>'
+                                 f'link</h7></a>'})
 
     return result
 
