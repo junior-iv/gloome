@@ -481,6 +481,24 @@ class Tree:
         return file_name
 
     @staticmethod
+    def likelihood_to_csv(newick_tree: Union[str, 'Tree'], pattern: str, file_name: str = 'file.csv', sep: str = '\t',
+                          node_name: Optional[str] = None, with_copy: bool = True) -> str:
+        if node_name and isinstance(node_name, str):
+            newick_tree = Tree.rename_nodes(newick_tree, node_name)
+        else:
+            newick_tree = Tree.check_tree(newick_tree)
+
+        Tree.make_dir(file_name)
+        newick_tree.calculate_likelihood(pattern)
+        tree_table = pd.DataFrame({'POS': range(len(newick_tree.log_likelihood_vector)),
+                                   'loglikelihood': newick_tree.log_likelihood_vector})
+        tree_table.to_csv(file_name, sep=sep, index=False)
+        if with_copy:
+            Tree.copy_to_txt_file(file_name)
+
+        return file_name
+
+    @staticmethod
     def tree_to_csv(newick_tree: Union[str, 'Tree'], file_name: str = 'file.csv', sep: str = '\t', sort_values_by:
                     Optional[Tuple[str, ...]] = None, decimal_length: int = 0, columns: Optional[Dict[str, str]] = None,
                     filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None, node_name:

@@ -30,14 +30,27 @@ def create_all_file_types(newick_text: str, pattern_msa: str, file_path: str) ->
     #                  file_name=f'{file_path}/interactive_tree.svg')})
     path_dict.update(Tree.tree_to_graph(newick_tree, file_name=f'{file_path}/graph.txt',
                      file_extensions=('dot', 'png', 'svg')))
-    path_dict.update(Tree.tree_to_visual_format(newick_tree, file_name=f'{file_path}/tree.svg',
+    path_dict.update(Tree.tree_to_visual_format(newick_tree, file_name=f'{file_path}/visual_tree.svg',
                      file_extensions=('txt', 'png', 'svg'), with_internal_nodes=True))
     path_dict.update({'Newick text (tree)': Tree.tree_to_newick_file(newick_tree,
                      file_name=f'{file_path}/newick_tree.tree', with_internal_nodes=True)})
     path_dict.update({'Table of nodes (csv)': Tree.tree_to_csv(newick_tree, file_name=f'{file_path}/tree.csv',
                      sep='\t', sort_values_by=('child', 'Name'), decimal_length=8)})
     path_dict.update({'Fasta (fasta)': Tree.tree_to_fasta(newick_tree, pattern_msa, alphabet,
-                     f'{file_path}/fasta_file.fasta')})
+                     file_name=f'{file_path}/fasta_file.fasta')})
+    path_dict.update({'Likelihood (csv)': Tree.likelihood_to_csv(newick_tree, pattern_msa,
+                     file_name=f'{file_path}/likelihood.csv', sep='\t')})
+    # path_dict.update({'up_vector (csv)': Tree.tree_to_csv(newick_tree, columns={'node': 'Name'},
+    #                   file_name=f'{file_path}/up_vector.csv', sep='\t')})
+    # path_dict.update({'down_vector (csv)': Tree.tree_to_csv(newick_tree, columns={'node': 'Name'},
+    #                   file_name=f'{file_path}/down_vector.csv', sep='\t')})
+    # path_dict.update({'marginal_vector (csv)': Tree.tree_to_csv(newick_tree, columns={'node': 'Name'},
+    #                   file_name=f'{file_path}/marginal_vector.csv', sep='\t')})
+    # path_dict.update({'probability_vector (csv)': Tree.tree_to_csv(newick_tree, columns={'node': 'Name'},
+    #                   file_name=f'{file_path}/probability_vector.csv', sep='\t')})
+    # path_dict.update({'probabilities_sequence_characters (csv)': Tree.tree_to_csv(newick_tree,
+    #                   columns={'node': 'Name'},
+    #                   file_name=f'{file_path}/probabilities_sequence_characters.csv', sep='\t')})
 
     result = {'execution_time': convert_seconds(time() - start_time)}
     for key, value in zip(path_dict.keys(), path_dict.values()):
