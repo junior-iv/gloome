@@ -28,7 +28,7 @@
                 <input id="patternMSAFile" name="patternMSAFile" type="file" accept="*.*"
                        class="form-control rounded-pill" onchange="uploadFile('patternMSA', 'patternMSAFile')"/>
             </div>
-            <textarea spellcheck="false" id="patternMSA" name="patternMSA" autocomplete="on" rows="4" class="form-control btn-light"
+            <textarea spellcheck="false" id="patternMSA" name="patternMSA" autocomplete="on" rows="4" class="form-control btn-light font-verdana"
                       placeholder="please provide a phyletic pattern MSA here"></textarea>
             <label for="newickText" class="h7 text-success-emphasis my-2">please provide a phylogenetic tree into a text field or upload from file
                 (<a href="https://en.wikipedia.org/wiki/Newick_format" target="_blank">Newick format</a>)<sup>&quest;</sup>
@@ -37,8 +37,8 @@
                 <input id="newickTextFile" name="newickTextFile" type="file" accept="*.*"
                        class="form-control rounded-pill" onchange="uploadFile('newickText', 'newickTextFile')"/>
             </div>
-            <textarea spellcheck="false" id="newickText" name="newickText" autocomplete="on" rows="3" class="form-control btn-light" onchange="makeTree(0)"
-                      placeholder="please provide a phylogenetic tree here"></textarea>
+            <textarea spellcheck="false" id="newickText" name="newickText" autocomplete="on" rows="3" class="form-control btn-light font-verdana"
+                      onchange="makeTree(0)" placeholder="please provide a phylogenetic tree here"></textarea>
             <div class="gap-2 d-flex flex-column my-1">
                 <div class=" gap-2 row navbar">
                     <input id="theСleaning" name="theСleaning" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
@@ -64,7 +64,7 @@
                 {{nwt.alerts()}}
                 <div id="loader"></div>
                 <div id="tree" class="m-0 p-0 h-50 w-auto"></div>
-                <div id="tooltip" class="text-justify"></div>
+                <div id="tooltip" class="text-justify font-verdana"></div>
             </div>
         </div>
     </div>

@@ -259,24 +259,26 @@ class Node:
 
     def node_to_json(self, dict_json: Dict[str, Union[str, List[Any], float, np.ndarray]]
                      ) -> Dict[str, Union[str, List[Any], float, np.ndarray]]:
-        sequence = '\t'.join([j for j in self.sequence])
-        info = f'Name: {self.name}<br>Distance: {str(self.distance_to_father)}<br>Sequence: <br>{sequence}'
         dict_json.update({'name': self.name})
         dict_json.update({'distance': str(self.distance_to_father)})
+        sequence = '\t'.join([j for j in self.sequence])
+        info = f'Name: {self.name}<br>Distance: {str(self.distance_to_father)}<br>Sequence: <br>{sequence}'
+        probability_mark = ancestral_sequence = probability_coefficient = ''
+        if self.father:
+            ancestral_sequence = f'<br>Ancestral sequence: <br>'
+            ancestral_sequence += '\t'.join([i for i in self.ancestral_sequence])
         if self.children:
-            probability_mark = '\t'.join(['9' if i == 1 else f'{int(i * 10)}'
-                                          for i in self.probabilities_sequence_characters])
-            probability_coefficient = ' '.join([f'{self.sequence[i]} [{j:.2f}]' for i, j in
-                                                enumerate(self.probabilities_sequence_characters)])
-            info += (f'<br>Probability mark (0-9): <br>{probability_mark}<br>Probability coefficient: <br>'
-                     f'{probability_coefficient}')
+            probability_mark = f'<br>Probability mark (0-9): <br>'
+            probability_mark += '\t'.join(['9' if i == 1 else f'{int(i * 10)}'
+                                           for i in self.probabilities_sequence_characters])
+            probability_coefficient = f'<br>Probability coefficient: <br>'
+            probability_coefficient += '\t'.join([f'{self.sequence[i]} [{j:.2f}]' for i, j in
+                                                  enumerate(self.probabilities_sequence_characters)])
             dict_json.update({'children': []})
             for child in self.children:
                 dict_json['children'].append(child.node_to_json(dict()))
-        if self.father:
-            ancestral_sequence = '\t'.join([i for i in self.ancestral_sequence])
-            info += f'<br>Ancestral sequence: <br>{ancestral_sequence}'
 
+        info += f'{probability_mark}{ancestral_sequence}{probability_coefficient}'
         dict_json.update({'info': info})
 
         return dict_json

@@ -9792,6 +9792,10 @@ textarea.form-control-lg {
     column-gap: 3rem !important
 }
 
+.font-verdana {
+    font-family: Verdana !important
+}
+
 .font-monospace {
     font-family: var(--bs-font-monospace) !important
 }

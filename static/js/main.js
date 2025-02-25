@@ -26,7 +26,7 @@ function convertJSONToTable(jsonData, jsonSort) {
 function setLoader(loaderOn = true) {
     if (loaderOn) {
         document.getElementById('loader').innerHTML =
-            '<div id="loaderCube" class="loaderCube m-9 d-flex gap-2"><span></span><span></span><span></span><span></span></div>'
+            `<div id="loaderCube" class="loaderCube m-9 d-flex gap-2">${'<span></span>'.repeat(4)}</div>`
     } else {
         document.getElementById('loader').innerHTML = ''
     }
@@ -142,8 +142,8 @@ function drawPhylogeneticTree(jsonData) {
         })
 
     nodes.append("text")
-      .attr("dy", -18)
-      .attr("x", d => d.children ? 12 : 0)
+      .attr("dy", d => d.children ? -18 : -12)
+      .attr("x", d => jsonData[1][d.data.name]["Node type"] === "root" ? 18 : 12)
       .style("text-anchor", d => d.children ? "start" : "start")
       .style("font-size", "1.25em")
       .style("fill", "darkslategray")
