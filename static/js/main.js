@@ -23,7 +23,16 @@ function convertJSONToTable(jsonData, jsonSort) {
     document.getElementById('nodeInfo').innerHTML = table;
 }
 
-function loadExample(mode = 1) {
+function setLoader(loaderOn = true) {
+    if (loaderOn) {
+        document.getElementById('loader').innerHTML =
+            '<div id="loaderCube" class="loaderCube m-9 d-flex gap-2"><span></span><span></span><span></span><span></span></div>'
+    } else {
+        document.getElementById('loader').innerHTML = ''
+    }
+}
+
+function loadExample(mode = 0) {
     let newickText = document.getElementById('newickText');
     let patternMSA = document.getElementById('patternMSA');
 
@@ -141,34 +150,27 @@ function drawPhylogeneticTree(jsonData) {
       .text(d => d.data.name);
 }
 
-function initialize_variables() {
+function makeTree(mode = 0) {
     const newickText = document.getElementById(`newickText`);
     const patternMSA = document.getElementById(`patternMSA`);
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`patternMSA`, patternMSA.value.trim());
 
-    const loaderID = `loaderCube`;
-    setVisibilityLoader(true, loaderID);
-
-    return {"formData": formData, "loaderID": loaderID}
-}
-
-function makeTree(mode = 0) {
-    let funcData = initialize_variables();
+    setVisibilityLoader(true);
     let absolutePath = [`/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
 
     fetch(absolutePath, {
         method: `POST`,
-        body: funcData.formData
+        body: formData
     })
         .then(response => response.json())
         .then(data => {
-            setVisibilityLoader(false, funcData.loaderID);
+            setVisibilityLoader(false);
             mode === 0 ? drawPhylogeneticTree(data.message) : showMessage(1, data.message);
         })
         .catch(error => {
-            setVisibilityLoader(false, funcData.loaderID);
+            setVisibilityLoader(false);
             console.error(`Error:`, error);
             showMessage(3, error.message);
         });
@@ -189,14 +191,12 @@ function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`
     }
 }
 
-function setVisibilityLoader(visible = true, loaderID) {
+function setVisibilityLoader(visible = true) {
+    setLoader(visible)
     if (visible) {
         document.getElementById('tree').innerText = '';
         document.getElementById('nodeInfo').innerText = '';
-        document.getElementById(loaderID).classList.remove(`invisible`);
         hide_all();
-    } else {
-        document.getElementById(loaderID).classList.add(`invisible`);
     }
 }
 
@@ -230,10 +230,9 @@ function test(testData) {
     const formData = new FormData();
     formData.append(`svgData`, testData);
 
-    const loaderID = `loaderCube`;
     hide_all();
     // document.getElementById('tree').innerText = ''
-    setVisibilityLoader(true, loaderID);
+    setVisibilityLoader(true);
 
     fetch(`/test`, {
         method: `POST`,
@@ -244,7 +243,7 @@ function test(testData) {
             // document.getElementById('tree').data = data.message;
         })
         .catch(error => {
-            setVisibilityLoader(false, loaderID);
+            setVisibilityLoader(false);
             console.error(`Error:`, error);
             showMessage(3, error.message);
         });
