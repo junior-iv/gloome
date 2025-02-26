@@ -272,7 +272,7 @@ class Node:
             probability_mark += '\t'.join(['9' if i == 1 else f'{int(i * 10)}'
                                            for i in self.probabilities_sequence_characters])
             probability_coefficient = f'<br>Probability coefficient: <br>'
-            probability_coefficient += '\t'.join([f'{self.sequence[i]} [{j:.2f}]' for i, j in
+            probability_coefficient += '\t'.join([f'{self.sequence[i]} [{j:.3f}]' for i, j in
                                                   enumerate(self.probabilities_sequence_characters)])
             dict_json.update({'children': []})
             for child in self.children:
@@ -328,6 +328,27 @@ class Node:
                 children.append(ch)
         result = [i['distance'] for i in list_result]
         return result if return_list else sum(result)
+
+    @staticmethod
+    def get_integer(data: Union[str, int, float]) -> int:
+        result = float(data) * 10
+
+        return int(result - 1 if result == 10 else result)
+
+    @staticmethod
+    def draw_html_table(data: str) -> str:
+
+        return f'<table class="w-97 p-4 tborder table-danger">{data}</table>'
+
+    @staticmethod
+    def draw_row_html_table(name: str, data: str) -> str:
+
+        return f'<tr><th class="p-2 h7 w-auto tborder-2 table-danger">{name}:</th><th>{data}</td></th></tr>'
+
+    @staticmethod
+    def draw_cell_html_table(color: str, data: str) -> str:
+
+        return f'<td style="color: {color}" class="h7 w-auto text-center tborder-1 table-danger bg-light">{data}</td>'
 
     @staticmethod
     def check_filter_compliance(filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]], info: Dict[str,

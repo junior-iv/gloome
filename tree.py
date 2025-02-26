@@ -256,8 +256,9 @@ class Tree:
                                            'full_distance': 'Full distance', 'up_vector': 'Up', 'down_vector': 'Down',
                                            'likelihood': 'Likelihood', 'marginal_vector': 'Marginal vector',
                                            'probability_vector': 'Probability vector', 'probable_character':
-                                           'Probable character', 'sequence': 'Sequence',
-                                           'probabilities_sequence_characters': 'Probabilities sequence characters'}
+                                           'Probable character', 'sequence': 'Sequence', 'ancestral_sequence':
+                                           'Ancestral sequence', 'probabilities_sequence_characters':
+                                           'Probabilities sequence characters'}
         lists = lists if lists else ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector',
                                      'probability_vector', 'probabilities_sequence_characters')
 
@@ -277,7 +278,7 @@ class Tree:
             for i in lists:
                 if columns.get(i):
                     if list_type in (list, tuple, set):
-                        info = list_type(map(lambda x: f'{x:.2f}' if (isinstance(x, (int, float)) and
+                        info = list_type(map(lambda x: f'{x:.3f}' if (isinstance(x, (int, float)) and
                                                                       change_content_type) else x, node_info.get(i)))
                     else:
                         info = ' '.join(map(str, node_info.get(i)))
@@ -583,11 +584,13 @@ class Tree:
             newick_tree = Tree.check_tree(newick_tree)
 
         newick_tree.calculate_tree_for_fasta(newick_tree.get_pattern_dict(pattern), alphabet)
+        newick_tree.calculate_ancestral_sequence()
 
         df = newick_tree.tree_to_table(columns={'node': 'target', 'father_name': 'source', 'distance': 'weight',
                                        'sequence': 'sequence', 'probabilities_sequence_characters': 'prob_characters',
-                                                'node_type': 'node_type'}, distance_type=float, filters={'node_type':
-                                       ['leaf', 'node', 'root']}, list_type=list)
+                                                'node_type': 'node_type', 'ancestral_sequence': 'ancestral_sequence'},
+                                       distance_type=float, filters={'node_type': ['leaf', 'node', 'root']},
+                                       list_type=list)
         df_copy = df.copy()
         del df['sequence'], df['node_type'], df['prob_characters']
         df = df.iloc[1:]
@@ -608,15 +611,25 @@ class Tree:
                                         reset_properties=d3.reset_properties, notebook=d3.notebook,
                                         hierarchy=d3.hierarchy, save_button=d3.save_button)
 
+        colors = ['crimson', 'orangered', 'darkorange', 'gold', 'yellowgreen', 'forestgreen', 'mediumturquoise',
+                  'dodgerblue', 'slateblue', 'darkviolet']
+        colors_as = {"A": "crimson", "G": "darkorange", "L": "forestgreen", "P": "slateblue"}
         for i in df_copy.T:
-            probability = ''
-            sequence = '\t'.join([j for j in df_copy['sequence'][i]])
+            probability_mark = probability_coefficient = ancestral_sequence = ''
+            sequence = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], j)
+                                for j in df_copy['sequence'][i]])
+            sequence = Node.draw_row_html_table('Sequence', sequence)
+            if df_copy["node_type"][i] != 'root':
+                ancestral_sequence = ''.join([Node.draw_cell_html_table(colors_as[j], j)
+                                              for j in df_copy['ancestral_sequence'][i]])
+                ancestral_sequence = Node.draw_row_html_table('Ancestral sequence', ancestral_sequence)
             if df_copy["node_type"][i] != 'leaf':
-                probability_1 = '\t'.join(['9' if j == 1 else f'{int(j * 10)}'
-                                           for j in df_copy['prob_characters'][i]])
-                probability_2 = ''.join([f'{df_copy["sequence"][i][k]} [{j:.2f}] ' for k, j in
-                                         enumerate(df_copy['prob_characters'][i])])
-                probability = f'<br>{probability_1}<br>{probability_2}'
+                probability_mark = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], "9" if j == 1 else
+                                            int(j * 10)) for j in df_copy['prob_characters'][i]])
+                probability_mark = Node.draw_row_html_table('Probability mark (0-9)', probability_mark)
+                probability_coefficient = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], f'{j:.3f}')
+                                                  for j in df_copy['prob_characters'][i]])
+                probability_coefficient = Node.draw_row_html_table('Probability coefficient', probability_coefficient)
                 if df_copy["node_type"][i] == 'node':
                     d3.node_properties.get(df_copy['target'][i])['color'] = 'darkorange'
                     d3.node_properties.get(df_copy['target'][i])['size'] = 15
@@ -626,8 +639,12 @@ class Tree:
             else:
                 d3.node_properties.get(df_copy['target'][i])['color'] = 'forestgreen'
                 d3.node_properties.get(df_copy['target'][i])['size'] = 10
-            d3.node_properties.get(df_copy['target'][i])['tooltip'] = (f'distance: {df_copy["weight"][i]}<br>'
-                                                                       f'{sequence}{probability}')
+            distance = f'<td class="h7 w-auto text-center">{df_copy["weight"][i]}</td>'
+            info = (f'{Node.draw_row_html_table("Distance", distance)}{sequence}{ancestral_sequence}{probability_mark}'
+                    f'{probability_coefficient}')
+            d3.node_properties.get(df_copy['target'][i])['tooltip'] = Node.draw_html_table(info)
+            d3.font.update({'type': 'Anonymous Pro'})
+
         d3.set_edge_properties(df)
         d3.show()
         # html = d3.chart.show(d3.edge_properties, config=d3.config, node_properties=d3.node_properties)

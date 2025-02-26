@@ -1,3 +1,8 @@
+function getInteger(data) {
+    let result = Math.trunc(Number(data) * 10)
+    return result === 10 ? 9 : result
+}
+
 function convertJSONToTable(jsonData, jsonSort) {
     const sortingList = jsonSort["List for sorting"];
     const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
@@ -10,7 +15,7 @@ function convertJSONToTable(jsonData, jsonSort) {
         let jsonValue = jsonData[header];
         table += `<tr><th class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;
         if (typeof jsonValue === "object" && header !== "Ancestral sequence") {Object.values(jsonValue).forEach(i => {
-            value += `<td style="color: ${colors[Math.trunc(i * 9)]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+            value += `<td style="color: ${colors[getInteger(i)]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
         })}
         else if (typeof jsonValue === "object" && header === "Ancestral sequence") {Object.values(jsonValue).forEach(i => {
             value += `<td style="color: ${colorsAS[i]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
@@ -20,7 +25,7 @@ function convertJSONToTable(jsonData, jsonSort) {
     });
 
     table += `</table></details>`;
-    document.getElementById('nodeInfo').innerHTML = table;
+    return table;
 }
 
 function setLoader(loaderOn = true) {
@@ -138,7 +143,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("opacity", 0);
         })
         .on("click", function(event, d) {
-            convertJSONToTable(jsonData[1][d.data.name], jsonData[2]);
+            document.getElementById('nodeInfo').innerHTML = convertJSONToTable(jsonData[1][d.data.name], jsonData[2]);
         })
 
     nodes.append("text")
