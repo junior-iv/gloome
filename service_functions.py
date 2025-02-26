@@ -58,7 +58,7 @@ def create_all_file_types(newick_text: str, pattern_msa: str, file_path: str) ->
                                  f'href="{url_for("download_file", file_path=value)}" target="_blank" download><h7>'
                                  f'download</h7></a>\t<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link '
                                  f'rounded-pill" href="{url_for("view_file", file_path=value)}" target="_blank"><h7>'
-                                 f'link</h7></a>'})
+                                 f'view</h7></a>'})
 
     return result
 
