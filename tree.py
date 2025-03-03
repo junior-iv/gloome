@@ -492,7 +492,7 @@ class Tree:
         Tree.make_dir(file_name)
         newick_tree.calculate_likelihood(pattern)
         tree_table = pd.DataFrame({'POS': range(len(newick_tree.log_likelihood_vector)),
-                                   'loglikelihood': newick_tree.log_likelihood_vector})
+                                   'log-likelihood': newick_tree.log_likelihood_vector})
         tree_table.to_csv(file_name, sep=sep, index=False)
         if with_copy:
             Tree.copy_to_txt_file(file_name)

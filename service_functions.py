@@ -12,8 +12,8 @@ def compute_likelihood_of_tree(newick_text: str, pattern_msa: str) -> Dict[str, 
 
     result = {'execution_time': convert_seconds(time() - start_time)}
     result.update({'likelihood_of_the_tree': newick_tree.likelihood})
-    result.update({'log_likelihood_of_the_tree': newick_tree.log_likelihood})
-    result.update({'log_likelihood_list': newick_tree.log_likelihood_vector})
+    result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
+    result.update({'log-likelihood_list': newick_tree.log_likelihood_vector})
 
     return result
 
@@ -38,8 +38,8 @@ def create_all_file_types(newick_text: str, pattern_msa: str, file_path: str) ->
                      sep='\t', sort_values_by=('child', 'Name'), decimal_length=8)})
     path_dict.update({'Fasta (fasta)': Tree.tree_to_fasta(newick_tree, pattern_msa, alphabet,
                      file_name=f'{file_path}/fasta_file.fasta')})
-    path_dict.update({'Likelihood (csv)': Tree.likelihood_to_csv(newick_tree, pattern_msa,
-                     file_name=f'{file_path}/likelihood.csv', sep='\t')})
+    path_dict.update({'log-Likelihood (csv)': Tree.likelihood_to_csv(newick_tree, pattern_msa,
+                     file_name=f'{file_path}/log-likelihood.csv', sep='\t')})
     # path_dict.update({'up_vector (csv)': Tree.tree_to_csv(newick_tree, columns={'node': 'Name'},
     #                   file_name=f'{file_path}/up_vector.csv', sep='\t')})
     # path_dict.update({'down_vector (csv)': Tree.tree_to_csv(newick_tree, columns={'node': 'Name'},
