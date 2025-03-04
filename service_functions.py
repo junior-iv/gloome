@@ -54,11 +54,13 @@ def create_all_file_types(newick_text: str, pattern_msa: str, file_path: str) ->
 
     result = {'execution_time': convert_seconds(time() - start_time)}
     for key, value in zip(path_dict.keys(), path_dict.values()):
+        value = value[value.index(file_path) + len(file_path):]
         result.update({f'{key}': f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                                 f'href="{url_for("download_file", file_path=value)}" target="_blank" download><h7>'
-                                 f'download</h7></a>\t<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link '
-                                 f'rounded-pill" href="{url_for("view_file", file_path=value)}" target="_blank"><h7>'
-                                 f'view</h7></a>'})
+                                 f'href="{url_for("get_file", file_path=value, mode="download")}" '
+                                 f'target="_blank"><h7>download</h7></a>\t'
+                                 f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+                                 f'href="{url_for("get_file", file_path=value, mode="view")}" '
+                                 f'target="_blank"><h7>view</h7></a>'})
 
     return result
 

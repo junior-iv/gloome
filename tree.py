@@ -447,16 +447,6 @@ class Tree:
         return f'{self.root.subtree_to_newick(with_internal_nodes, decimal_length)};'
 
     @staticmethod
-    def copy_to_txt_file(file_name: str) -> None:
-        j = file_name[::-1].find('.')
-        file_name_sm = f'{file_name[:-j]}' if len(file_name) > j > -1 else f'{file_name}.'
-        with open(file_name, 'rb') as f:
-            content = f.read()
-            with open(f'{file_name_sm}txt', 'wb') as f_copy:
-                f_copy.write(content)
-                f_copy.flush()
-
-    @staticmethod
     def get_columns_list_for_sorting() -> Dict[str, List[str]]:
         result = {'List for sorting': ['Name', 'Node type', 'Distance to father', 'Sequence', 'Probability coefficient',
                                        'Ancestral sequence']}
@@ -465,7 +455,7 @@ class Tree:
 
     @staticmethod
     def tree_to_fasta(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],
-                      file_name: str = 'file.fasta', node_name: Optional[str] = None, with_copy: bool = True) -> str:
+                      file_name: str = 'file.fasta', node_name: Optional[str] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
@@ -476,14 +466,12 @@ class Tree:
         fasta_text = newick_tree.get_fasta_text()
         with open(file_name, 'w') as f:
             f.write(fasta_text)
-        if with_copy:
-            Tree.copy_to_txt_file(file_name)
 
         return file_name
 
     @staticmethod
     def likelihood_to_csv(newick_tree: Union[str, 'Tree'], pattern: str, file_name: str = 'file.csv', sep: str = '\t',
-                          node_name: Optional[str] = None, with_copy: bool = True) -> str:
+                          node_name: Optional[str] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
@@ -494,8 +482,6 @@ class Tree:
         tree_table = pd.DataFrame({'POS': range(len(newick_tree.log_likelihood_vector)),
                                    'log-likelihood': newick_tree.log_likelihood_vector})
         tree_table.to_csv(file_name, sep=sep, index=False)
-        if with_copy:
-            Tree.copy_to_txt_file(file_name)
 
         return file_name
 
@@ -503,7 +489,7 @@ class Tree:
     def tree_to_csv(newick_tree: Union[str, 'Tree'], file_name: str = 'file.csv', sep: str = '\t', sort_values_by:
                     Optional[Tuple[str, ...]] = None, decimal_length: int = 0, columns: Optional[Dict[str, str]] = None,
                     filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None, node_name:
-                    Optional[str] = None, with_copy: bool = True) -> str:
+                    Optional[str] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
@@ -514,15 +500,12 @@ class Tree:
                                            'children': 'child'}
         table = newick_tree.tree_to_table(sort_values_by, decimal_length, columns, filters)
         table.to_csv(file_name, index=False, sep=sep)
-        if with_copy:
-            Tree.copy_to_txt_file(file_name)
 
         return file_name
 
     @staticmethod
     def tree_to_newick_file(newick_tree: Union[str, 'Tree'], file_name: str = 'tree_file.tree', with_internal_nodes:
-                            bool = False, decimal_length: int = 0, node_name: Optional[str] = None, with_copy: bool =
-                            True) -> str:
+                            bool = False, decimal_length: int = 0, node_name: Optional[str] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
@@ -533,8 +516,6 @@ class Tree:
         Tree.make_dir(file_name)
         with open(file_name, 'w') as f:
             f.write(newick_text)
-        if with_copy:
-            Tree.copy_to_txt_file(file_name)
 
         return file_name
 
@@ -553,7 +534,7 @@ class Tree:
         tmp_file = (f'{file_name[:-(j + 1)]}/tmp/{Tree.get_random_name()}'
                     f'.tree') if len(file_name) > j > -1 else f'tmp/{Tree.get_random_name()}.tree'
         Tree.make_dir(tmp_file)
-        Tree.tree_to_newick_file(newick_tree, tmp_file, with_internal_nodes, with_copy=False)
+        Tree.tree_to_newick_file(newick_tree, tmp_file, with_internal_nodes)
         phylogenetic_tree = Phylo.read(tmp_file, 'newick')
         j = file_name[::-1].find('.')
         file_names = dict()
@@ -701,8 +682,8 @@ class Tree:
 
     @staticmethod
     def tree_to_graph(newick_tree: Union[str, 'Tree'], file_name: str = 'graph.svg', file_extensions:
-                      Optional[Union[str, Tuple[str, ...]]] = None, node_name: Optional[str] = None, with_copy: bool =
-                      True) -> Union[str, Dict[str, str]]:
+                      Optional[Union[str, Tuple[str, ...]]] = None, node_name: Optional[str] = None
+                      ) -> Union[str, Dict[str, str]]:
         file_extensions = Tree.check_file_extensions_tuple(file_extensions, 'png')
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
@@ -731,8 +712,6 @@ class Tree:
                 plt.close()
             if file_extension in ('dot', ):
                 nx.drawing.nx_pydot.write_dot(graph, file_name)
-                if with_copy:
-                    Tree.copy_to_txt_file(file_name)
 
         return file_names
 

@@ -2,9 +2,9 @@ import design_functions as df
 import service_functions as sf
 from flask import Flask, request, render_template, url_for, flash, jsonify, send_file
 from tree import Tree
-from os import getenv
+from os import getenv, path
 
-DATA_PATH = ('src/initial_data', 'src/result_data')
+DATA_PATH = ('src/initial_data', 'src/result_data', 'templates/404.html')
 
 app = Flask(__name__)
 app.config.update(MAX_CONTENT_LENGTH=16 * 1024 * 1024,
@@ -76,7 +76,7 @@ def citing_and_credits():
 @app.route('/get_exemple', methods=['GET'])
 def get_exemple():
     if request.method == 'GET':
-        mode = request.args['mode']
+        mode = request.args.get('mode', '')
         result = []
         for i in (f'msa/patternMSA{mode}.msa', f'tree/newickTree{mode}.tree'):
             full_file_name = f'{DATA_PATH[0]}/{i}'
@@ -86,24 +86,21 @@ def get_exemple():
         return jsonify(message=result)
 
 
-@app.route('/download_file', methods=['GET'])
-def download_file():
+@app.route('/get_file', methods=['GET'])
+def get_file():
     if request.method == 'GET':
-        file_path = request.args['file_path']
+        file_path = DATA_PATH[1] + request.args.get('file_path', '')
+        mode = request.args.get('mode', 'view')
+        file_exists = path.exists(file_path)
+        as_attachment = mode == 'download' and file_exists
+        file_path = file_path if file_exists else DATA_PATH[2]
+        if mode == 'view':
+            j = file_path[::-1].find('.')
+            file_extension = file_path[-j:]
+            if file_extension in ('txt', 'csv', 'tree', 'dot', 'fasta'):
+                return send_file(file_path, as_attachment=as_attachment, mimetype='text/plain;charset=UTF-8')
 
-        return send_file(file_path, as_attachment=False)
-
-
-@app.route('/view_file', methods=['GET'])
-def view_file():
-    if request.method == 'GET':
-        file_path = request.args['file_path']
-        j = file_path[::-1].find('.')
-        file_name = file_path[:-j]
-        file_extension = file_path[-j:]
-        file_path = f'{file_name}{"txt" if file_extension in ("csv", "tree", "dot", "fasta") else file_extension}'
-
-        return send_file(file_path, as_attachment=False)
+        return send_file(file_path, as_attachment=as_attachment)
 
 
 @app.route('/create_all_file_types', methods=['POST'])
