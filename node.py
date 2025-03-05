@@ -187,8 +187,8 @@ class Node:
             for i in range(alphabet_size):
                 for child in self.children:
                     qmatrix, up_vector = dict_children.get(child.name)
-                    probabilities.update({child.name: probabilities.get(child.name, 0) + (qmatrix[j, i] * up_vector[i])}
-                                         )
+                    probabilities.update({child.name: probabilities.get(child.name, 0) + (qmatrix[j, i] *
+                                                                                          up_vector[i])})
             self.up_vector.append(prod(probabilities.values()))
         self.likelihood = np.sum([1 / alphabet_size * i for i in self.up_vector])
 

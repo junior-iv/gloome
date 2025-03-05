@@ -40,6 +40,7 @@ function setLoader(loaderOn = true) {
 function loadExample(mode = 0) {
     let newickText = document.getElementById('newickText');
     let patternMSA = document.getElementById('patternMSA');
+    hide_all();
 
     fetch(`/get_exemple?mode=${mode}`, {
         method: 'GET',
@@ -170,6 +171,12 @@ function makeTree(mode = 0) {
         body: formData
     })
         .then(response => response.json())
+            // (response => {
+            // if (response.ok) {
+            // return response.json();
+            // }
+            // throw new Error('Something went wrong');
+            // })
         .then(data => {
             setVisibilityLoader(false);
             mode === 0 ? drawPhylogeneticTree(data.message) : showMessage(1, data.message);
@@ -225,10 +232,11 @@ function showMessage(variant = 1, message = null) {
 }
 
 function clearForm() {
-    let newickText = document.getElementById('newickText');
-    let patternMSA = document.getElementById('patternMSA');
-    newickText.innerHTML = '';
-    patternMSA.innerHTML = '';
+    let elementNames = [`newickText`, `patternMSA`, `tree`, `nodeInfo`];
+    for (let i = 0; i < elementNames.length; i++) {
+        document.getElementById(elementNames[i]).innerHTML = '';
+    }
+    hide_all();
 }
 
 function test(testData) {

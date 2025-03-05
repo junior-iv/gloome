@@ -125,6 +125,12 @@ def draw_tree():
     if request.method == 'POST':
         newick_text = request.form.get('newickText')
         pattern_msa = request.form.get('patternMSA')
+        # response.update({'message': 'Error',
+        #                  'status': 400,
+        #                  'error': ERRORS.get('incorrect_newick')})
+        # response = app.response_class(response=json.dumps(result), status=status, mimetype='application/json')
+        # return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
+        # status = 200
         if not Tree.check_newick(newick_text):
             result = ERRORS.get('incorrect_newick')
         elif (Tree(newick_text).get_node_count({'node_type': ['leaf']}) != len(pattern_msa.split('\n')) / 2 !=
