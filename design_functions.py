@@ -17,7 +17,16 @@ STYLE_TAG = (('', ''),
              ('<span class="text-warning">', '</span>'),
              ('<span class="text-danger">', '</span>'),
              ('<span class="text-light">', '</span>'),
-             ('<span class="text-dark">', '</span>')
+             ('<span class="text-dark">', '</span>'),
+
+             ('<span class="text-primary-emphasis">', '</span>'),
+             ('<span class="text-secondary-emphasis">', '</span>'),
+             ('<span class="text-success-emphasis">', '</span>'),
+             ('<span class="text-info-emphasis">', '</span>'),
+             ('<span class="text-warning-emphasis">', '</span>'),
+             ('<span class="text-danger-emphasis">', '</span>'),
+             ('<span class="text-light-emphasis">', '</span>'),
+             ('<span class="text-dark-emphasis">', '</span>')
              )
 
 

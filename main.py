@@ -31,12 +31,12 @@ MENU = ({'name': 'HOME', 'url': 'index',
          }
         )
 
-err = [f'{df.key_design("Incorrect text of newick format. <br>Example of correct text of newick format", True, 13)}',
-       f'{df.key_design("The length of the final sequence must match the number of leaves", True, 13)}',
-       f'{df.key_design("The tree is not correct. <br>The tree should be binary", True, 13)}',
-       f'{df.key_design("Incorrect Le and Gascuel matrix", True, 13)}']
+err = [f'{df.key_design("Incorrect text of newick format. <br>Example of correct text of newick format", True, 14)}',
+       f'{df.key_design("The length of the final sequence must match the number of leaves", True, 14)}',
+       f'{df.key_design("The tree is not correct. <br>The tree should be binary", True, 14)}',
+       f'{df.key_design("Incorrect Le and Gascuel matrix", True, 14)}']
 
-ERRORS = {'incorrect_newick': f'<b>{err[0]}{df.value_design("((S1:0.3,S2:0.15):0.1,S3:0.4);", True, 14)}</b>',
+ERRORS = {'incorrect_newick': f'<b>{err[0]}{df.value_design("((S1:0.3,S2:0.15):0.1,S3:0.4);", True, 22)}</b>',
           'incorrect_sequence': f'<b>{err[1]}</b>',
           'incorrect_tree': f'<b>{err[2]}</b>',
           'incorrect_lg_matrix': f'<b>{err[3]}</b>'}
