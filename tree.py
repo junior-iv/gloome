@@ -315,7 +315,8 @@ class Tree:
                         current_node.ancestral_sequence += ancestral_alphabet[3]
 
     def calculate_marginal(self, newick_node: Optional[Union[Node, str]], alphabet: Union[Tuple[str, ...], str],
-                           pattern: Optional[str] = None, node_name: Optional[str] = None
+                           pattern: Optional[str] = None, node_name: Optional[str] = None,
+                           rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None
                            ) -> Tuple[Union[List[np.ndarray], List[float]], Union[np.ndarray, float]]:
         node_list, result = [], None
         if node_name and isinstance(node_name, str):
@@ -329,7 +330,7 @@ class Tree:
                 newick_node = self.get_node_by_name(newick_node)
             node_list.append(newick_node)
         if not newick_node.up_vector and pattern:
-            self.calculate_up(pattern, alphabet)
+            self.calculate_up(pattern, alphabet, rate_vector)
         if not newick_node.down_vector and newick_node.up_vector:
             self.calculate_down(alphabet)
 
@@ -339,10 +340,11 @@ class Tree:
 
         return result
 
-    def calculate_up(self, pattern: str, alphabet: Union[Tuple[str, ...], str]) -> Union[Tuple[Union[List[np.ndarray],
-                                                                                         List[float]], float], float]:
+    def calculate_up(self, pattern: str, alphabet: Union[Tuple[str, ...], str],
+                     rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None
+                     ) -> Union[Tuple[Union[List[np.ndarray], List[float]], float], float]:
 
-        return self.root.calculate_up(self.get_pattern_dict(pattern, alphabet), alphabet)
+        return self.root.calculate_up(self.get_pattern_dict(pattern, alphabet), alphabet, rate_vector)
 
     def calculate_down(self, alphabet: Union[Tuple[str, ...], str]) -> None:
 
@@ -375,16 +377,16 @@ class Tree:
 
         return pattern_dict
 
-    def calculate_tree_for_fasta(self, pattern: Union[Dict[str, str], str], alphabet: Union[Tuple[str, ...], str]
-                                 ) -> str:
+    def calculate_tree_for_fasta(self, pattern: Union[Dict[str, str], str], alphabet: Union[Tuple[str, ...], str],
+                                 rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
         node_list = self.root.get_list_nodes_info(only_node_list=True)
         for current_node in node_list:
             current_node.sequence = ''
 
         if isinstance(pattern, str):
-            self.calculate_up(pattern, alphabet)
+            self.calculate_up(pattern, alphabet, rate_vector)
             self.calculate_down(alphabet)
-            self.calculate_marginal(self.root, alphabet, pattern)
+            self.calculate_marginal(self.root, alphabet, pattern, rate_vector)
         else:
             leaves_info = self.get_list_nodes_info(True, None, {'node_type': ['leaf']})
             len_seq = len(min(list(pattern.values())))
@@ -393,20 +395,19 @@ class Tree:
                 for i in range(len(leaves_info)):
                     node_name = leaves_info[i].get('node')
                     current_pattern += pattern.get(node_name)[i_char]
-                self.calculate_up(current_pattern, alphabet)
+                self.calculate_up(current_pattern, alphabet, rate_vector)
                 self.calculate_down(alphabet)
-                self.calculate_marginal(None, alphabet, current_pattern)
+                self.calculate_marginal(None, alphabet, current_pattern, rate_vector)
 
-        # self.calculate_ancestral_sequence()
-        #
         return self.get_fasta_text()
 
-    def calculate_likelihood(self, pattern: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None) -> None:
+    def calculate_likelihood(self, pattern: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None,
+                             rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> None:
         pattern_dict = self.get_pattern_dict(pattern)
         alphabet = alphabet if alphabet else Tree.get_alphabet_from_dict(pattern_dict)
 
-        self.log_likelihood_vector, self.log_likelihood, self.likelihood = self.root.calculate_likelihood(pattern_dict,
-                                                                                                          alphabet)
+        self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
+            self.root.calculate_likelihood(pattern_dict, alphabet, rate_vector))
 
     def get_fasta_text(self, columns: Optional[Dict[str, str]] = None) -> str:
         columns = columns if columns else {'node': 'Name', 'sequence': 'Sequence', 'ancestral_sequence':
@@ -455,13 +456,14 @@ class Tree:
 
     @staticmethod
     def tree_to_fasta(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],
-                      file_name: str = 'file.fasta', node_name: Optional[str] = None) -> str:
+                      file_name: str = 'file.fasta', node_name: Optional[str] = None,
+                      rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
             newick_tree = Tree.check_tree(newick_tree)
 
-        newick_tree.calculate_tree_for_fasta(newick_tree.get_pattern_dict(pattern), alphabet)
+        newick_tree.calculate_tree_for_fasta(newick_tree.get_pattern_dict(pattern), alphabet, rate_vector)
         Tree.make_dir(file_name)
         fasta_text = newick_tree.get_fasta_text()
         with open(file_name, 'w') as f:
@@ -471,14 +473,15 @@ class Tree:
 
     @staticmethod
     def likelihood_to_csv(newick_tree: Union[str, 'Tree'], pattern: str, file_name: str = 'file.csv', sep: str = '\t',
-                          node_name: Optional[str] = None) -> str:
+                          node_name: Optional[str] = None, rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]]
+                          = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
             newick_tree = Tree.check_tree(newick_tree)
 
         Tree.make_dir(file_name)
-        newick_tree.calculate_likelihood(pattern)
+        newick_tree.calculate_likelihood(pattern, rate_vector=rate_vector)
         tree_table = pd.DataFrame({'POS': range(len(newick_tree.log_likelihood_vector)),
                                    'log-likelihood': newick_tree.log_likelihood_vector})
         tree_table.to_csv(file_name, sep=sep, index=False)
@@ -558,13 +561,14 @@ class Tree:
 
     @staticmethod
     def tree_to_interactive_html(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],
-                                 file_name: str = 'interactive_tree.svg', node_name: Optional[str] = None) -> str:
+                                 file_name: str = 'interactive_tree.svg', node_name: Optional[str] = None,
+                                 rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
             newick_tree = Tree.check_tree(newick_tree)
 
-        newick_tree.calculate_tree_for_fasta(newick_tree.get_pattern_dict(pattern), alphabet)
+        newick_tree.calculate_tree_for_fasta(newick_tree.get_pattern_dict(pattern), alphabet, rate_vector)
         newick_tree.calculate_ancestral_sequence()
 
         df = newick_tree.tree_to_table(columns={'node': 'target', 'father_name': 'source', 'distance': 'weight',
@@ -630,55 +634,6 @@ class Tree:
         d3.show()
         # html = d3.chart.show(d3.edge_properties, config=d3.config, node_properties=d3.node_properties)
         return file_name
-    #
-    # @staticmethod
-    # def tree_to_interactive_svg(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],
-    #                             file_name: str = 'interactive_tree.svg', node_name: Optional[str] = None) -> str:
-    #     from ete3 import (Tree as eteTree, NodeStyle as eteNodeStyle, TreeStyle as eteTreeStyle,
-    #                       TextFace as eteTextFace)
-    #
-    #     # def my_layout(newick_node):
-    #     #     if newick_node.is_leaf():
-    #     #         newick_node.img_style["size"] = 10
-    #     #         newick_node.img_style["fgcolor"] = "red"
-    #     #     else:
-    #     #         newick_node.img_style["size"] = 20
-    #     #         newick_node.img_style["fgcolor"] = "blue"
-    #
-    #     if node_name and isinstance(node_name, str):
-    #         newick_tree = Tree.rename_nodes(newick_tree, node_name)
-    #     else:
-    #         newick_tree = Tree.check_tree(newick_tree)
-    #
-    #     pattern_msa_dict = newick_tree.get_pattern_dict(pattern)
-    #     newick_tree.calculate_tree_for_fasta(pattern_msa_dict, alphabet)
-    #     newick_text = newick_tree.tree_to_newick_text(True)
-    #
-    #     Tree.make_dir(file_name)
-    #
-    #     ete_tree = eteTree(newick_text, format=1)
-    #     tr_style = eteTreeStyle()
-    #     # tr_style.layout_fn = my_layout
-    #     tr_style.show_branch_support = True
-    #     tr_style.mode = 'r'
-    #     tr_style.branch_vertical_margin = 40
-    #     tr_style.title.add_face(eteTextFace(newick_text, fsize=5, fgcolor='darkred'), column=0)
-    #     tr_style.show_leaf_name, tr_style.show_scale, tr_style.show_branch_length = False, False, True
-    #     tr_style.margin_left, tr_style.margin_right, tr_style.margin_top, tr_style.margin_bottom = 20, 20, 20, 20
-    #
-    #     nd_style = eteNodeStyle(shape='sphere', size=6, fgcolor='darkred', vt_line_type=0, vt_line_color='darkgray',
-    #                             hz_line_type=0, hz_line_color='darkgray', bgcolor='white')
-    #     for n in ete_tree.traverse():
-    #         n.add_face(eteTextFace(n.name, fsize=10, fgcolor='maroon'), column=0)
-    #         probability = ''.join(['9' if i == 1 else f'{int(i * 10)}'
-    #                                for i in newick_tree.get_node_by_name(n.name).probabilities_sequence_characters])
-    #         n.add_face(eteTextFace(newick_tree.get_node_by_name(n.name).sequence, fsize=10, fgcolor='navy'), column=0)
-    #         n.add_face(eteTextFace(probability, fsize=10, fgcolor='darkgray'), column=0)
-    #         n.set_style(nd_style)
-    #     ete_tree.render(file_name, tree_style=tr_style)
-    #     # ete_tree.show(tree_style=tr_style)
-    #
-    #     return file_name
 
     @staticmethod
     def tree_to_graph(newick_tree: Union[str, 'Tree'], file_name: str = 'graph.svg', file_extensions:

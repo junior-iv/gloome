@@ -170,13 +170,12 @@ function makeTree(mode = 0) {
         method: `POST`,
         body: formData
     })
-        .then//(response => response.json())
-            (response => {
+        .then(response => {
             if (response.ok) {
-            return response.json();
+                return response.json();
             }
             throw new Error('Incorrect data in the document form')
-            })
+        })
         .then(data => {
             setVisibilityLoader(false);
             mode === 0 ? drawPhylogeneticTree(data.message) : showMessage(1, data.message);

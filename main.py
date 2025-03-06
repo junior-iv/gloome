@@ -5,6 +5,7 @@ from tree import Tree
 from os import getenv, path
 
 DATA_PATH = ('src/initial_data', 'src/result_data', 'templates/404.html')
+RATE_VECTOR = (0.2, 0.7, 1.3, 1.8, )
 
 app = Flask(__name__)
 app.config.update(MAX_CONTENT_LENGTH=16 * 1024 * 1024,
@@ -117,7 +118,7 @@ def create_all_file_types():
             result = ERRORS.get('incorrect_sequence')
         else:
             status = 200
-            file_list = sf.create_all_file_types(newick_text, pattern_msa, DATA_PATH[1])
+            file_list = sf.create_all_file_types(newick_text, pattern_msa, DATA_PATH[1], RATE_VECTOR)
             result = df.result_design(file_list)
 
         return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
@@ -141,7 +142,7 @@ def draw_tree():
             newick_tree = Tree.rename_nodes(newick_text)
             pattern_dict = newick_tree.get_pattern_dict(pattern_msa)
             alphabet = Tree.get_alphabet_from_dict(pattern_dict)
-            newick_tree.calculate_tree_for_fasta(pattern_dict, alphabet)
+            newick_tree.calculate_tree_for_fasta(pattern_dict, alphabet, RATE_VECTOR)
             newick_tree.calculate_ancestral_sequence()
             result.append(newick_tree.get_json_structure())
             result.append(newick_tree.get_json_structure(return_table=True))
@@ -165,7 +166,7 @@ def compute_likelihood_of_tree():
             result = ERRORS.get('incorrect_sequence')
         else:
             status = 200
-            statistics = sf.compute_likelihood_of_tree(newick_text, pattern_msa)
+            statistics = sf.compute_likelihood_of_tree(newick_text, pattern_msa, RATE_VECTOR)
             result = df.result_design(statistics)
 
         return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
