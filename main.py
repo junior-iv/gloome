@@ -1,6 +1,6 @@
 import design_functions as df
 import service_functions as sf
-from flask import Flask, request, render_template, url_for, flash, jsonify, send_file
+from flask import Flask, request, render_template, url_for, flash, jsonify, send_file, Response
 from tree import Tree
 from os import getenv, path
 
@@ -108,16 +108,19 @@ def create_all_file_types():
     if request.method == 'POST':
         newick_text = request.form.get('newickText')
         pattern_msa = request.form.get('patternMSA')
+        status = 400
+
         if not Tree.check_newick(newick_text):
             result = ERRORS.get('incorrect_newick')
         elif (Tree(newick_text).get_node_count({'node_type': ['leaf']}) != len(pattern_msa.split('\n')) / 2 !=
               pattern_msa.count('>')):
             result = ERRORS.get('incorrect_sequence')
         else:
+            status = 200
             file_list = sf.create_all_file_types(newick_text, pattern_msa, DATA_PATH[1])
             result = df.result_design(file_list)
 
-        return jsonify(message=result)
+        return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
 
 
 @app.route('/draw_tree', methods=['POST'])
@@ -125,18 +128,15 @@ def draw_tree():
     if request.method == 'POST':
         newick_text = request.form.get('newickText')
         pattern_msa = request.form.get('patternMSA')
-        # response.update({'message': 'Error',
-        #                  'status': 400,
-        #                  'error': ERRORS.get('incorrect_newick')})
-        # response = app.response_class(response=json.dumps(result), status=status, mimetype='application/json')
-        # return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
-        # status = 200
+        status = 400
+
         if not Tree.check_newick(newick_text):
             result = ERRORS.get('incorrect_newick')
         elif (Tree(newick_text).get_node_count({'node_type': ['leaf']}) != len(pattern_msa.split('\n')) / 2 !=
               pattern_msa.count('>')):
             result = ERRORS.get('incorrect_sequence')
         else:
+            status = 200
             result = []
             newick_tree = Tree.rename_nodes(newick_text)
             pattern_dict = newick_tree.get_pattern_dict(pattern_msa)
@@ -147,7 +147,8 @@ def draw_tree():
             result.append(newick_tree.get_json_structure(return_table=True))
             result.append(Tree.get_columns_list_for_sorting())
 
-        return jsonify(message=result)
+        # return jsonify(message=result)
+        return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
 
 
 @app.route('/compute_likelihood_of_tree', methods=['POST'])
@@ -155,6 +156,7 @@ def compute_likelihood_of_tree():
     if request.method == 'POST':
         newick_text = request.form.get('newickText')
         pattern_msa = request.form.get('patternMSA')
+        status = 400
 
         if not Tree.check_newick(newick_text):
             result = ERRORS.get('incorrect_newick')
@@ -162,10 +164,11 @@ def compute_likelihood_of_tree():
               pattern_msa.count('>')):
             result = ERRORS.get('incorrect_sequence')
         else:
+            status = 200
             statistics = sf.compute_likelihood_of_tree(newick_text, pattern_msa)
             result = df.result_design(statistics)
 
-        return jsonify(message=result)
+        return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
 
 
 @app.route('/test', methods=['POST'])

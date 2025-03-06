@@ -47,8 +47,8 @@ function loadExample(mode = 0) {
     })
         .then(response => response.json())
         .then(data => {
-            patternMSA.innerHTML = data.message[0];
-            newickText.innerHTML = data.message[1];
+            patternMSA.value = data.message[0];
+            newickText.value = data.message[1];
         })
         .catch(error => {
             console.error(`Error:`, error);
@@ -170,13 +170,13 @@ function makeTree(mode = 0) {
         method: `POST`,
         body: formData
     })
-        .then(response => response.json())
-            // (response => {
-            // if (response.ok) {
-            // return response.json();
-            // }
-            // throw new Error('Something went wrong');
-            // })
+        .then//(response => response.json())
+            (response => {
+            if (response.ok) {
+            return response.json();
+            }
+            throw new Error('Incorrect data in the document form')
+            })
         .then(data => {
             setVisibilityLoader(false);
             mode === 0 ? drawPhylogeneticTree(data.message) : showMessage(1, data.message);
@@ -232,9 +232,12 @@ function showMessage(variant = 1, message = null) {
 }
 
 function clearForm() {
-    let elementNames = [`newickText`, `patternMSA`, `tree`, `nodeInfo`];
-    for (let i = 0; i < elementNames.length; i++) {
-        document.getElementById(elementNames[i]).innerHTML = '';
+    let elementNames = {'value': [`newickText`, `patternMSA`], 'innerHTML': [`tree`, `nodeInfo`]};
+    for (let i = 0; i < elementNames.value.length; i++) {
+        document.getElementById(elementNames.value[i]).value = '';
+    }
+    for (let i = 0; i < elementNames.innerHTML.length; i++) {
+        document.getElementById(elementNames.innerHTML[i]).innerHTML = '';
     }
     hide_all();
 }
