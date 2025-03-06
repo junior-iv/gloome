@@ -32,13 +32,13 @@ MENU = ({'name': 'HOME', 'url': 'index',
          }
         )
 
-err = [f'{df.key_design("Incorrect text of newick format. <br>Example of correct text of newick format", True, 14)}',
-       f'{df.key_design("The length of the final sequence must match the number of leaves", True, 14)}',
-       f'{df.key_design("The tree is not correct. <br>The tree should be binary", True, 14)}',
-       f'{df.key_design("Incorrect Le and Gascuel matrix", True, 14)}']
+err = [f'{df.key_design("Incorrect phylogenetic tree of newick format. <br>Correct example", True, 14)}',
+       f'{df.key_design("Incorrect pattern MSA. <br>Correct example", True, 14)}',
+       f'{df.value_design("The tree is not correct. <br>The tree should be binary", True, 14)}',
+       f'{df.value_design("Incorrect Le and Gascuel matrix", True, 14)}']
 
-ERRORS = {'incorrect_newick': f'<b>{err[0]}{df.value_design("((S1:0.3,S2:0.15):0.1,S3:0.4);", True, 22)}</b>',
-          'incorrect_sequence': f'<b>{err[1]}</b>',
+ERRORS = {'incorrect_newick': f'{err[0]}{df.value_design("((S1:0.3,S2:0.15):0.1,S3:0.4);", True, 21)}',
+          'incorrect_sequence': f'{err[1]}{df.value_design(">S1<br>010<br>>S2<br>111<br>>S3<br>001", True, 21)}',
           'incorrect_tree': f'<b>{err[2]}</b>',
           'incorrect_lg_matrix': f'<b>{err[3]}</b>'}
 
@@ -113,8 +113,8 @@ def create_all_file_types():
 
         if not Tree.check_newick(newick_text):
             result = ERRORS.get('incorrect_newick')
-        elif (Tree(newick_text).get_node_count({'node_type': ['leaf']}) != len(pattern_msa.split('\n')) / 2 !=
-              pattern_msa.count('>')):
+        elif not (Tree(newick_text).get_node_count({'node_type': ['leaf']}) == len(pattern_msa.split('\n')) / 2 ==
+                  pattern_msa.count('>')):
             result = ERRORS.get('incorrect_sequence')
         else:
             status = 200
@@ -133,8 +133,8 @@ def draw_tree():
 
         if not Tree.check_newick(newick_text):
             result = ERRORS.get('incorrect_newick')
-        elif (Tree(newick_text).get_node_count({'node_type': ['leaf']}) != len(pattern_msa.split('\n')) / 2 !=
-              pattern_msa.count('>')):
+        elif not (Tree(newick_text).get_node_count({'node_type': ['leaf']}) == len(pattern_msa.split('\n')) / 2 ==
+                  pattern_msa.count('>')):
             result = ERRORS.get('incorrect_sequence')
         else:
             status = 200
@@ -161,8 +161,8 @@ def compute_likelihood_of_tree():
 
         if not Tree.check_newick(newick_text):
             result = ERRORS.get('incorrect_newick')
-        elif (Tree(newick_text).get_node_count({'node_type': ['leaf']}) != len(pattern_msa.split('\n')) / 2 !=
-              pattern_msa.count('>')):
+        elif not (Tree(newick_text).get_node_count({'node_type': ['leaf']}) == len(pattern_msa.split('\n')) / 2 ==
+                  pattern_msa.count('>')):
             result = ERRORS.get('incorrect_sequence')
         else:
             status = 200

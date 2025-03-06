@@ -156,6 +156,12 @@ function drawPhylogeneticTree(jsonData) {
       .text(d => d.data.name);
 }
 
+function processError(error) {
+    setVisibilityLoader(false);
+    console.error(`Error:`, error);
+    showMessage(3, error.message);
+}
+
 function makeTree(mode = 0) {
     const newickText = document.getElementById(`newickText`);
     const patternMSA = document.getElementById(`patternMSA`);
@@ -173,18 +179,15 @@ function makeTree(mode = 0) {
         .then(response => {
             if (response.ok) {
                 return response.json();
-            }
-            throw new Error('Incorrect data in the document form')
+            } else {response.json()
+                .then(data => {throw new Error(data.message)})
+                .catch(error => {processError(error)})}
         })
         .then(data => {
             setVisibilityLoader(false);
             mode === 0 ? drawPhylogeneticTree(data.message) : showMessage(1, data.message);
         })
-        .catch(error => {
-            setVisibilityLoader(false);
-            console.error(`Error:`, error);
-            showMessage(3, error.message);
-        });
+        .catch(error => {processError(error)});
 }
 
 function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`) {
