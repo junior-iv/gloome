@@ -32,16 +32,6 @@ MENU = ({'name': 'HOME', 'url': 'index',
          }
         )
 
-err = [f'{df.key_design("Incorrect phylogenetic tree of newick format. <br>Correct example", True, 14)}',
-       f'{df.key_design("Incorrect pattern MSA. <br>Correct example", True, 14)}',
-       f'{df.value_design("The tree is not correct. <br>The tree should be binary", True, 14)}',
-       f'{df.value_design("Incorrect Le and Gascuel matrix", True, 14)}']
-
-ERRORS = {'incorrect_newick': f'{err[0]}{df.value_design("((S1:0.3,S2:0.15):0.1,S3:0.4);", True, 21)}',
-          'incorrect_sequence': f'{err[1]}{df.value_design(">S1<br>010<br>>S2<br>111<br>>S3<br>001", True, 21)}',
-          'incorrect_tree': f'<b>{err[2]}</b>',
-          'incorrect_lg_matrix': f'<b>{err[3]}</b>'}
-
 
 @app.route('/')
 @app.route('/index', methods=['GET'])
@@ -109,13 +99,11 @@ def create_all_file_types():
     if request.method == 'POST':
         newick_text = request.form.get('newickText')
         pattern_msa = request.form.get('patternMSA')
-        status = 400
+        err_list = sf.check_form(newick_text, pattern_msa)
 
-        if not Tree.check_newick(newick_text):
-            result = ERRORS.get('incorrect_newick')
-        elif not (Tree(newick_text).get_node_count({'node_type': ['leaf']}) == len(pattern_msa.split('\n')) / 2 ==
-                  pattern_msa.count('>')):
-            result = ERRORS.get('incorrect_sequence')
+        if err_list:
+            status = 400
+            result = sf.get_error(err_list)
         else:
             status = 200
             file_list = sf.create_all_file_types(newick_text, pattern_msa, DATA_PATH[1], RATE_VECTOR)
@@ -129,13 +117,11 @@ def draw_tree():
     if request.method == 'POST':
         newick_text = request.form.get('newickText')
         pattern_msa = request.form.get('patternMSA')
-        status = 400
+        err_list = sf.check_form(newick_text, pattern_msa)
 
-        if not Tree.check_newick(newick_text):
-            result = ERRORS.get('incorrect_newick')
-        elif not (Tree(newick_text).get_node_count({'node_type': ['leaf']}) == len(pattern_msa.split('\n')) / 2 ==
-                  pattern_msa.count('>')):
-            result = ERRORS.get('incorrect_sequence')
+        if err_list:
+            status = 400
+            result = sf.get_error(err_list)
         else:
             status = 200
             result = []
@@ -157,17 +143,15 @@ def compute_likelihood_of_tree():
     if request.method == 'POST':
         newick_text = request.form.get('newickText')
         pattern_msa = request.form.get('patternMSA')
-        status = 400
+        err_list = sf.check_form(newick_text, pattern_msa)
 
-        if not Tree.check_newick(newick_text):
-            result = ERRORS.get('incorrect_newick')
-        elif not (Tree(newick_text).get_node_count({'node_type': ['leaf']}) == len(pattern_msa.split('\n')) / 2 ==
-                  pattern_msa.count('>')):
-            result = ERRORS.get('incorrect_sequence')
+        if err_list:
+            status = 400
+            result = sf.get_error(err_list)
         else:
             status = 200
             statistics = sf.compute_likelihood_of_tree(newick_text, pattern_msa, RATE_VECTOR)
-            result = df.result_design(statistics)
+            result = df.result_design((statistics))
 
         return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
 

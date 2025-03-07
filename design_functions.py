@@ -1,4 +1,4 @@
-from typing import Union, Tuple, Optional, Dict
+from typing import Union, Tuple, Optional, Dict, List, Set
 
 STYLE_TAG = (('', ''),
              ('<sub class="text-primary-emphasis">', '</sub>'),
@@ -35,7 +35,10 @@ def key_design(key: str, change_style: bool = True, style: int = 6) -> str:
     return f'{style_tag[0]}{key.replace("_", " ")}:\t{style_tag[1]}'
 
 
-def value_design(value: Optional[str], change_style: bool = True, style: int = 4) -> str:
+def value_design(value: Optional[Union[str, Tuple[str, ...], List[str], Set[str]]], change_style: bool = True,
+                 style: int = 4) -> str:
+    if isinstance(value, (tuple, list, set)):
+        return "".join([value_design("<p>" + i + "</p>", True, 5) for i in value])
     style_tag = STYLE_TAG[style] if change_style else STYLE_TAG[0]
     return f'{style_tag[0]}{value}{style_tag[1]}'
 
@@ -71,5 +74,5 @@ def result_design(statistics: Dict[str, Union[str, int, float]], change_key: boo
                   change_value: bool = True) -> str:
     result = ''
     for key, value in statistics.items():
-        result += f'{key_design(key, change_key)}{value_design(value, change_value)}<br>'
+        result += f'{key_design(key, change_key)}{value_design(str(value), change_value)}<br>'
     return f'<b>{result}</b>'

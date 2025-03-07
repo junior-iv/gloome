@@ -1,9 +1,22 @@
 from time import time
-from typing import Union, Dict, Optional, Tuple
+from typing import Union, Dict, Optional, Tuple, List
 from datetime import timedelta
 from tree import Tree
 from flask import url_for
 from numpy import ndarray
+import design_functions as df
+
+ERR = [f'{df.key_design("Incorrect phylogenetic tree of newick format", True, 14)}',
+       f'{df.key_design("Incorrect pattern MSA", True, 14)}',
+       f'{df.key_design("Number of leaves doesn`t match", True, 14)}',
+       f'{df.key_design("Different length of the sequences in the pattern MSA", True, 14)}',
+       f'{df.key_design("correct examples", True, 14)}']
+
+EXAMPLES = (('((S1:0.3,S2:0.15):0.1,S3:0.4);', '((S1:0.3,S2:0.15)N2:0.1,S3:0.4)N1;'),
+            ('>S1', '0', '>S2', '1', '>S3', '0'),
+            ('>S1', '0', '>S2', '1', '>S3', '0', '((S1:0.3,S2:0.15):0.1,S3:0.4);'),
+            ('>S1', '010', '>S2', '111', '>S3', '001'))
+
 
 
 def compute_likelihood_of_tree(newick_text: str, pattern_msa: str, rate_vector:
@@ -57,3 +70,26 @@ def create_all_file_types(newick_text: str, pattern_msa: str, file_path: str, ra
 
 def convert_seconds(seconds: float) -> str:
     return str(timedelta(seconds=seconds))
+
+
+def get_error(err_list: List[Tuple[int, str]]) -> str:
+    return ''.join([f'{ERR[i]}{df.value_design(err, True, 5)}'
+                    f'{ERR[-1]}{df.value_design(EXAMPLES[i], True, 5)}' for i, err in err_list])
+
+
+def check_form(newick_text: str, pattern_msa: str) -> List[Tuple[int, str]]:
+    err_list = []
+
+    if not Tree.check_newick(newick_text):
+        err_list.append((0, newick_text if newick_text else 'text missing'))
+    if not pattern_msa:
+        err_list.append((1, 'text missing'))
+    elif (Tree.check_newick(newick_text) and
+          not (Tree(newick_text).get_node_count({'node_type': ['leaf']}) == len(pattern_msa.split('\n')) / 2 ==
+          pattern_msa.count('>'))):
+        err_list.append((2, pattern_msa.split('\n') if pattern_msa else 'text missing'))
+    else:
+        row_len = len(pattern_msa.split('\n')[1].strip())
+        if not min([len(j.strip()) == row_len for i, j in enumerate(pattern_msa.split('\n')) if i % 2]):
+            err_list.append((3, pattern_msa.split('\n')))
+    return err_list
