@@ -95,3 +95,20 @@
     <span></span>
 </div>
 {%- endmacro -%}
+
+{%- macro progressBar(value=5, status='') -%}
+    <div class="container">
+        <div class="progress {{status}}"
+             style="width: 50%; margin-left:25%;">
+            <div class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+                <span class="progress-bar-label">0%</span>
+            </div>
+        </div>
+{#      <h2>Progress Bar</h2>#}
+{#      <div class="progress">#}
+{#        <div class="progress-bar" role="progressbar" aria-valuenow="{{value}}" aria-valuemin="0" aria-valuemax="100" style="width:{{value}}%">#}
+{#          {{value}}%#}
+{#        </div>#}
+{#      </div>#}
+    </div>
+{%- endmacro -%}

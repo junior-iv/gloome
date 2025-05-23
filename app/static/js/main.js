@@ -56,8 +56,10 @@ function loadExample(mode = 0) {
         });
 }
 
-function getNodeStyle(d, nodeType, mode = 0){
-    const answers = [["crimson", "darkorange", "forestgreen"], ["coral", "gold", "limegreen"], [20, 15, 10], [22, 17, 12]];
+function getNodeStyle(d, nodeType, mode = 0, sizeFactor = 1){
+    let sizes = [parseInt(20 / sizeFactor), parseInt(15 / sizeFactor), parseInt(10 / sizeFactor)];
+    let sizes_with_side = [2 + sizes[0], 2 + sizes[1], 2 + sizes[2]];
+    const answers = [["crimson", "darkorange", "forestgreen"], ["coral", "gold", "limegreen"], sizes, sizes_with_side];
     if (nodeType === "root"){
         return answers[mode][0];
     }
@@ -73,64 +75,62 @@ function drawPhylogeneticTree(jsonData) {
     const margin = { top: 20, right: 40, bottom: 20, left: 40 };
     const width = 600 - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
+    const cx = width * 0.5;
+    const cy = height * 0.5;
+    const radius = Math.min(cx, cy);
     let scale = 0.9;
+    const sizeFactor = jsonData[3][0]
+    const isRadialTree = Boolean(jsonData[3][1])
+    const showDistanceToParent = Boolean(jsonData[3][2])
+
+    const tree = d3.tree()
+    if (isRadialTree) {
+        tree.size([2 * Math.PI, radius])
+            .separation((a, b) => (a.parent === b.parent ? 1 : 2) / a.depth);
+    } else {
+        tree.size([height, width]);
+    }
+
+    const root = tree(d3.hierarchy(jsonData[0])
+        .sort((a, b) => d3.ascending(a.data.name, b.data.name)));
+
     const svg =  d3.select("#tree")
         .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .call(d3.zoom().on("zoom", function (event) {
-                svg.attr("transform", event.transform);
-            }))
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .attr("viewBox", isRadialTree ? [-cx, -cy, width, height] : [0, 0, width, height])
+        .attr("style", `width: 100%; height: auto;`)
+        .call(d3.zoom().on("zoom", function (event) {
+            svg.attr("transform", event.transform);
+        }))
         .append("g")
-            .attr("transform", `translate(${margin.left}, ${margin.top}) scale(${scale})`);
-
-    const tree = d3.tree().size([height, width]);
-    const root = d3.hierarchy(jsonData[0]);
-    tree(root);
+        .attr("transform", `translate(${margin.left}, ${margin.top}) scale(${scale})`);
 
     svg.selectAll(".link")
         .data(root.links())
         .enter().append("path")
         .attr("class", "link")
-        .attr("d", d3.linkHorizontal().x(d => d.y).y(d => d.x))
+        .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
         .style("fill", "none")
         .style("stroke", "silver")
-        .style("stroke-width", 3)
-        .each(function(d) {
-            const midpointX = (d.source.y + d.target.y) / 2;
-            const midpointY = (d.source.x + d.target.x) / 2;
-            svg.append("text")
-                .attr("dy", 6)
-                .attr("dx", -12)
-                .attr("x", midpointX)
-                .attr("y", midpointY)
-                .text(`[${d.target.data.distance}]`)
-                .style("font-size", "1em")
-                .style("fill", "navy");
-            // svg.append("text")
-            //     .attr("dy", 18)
-            //     .attr("dx", -12)
-            //     .attr("x", midpointX)
-            //     .attr("y", midpointY)
-            //     .text(`[${jsonData[1][d.target.data.name]['Ancestral sequence']}]`)
-            //     .style("font-size", "0.75em")
-            //     .style("fill", "maroon");
-        });
+        .style("stroke-width", 1.5);
 
     const nodes = svg.selectAll(".node")
         .data(root.descendants())
         .enter().append("g")
         .attr("class", "node")
-        .attr("transform", d => `translate(${d.y}, ${d.x})`);
+        .attr("transform", isRadialTree ? d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)` : d => `translate(${d.y}, ${d.x})`);
 
-    nodes.append("circle")
-        .attr("r", d => getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 2))
-        .style("fill", d => getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 0))
+    nodes
+        .append("circle")
+        .attr("r", d => getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 2, sizeFactor))
+        .style("fill", d => getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 0, sizeFactor))
         .style("stroke", "steelblue")
         .style("stroke-width", 2)
         .on("mouseover", function(event, d) {
-            d3.select(this).style("fill", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 1))
-                .attr("r", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 3))
+            d3.select(this)
+                .style("fill", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 1, sizeFactor))
+                .attr("r", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 3, sizeFactor))
             d3.select("#tooltip")
                 .style("left", `${event.pageX + 10}px`)
                 .style("top", `${event.pageY - 20}px`)
@@ -138,22 +138,42 @@ function drawPhylogeneticTree(jsonData) {
                 .html(d.data.info);
         })
         .on("mouseout", function(event, d) {
-            d3.select(this).style("fill", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 0))
-                .attr("r", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 2))
+            d3.select(this)
+                .style("fill", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 0, sizeFactor))
+                .attr("r", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 2, sizeFactor))
             d3.select("#tooltip")
                 .style("opacity", 0);
         })
         .on("click", function(event, d) {
             document.getElementById('nodeInfo').innerHTML = convertJSONToTable(jsonData[1][d.data.name], jsonData[2]);
-        })
+        });
 
-    nodes.append("text")
-      .attr("dy", d => d.children ? -18 : -12)
-      .attr("x", d => jsonData[1][d.data.name]["Node type"] === "root" ? 18 : 12)
-      .style("text-anchor", d => d.children ? "start" : "start")
-      .style("font-size", "1.25em")
-      .style("fill", "darkslategray")
-      .text(d => d.data.name);
+    nodes
+        .append("text")
+        .style("font-size", d => !d.children ? parseInt(12 / sizeFactor) : parseInt(16 / sizeFactor))
+        .style("font-family", "Verdana")
+        .style("text-anchor", d => d.children ? "start" : "start")
+        .style("font-weight", d => !d.children ? "normal" : "bold")
+        .style("fill", function(d) {
+            if (jsonData[1][d.data.name]["Node type"] === "root") { return "maroon" }
+            else if (jsonData[1][d.data.name]["Node type"] === "node") { return "navy" }
+            else { return "black" }
+        })
+        .attr("dy", d => !d.children ? parseInt(3 / sizeFactor) : parseInt(6 / sizeFactor))
+        .attr("dx", d => !d.children ? parseInt(18 / sizeFactor) : parseInt(24 / sizeFactor))
+        .text(d => d.data.name);
+    if (showDistanceToParent) {
+        nodes
+            .append("text")
+            .style("font-size", parseInt(10 / sizeFactor))
+            .style("font-family", "sans-serif")
+            .style("text-anchor", "end")
+            .style("font-weight", "normal")
+            .style("fill", "darkcyan")
+            .attr("dy", d => !d.children ? parseInt(3 / sizeFactor) : parseInt(6 / sizeFactor))
+            .attr("dx", d => !d.children ? -parseInt(18 / sizeFactor) : -parseInt(24 / sizeFactor))
+            .text(d => jsonData[1][d.data.name]["Node type"] !== "root" ? `[${parseFloat(d.data.distance)}]` : ``);
+    }
 }
 
 function processError(error) {
@@ -165,9 +185,18 @@ function processError(error) {
 function makeTree(mode = 0) {
     const newickText = document.getElementById(`newickText`);
     const patternMSA = document.getElementById(`patternMSA`);
+    const categoriesQuantity = document.getElementById(`categoriesQuantity`);
+    const alpha = document.getElementById(`alpha`);
+    const isRadialTree = document.getElementById(`isRadialTree`);
+    const showDistanceToParent = document.getElementById(`showDistanceToParent`);
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`patternMSA`, patternMSA.value.trim());
+    formData.append(`categoriesQuantity`, categoriesQuantity.value.trim());
+    formData.append(`alpha`, alpha.value.trim());
+    formData.append(`isRadialTree`, +isRadialTree.checked);
+    formData.append(`showDistanceToParent`, +showDistanceToParent.checked);
+
 
     setVisibilityLoader(true);
     let absolutePath = [`/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];

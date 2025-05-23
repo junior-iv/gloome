@@ -2,11 +2,17 @@
 {% import 'base_newick_tools.html' as nwt %}
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <META NAME="date" CONTENT="2014-03-20">
+    <META NAME="author"
+          CONTENT="Ofir Cohen , Haim Ashkenazy , Frida Belinky , Dorothée Huchon , Tal Pupko">
+    <META NAME="keywords" CONTENT="gain and loss rates, gain and loss events, GLOOME server">
+    <META NAME="description" CONTENT="GLOOME: gain loss mapping engine">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>GLOOME {%- block title -%}{{title}}{%- endblock -%}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+{#    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">#}
+{#    <meta name="viewport"#}
+{#          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">#}
+    <title>GLOOME{%- block title -%}{%- for subtitle in title -%}{{subtitle}}{% endfor -%}{%- endblock -%}</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
     {%- block scripts -%}
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>

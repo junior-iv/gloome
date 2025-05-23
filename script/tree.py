@@ -5,9 +5,11 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import json
 from d3blocks import D3Blocks
-from node import Node
+from .node import Node
 from typing import Optional, List, Union, Dict, Tuple, Set
 from Bio import Phylo
+from scipy.stats import gamma
+from scipy.special import gammainc
 
 
 class Tree:
@@ -268,11 +270,10 @@ class Tree:
             if not node_info.get('father_name'):
                 node_info.update({'father_name': 'root'})
             if columns.get('distance'):
-                # if isinstance(distance_type, str):
                 if distance_type is str:
-
-                    node_info.update({'distance': ' ' * (decimal_length // 2) if not node_info.get('distance') else
-                                     f'{str(node_info.pop("distance")).ljust(decimal_length, "0")}'})
+                    # node_info.update({'distance': ' ' * (decimal_length // 2) if not node_info.get('distance') else
+                    node_info.update({'distance': ' ' * decimal_length if not node_info.get('distance') else
+                                     f'{node_info.pop("distance"):.10f}'.ljust(decimal_length, "0")})
                 else:
                     node_info.update({'distance': distance_type(node_info.get('distance'))})
             for i in lists:
@@ -317,7 +318,8 @@ class Tree:
     def calculate_marginal(self, newick_node: Optional[Union[Node, str]], alphabet: Union[Tuple[str, ...], str],
                            pattern: Optional[str] = None, node_name: Optional[str] = None,
                            rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None
-                           ) -> Tuple[Union[List[np.ndarray], List[float]], Union[np.ndarray, float]]:
+                           ) -> Tuple[Union[Union[List[List[np.ndarray]], List[List[float]]], float],
+                                      Union[np.ndarray, float]]:
         node_list, result = [], None
         if node_name and isinstance(node_name, str):
             Tree.rename_nodes(self, node_name)
@@ -332,11 +334,10 @@ class Tree:
         if not newick_node.up_vector and pattern:
             self.calculate_up(pattern, alphabet, rate_vector)
         if not newick_node.down_vector and newick_node.up_vector:
-            self.calculate_down(alphabet)
+            self.calculate_down(alphabet, rate_vector)
 
         for current_node in node_list:
-            qmatrix = current_node.get_jukes_cantor_qmatrix(len(alphabet))
-            result = current_node.calculate_marginal(qmatrix, alphabet)
+            result = current_node.calculate_marginal(alphabet, rate_vector)
 
         return result
 
@@ -346,9 +347,10 @@ class Tree:
 
         return self.root.calculate_up(self.get_pattern_dict(pattern, alphabet), alphabet, rate_vector)
 
-    def calculate_down(self, alphabet: Union[Tuple[str, ...], str]) -> None:
+    def calculate_down(self, alphabet: Union[Tuple[str, ...], str],
+                       rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> None:
 
-        self.root.calculate_down(self.get_tree_info(), len(alphabet))
+        self.root.calculate_down(self.get_tree_info(), len(alphabet), rate_vector)
 
     def get_pattern_dict(self, pattern: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None, only_leaves:
                          bool = True, value_is_string: bool = True) -> Dict[str, Union[Tuple[int, ...], str]]:
@@ -385,8 +387,8 @@ class Tree:
 
         if isinstance(pattern, str):
             self.calculate_up(pattern, alphabet, rate_vector)
-            self.calculate_down(alphabet)
-            self.calculate_marginal(self.root, alphabet, pattern, rate_vector)
+            self.calculate_down(alphabet, rate_vector)
+            self.calculate_marginal(self.root, alphabet, pattern, rate_vector=rate_vector)
         else:
             leaves_info = self.get_list_nodes_info(True, None, {'node_type': ['leaf']})
             len_seq = len(min(list(pattern.values())))
@@ -396,18 +398,20 @@ class Tree:
                     node_name = leaves_info[i].get('node')
                     current_pattern += pattern.get(node_name)[i_char]
                 self.calculate_up(current_pattern, alphabet, rate_vector)
-                self.calculate_down(alphabet)
-                self.calculate_marginal(None, alphabet, current_pattern, rate_vector)
+                self.calculate_down(alphabet, rate_vector)
+                self.calculate_marginal(None, alphabet, current_pattern, rate_vector=rate_vector)
 
         return self.get_fasta_text()
 
-    def calculate_likelihood(self, pattern: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None,
-                             rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> None:
-        pattern_dict = self.get_pattern_dict(pattern)
-        alphabet = alphabet if alphabet else Tree.get_alphabet_from_dict(pattern_dict)
+    def calculate_likelihood(self, pattern: Union[Dict[str, str], str], alphabet: Optional[Union[Tuple[str, ...], str]]
+                             = None, rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> None:
+        if isinstance(pattern, str):
+            pattern = self.get_pattern_dict(pattern)
+        if isinstance(alphabet, str) or alphabet is None:
+            alphabet = Tree.get_alphabet_from_dict(pattern)
 
         self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
-            self.root.calculate_likelihood(pattern_dict, alphabet, rate_vector))
+            self.root.calculate_likelihood(pattern, alphabet, rate_vector))
 
     def get_fasta_text(self, columns: Optional[Dict[str, str]] = None) -> str:
         columns = columns if columns else {'node': 'Name', 'sequence': 'Sequence', 'ancestral_sequence':
@@ -439,7 +443,7 @@ class Tree:
                     dict_row.update({key: table[key][row]})
                 dict_json.update({table['Name'][row]: dict_row})
         else:
-            dict_json = self.root.node_to_json(dict())
+            dict_json = self.root.node_to_json()
 
         return json.loads(str(dict_json).replace(f'\'', r'"'))
 
@@ -455,15 +459,18 @@ class Tree:
         return json.loads(str(result).replace(f'\'', r'"'))
 
     @staticmethod
-    def tree_to_fasta(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],
-                      file_name: str = 'file.fasta', node_name: Optional[str] = None,
-                      rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
+    def tree_to_fasta(newick_tree: Union[str, 'Tree'], pattern: Union[Dict[str, str], str],
+                      alphabet: Union[Tuple[str, ...], str], file_name: str = 'file.fasta',
+                      node_name: Optional[str] = None, rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] =
+                      None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
             newick_tree = Tree.check_tree(newick_tree)
+        if isinstance(pattern, str):
+            pattern = newick_tree.get_pattern_dict(pattern)
 
-        newick_tree.calculate_tree_for_fasta(newick_tree.get_pattern_dict(pattern), alphabet, rate_vector)
+        newick_tree.calculate_tree_for_fasta(pattern, alphabet, rate_vector)
         Tree.make_dir(file_name)
         fasta_text = newick_tree.get_fasta_text()
         with open(file_name, 'w') as f:
@@ -472,13 +479,15 @@ class Tree:
         return file_name
 
     @staticmethod
-    def likelihood_to_csv(newick_tree: Union[str, 'Tree'], pattern: str, file_name: str = 'file.csv', sep: str = '\t',
-                          node_name: Optional[str] = None, rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]]
-                          = None) -> str:
+    def likelihood_to_csv(newick_tree: Union[str, 'Tree'], pattern: Union[Dict[str, str], str],
+                          file_name: str = 'file.csv', sep: str = '\t', node_name: Optional[str] = None, rate_vector:
+                          Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
             newick_tree = Tree.check_tree(newick_tree)
+        if isinstance(pattern, str):
+            pattern = newick_tree.get_pattern_dict(pattern)
 
         Tree.make_dir(file_name)
         newick_tree.calculate_likelihood(pattern, rate_vector=rate_vector)
@@ -560,16 +569,20 @@ class Tree:
         return file_names
 
     @staticmethod
-    def tree_to_interactive_html(newick_tree: Union[str, 'Tree'], pattern: str, alphabet: Union[Tuple[str, ...], str],
-                                 file_name: str = 'interactive_tree.svg', node_name: Optional[str] = None,
-                                 rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
+    def tree_to_interactive_html(newick_tree: Union[str, 'Tree'], pattern: Union[Dict[str, str], str],
+                                 alphabet: Union[Tuple[str, ...], str], file_name: str = 'interactive_tree.svg',
+                                 node_name: Optional[str] = None, rate_vector:
+                                 Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
             newick_tree = Tree.check_tree(newick_tree)
+        if isinstance(pattern, str):
+            pattern = newick_tree.get_pattern_dict(pattern)
 
-        newick_tree.calculate_tree_for_fasta(newick_tree.get_pattern_dict(pattern), alphabet, rate_vector)
+        newick_tree.calculate_tree_for_fasta(pattern, alphabet, rate_vector)
         newick_tree.calculate_ancestral_sequence()
+        size_factor = min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
 
         df = newick_tree.tree_to_table(columns={'node': 'target', 'father_name': 'source', 'distance': 'weight',
                                        'sequence': 'sequence', 'probabilities_sequence_characters': 'prob_characters',
@@ -617,13 +630,13 @@ class Tree:
                 probability_coefficient = Node.draw_row_html_table('Probability coefficient', probability_coefficient)
                 if df_copy["node_type"][i] == 'node':
                     d3.node_properties.get(df_copy['target'][i])['color'] = 'darkorange'
-                    d3.node_properties.get(df_copy['target'][i])['size'] = 15
+                    d3.node_properties.get(df_copy['target'][i])['size'] = 15 / size_factor
                 if df_copy["node_type"][i] == 'root':
                     d3.node_properties.get(df_copy['target'][i])['color'] = 'firebrick'
-                    d3.node_properties.get(df_copy['target'][i])['size'] = 20
+                    d3.node_properties.get(df_copy['target'][i])['size'] = 20 / size_factor
             else:
                 d3.node_properties.get(df_copy['target'][i])['color'] = 'forestgreen'
-                d3.node_properties.get(df_copy['target'][i])['size'] = 10
+                d3.node_properties.get(df_copy['target'][i])['size'] = 10 / size_factor
             distance = f'<td class="h7 w-auto text-center">{df_copy["weight"][i]}</td>'
             info = (f'{Node.draw_row_html_table("Distance", distance)}{sequence}{ancestral_sequence}{probability_mark}'
                     f'{probability_coefficient}')
@@ -645,6 +658,7 @@ class Tree:
         else:
             newick_tree = Tree.check_tree(newick_tree)
 
+        size_factor = min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
         Tree.make_dir(file_name)
         columns = {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to father'}
         table = newick_tree.tree_to_table(None, 0, columns)
@@ -653,16 +667,14 @@ class Tree:
         file_name_sm = f'{file_name[:-j]}' if len(file_name) > j > -1 else f'{file_name}.'
         file_names = dict()
         for file_extension in file_extensions:
-            # file_name = f'{file_name[:-(j + 1)]}.{file_extension}' if len(file_name) > j > -1 else (f'{file_name}.'
-            #                                                                                         f'{file_extension}')
             file_name = f'{file_name_sm}{file_extension}'
             file_names.update({f'Graph ({file_extension})': file_name})
             graph = nx.Graph()
             for row in table.values:
-                graph.add_edge(row[1], row[0], length=(float(row[2]) if row[2] else 0.0))
+                graph.add_edge(row[1], row[0], length=row[2] if row[2] else 0.0)
             if file_extension in ('svg', 'png'):
-                nx.draw(graph, with_labels=True, font_color='Maroon', node_color='Gold', node_size=1000,
-                        font_weight='bold')
+                nx.draw(graph, with_labels=True, font_color='Maroon', node_color='Gold', node_size=1000//size_factor,
+                        font_size=12//size_factor, font_weight='bold')
                 plt.savefig(file_name, **{'format': file_extension, 'bbox_inches': 'tight', 'dpi': 300})
                 plt.close()
             if file_extension in ('dot', ):
@@ -737,6 +749,7 @@ class Tree:
 
     @staticmethod
     def check_newick(newick_text: str) -> bool:
+        newick_text = newick_text.strip()
         return newick_text and newick_text.startswith('(') and newick_text.endswith(';')
 
     @staticmethod
@@ -757,16 +770,24 @@ class Tree:
         return newick_node
 
     @staticmethod
-    def __counter():
-        """This method is for internal use only."""
-        count = 0
+    def get_gamma_distribution_percent_point(categories_quantity: int, alpha: float, beta: float) -> List[float]:
+        probability_vector = np.linspace(0, 1, categories_quantity + 1)
 
-        def sub_function():
-            nonlocal count
-            count += 1
-            return count
+        return gamma.ppf(probability_vector, a=alpha, scale=1/beta)
 
-        return sub_function
+    @staticmethod
+    def get_gamma_distribution_categories_vector(categories_quantity: int, alpha: float, beta: Optional[float] = None
+                                                 ) -> Tuple[float, ...]:
+        beta = alpha if beta is None else beta
+        categories_vector = []
+        gamma_percent_point = Tree.get_gamma_distribution_percent_point(categories_quantity, alpha, beta)
+        for i in range(categories_quantity):
+            lower_gamma_inc_1 = gammainc(alpha + 1, gamma_percent_point[i] * beta)
+            lower_gamma_inc_2 = gammainc(alpha + 1, gamma_percent_point[i + 1] * beta)
+            mean = (alpha / beta) * (lower_gamma_inc_2 - lower_gamma_inc_1) / (1 / categories_quantity)
+            categories_vector.append(mean)
+
+        return tuple(categories_vector)
 
     @staticmethod
     def rename_nodes(newick_tree: Union[str, 'Tree'], node_name: str = 'N', fill_character: str = '0', number_length:
@@ -784,6 +805,18 @@ class Tree:
                     nodes_list.append(nodes_child)
 
         return newick_tree
+
+    @staticmethod
+    def __counter():
+        """This method is for internal use only."""
+        count = 0
+
+        def sub_function():
+            nonlocal count
+            count += 1
+            return count
+
+        return sub_function
 
     @classmethod
     def __get_html_tree(cls, structure: dict, status: str) -> str:

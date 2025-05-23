@@ -5878,9 +5878,14 @@ textarea.form-control-lg {
     display: flex;
     height: var(--bs-progress-height);
     overflow: hidden;
+    visibility: hidden;
     font-size: var(--bs-progress-font-size);
     background-color: var(--bs-progress-bg);
     border-radius: var(--bs-progress-border-radius)
+}
+
+.active {
+    visibility: visible
 }
 
 .progress-bar {
