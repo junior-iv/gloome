@@ -4,6 +4,42 @@ from sys import argv
 from script.tree import Tree
 from script.service_functions import check_data, ERR, create_all_file_types
 from typing import List, Tuple, Union
+# PREFIX = '/gloome'
+MAX_CONTENT_LENGTH = 16 * 1000 * 1000 * 1000
+PREFIX = '/'
+APPLICATION_ROOT = PREFIX
+DEBUG = True
+SECRET_KEY = getenv('SECRET_KEY')
+PREFERRED_URL_SCHEME = 'https'
+WEBSERVER_NAME_CAPITAL = 'Gloome'
+WEBSERVER_NAME = 'gloome.tau.ac.il'
+WEBSERVER_URL = f'{PREFERRED_URL_SCHEME}://{WEBSERVER_NAME}'
+WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
+
+
+class FlaskConfig:
+
+    # RECAPTCHA_SITE_KEY: str = getenv('RECAPTCHA_SITE_KEY')
+    # RECAPTCHA_SECRET_KEY: str = getenv('RECAPTCHA_SECRET_KEY')
+    SECRET_KEY: str
+    DEBUG: bool
+    PREFERRED_URL_SCHEME: str
+    SERVER_NAME = str
+    APPLICATION_ROOT = str
+    # UPLOAD_FOLDERS_ROOT_PATH: str = WEBSERVER_RESULTS_DIR
+    MAX_CONTENT_LENGTH: int
+
+    def __init__(self, **attributes):
+        self.SECRET_KEY = SECRET_KEY
+        self.DEBUG = DEBUG
+        self.PREFERRED_URL_SCHEME = PREFERRED_URL_SCHEME
+        self.SERVER_NAME = WEBSERVER_NAME
+        self.APPLICATION_ROOT = APPLICATION_ROOT
+        self.MAX_CONTENT_LENGTH = MAX_CONTENT_LENGTH
+        if attributes:
+            for key, value in attributes.items():
+                if type(value) is types.FunctionType:
+                    setattr(self, key, value)
 
 
 class Actions:
@@ -32,9 +68,6 @@ class CalculatedArgs:
             for key, value in attributes.items():
                 setattr(self, key, value)
 
-
-PREFIX = '/gloome'
-APPLICATION_ROOT = PREFIX
 
 LOGIN_NODE_URLS = getenv('LOGIN_NODE_URLS')
 USERNAME = getenv('USERNAME')
@@ -67,11 +100,6 @@ SERVERS_LOGS_DIR = path.join(BIN_DIR, 'logs')
 APP_DIR = path.join(BIN_DIR, 'app')
 TEMPLATES_DIR = path.join(APP_DIR, 'templates')
 ERROR_TEMPLATE = path.join(TEMPLATES_DIR, '404.html')
-
-WEBSERVER_NAME_CAPITAL = 'Gloome'
-WEBSERVER_NAME = 'gloome'
-WEBSERVER_URL = f'https://{WEBSERVER_NAME}.tau.ac.il'
-WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
 
 WEBSERVER_RESULTS_DIR = SERVERS_RESULTS_DIR
 WEBSERVER_LOGS_DIR = SERVERS_LOGS_DIR
@@ -134,16 +162,6 @@ CALCULATED_ARGS = CalculatedArgs(**{
                                     'pattern_dict': None,
                                     'alphabet': None
                                     })
-
-FLASK_CONFIG = {
-    # 'RECAPTCHA_SITE_KEY': getenv('RECAPTCHA_SITE_KEY'),
-    # 'RECAPTCHA_SECRET_KEY': getenv('RECAPTCHA_SECRET_KEY'),
-    'SECRET_KEY': getenv('SECRET_KEY'),
-    'DEBUG': True,
-    'PREFERRED_URL_SCHEME': 'https',
-    'UPLOAD_FOLDERS_ROOT_PATH': WEBSERVER_RESULTS_DIR,
-    'MAX_CONTENT_LENGTH': 16 * 1000 * 1000 * 1000
-    }
 
 USAGE = ''' 
             Required parameters:

@@ -8,7 +8,7 @@ from utils import *
 
 
 class Config:
-    def __init__(self):
+    def __init__(self, **attributes):
         # self.DEFAULT_ARGUMENTS = DEFAULT_ARGUMENTS
         self.DEFAULT_FORM_ARGUMENTS = DEFAULT_FORM_ARGUMENTS
         # self.PREFIX = PREFIX
@@ -49,8 +49,6 @@ class Config:
         self.CALCULATED_ARGS = CALCULATED_ARGS
         self.CALCULATED_ARGS.file_path = self.SERVERS_RESULTS_DIR
 
-        self.FLASK_CONFIG = FLASK_CONFIG
-
         self.MENU = MENU
         self.PROGRESS_BAR = PROGRESS_BAR
 
@@ -61,6 +59,9 @@ class Config:
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
         self.USAGE = USAGE
+        if attributes:
+            for key, value in attributes.items():
+                setattr(self, key, value)
 
     def check_and_set_input_and_output_variables(self):
         """get variables from input arguments and fill out the Variable Class properties"""
@@ -106,7 +107,8 @@ class Config:
                                                                self.CALCULATED_ARGS.pattern_dict,
                                                                self.SERVERS_OUTPUT_DIR,
                                                                self.CALCULATED_ARGS.rate_vector,
-                                                               self.CALCULATED_ARGS.alphabet)
+                                                               self.CALCULATED_ARGS.alphabet,
+                                                               )
                 zipf = ZipFile(path.join(self.SERVERS_OUTPUT_DIR, f'{self.PROCESS_ID}.zip'), 'w', ZIP_DEFLATED, )
                 for value in list(file_list.values())[1:]:
                     zipf.write(path.join(self.SERVERS_OUTPUT_DIR, value[len(value) - value[::-1].find('/'):]))

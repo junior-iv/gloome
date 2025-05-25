@@ -59,14 +59,15 @@ def compute_likelihood_of_tree(newick_text: str, pattern_msa: str, rate_vector:
 
 def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], file_path: str,
                           rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
-                          alphabet: Tuple[str, ...] = None, local: bool = True) -> Dict[str, Union[str, float, int]]:
+                          alphabet: Optional[Tuple[str, ...]] = None, local: bool = True
+                          ) -> Dict[str, Union[str, float, int]]:
     start_time = time()
     path_dict = dict()
     if isinstance(newick_tree, str):
         newick_tree = Tree.rename_nodes(newick_tree)
     if isinstance(pattern, str):
         pattern = newick_tree.get_pattern_dict(pattern)
-    if isinstance(alphabet, str):
+    if alphabet is None:
         alphabet = Tree.get_alphabet_from_dict(pattern)
     path_dict.update({'Interactive tree (html)': Tree.tree_to_interactive_html(newick_tree, pattern, alphabet,
                      file_name=f'{file_path}/interactive_tree.html', rate_vector=rate_vector)})

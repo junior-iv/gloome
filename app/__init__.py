@@ -1,24 +1,23 @@
 from script import design_functions as df, service_functions as sf
 from flask import Flask, request, render_template, jsonify, send_file, Response
 from script.tree import Tree
-from script.config import Config
+from SharedConsts import FlaskConfig, MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, PROGRESS_BAR
 from os import path
-# from SharedConsts import *
+from script.config import Config
 
 # import warnings
 # from werkzeug.middleware.proxy_fix import ProxyFix
 
 # TODO think about it
 # warnings.filterwarnings("ignore")
-conf = Config()
-
 app = Flask(__name__)
 # TODO think about it
 # app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 # app.config.update(MAX_CONTENT_LENGTH=16 * 1024 * 1024,
 #                   SECRET_KEY=getenv('SECRET_KEY'),
 #                   DEBUG=True)
-app.config.update(**conf.FLASK_CONFIG)
+# app.config.update(**conf.FLASK_CONFIG)
+app.config.from_object(FlaskConfig())
 # app.config['APPLICATION_ROOT'] = args_config.APPLICATION_ROOT
 # app.config['PREFERRED_URL_SCHEME'] = 'https'
 # app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
@@ -42,33 +41,33 @@ app.config.update(**conf.FLASK_CONFIG)
 @app.route('/')
 @app.route('/index', methods=['GET'])
 def index():
-    return render_template('index.html', menu=conf.MENU, progress_bar=conf.PROGRESS_BAR,
-                           title=(':', f'  {conf.MENU[0].get("name")}'), **conf.DEFAULT_FORM_ARGUMENTS)
+    return render_template('index.html', menu=MENU, progress_bar=PROGRESS_BAR,
+                           title=(':', f'  {MENU[0].get("name")}'), **DEFAULT_FORM_ARGUMENTS)
 
 
 @app.route('/overview', methods=['GET'])
 def overview():
-    return render_template('overview.html', menu=conf.MENU, title=(':', f'  {conf.MENU[1].get("name")}'))
+    return render_template('overview.html', menu=MENU, title=(':', f'  {MENU[1].get("name")}'))
 
 
 @app.route('/faq', methods=['GET'])
 def faq():
-    return render_template('faq.html', menu=conf.MENU, title=(':', f'  {conf.MENU[2].get("name")}'))
+    return render_template('faq.html', menu=MENU, title=(':', f'  {MENU[2].get("name")}'))
 
 
 @app.route('/gallery', methods=['GET'])
 def gallery():
-    return render_template('gallery.html', menu=conf.MENU, title=(':', f'  {conf.MENU[3].get("name")}'))
+    return render_template('gallery.html', menu=MENU, title=(':', f'  {MENU[3].get("name")}'))
 
 
 @app.route('/source_code', methods=['GET'])
 def source_code():
-    return render_template('source_code.html', menu=conf.MENU, title=(':', f'  {conf.MENU[4].get("name")}'))
+    return render_template('source_code.html', menu=MENU, title=(':', f'  {MENU[4].get("name")}'))
 
 
 @app.route('/citing_and_credits', methods=['GET'])
 def citing_and_credits():
-    return render_template('citing_and_credits.html', menu=conf.MENU, title=(':', f'  {conf.MENU[5].get("name")}'))
+    return render_template('citing_and_credits.html', menu=MENU, title=(':', f'  {MENU[5].get("name")}'))
 
 
 @app.route('/get_exemple', methods=['GET'])
@@ -77,7 +76,7 @@ def get_exemple():
         mode = request.args.get('mode', '')
         result = []
         for i in (f'msa/patternMSA{mode}.msa', f'tree/newickTree{mode}.tree'):
-            full_file_name = f'{conf.INITIAL_DATA_DIR}/{i}'
+            full_file_name = f'{INITIAL_DATA_DIR}/{i}'
             with open(full_file_name, 'r') as f:
                 result.append(f.read())
 
@@ -114,8 +113,9 @@ def create_all_file_types():
             result = sf.get_error(err_list)
         else:
             status = 200
+            config = Config(IS_PRODUCTION=True)
             rate_vector = Tree.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
-            file_list = sf.create_all_file_types(newick_text, pattern_msa, conf.SERVERS_RESULTS_DIR, rate_vector)
+            file_list = sf.create_all_file_types(newick_text, pattern_msa, config.SERVERS_RESULTS_DIR, rate_vector)
             result = df.result_design(file_list)
 
         return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
@@ -134,6 +134,7 @@ def draw_tree():
             result = sf.get_error(err_list)
         else:
             status = 200
+            config = Config(IS_PRODUCTION=True)
             rate_vector = Tree.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
             result = []
             newick_tree = Tree.rename_nodes(newick_text)
@@ -163,6 +164,7 @@ def compute_likelihood_of_tree():
             result = sf.get_error(err_list)
         else:
             status = 200
+            config = Config(IS_PRODUCTION=True)
             rate_vector = Tree.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
             statistics = sf.compute_likelihood_of_tree(newick_text, pattern_msa, rate_vector)
             result = df.result_design(statistics)

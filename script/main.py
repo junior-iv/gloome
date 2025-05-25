@@ -1,11 +1,17 @@
-# progress_bar = {'value': 0}
-# while progress_bar.get('value', 0) < 100:
-#     progress_bar.update({'value': progress_bar.get('value', 0) + 20})
-#     print(progress_bar.get('value', 0))
-# import os
-# os.path.join(os.getcwd(), "gloome")
+from os import path as ospath
+from sys import path as syspath
 
-from .config import Config
+# Path to the project root
+root_path = ospath.abspath(ospath.join(ospath.dirname(__file__), '..'))
+if root_path not in syspath:
+    syspath.insert(0, root_path)
+
+# Path to the script folder
+script_path = ospath.abspath(ospath.dirname(__file__))
+if script_path not in syspath:
+    syspath.insert(0, script_path)
+
+from config import Config
 
 if __name__ == '__main__':
     config = Config()

@@ -403,11 +403,11 @@ class Tree:
 
         return self.get_fasta_text()
 
-    def calculate_likelihood(self, pattern: Union[Dict[str, str], str], alphabet: Optional[Union[Tuple[str, ...], str]]
+    def calculate_likelihood(self, pattern: Union[Dict[str, str], str], alphabet: Optional[Tuple[str, ...]]
                              = None, rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> None:
         if isinstance(pattern, str):
             pattern = self.get_pattern_dict(pattern)
-        if isinstance(alphabet, str) or alphabet is None:
+        if alphabet is None:
             alphabet = Tree.get_alphabet_from_dict(pattern)
 
         self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
@@ -460,9 +460,8 @@ class Tree:
 
     @staticmethod
     def tree_to_fasta(newick_tree: Union[str, 'Tree'], pattern: Union[Dict[str, str], str],
-                      alphabet: Union[Tuple[str, ...], str], file_name: str = 'file.fasta',
-                      node_name: Optional[str] = None, rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] =
-                      None) -> str:
+                      alphabet: Tuple[str, ...], file_name: str = 'file.fasta', node_name: Optional[str] = None,
+                      rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
