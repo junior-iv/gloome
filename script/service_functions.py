@@ -1,11 +1,13 @@
-from time import time
-from typing import Union, Dict, Optional, Tuple, List, Callable, Set
+from os import path, remove, makedirs
+from time import time, sleep
+from typing import Callable, Any
 from datetime import timedelta
 from flask import url_for
 from numpy import ndarray
 from .tree import Tree
 from .design_functions import *
 import inspect
+import json
 
 # ERR = [f'{key_design("Incorrect phylogenetic tree of newick format", True, 14)}',
 #        f'{key_design("Incorrect pattern MSA", True, 14)}',
@@ -43,24 +45,76 @@ def get_tree_variables(request_form: Dict[str, str]) -> Tuple[Union[str, int, fl
     return tuple(result)
 
 
-def compute_likelihood_of_tree(newick_text: str, pattern_msa: str, rate_vector:
-                               Optional[Tuple[Union[float, ndarray], ...]] = None) -> Dict[str, Union[str, float, int]]:
+def create_file(file_path: str, data: Union[str, Any], file_name: Optional[str] = None) -> str:
+    if file_name and isinstance(file_name, str):
+        file_path = path.join(file_path, file_name)
+    with open(file_path, 'w') as f:
+        if isinstance(data, str):
+            f.write(data)
+        else:
+            f.write(json.dumps(data))
+
+    return file_path
+
+
+def create_tmp_data_files(pattern: str, newick_tree: str) -> Tuple[str, ...]:
+    file_path = path.join(path.dirname(path.dirname(path.abspath(__file__))), 'tmp')
+    if not path.exists(file_path):
+        makedirs(file_path)
+
+    msa_file_path = create_file(file_path, pattern, 'msa_file.msa')
+    tree_file_path = create_file(file_path, newick_tree, 'tree_file.tree')
+
+    return msa_file_path, tree_file_path
+
+
+def del_file(file_path: str) -> None:
+    if path.isfile(file_path):
+        remove(file_path)
+
+
+def read_file(file_path: str) -> Optional[str]:
+    if path.isfile(file_path):
+        with open(file_path, 'r') as f:
+            return f.read()
+
+
+def read_json(data: str) -> Any:
+    return json.loads(data)
+
+
+def del_files(files: Tuple[str, ...]) -> None:
+    if isinstance(files, str):
+        del_file(files)
+    else:
+        for file in files:
+            del_file(file)
+
+
+def compute_likelihood_of_tree(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], rate_vector:
+                               Optional[Tuple[Union[float, ndarray], ...]] = None, file_path: Optional[str] = None,
+                               ) -> str:
     start_time = time()
-    newick_tree = Tree.rename_nodes(newick_text)
-    newick_tree.calculate_likelihood(pattern_msa, rate_vector=rate_vector)
+    if isinstance(newick_tree, str):
+        newick_tree = Tree.rename_nodes(newick_tree)
+    if isinstance(pattern, str):
+        pattern = newick_tree.get_pattern_dict(pattern)
+
+    newick_tree.calculate_likelihood(pattern, rate_vector=rate_vector)
 
     result = {'execution_time': convert_seconds(time() - start_time)}
     result.update({'likelihood_of_the_tree': newick_tree.likelihood})
     result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
     result.update({'log-likelihood_list': newick_tree.log_likelihood_vector})
+    file_path = create_file(file_path, result, 'compute_likelihood_of_tree.json')
 
-    return result
+    return file_path
 
 
 def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], file_path: str,
                           rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
                           alphabet: Optional[Tuple[str, ...]] = None, local: bool = True
-                          ) -> Dict[str, Union[str, float, int]]:
+                          ) -> str:
     start_time = time()
     path_dict = dict()
     if isinstance(newick_tree, str):
@@ -88,7 +142,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str
     # result.update({'process id': process_id})
     for key, value in zip(path_dict.keys(), path_dict.values()):
         if local:
-            result.update({key: value})
+            result.update({f'{key}': f'{value}'})
         else:
             value = value[value.index(file_path) + len(file_path):]
             result.update({f'{key}': f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
@@ -98,7 +152,29 @@ def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str
                                      f'href="{url_for("get_file", file_path=value, mode="view")}" '
                                      f'target="_blank"><h7>view</h7></a>'})
 
-    return result
+    file_path = create_file(file_path, result, 'create_all_file_types.json')
+
+    return file_path
+
+
+def draw_tree(newick_tree: Tree, is_radial_tree: bool, show_distance_to_parent: bool, file_path: str):
+    result = [newick_tree.get_json_structure(),
+              newick_tree.get_json_structure(return_table=True),
+              newick_tree.get_columns_list_for_sorting()]
+    size_factor = min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
+    result.append([size_factor, int(is_radial_tree), int(show_distance_to_parent)])
+    file_path = create_file(file_path, result, 'draw_tree.json')
+
+    return file_path
+
+
+def execute_function_with_delay(func: Callable, waiting_time: int = 120, **kwargs) -> Any:
+    steps_number = waiting_time // 5 if waiting_time >= 5 else 1
+    while steps_number > 0:
+        steps_number -= 1
+        sleep(5)
+
+    return func(**kwargs)
 
 
 def convert_seconds(seconds: float) -> str:
@@ -126,6 +202,7 @@ def check_data(newick_text: str, pattern_msa: str) -> List[Tuple[str, str]]:
         row_len = len(pattern_msa.split('\n')[1].strip())
         if not min([len(j.strip()) == row_len for i, j in enumerate(pattern_msa.split('\n')) if i % 2]):
             err_list.append((ERR[3], pattern_msa.split('\n')))
+
     return err_list
 
 
@@ -144,6 +221,7 @@ def check_form(newick_text: str, pattern_msa: str) -> List[Tuple[int, str]]:
         row_len = len(pattern_msa.split('\n')[1].strip())
         if not min([len(j.strip()) == row_len for i, j in enumerate(pattern_msa.split('\n')) if i % 2]):
             err_list.append((3, pattern_msa.split('\n')))
+
     return err_list
 
 

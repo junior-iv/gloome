@@ -2,13 +2,16 @@ import types
 from os import getenv, path, makedirs
 from sys import argv
 from script.tree import Tree
-from script.service_functions import check_data, ERR, create_all_file_types
+from script.service_functions import check_data, ERR, create_all_file_types, compute_likelihood_of_tree, draw_tree
 from typing import List, Tuple, Union
 # PREFIX = '/gloome'
+# MODE = ('create_all_file_types', 'draw_tree', compute_likelihood_of_tree)
+MODE = ('create_all_file_types', 'draw_tree', 'compute_likelihood_of_tree')
+IS_PRODUCTION = True
 MAX_CONTENT_LENGTH = 16 * 1000 * 1000 * 1000
 PREFIX = '/'
 APPLICATION_ROOT = PREFIX
-DEBUG = True
+DEBUG = not IS_PRODUCTION
 SECRET_KEY = getenv('SECRET_KEY')
 PREFERRED_URL_SCHEME = 'https'
 WEBSERVER_NAME_CAPITAL = 'Gloome'
@@ -38,8 +41,7 @@ class FlaskConfig:
         self.MAX_CONTENT_LENGTH = MAX_CONTENT_LENGTH
         if attributes:
             for key, value in attributes.items():
-                if type(value) is types.FunctionType:
-                    setattr(self, key, value)
+                setattr(self, key, value)
 
 
 class Actions:
@@ -132,8 +134,10 @@ ACTIONS = Actions(**{
                      'rate_vector': Tree.get_gamma_distribution_categories_vector,
                      'pattern_dict': Tree.get_pattern_dict,
                      'alphabet': Tree.get_alphabet_from_dict,
+                     'compute_likelihood_of_tree': compute_likelihood_of_tree,
                      'calculate_tree_for_fasta': Tree.calculate_tree_for_fasta,
                      'calculate_ancestral_sequence': Tree.calculate_ancestral_sequence,
+                     'draw_tree': draw_tree,
                      'create_all_file_types': create_all_file_types
                      })
 
@@ -147,9 +151,11 @@ DEFAULT_ACTIONS = {
     'rate_vector': True,
     'pattern_dict': True,
     'alphabet': True,
-    'calculate_tree_for_fasta': True,
-    'calculate_ancestral_sequence': True,
-    'create_all_file_types': True
+    'compute_likelihood_of_tree': False,
+    'calculate_tree_for_fasta': False,
+    'calculate_ancestral_sequence': False,
+    'draw_tree': False,
+    'create_all_file_types': False
     }
 
 

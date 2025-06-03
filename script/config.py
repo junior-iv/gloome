@@ -1,15 +1,16 @@
 import argparse
 import traceback
-from zipfile import ZipFile, ZIP_DEFLATED
-from shutil import copy
+from shutil import copy, make_archive
 from json import dumps
 from SharedConsts import *
 from utils import *
+import socket
 
 
 class Config:
     def __init__(self, **attributes):
         # self.DEFAULT_ARGUMENTS = DEFAULT_ARGUMENTS
+        self.MODE = MODE
         self.DEFAULT_FORM_ARGUMENTS = DEFAULT_FORM_ARGUMENTS
         # self.PREFIX = PREFIX
         # self.APPLICATION_ROOT = APPLICATION_ROOT
@@ -22,19 +23,10 @@ class Config:
         self.TEMPLATES_DIR = TEMPLATES_DIR
         self.ERROR_TEMPLATE = ERROR_TEMPLATE
 
-        self.IS_PRODUCTION = False
-        self.IS_LOCAL = True
+        self.IS_PRODUCTION = IS_PRODUCTION
+        self.IS_LOCAL = 'powerslurm' not in socket.gethostname()
         self.MSA_FILE_NAME = MSA_FILE_NAME
         self.TREE_FILE_NAME = TREE_FILE_NAME
-
-        self.PROCESS_ID = get_new_process_id()
-
-        self.SERVERS_RESULTS_DIR = path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID)
-        self.SERVERS_INPUT_DIR = path.join(str(self.SERVERS_RESULTS_DIR), INPUT_DIR_NAME)
-        self.INPUT_MSA_FILE = path.join(self.SERVERS_INPUT_DIR, self.MSA_FILE_NAME)
-        self.INPUT_TREE_FILE = path.join(self.SERVERS_INPUT_DIR, self.TREE_FILE_NAME)
-        self.SERVERS_OUTPUT_DIR = path.join(str(self.SERVERS_RESULTS_DIR), OUTPUT_DIR_NAME)
-        self.SERVERS_LOGS_DIR = path.join(SERVERS_LOGS_DIR, self.PROCESS_ID)
 
         self.ACTIONS = ACTIONS
         self.VALIDATION_ACTIONS = VALIDATION_ACTIONS
@@ -47,8 +39,6 @@ class Config:
         self.TREE_FILE = None
 
         self.CALCULATED_ARGS = CALCULATED_ARGS
-        self.CALCULATED_ARGS.file_path = self.SERVERS_RESULTS_DIR
-
         self.MENU = MENU
         self.PROGRESS_BAR = PROGRESS_BAR
 
@@ -56,12 +46,42 @@ class Config:
         self.WEBSERVER_NAME = WEBSERVER_NAME
         self.WEBSERVER_URL = WEBSERVER_URL
         self.WEBSERVER_TITLE = WEBSERVER_TITLE
-        self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
-        self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
+
+        self.PROCESS_ID = None
+        self.SERVERS_RESULTS_DIR = None
+        self.SERVERS_INPUT_DIR = None
+        self.INPUT_MSA_FILE = None
+        self.INPUT_TREE_FILE = None
+        self.SERVERS_OUTPUT_DIR = None
+        self.SERVERS_LOGS_DIR = None
+        self.WEBSERVER_RESULTS_URL = None
+        self.WEBSERVER_LOG_URL = None
+
         self.USAGE = USAGE
+
         if attributes:
             for key, value in attributes.items():
-                setattr(self, key, value)
+                if key == 'PROCESS_ID':
+                    self.change_process_id(value)
+                else:
+                    setattr(self, key, value)
+        if not self.PROCESS_ID:
+            self.change_process_id(get_new_process_id())
+
+    def change_process_id(self, process_id: str):
+        self.PROCESS_ID = process_id
+
+        self.SERVERS_RESULTS_DIR = path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID)
+        self.SERVERS_INPUT_DIR = path.join(str(self.SERVERS_RESULTS_DIR), INPUT_DIR_NAME)
+        self.INPUT_MSA_FILE = path.join(self.SERVERS_INPUT_DIR, self.MSA_FILE_NAME)
+        self.INPUT_TREE_FILE = path.join(self.SERVERS_INPUT_DIR, self.TREE_FILE_NAME)
+        self.SERVERS_OUTPUT_DIR = path.join(str(self.SERVERS_RESULTS_DIR), OUTPUT_DIR_NAME)
+        self.SERVERS_LOGS_DIR = path.join(SERVERS_LOGS_DIR, self.PROCESS_ID)
+
+        self.CALCULATED_ARGS.file_path = self.SERVERS_RESULTS_DIR
+
+        self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
+        self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
 
     def check_and_set_input_and_output_variables(self):
         """get variables from input arguments and fill out the Variable Class properties"""
@@ -91,51 +111,73 @@ class Config:
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Error executing command \'calculate_ancestral_sequence\'',
                                                       traceback.format_exc()))
-        result = [self.CALCULATED_ARGS.newick_tree.get_json_structure(),
-                  self.CALCULATED_ARGS.newick_tree.get_json_structure(return_table=True),
-                  Tree.get_columns_list_for_sorting()]
-        size_factor = min(1 + self.CALCULATED_ARGS.newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
-        result.append([size_factor, int(self.CURRENT_ARGS.get('is_radial_tree')),
-                       int(self.CURRENT_ARGS.get('show_distance_to_parent'))])
-        file_name = path.join(self.SERVERS_OUTPUT_DIR, 'tree.json')
-        with open(file_name, 'w') as f:
-            f.write(dumps(result))
+        # result = [self.CALCULATED_ARGS.newick_tree.get_json_structure(),
+        #           self.CALCULATED_ARGS.newick_tree.get_json_structure(return_table=True),
+        #           Tree.get_columns_list_for_sorting()]
+        # size_factor = min(1 + self.CALCULATED_ARGS.newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
+        # result.append([size_factor, int(self.CURRENT_ARGS.get('is_radial_tree')),
+        #                int(self.CURRENT_ARGS.get('show_distance_to_parent'))])
+        # file_name = path.join(self.SERVERS_OUTPUT_DIR, 'tree.json')
+        # with open(file_name, 'w') as f:
+        #     f.write(dumps(result))
 
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
+            try:
+                self.ACTIONS.draw_tree(newick_tree=self.CALCULATED_ARGS.newick_tree,
+                                       file_path=self.SERVERS_OUTPUT_DIR,
+                                       is_radial_tree=self.CURRENT_ARGS.get('is_radial_tree'),
+                                       show_distance_to_parent=self.CURRENT_ARGS.get('show_distance_to_parent'))
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'draw_tree\'',
+                                                      traceback.format_exc()))
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('compute_likelihood_of_tree', False):
+            try:
+                self.ACTIONS.compute_likelihood_of_tree(newick_tree=self.CALCULATED_ARGS.newick_tree,
+                                                        pattern=self.CALCULATED_ARGS.pattern_dict,
+                                                        file_path=self.SERVERS_OUTPUT_DIR,
+                                                        rate_vector=self.CALCULATED_ARGS.rate_vector)
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'compute_likelihood_of_tree\'',
+                                                      traceback.format_exc()))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
             try:
-                file_list = self.ACTIONS.create_all_file_types(self.CALCULATED_ARGS.newick_tree,
-                                                               self.CALCULATED_ARGS.pattern_dict,
-                                                               self.SERVERS_OUTPUT_DIR,
-                                                               self.CALCULATED_ARGS.rate_vector,
-                                                               self.CALCULATED_ARGS.alphabet,
-                                                               )
-                zipf = ZipFile(path.join(self.SERVERS_OUTPUT_DIR, f'{self.PROCESS_ID}.zip'), 'w', ZIP_DEFLATED, )
-                for value in list(file_list.values())[1:]:
-                    zipf.write(path.join(self.SERVERS_OUTPUT_DIR, value[len(value) - value[::-1].find('/'):]))
+                self.ACTIONS.create_all_file_types(newick_tree=self.CALCULATED_ARGS.newick_tree,
+                                                   pattern=self.CALCULATED_ARGS.pattern_dict,
+                                                   file_path=self.SERVERS_OUTPUT_DIR,
+                                                   rate_vector=self.CALCULATED_ARGS.rate_vector,
+                                                   alphabet=self.CALCULATED_ARGS.alphabet,
+                                                   local=self.IS_LOCAL)
+                archive_name = os.path.join(self.SERVERS_OUTPUT_DIR, f'{self.PROCESS_ID}')
+                make_archive(archive_name, format='zip', root_dir=self.SERVERS_OUTPUT_DIR)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Error executing command \'create_all_file_types\'',
                                                       traceback.format_exc()))
 
     def check_arguments_for_errors(self):
-        # for i in vars(self).items():
-        #     print(i)
         if not path.exists(self.SERVERS_RESULTS_DIR):
             makedirs(self.SERVERS_RESULTS_DIR)
         if not path.exists(self.SERVERS_INPUT_DIR):
             makedirs(self.SERVERS_INPUT_DIR)
+        # print(self.SERVERS_OUTPUT_DIR)
         if not path.exists(self.SERVERS_OUTPUT_DIR):
             makedirs(self.SERVERS_OUTPUT_DIR)
 
         copy(self.MSA_FILE, self.INPUT_MSA_FILE)
         copy(self.TREE_FILE, self.INPUT_TREE_FILE)
 
-        with open(self.TREE_FILE, 'r') as f:
-            self.CALCULATED_ARGS.newick_text = f.read()
-        with open(self.MSA_FILE, 'r') as f:
-            self.CALCULATED_ARGS.pattern_msa = f.read()
+        if path.isfile(self.TREE_FILE):
+            with open(self.TREE_FILE, 'r') as f:
+                self.CALCULATED_ARGS.newick_text = f.read()
+        else:
+            self.CALCULATED_ARGS.err_list.append((f'The File does not exist',
+                                                  f'File "{self.TREE_FILE}" does not exist '))
+        if path.isfile(self.MSA_FILE):
+            with open(self.MSA_FILE, 'r') as f:
+                self.CALCULATED_ARGS.pattern_msa = f.read()
+        else:
+            self.CALCULATED_ARGS.err_list.append((f'The File does not exist',
+                                                  f'File "{self.MSA_FILE}" does not exist '))
 
-        # for i in self.CURRENT_ARGS.items():
-        #     print(i)
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_data', False):
             self.CALCULATED_ARGS.err_list += self.ACTIONS.check_data(self.CALCULATED_ARGS.newick_text,
                                                                      self.CALCULATED_ARGS.pattern_msa)
@@ -180,13 +222,18 @@ class Config:
                             '(required).')
         parser.add_argument('--tree_file', dest='TREE_FILE', type=str, required=True, help='Specify the newick file '
                             '(required).')
+        parser.add_argument('--process_id', dest='process_id', type=str, required=False, default=self.PROCESS_ID,
+                            help=f'Process id (optional). Default is {self.PROCESS_ID}.')
+        parser.add_argument('--mode', dest='mode', type=str, required=False, default=str(self.MODE),
+                            help=f'Execution mode style (optional). ("create_all_file_types", "draw_tree", '
+                            f'"compute_likelihood_of_tree") Default is {self.MODE}.')
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=bool, required=False,
                             default=self.CURRENT_ARGS.get('with_internal_nodes', True), help=f'Specify the Newick file '
                             f'style (optional). Default is {self.CURRENT_ARGS.get("with_internal_nodes", True)}.')
-        parser.add_argument('--sort_values_by', dest='sort_values_by', type=tuple, required=False,
-                            default=self.CURRENT_ARGS.get('sort_values_by', ('child', 'Name')), help=f'Specify the '
-                            f'columns by which you want to sort the values in the csv file. Possible options: ("Name", '
-                            f'"Parent", "Distance to father", "child"). Default is '
+        parser.add_argument('--sort_values_by', dest='sort_values_by', type=str, required=False,
+                            default=str(self.CURRENT_ARGS.get('sort_values_by', ('child', 'Name'))), help=f'Specify the'
+                            f' columns by which you want to sort the values in the csv file. Possible options: ("Name",'
+                            f' "Parent", "Distance to father", "child"). Default is '
                             f'{self.CURRENT_ARGS.get("sort_values_by", ("child", "Name"))}.')
         parser.add_argument('--categories_quantity', dest='categories_quantity', type=int, required=False,
                             default=self.CURRENT_ARGS.get('categories_quantity', 4), help=f'Specify categories '
@@ -200,11 +247,53 @@ class Config:
                             default=self.CURRENT_ARGS.get('show_distance_to_parent', True), help=f'Specify beta. '
                             f'Default is {self.CURRENT_ARGS.get("show_distance_to_parent", True)}.')
 
+        def check_arg_value(value: str) -> str:
+            value = value.strip()
+            if (value.startswith('[') and value.endswith(']')) or (value.startswith('(') and value.endswith(')')):
+                return value[1:-1]
+            return value
+
+        def check_value(value: str) -> str:
+            value = value.strip()
+            if (value.startswith('\'') and value.endswith('\'')) or (value.startswith('"') and value.endswith('"')):
+                return value[1:-1]
+            return value
+
+        def get_tuple(value) -> Tuple[str, ...]:
+            value = value.strip()
+            value = check_arg_value(value)
+            return tuple(map(check_value, value.split(',')))
+
         args = parser.parse_args()
         for arg_name, arg_value in vars(args).items():
             if arg_value is not None:
-                if hasattr(self, arg_name.upper()):
-                    setattr(self, arg_name.upper(), arg_value)
-                if hasattr(self.CURRENT_ARGS, arg_name):
-                    setattr(self.CURRENT_ARGS, arg_name, arg_value)
+                if arg_name == 'process_id':
+                    if arg_value != self.PROCESS_ID:
+                        self.change_process_id(arg_value)
+                elif arg_name == 'mode':
+                    setattr(self, arg_name.upper(), get_tuple(arg_value))
+                else:
+                    if hasattr(self, arg_name.upper()):
+                        setattr(self, arg_name.upper(), arg_value)
+                    if hasattr(self.CURRENT_ARGS, arg_name):
+                        if arg_name == 'sort_values_by':
+                            setattr(self, arg_name, get_tuple(arg_value))
+                        else:
+                            setattr(self.CURRENT_ARGS, arg_name, arg_value)
+
+        self.DEFAULT_ACTIONS.update({'compute_likelihood_of_tree': False,
+                                     'calculate_tree_for_fasta': False,
+                                     'calculate_ancestral_sequence': False,
+                                     'draw_tree': False,
+                                     'create_all_file_types': False})
+        if 'compute_likelihood_of_tree' in self.MODE:
+            self.DEFAULT_ACTIONS.update({'compute_likelihood_of_tree': True})
+        if 'draw_tree' in self.MODE:
+            self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
+                                         'calculate_ancestral_sequence': True,
+                                         'draw_tree': True})
+        if 'create_all_file_types' in self.MODE:
+            self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
+                                         'calculate_ancestral_sequence': True,
+                                         'create_all_file_types': True})
         return args

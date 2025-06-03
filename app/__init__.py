@@ -1,9 +1,7 @@
-from script import design_functions as df, service_functions as sf
 from flask import Flask, request, render_template, jsonify, send_file, Response
-from script.tree import Tree
 from SharedConsts import FlaskConfig, MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, PROGRESS_BAR
 from os import path
-from script.config import Config
+from http_utils import *
 
 # import warnings
 # from werkzeug.middleware.proxy_fix import ProxyFix
@@ -86,11 +84,11 @@ def get_exemple():
 @app.route('/get_file', methods=['GET'])
 def get_file():
     if request.method == 'GET':
-        file_path = conf.SERVERS_RESULTS_DIR + request.args.get('file_path', '')
+        file_path = request.args.get('file_path', '')
         mode = request.args.get('mode', 'view')
         file_exists = path.exists(file_path)
         as_attachment = mode == 'download' and file_exists
-        file_path = file_path if file_exists else conf.ERROR_TEMPLATE
+        file_path = file_path
         if mode == 'view':
             j = file_path[::-1].find('.')
             file_extension = file_path[-j:]
@@ -102,74 +100,22 @@ def get_file():
 
 @app.route('/create_all_file_types', methods=['POST'])
 def create_all_file_types():
-    if request.method == 'POST':
-        newick_text, pattern_msa, categories_quantity, alpha, is_radial_tree, show_distance_to_parent = (
-            sf.get_tree_variables(dict(request.form)))
-        beta = alpha
-        err_list = sf.check_form(newick_text, pattern_msa)
-
-        if err_list:
-            status = 400
-            result = sf.get_error(err_list)
-        else:
-            status = 200
-            config = Config(IS_PRODUCTION=True)
-            rate_vector = Tree.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
-            file_list = sf.create_all_file_types(newick_text, pattern_msa, config.SERVERS_RESULTS_DIR, rate_vector)
-            result = df.result_design(file_list)
-
-        return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
+    print(type(request))
+    return execute_response(request, Response, jsonify, True)
 
 
 @app.route('/draw_tree', methods=['POST'])
 def draw_tree():
-    if request.method == 'POST':
-        newick_text, pattern_msa, categories_quantity, alpha, is_radial_tree, show_distance_to_parent = (
-            sf.get_tree_variables(dict(request.form)))
-        beta = alpha
-        err_list = sf.check_form(newick_text, pattern_msa)
-
-        if err_list:
-            status = 400
-            result = sf.get_error(err_list)
-        else:
-            status = 200
-            config = Config(IS_PRODUCTION=True)
-            rate_vector = Tree.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
-            result = []
-            newick_tree = Tree.rename_nodes(newick_text)
-            pattern_dict = newick_tree.get_pattern_dict(pattern_msa)
-            alphabet = Tree.get_alphabet_from_dict(pattern_dict)
-            newick_tree.calculate_tree_for_fasta(pattern_dict, alphabet, rate_vector)
-            newick_tree.calculate_ancestral_sequence()
-            result.append(newick_tree.get_json_structure())
-            result.append(newick_tree.get_json_structure(return_table=True))
-            result.append(Tree.get_columns_list_for_sorting())
-            size_factor = min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
-            result.append([size_factor, int(is_radial_tree), int(show_distance_to_parent)])
-
-        return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
+    print('type(request)')
+    print(type(request))
+    return execute_response(request, Response, jsonify)
 
 
 @app.route('/compute_likelihood_of_tree', methods=['POST'])
 def compute_likelihood_of_tree():
-    if request.method == 'POST':
-        newick_text, pattern_msa, categories_quantity, alpha, is_radial_tree, show_distance_to_parent = (
-            sf.get_tree_variables(dict(request.form)))
-        beta = alpha
-        err_list = sf.check_form(newick_text, pattern_msa)
+    print(type(request))
+    return execute_response(request, Response, jsonify, True)
 
-        if err_list:
-            status = 400
-            result = sf.get_error(err_list)
-        else:
-            status = 200
-            config = Config(IS_PRODUCTION=True)
-            rate_vector = Tree.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
-            statistics = sf.compute_likelihood_of_tree(newick_text, pattern_msa, rate_vector)
-            result = df.result_design(statistics)
-
-        return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
 
 #
 # @app.route('/get_progress', methods=['POST'])
