@@ -1,19 +1,20 @@
 import argparse
+import os.path
 import traceback
 from shutil import copy, make_archive
-from json import dumps
 from SharedConsts import *
 from utils import *
-import socket
-
+# from json import dumps
+# from typing import Set
+# import socket
 
 class Config:
     def __init__(self, **attributes):
         # self.DEFAULT_ARGUMENTS = DEFAULT_ARGUMENTS
-        self.MODE = MODE
-        self.DEFAULT_FORM_ARGUMENTS = DEFAULT_FORM_ARGUMENTS
         # self.PREFIX = PREFIX
         # self.APPLICATION_ROOT = APPLICATION_ROOT
+        self.MODE = MODE
+        self.DEFAULT_FORM_ARGUMENTS = DEFAULT_FORM_ARGUMENTS
         self.COMMAND_LINE = COMMAND_LINE
         self.BIN_DIR = BIN_DIR
         self.SCRIPT_DIR = SCRIPT_DIR
@@ -24,7 +25,7 @@ class Config:
         self.ERROR_TEMPLATE = ERROR_TEMPLATE
 
         self.IS_PRODUCTION = IS_PRODUCTION
-        self.IS_LOCAL = 'powerslurm' not in socket.gethostname()
+        self.IS_LOCAL = True
         self.MSA_FILE_NAME = MSA_FILE_NAME
         self.TREE_FILE_NAME = TREE_FILE_NAME
 
@@ -46,16 +47,16 @@ class Config:
         self.WEBSERVER_NAME = WEBSERVER_NAME
         self.WEBSERVER_URL = WEBSERVER_URL
         self.WEBSERVER_TITLE = WEBSERVER_TITLE
+        self.WEBSERVER_RESULTS_URL = WEBSERVER_RESULTS_URL
+        self.WEBSERVER_LOG_URL = WEBSERVER_LOG_URL
 
         self.PROCESS_ID = None
         self.SERVERS_RESULTS_DIR = None
+        self.SERVERS_LOGS_DIR = None
         self.SERVERS_INPUT_DIR = None
         self.INPUT_MSA_FILE = None
         self.INPUT_TREE_FILE = None
         self.SERVERS_OUTPUT_DIR = None
-        self.SERVERS_LOGS_DIR = None
-        self.WEBSERVER_RESULTS_URL = None
-        self.WEBSERVER_LOG_URL = None
 
         self.USAGE = USAGE
 
@@ -93,7 +94,6 @@ class Config:
         if len(self.COMMAND_LINE) > 4 and self.COMMAND_LINE[1].startswith('-') and self.COMMAND_LINE[3].startswith('-'):
             self.parse_arguments()
             self.check_arguments_for_errors()
-            self.execute_calculation()
 
     def execute_calculation(self):
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_tree_for_fasta', False):
@@ -147,8 +147,8 @@ class Config:
                                                    rate_vector=self.CALCULATED_ARGS.rate_vector,
                                                    alphabet=self.CALCULATED_ARGS.alphabet,
                                                    local=self.IS_LOCAL)
-                archive_name = os.path.join(self.SERVERS_OUTPUT_DIR, f'{self.PROCESS_ID}')
-                make_archive(archive_name, format='zip', root_dir=self.SERVERS_OUTPUT_DIR)
+                archive_name = os.path.join(os.path.dirname(self.SERVERS_OUTPUT_DIR), f'{self.PROCESS_ID}')
+                make_archive(archive_name, 'zip', self.SERVERS_OUTPUT_DIR, '.')
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Error executing command \'create_all_file_types\'',
                                                       traceback.format_exc()))
@@ -158,7 +158,6 @@ class Config:
             makedirs(self.SERVERS_RESULTS_DIR)
         if not path.exists(self.SERVERS_INPUT_DIR):
             makedirs(self.SERVERS_INPUT_DIR)
-        # print(self.SERVERS_OUTPUT_DIR)
         if not path.exists(self.SERVERS_OUTPUT_DIR):
             makedirs(self.SERVERS_OUTPUT_DIR)
 
@@ -211,8 +210,6 @@ class Config:
                 self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.pattern_dict)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append(('Error executing command \'alphabet\'', traceback.format_exc()))
-        # for i in vars(self.CALCULATED_ARGS).items():
-        #     print(i)
 
     def parse_arguments(self):
         """parse arguments and fill out the relevant Variable Class properties"""
@@ -224,16 +221,16 @@ class Config:
                             '(required).')
         parser.add_argument('--process_id', dest='process_id', type=str, required=False, default=self.PROCESS_ID,
                             help=f'Process id (optional). Default is {self.PROCESS_ID}.')
-        parser.add_argument('--mode', dest='mode', type=str, required=False, default=str(self.MODE),
-                            help=f'Execution mode style (optional). ("create_all_file_types", "draw_tree", '
-                            f'"compute_likelihood_of_tree") Default is {self.MODE}.')
+        parser.add_argument('--mode', dest='mode', required=False, action="extend", nargs="+", type=str,
+                            help=f'Execution mode style (optional). Possible options: '
+                            f'("draw_tree", compute_likelihood_of_tree", "create_all_file_types"). Default is '
+                            f'{self.MODE[:1]}.')
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=bool, required=False,
                             default=self.CURRENT_ARGS.get('with_internal_nodes', True), help=f'Specify the Newick file '
                             f'style (optional). Default is {self.CURRENT_ARGS.get("with_internal_nodes", True)}.')
-        parser.add_argument('--sort_values_by', dest='sort_values_by', type=str, required=False,
-                            default=str(self.CURRENT_ARGS.get('sort_values_by', ('child', 'Name'))), help=f'Specify the'
-                            f' columns by which you want to sort the values in the csv file. Possible options: ("Name",'
-                            f' "Parent", "Distance to father", "child"). Default is '
+        parser.add_argument('--sort_values_by', dest='sort_values_by', required=False, action="extend", nargs="+",
+                            type=str, help=f'Specify the columns by which you want to sort the values in the csv file. '
+                            f'Possible options: ("Name", "Parent", "Distance to father", "child"). Default is '
                             f'{self.CURRENT_ARGS.get("sort_values_by", ("child", "Name"))}.')
         parser.add_argument('--categories_quantity', dest='categories_quantity', type=int, required=False,
                             default=self.CURRENT_ARGS.get('categories_quantity', 4), help=f'Specify categories '
@@ -246,38 +243,21 @@ class Config:
         parser.add_argument('--show_distance_to_parent', dest='show_distance_to_parent', type=float, required=False,
                             default=self.CURRENT_ARGS.get('show_distance_to_parent', True), help=f'Specify beta. '
                             f'Default is {self.CURRENT_ARGS.get("show_distance_to_parent", True)}.')
-
-        def check_arg_value(value: str) -> str:
-            value = value.strip()
-            if (value.startswith('[') and value.endswith(']')) or (value.startswith('(') and value.endswith(')')):
-                return value[1:-1]
-            return value
-
-        def check_value(value: str) -> str:
-            value = value.strip()
-            if (value.startswith('\'') and value.endswith('\'')) or (value.startswith('"') and value.endswith('"')):
-                return value[1:-1]
-            return value
-
-        def get_tuple(value) -> Tuple[str, ...]:
-            value = value.strip()
-            value = check_arg_value(value)
-            return tuple(map(check_value, value.split(',')))
-
         args = parser.parse_args()
+
         for arg_name, arg_value in vars(args).items():
             if arg_value is not None:
                 if arg_name == 'process_id':
                     if arg_value != self.PROCESS_ID:
                         self.change_process_id(arg_value)
                 elif arg_name == 'mode':
-                    setattr(self, arg_name.upper(), get_tuple(arg_value))
+                    setattr(self, arg_name.upper(), tuple(arg_value))
                 else:
                     if hasattr(self, arg_name.upper()):
                         setattr(self, arg_name.upper(), arg_value)
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         if arg_name == 'sort_values_by':
-                            setattr(self, arg_name, get_tuple(arg_value))
+                            setattr(self.CURRENT_ARGS, arg_name, tuple(arg_value))
                         else:
                             setattr(self.CURRENT_ARGS, arg_name, arg_value)
 
@@ -286,6 +266,7 @@ class Config:
                                      'calculate_ancestral_sequence': False,
                                      'draw_tree': False,
                                      'create_all_file_types': False})
+
         if 'compute_likelihood_of_tree' in self.MODE:
             self.DEFAULT_ACTIONS.update({'compute_likelihood_of_tree': True})
         if 'draw_tree' in self.MODE:

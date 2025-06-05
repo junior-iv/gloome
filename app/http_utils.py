@@ -25,20 +25,20 @@ def execute_response(request, response: Callable, jsonify: Callable, design: Opt
 
 
 def get_response(newick_text: str, pattern_msa: str, categories_quantity: str, alpha: str, is_radial_tree: str,
-                 show_distance_to_parent: str, process_id: Optional[str] = None) -> str:
-    # mode = ("draw_tree", ) if mode is None else mode
+                 show_distance_to_parent: str, process_id: Optional[str] = None, mode: Optional[Tuple[str, ...]] = None
+                 ) -> str:
+    mode = ("draw_tree", ) if mode is None else mode
     process_id = get_new_process_id() if process_id is None else process_id
     file_names = create_tmp_data_files(pattern_msa, newick_text)
     # file_names = 'src/initial_data/msa/patternMSA0.msa', 'src/initial_data/tree/newickTree0.tree'
     bin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(bin_dir)
     print(bin_dir)
-    cmd = (f'module load mamba/mamba-1.5.8; '
-           f'mamba activate /lsweb/rodion/gloome/gloome_env/;'
+    cmd = (f'module load mamba/mamba-1.5.8; mamba activate /lsweb/rodion/gloome/gloome_env/;'
            f'python {os.path.join(".", "script/main.py")} --process_id {process_id} --msa_file {file_names[0]} '
            f'--tree_file {file_names[1]} --categories_quantity {categories_quantity} --alpha {alpha} '
-           f'--is_radial_tree {is_radial_tree} --show_distance_to_parent {show_distance_to_parent} ')
-           # f'--mode "{mode}"')
+           f'--is_radial_tree {is_radial_tree} --show_distance_to_parent {show_distance_to_parent} '
+           f'--mode draw_tree')
     print(cmd)
     file_path = os.path.join(SERVERS_RESULTS_DIR, process_id)
     file_path = os.path.join(str(file_path), OUTPUT_DIR_NAME)

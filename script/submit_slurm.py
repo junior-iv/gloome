@@ -141,16 +141,16 @@ def submit_job_to_Q(wd, cmd):
                     "infinite": False
                     },
                 "current_working_directory": "/tmp/",
-                "standard_output": wd + "/output.txt",
+                "standard_output": "/tmp/output.txt",
                 "environment": [
                     ("PATH=/lsweb/rodion/gloome/gloome_env/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:"
                      "mamba/condabin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/"
                      "local.cc/bin:/mathematica/vers/11.2")
-                    # ,
-                    # ("LD_LIBRARY_PATH=/usr/lib64/atlas:/usr/lib64/mysql:/lib:/lib64:/lib/sse2:/lib/i686:/lib64/sse2:"
-                    #  "/lib64/tls"),
-                    # ("MODULEPATH=/powerapps/share/Modules/Centos7/modulefiles:/powerapps/share/Modules/Rocky8/"
-                    #  "modulefiles:/powerapps/share/Modules/Rocky9/modulefiles:$MODULEPATH")
+                    ,
+                    ("LD_LIBRARY_PATH=/usr/lib64/atlas:/usr/lib64/mysql:/lib:/lib64:/lib/sse2:/lib/i686:/lib64/sse2:"
+                     "/lib64/tls"),
+                    ("MODULEPATH=/powerapps/share/Modules/Centos7/modulefiles:/powerapps/share/Modules/Rocky8/"
+                     "modulefiles:/powerapps/share/Modules/Rocky9/modulefiles:$MODULEPATH")
                      ],
                  },
     })

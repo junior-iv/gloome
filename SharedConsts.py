@@ -6,7 +6,7 @@ from script.service_functions import check_data, ERR, create_all_file_types, com
 from typing import List, Tuple, Union
 # PREFIX = '/gloome'
 # MODE = ('create_all_file_types', 'draw_tree', compute_likelihood_of_tree)
-MODE = ('create_all_file_types', 'draw_tree', 'compute_likelihood_of_tree')
+MODE = ('draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types')
 IS_PRODUCTION = True
 MAX_CONTENT_LENGTH = 16 * 1000 * 1000 * 1000
 PREFIX = '/'
@@ -52,14 +52,6 @@ class Actions:
                 if type(value) is types.FunctionType:
                     setattr(self, key, value)
 
-    # # def __setattr__(self, key, value):
-    # #     if hasattr(self, key):
-    # #         object.__setattr__(self, key, value)
-    # #
-    # def __getattr__(self, item):
-    #     if hasattr(self, item):
-    #         return getattr(self, item)
-
 
 class CalculatedArgs:
     err_list: List[Union[Tuple[str, ...], str]]
@@ -69,6 +61,29 @@ class CalculatedArgs:
         if attributes:
             for key, value in attributes.items():
                 setattr(self, key, value)
+
+
+class DefaultArgs:
+    def __init__(self, **attributes):
+        if attributes:
+            for key, value in attributes.items():
+                setattr(self, key, value)
+
+    def get(self, attribute_name, default=None):
+        if hasattr(self, attribute_name):
+            return getattr(self, attribute_name)
+        else:
+            return default
+
+    def update(self, *args, **kwargs):
+        if kwargs:
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+        if args:
+            for arg in args:
+                if isinstance(arg, dict):
+                    for key, value in arg.items():
+                        setattr(self, key, value)
 
 
 LOGIN_NODE_URLS = getenv('LOGIN_NODE_URLS')
@@ -114,11 +129,11 @@ TREE_FILE_NAME = 'tree_file.tree'
 INPUT_DIR_NAME = 'INPUT'
 OUTPUT_DIR_NAME = 'OUTPUT'
 
-DEFAULT_ARGUMENTS = {
+DEFAULT_ARGUMENTS = DefaultArgs(**{
     'with_internal_nodes': True,
     'sort_values_by': ('child', 'Name'),
     'sep': '\t'
-    }
+    })
 
 DEFAULT_FORM_ARGUMENTS = {
     'categories_quantity': 4,
