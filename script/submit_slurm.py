@@ -172,11 +172,8 @@ def submit_job_to_q(wd, cmd):
     # print (jobs_result['result']['job_id'])
 
     jobs_request = requests.post(
-
         job_url,
-
         headers=headers,
-
         json={
             # "script": "#!/bin/bash\nsource ~/.bashrc\n%s\n" %(cmd),
             'script': (
@@ -204,8 +201,8 @@ def submit_job_to_q(wd, cmd):
                 "memory_per_node": {"number": 6144, "set": True},
                 "time_limit": {"number": 10080, "set": True},
                 "current_working_directory": "/lsweb/rodion/gloome/tmp/",
-                "standard_output": "/lsweb/rodion/gloome/to_del/output.txt",
-                "standard_error": "/lsweb/rodion/gloome/to_del/error.txt",
+                "standard_output": "/lsweb/rodion/gloome/tmp/output.txt",
+                "standard_error": "/lsweb/rodion/gloome/tmp/error.txt",
 
                 "environment": [
                     'PATH=/lsweb/rodion/gloome/gloome_env/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:'
