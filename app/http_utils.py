@@ -3,8 +3,8 @@ from SharedConsts import SERVERS_RESULTS_DIR, OUTPUT_DIR_NAME
 from typing import Callable
 from script.design_functions import *
 from script.service_functions import (get_tree_variables, check_form, get_error, create_tmp_data_files,
-                                      execute_function_with_delay, read_file)
-from script.submit_slurm import submit_job_to_Q
+                                      execute_function_with_delay, read_file, read_json)
+from script.submit_slurm import submit_job_to_q
 import os
 
 
@@ -19,7 +19,7 @@ def execute_response(request, response: Callable, jsonify: Callable, design: Opt
         else:
             status = 200
             result = get_response(*args, process_id=get_new_process_id())
-            result = result_design(result) if design else result
+            result = result_design(read_json(result)) if design else result
 
         return response(response=jsonify(message=result).response, status=status, mimetype='application/json')
 
@@ -27,10 +27,11 @@ def execute_response(request, response: Callable, jsonify: Callable, design: Opt
 def get_response(newick_text: str, pattern_msa: str, categories_quantity: str, alpha: str, is_radial_tree: str,
                  show_distance_to_parent: str, process_id: Optional[str] = None, mode: Optional[Tuple[str, ...]] = None
                  ) -> str:
-    mode = ("draw_tree", ) if mode is None else mode
+    mode_str = 'draw_tree' if mode is None else ' '.join(mode)
     process_id = get_new_process_id() if process_id is None else process_id
-    file_names = create_tmp_data_files(pattern_msa, newick_text)
-    # file_names = 'src/initial_data/msa/patternMSA0.msa', 'src/initial_data/tree/newickTree0.tree'
+    # file_names = create_tmp_data_files(pattern_msa, newick_text)
+    file_names = ('/lsweb/rodion/gloome/src/initial_data/msa/patternMSA0.msa',
+                  '/lsweb/rodion/gloome/src/initial_data/tree/newickTree0.tree')
     bin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(bin_dir)
     print(bin_dir)
@@ -38,11 +39,11 @@ def get_response(newick_text: str, pattern_msa: str, categories_quantity: str, a
            f'python {os.path.join(".", "script/main.py")} --process_id {process_id} --msa_file {file_names[0]} '
            f'--tree_file {file_names[1]} --categories_quantity {categories_quantity} --alpha {alpha} '
            f'--is_radial_tree {is_radial_tree} --show_distance_to_parent {show_distance_to_parent} '
-           f'--mode draw_tree')
+           f'--mode {mode_str}')
     print(cmd)
     file_path = os.path.join(SERVERS_RESULTS_DIR, process_id)
     file_path = os.path.join(str(file_path), OUTPUT_DIR_NAME)
-    result = submit_job_to_Q(file_path, cmd)
+    result = submit_job_to_q(file_path, cmd)
     print('result')
     print(result)
 

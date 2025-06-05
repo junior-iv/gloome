@@ -4,6 +4,9 @@ from sys import argv
 from script.tree import Tree
 from script.service_functions import check_data, ERR, create_all_file_types, compute_likelihood_of_tree, draw_tree
 from typing import List, Tuple, Union
+from dotenv import load_dotenv
+
+load_dotenv()
 # PREFIX = '/gloome'
 # MODE = ('create_all_file_types', 'draw_tree', compute_likelihood_of_tree)
 MODE = ('draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types')
@@ -87,9 +90,9 @@ class DefaultArgs:
 
 
 LOGIN_NODE_URLS = getenv('LOGIN_NODE_URLS')
-USERNAME = getenv('USERNAME')
+USER_NAME = getenv('USER_NAME')
 USER_ID = getenv('USER_ID')
-PASSWORD = getenv('PASSWORD')
+USER_PASSWORD = getenv('USER_PASSWORD')
 ADMIN_EMAIL = getenv('ADMIN_EMAIL')
 SMTP_SERVER = getenv('SMTP_SERVER')
 

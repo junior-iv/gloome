@@ -8,6 +8,7 @@ from utils import *
 # from typing import Set
 # import socket
 
+
 class Config:
     def __init__(self, **attributes):
         # self.DEFAULT_ARGUMENTS = DEFAULT_ARGUMENTS
