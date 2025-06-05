@@ -35,8 +35,8 @@ def get_response(newick_text: str, pattern_msa: str, categories_quantity: str, a
     bin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(bin_dir)
     print(bin_dir)
-    cmd = (f'module load mamba/mamba-1.5.8; mamba activate /lsweb/rodion/gloome/gloome_env/;'
-           f'python {os.path.join(".", "script/main.py")} --process_id {process_id} --msa_file {file_names[0]} '
+    # f'module load mamba/mamba-1.5.8; mamba activate /lsweb/rodion/gloome/gloome_env/;'
+    cmd = (f'python {os.path.join(".", "script/main.py")} --process_id {process_id} --msa_file {file_names[0]} '
            f'--tree_file {file_names[1]} --categories_quantity {categories_quantity} --alpha {alpha} '
            f'--is_radial_tree {is_radial_tree} --show_distance_to_parent {show_distance_to_parent} '
            f'--mode {mode_str}')
