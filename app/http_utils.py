@@ -39,7 +39,7 @@ def link_design(json_objct: Any, design: bool = False):
     for key, value in json_objct:
         if key == 'execution_time':
             continue
-        value = os.path.basename(value)
+        # value = os.path.basename(value)
         json_objct.update({f'{key}': f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
                                      f'href="{url_for("get_file", file_path=value, mode="download")}" '
                                      f'target="_blank"><h7>download</h7></a>\t'
@@ -98,10 +98,10 @@ def get_response(newick_text: str, pattern_msa: str, categories_quantity: str, a
     mode_str = 'draw_tree' if mode is None else ' '.join(mode)
     # process_id = get_new_process_id() if process_id is None else process_id
     file_names = create_tmp_data_files(pattern_msa, newick_text, config.SERVERS_INPUT_DIR)
-    print(file_names)
+    # print(file_names)
     # '/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/results'
-    file_names = ('/lsweb/rodion/gloome/src/initial_data/msa/patternMSA0.msa',
-                  '/lsweb/rodion/gloome/src/initial_data/tree/newickTree0.tree')
+    # file_names = ('/lsweb/rodion/gloome/src/initial_data/msa/patternMSA0.msa',
+    #               '/lsweb/rodion/gloome/src/initial_data/tree/newickTree0.tree')
     bin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(bin_dir)
     print(bin_dir)
@@ -111,7 +111,7 @@ def get_response(newick_text: str, pattern_msa: str, categories_quantity: str, a
            f'--mode {mode_str}')
     print(cmd)
     # file_path = os.path.join(str(os.path.join(SERVERS_RESULTS_DIR, process_id)), OUTPUT_DIR_NAME)
-    job_id = submit_job_to_q(config.PROCESS_ID, cmd)
+    job_id = submit_job_to_q(config, cmd)
     print(job_id)
     if check_job_state(config, job_id):
         config.set_job_logger_info(f'job_id - {job_id} state is COMPLETED')

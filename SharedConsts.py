@@ -26,7 +26,8 @@ WEBSERVER_LOG_URL = path.join(WEBSERVER_URL, 'logs')
 
 WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
 MODULE_LOAD = 'module load mamba/mamba-1.5.8'
-ENVIRONMENT_DIR = '/lsweb/rodion/gloome/gloome_env2'
+PRODJECT_DIR = '/lsweb/rodion/gloome/'
+ENVIRONMENT_DIR = f'{PRODJECT_DIR}gloome_env2'
 ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
 
 WEBSERVER_DIR = path.join(f'/var/www/vhosts/{WEBSERVER_NAME}/', 'httpdocs')

@@ -91,16 +91,18 @@ def get_jobs():
     return get_request_result(get_url_token(), slurm_url)
 
 
-def submit_job_to_q(process_id, cmd):
+def submit_job_to_q(config, cmd):
+    # process_id = config.PROCESS_ID
     job_url = f'{base_url}/slurm/v0.0.41/job/submit'
     headers = {
         'X-SLURM-USER-NAME': current_user,
         'X-SLURM-USER-TOKEN': get_url_token()
         }
 
-    job_name = f'gloome_{process_id}'
-    print(process_id, job_name, sep='\n')
-    prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}{process_id}_'
+    job_name = f'gloome_{config.PROCESS_ID}'
+    print(config.PROCESS_ID, job_name, sep='\n')
+    prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}{config.PROCESS_ID}_'
+    print(cmd)
 
     jobs_request = requests.post(
         job_url,
@@ -111,9 +113,9 @@ def submit_job_to_q(process_id, cmd):
                 f'source ~/.bashrc\n'
                 f'cd /lsweb/rodion/gloome/\n'
                 f'echo "Loading module..."\n'
-                f'module load mamba/mamba-1.5.8\n'
+                f'{config.MODULE_LOAD}\n'
                 f'echo "Activating env..."\n'
-                f'mamba activate /lsweb/rodion/gloome/gloome_env2\n'
+                f'{config.ENVIRONMENT_ACTIVATE}\n'
                 f'echo "Executing python script..."\n'
                 f'{cmd}'
                 # f'echo "cmd completed successfully, REST API request completed successfully" > /lsweb/rodion/gloome/tmp/{prefix}slurm_api_request_result.txt'
@@ -128,15 +130,15 @@ def submit_job_to_q(process_id, cmd):
                 'cpus_per_task': 1,
                 'memory_per_node': {'number': 6144, 'set': True},
                 'time_limit': {'number': 10080, 'set': True},
-                'current_working_directory': f'/lsweb/rodion/gloome/tmp/',
-                'standard_output': f'/lsweb/rodion/gloome/tmp/{prefix}output.txt',
-                'standard_error': f'/lsweb/rodion/gloome/tmp/{prefix}error.txt',
+                'current_working_directory': f'{config.PRODJECT_DIR}tmp/',
+                'standard_output': f'{config.PRODJECT_DIR}tmp/{prefix}output.txt',
+                'standard_error': f'{config.PRODJECT_DIR}tmp/{prefix}error.txt',
 
                 'environment': [
-                    'PATH=/lsweb/rodion/gloome/gloome_env2/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:'
-                    'mamba/condabin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
-                    '/usr/local.cc/bin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
-                    '/usr/local.cc/bin'
+                    f'PATH={config.ENVIRONMENT_DIR}/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:'
+                    f'mamba/condabin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
+                    f'/usr/local.cc/bin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
+                    f'/usr/local.cc/bin'
                 ],
             },
         }

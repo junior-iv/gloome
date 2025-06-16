@@ -14,6 +14,7 @@ class WebConfig:
     WEBSERVER_URL: str
     WEBSERVER_TITLE: str
     MODULE_LOAD: str
+    PRODJECT_DIR: str
     ENVIRONMENT_DIR: str
     ENVIRONMENT_ACTIVATE: str
     BIN_DIR: str
@@ -48,6 +49,7 @@ class WebConfig:
         self.WEBSERVER_URL = WEBSERVER_URL
         self.WEBSERVER_TITLE = WEBSERVER_TITLE
         self.MODULE_LOAD = MODULE_LOAD
+        self.PRODJECT_DIR = PRODJECT_DIR
         self.ENVIRONMENT_DIR = ENVIRONMENT_DIR
         self.ENVIRONMENT_ACTIVATE = ENVIRONMENT_ACTIVATE
         self.BIN_DIR = BIN_DIR
