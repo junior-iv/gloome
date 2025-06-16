@@ -156,6 +156,7 @@ class Config:
                                                       traceback.format_exc()))
 
     def check_arguments_for_errors(self):
+        os.chmod(SERVERS_RESULTS_DIR, 0o777)
         if not path.exists(self.SERVERS_RESULTS_DIR):
             makedirs(self.SERVERS_RESULTS_DIR)
         if not path.exists(self.SERVERS_INPUT_DIR):
