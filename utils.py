@@ -15,8 +15,9 @@ from random import randint
 
 LOGGER_LEVEL_JOB_MANAGE_THREAD_SAFE = logging.DEBUG
 LOGGER_LEVEL_JOB_MANAGE_API = logging.DEBUG
-Bin = os.path.dirname(os.path.abspath(sys.argv[0]))
-BIN_DIR = os.path.dirname(Bin)
+# Bin = os.path.dirname(os.path.abspath(sys.argv[0]))
+BIN_DIR = os.path.dirname(os.path.abspath(__file__))
+# BIN_DIR = os.path.dirname(Bin)
 SERVER_DIR = BIN_DIR
 
 
@@ -421,8 +422,8 @@ def convert_fs_to_upper_case(file):
     return 'OK'
 
 
-def get_job_logger(job_id):
-    wd = os.path.join(CONSTS.WEBSERVER_RESULTS_DIR, job_id)
+def get_job_logger(job_id, server_results_dir):
+    wd = os.path.join(server_results_dir, job_id)
     if not os.path.exists(wd):
         return None
     current_logger = logging.getLogger(job_id)

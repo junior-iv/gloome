@@ -1,4 +1,5 @@
 import requests
+import datetime
 from os.path import normpath, basename, dirname
 from os import getenv
 from dotenv import load_dotenv
@@ -14,6 +15,7 @@ USER_PASSWORD = getenv('USER_PASSWORD')
 # Base URL for authentication and token generation
 base_url_auth = 'https://slurmtron.tau.ac.il'
 generate_token_url = f"{base_url_auth}/slurmapi/generate-token/"
+base_url = f"{base_url_auth}/slurmrestd"
 
 
 def generate_jwt_token(user, key):
@@ -49,133 +51,61 @@ def generate_jwt_token(user, key):
 
 
 def get_url_token():
-    base_url = f"{base_url_auth}/slurmrestd"
-    jwt_token = generate_jwt_token(current_user, api_key)['SlurmJWT']
-
-    return base_url, jwt_token
+    return generate_jwt_token(current_user, api_key)['SlurmJWT']
 
 
-def get_jobs_result(jwt_token, job_url):
+def get_request_result(jwt_token, job_url):
     headers = {
         'X-SLURM-USER-NAME': current_user,
         'X-SLURM-USER-TOKEN': jwt_token
         }
 
-    jobs_request = requests.get(
+    request_result = requests.get(
         job_url,
         headers=headers)
-    jobs_result = jobs_request.json()
-    print(jobs_result)
-    return jobs_result
+    print(request_result)
+    return request_result.json()
 
 
 def get_job_info(job_id):
-    base_url, jwt_token = get_url_token()
-    job_url = f'{base_url}/slurm/v0.0.41/job/{job_id}'
+    slurm_url = f'{base_url}/slurm/v0.0.41/job/{job_id}'
 
-    return get_jobs_result(jwt_token, job_url)
-
-
-def slurm_ping():
-    base_url, jwt_token = get_url_token()
-    job_url = f'{base_url}/slurm/v0.0.41/ping'
-
-    return get_jobs_result(jwt_token, job_url)
-
-
-def get_jobs():
-    base_url, jwt_token = get_url_token()
-    job_url = f'{base_url}/slurm/v0.0.41/jobs'
-
-    return get_jobs_result(jwt_token, job_url)
+    return get_request_result(get_url_token(), slurm_url)
 
 
 def get_jobs_info():
-    base_url, jwt_token = get_url_token()
+    slurm_url = f'{base_url}/slurm/v0.0.41/jobs/state'
 
-    job_url = f'{base_url}/slurm/v0.0.41/jobs/state'
-
-    return get_jobs_result(jwt_token, job_url)
+    return get_request_result(get_url_token(), slurm_url)
 
 
-def submit_job_to_q(wd, cmd):
-    # current_user = getpass.getuser()
-    # api url
-    base_url = f"{base_url_auth}/slurmrestd"
-    # auth token
-    jwt_token = generate_jwt_token(current_user, api_key)['SlurmJWT']
+def slurm_ping():
+    slurm_url = f'{base_url}/slurm/v0.0.41/ping'
 
-    # job submission url
+    return get_request_result(get_url_token(), slurm_url)
+
+
+def get_jobs():
+    slurm_url = f'{base_url}/slurm/v0.0.41/jobs'
+
+    return get_request_result(get_url_token(), slurm_url)
+
+
+def submit_job_to_q(process_id, cmd):
     job_url = f'{base_url}/slurm/v0.0.41/job/submit'
-    # Auth Headers
     headers = {
         'X-SLURM-USER-NAME': current_user,
-        'X-SLURM-USER-TOKEN': jwt_token
+        'X-SLURM-USER-TOKEN': get_url_token()
         }
 
-    job_id = basename(dirname(normpath(wd)))
-    # job_id = basename(normpath(wd))
-    job_name = f'gloome_{job_id}'
-    print(job_id, job_name, sep='\n')
-
-    # jobs_request = requests.post(
-    #     job_url,
-    #     headers=headers,
-    #     json={
-    #         "script": "#!/bin/bash\nsource ~/.bashrc\n%s\n" %(cmd),
-    #         "job": {
-    #
-    #             "partition": "pupkoweb",
-    #             "tasks": 1,
-    #             "name": jobName,
-    #             "account": "pupkoweb-users",
-    #             "nodes": "1",
-    #                          # how much CPU you need
-    #             "cpus_per_task": 4,
-    #                          # How much Memory you need per node, in MB
-    #             "memory_per_node": {
-    #                 "number": 256,
-    #                 "set": True,
-    #                 "infinite": False
-    #                 },
-    #             "time_limit": {
-    #                 "number": 600,
-    #                 "set": True,
-    #                 "infinite": False
-    #                 },
-    #             "current_working_directory": "/tmp/",
-    #             "standard_output": "/tmp/output.txt",
-    #             "environment": [
-    #                 ("PATH=/lsweb/rodion/gloome/gloome_env/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:"
-    #                  "mamba/condabin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/"
-    #                  "local.cc/bin:/mathematica/vers/11.2")
-    #                 ,
-    #                 ("LD_LIBRARY_PATH=/usr/lib64/atlas:/usr/lib64/mysql:/lib:/lib64:/lib/sse2:/lib/i686:/lib64/sse2:"
-    #                  "/lib64/tls"),
-    #                 ("MODULEPATH=/powerapps/share/Modules/Centos7/modulefiles:/powerapps/share/Modules/Rocky8/"
-    #                  "modulefiles:/powerapps/share/Modules/Rocky9/modulefiles:$MODULEPATH")
-    #                  ],
-    #              },
-    # })
-    #
-    # jobs_result = jobs_request.json()
-    # return jobs_result
-    # '''
-    # for key, value in jobs_result.items():
-    #     print(key, value)
-    # '''
-    # if 'result' in jobs_result:
-    #     if 'job_id' in jobs_result['result']:
-    #         return (str(jobs_result['result']['job_id']))
-    #
-    # return ''
-    # print (jobs_result['result']['job_id'])
+    job_name = f'gloome_{process_id}'
+    print(process_id, job_name, sep='\n')
+    prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}{process_id}_'
 
     jobs_request = requests.post(
         job_url,
         headers=headers,
         json={
-            # "script": "#!/bin/bash\nsource ~/.bashrc\n%s\n" %(cmd),
             'script': (
                 f'#!/bin/bash\n'
                 f'source ~/.bashrc\n'
@@ -183,29 +113,27 @@ def submit_job_to_q(wd, cmd):
                 f'echo "Loading module..."\n'
                 f'module load mamba/mamba-1.5.8\n'
                 f'echo "Activating env..."\n'
-                f'mamba activate /lsweb/rodion/gloome/gloome_env\n'
-                f'echo "REST API test successful"'
-                # f' > /lsweb/rodion/gloome/to_del/slurm_api_test_output.txt\n'
+                f'mamba activate /lsweb/rodion/gloome/gloome_env2\n'
+                f'echo "Executing python script..."\n'
                 f'{cmd}'
-                f'cmd completed successfully "REST API request completed successfully"'
+                # f'echo "cmd completed successfully, REST API request completed successfully" > /lsweb/rodion/gloome/tmp/{prefix}slurm_api_request_result.txt'
             ),
 
-            "job": {
+            'job': {
+                'name': job_name,
+                'partition': 'pupkoweb',
+                'account': 'pupkoweb-users',
+                'tasks': 1,
+                'nodes': '1',
+                'cpus_per_task': 1,
+                'memory_per_node': {'number': 6144, 'set': True},
+                'time_limit': {'number': 10080, 'set': True},
+                'current_working_directory': f'/lsweb/rodion/gloome/tmp/',
+                'standard_output': f'/lsweb/rodion/gloome/tmp/{prefix}output.txt',
+                'standard_error': f'/lsweb/rodion/gloome/tmp/{prefix}error.txt',
 
-                "name": job_name,
-                "partition": "pupkoweb",
-                "account": "pupkoweb-users",
-                "tasks": 1,
-                "nodes": "1",
-                "cpus_per_task": 1,
-                "memory_per_node": {"number": 6144, "set": True},
-                "time_limit": {"number": 10080, "set": True},
-                "current_working_directory": "/lsweb/rodion/gloome/tmp/",
-                "standard_output": "/lsweb/rodion/gloome/tmp/output.txt",
-                "standard_error": "/lsweb/rodion/gloome/tmp/error.txt",
-
-                "environment": [
-                    'PATH=/lsweb/rodion/gloome/gloome_env/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:'
+                'environment': [
+                    'PATH=/lsweb/rodion/gloome/gloome_env2/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:'
                     'mamba/condabin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
                     '/usr/local.cc/bin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
                     '/usr/local.cc/bin'

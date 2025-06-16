@@ -1,6 +1,7 @@
 import argparse
 import os.path
 import traceback
+import socket
 from shutil import copy, make_archive
 from SharedConsts import *
 from utils import *
@@ -26,7 +27,8 @@ class Config:
         self.ERROR_TEMPLATE = ERROR_TEMPLATE
 
         self.IS_PRODUCTION = IS_PRODUCTION
-        self.IS_LOCAL = True
+        # self.IS_LOCAL = False
+        self.IS_LOCAL = 'powerslurm' not in socket.gethostname()
         self.MSA_FILE_NAME = MSA_FILE_NAME
         self.TREE_FILE_NAME = TREE_FILE_NAME
 
@@ -146,8 +148,7 @@ class Config:
                                                    pattern=self.CALCULATED_ARGS.pattern_dict,
                                                    file_path=self.SERVERS_OUTPUT_DIR,
                                                    rate_vector=self.CALCULATED_ARGS.rate_vector,
-                                                   alphabet=self.CALCULATED_ARGS.alphabet,
-                                                   local=self.IS_LOCAL)
+                                                   alphabet=self.CALCULATED_ARGS.alphabet)
                 archive_name = os.path.join(os.path.dirname(self.SERVERS_OUTPUT_DIR), f'{self.PROCESS_ID}')
                 make_archive(archive_name, 'zip', self.SERVERS_OUTPUT_DIR, '.')
             except ValueError:

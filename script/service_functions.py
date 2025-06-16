@@ -57,8 +57,8 @@ def create_file(file_path: str, data: Union[str, Any], file_name: Optional[str] 
     return file_path
 
 
-def create_tmp_data_files(pattern: str, newick_tree: str) -> Tuple[str, ...]:
-    file_path = path.join(path.dirname(path.dirname(path.abspath(__file__))), 'tmp')
+def create_tmp_data_files(pattern: str, newick_tree: str, file_path: Optional[str] = None) -> Tuple[str, ...]:
+    file_path = path.join(path.dirname(path.dirname(path.abspath(__file__))), 'tmp') if file_path is None else file_path
     if not path.exists(file_path):
         makedirs(file_path)
 
@@ -80,11 +80,14 @@ def read_file(file_path: str) -> Optional[str]:
     return ''
 
 
-def read_json(data: str) -> Any:
+def loads_json(data: str) -> Any:
     return json.loads(data)
 
 
-def del_files(files: Tuple[str, ...]) -> None:
+def dumps_json(data: Any) -> str:
+    return json.dumps(data)
+
+def del_files(files: Union[str, Tuple[str, ...]]) -> None:
     if isinstance(files, str):
         del_file(files)
     else:
@@ -108,14 +111,15 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], pattern: Union[Dic
     result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
     result.update({'log-likelihood_list': newick_tree.log_likelihood_vector})
     file_path = create_file(file_path, result, 'compute_likelihood_of_tree.json')
+    print(f'result: {result}')
+    print(f'file_path: {file_path}')
 
     return file_path
 
 
 def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], file_path: str,
                           rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
-                          alphabet: Optional[Tuple[str, ...]] = None, local: bool = True
-                          ) -> str:
+                          alphabet: Optional[Tuple[str, ...]] = None) -> str:
     start_time = time()
     path_dict = dict()
     if isinstance(newick_tree, str):
@@ -140,20 +144,23 @@ def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str
                      file_name=f'{file_path}/log-likelihood.csv', sep='\t', rate_vector=rate_vector)})
 
     result = {'execution_time': convert_seconds(time() - start_time)}
-    # result.update({'process id': process_id})
-    for key, value in zip(path_dict.keys(), path_dict.values()):
-        if local:
-            result.update({f'{key}': f'{value}'})
-        else:
-            value = value[value.index(file_path) + len(file_path):]
-            result.update({f'{key}': f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                                     f'href="{url_for("get_file", file_path=value, mode="download")}" '
-                                     f'target="_blank"><h7>download</h7></a>\t'
-                                     f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                                     f'href="{url_for("get_file", file_path=value, mode="view")}" '
-                                     f'target="_blank"><h7>view</h7></a>'})
+    result.update(path_dict)
+    # # result.update({'process id': process_id})
+    # for key, value in zip(path_dict.keys(), path_dict.values()):
+    #     if local:
+    #         result.update({f'{key}': f'{value}'})
+    #     else:
+    #         value = value[value.index(file_path) + len(file_path):]
+    #         result.update({f'{key}': f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+    #                                  f'href="{url_for("get_file", file_path=value, mode="download")}" '
+    #                                  f'target="_blank"><h7>download</h7></a>\t'
+    #                                  f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+    #                                  f'href="{url_for("get_file", file_path=value, mode="view")}" '
+    #                                  f'target="_blank"><h7>view</h7></a>'})
 
     file_path = create_file(file_path, result, 'create_all_file_types.json')
+    print(f'result: {result}')
+    print(f'file_path: {file_path}')
 
     return file_path
 
@@ -165,17 +172,21 @@ def draw_tree(newick_tree: Tree, is_radial_tree: bool, show_distance_to_parent: 
     size_factor = min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
     result.append([size_factor, int(is_radial_tree), int(show_distance_to_parent)])
     file_path = create_file(file_path, result, 'draw_tree.json')
+    print(f'result: {result}')
+    print(f'file_path: {file_path}')
 
     return file_path
 
 
-def execute_function_with_delay(func: Callable, waiting_time: int = 120, **kwargs) -> Any:
-    steps_number = waiting_time // 5 if waiting_time >= 5 else 1
-    while steps_number > 0:
-        steps_number -= 1
-        sleep(5)
+def execute_function_with_delay(func: Callable, waiting_time: int = 10, steps_number: int = 6, **kwargs) -> Any:
+    # steps_number = waiting_time // 5 if waiting_time >= 5 else 1
+    for _ in range(steps_number):
+        sleep(waiting_time)
+        result = func(**kwargs)
+        # print(**kwargs)
+        print(result)
 
-    return func(**kwargs)
+    return result
 
 
 def convert_seconds(seconds: float) -> str:
