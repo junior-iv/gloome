@@ -31,6 +31,8 @@ ENVIRONMENT_DIR = f'{PRODJECT_DIR}gloome_env2'
 ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
 
 WEBSERVER_DIR = path.join(f'/var/www/vhosts/{WEBSERVER_NAME}/', 'httpdocs')
+WEBSERVER_APP_DIR = path.join(WEBSERVER_DIR, 'app')
+WEBSERVER_STATIC_DIR = path.join(WEBSERVER_APP_DIR, 'static')
 
 BIN_DIR = path.dirname(path.abspath(__file__))
 SCRIPT_DIR = path.join(BIN_DIR, 'script')

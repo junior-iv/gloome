@@ -164,9 +164,9 @@ class Config:
         if not path.exists(self.SERVERS_OUTPUT_DIR):
             makedirs(self.SERVERS_OUTPUT_DIR)
 
-        copy(self.MSA_FILE, self.INPUT_MSA_FILE)
-        copy(self.TREE_FILE, self.INPUT_TREE_FILE)
-
+        # copy(self.MSA_FILE, self.INPUT_MSA_FILE)
+        # copy(self.TREE_FILE, self.INPUT_TREE_FILE)
+        #
         if path.isfile(self.TREE_FILE):
             with open(self.TREE_FILE, 'r') as f:
                 self.CALCULATED_ARGS.newick_text = f.read()

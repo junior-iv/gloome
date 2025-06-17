@@ -104,13 +104,9 @@ def get_response(newick_text: str, pattern_msa: str, categories_quantity: str, a
     mode_str = 'draw_tree' if mode is None else ' '.join(mode)
     # process_id = get_new_process_id() if process_id is None else process_id
     msa_file_path, tree_file_path = create_tmp_data_files(pattern_msa, newick_text, config.SERVERS_INPUT_DIR)
-    msa_file_path = msa_file_path.replace(config.WEBSERVER_DIR, config.PRODJECT_DIR)
-    tree_file_path = tree_file_path.replace(config.WEBSERVER_DIR, config.PRODJECT_DIR)
+    msa_file_path = msa_file_path.replace(config.WEBSERVER_STATIC_DIR, config.PRODJECT_DIR)
+    tree_file_path = tree_file_path.replace(config.WEBSERVER_STATIC_DIR, os.path.abspath(config.PRODJECT_DIR))
 
-    # print(file_names)
-    # '/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/results'
-    # file_names = ('/lsweb/rodion/gloome/src/initial_data/msa/patternMSA0.msa',
-    #               '/lsweb/rodion/gloome/src/initial_data/tree/newickTree0.tree')
     bin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(bin_dir)
     print(bin_dir)
