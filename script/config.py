@@ -1,5 +1,6 @@
 import argparse
 import os.path
+import shutil
 import traceback
 import socket
 from shutil import copy, make_archive
@@ -81,7 +82,7 @@ class Config:
     def change_process_id(self, process_id: str):
         self.PROCESS_ID = process_id
 
-        self.SERVERS_RESULTS_DIR = path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID)
+        self.SERVERS_RESULTS_DIR = path.join(SERVERS_RESULTS_DIR, f'{self.PROCESS_ID}_out')
         self.SERVERS_INPUT_DIR = path.join(str(self.SERVERS_RESULTS_DIR), INPUT_DIR_NAME)
         self.INPUT_MSA_FILE = path.join(self.SERVERS_INPUT_DIR, self.MSA_FILE_NAME)
         self.INPUT_TREE_FILE = path.join(self.SERVERS_INPUT_DIR, self.TREE_FILE_NAME)
@@ -92,6 +93,9 @@ class Config:
 
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
+
+        shutil.copy(path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID), self.SERVERS_RESULTS_DIR)
+
         self.JOB_LOGGER = get_job_logger(f'b{process_id}', self.SERVERS_LOGS_DIR)
         self.set_job_logger_info(f'process_id = {process_id}')
 

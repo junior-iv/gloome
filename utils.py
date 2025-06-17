@@ -423,7 +423,6 @@ def convert_fs_to_upper_case(file):
 
 
 def get_job_logger(job_id, server_logs_dir):
-    # wd = os.path.join(server_results_dir, job_id)
     if not os.path.exists(server_logs_dir):
         os.makedirs(server_logs_dir)
     current_logger = logging.getLogger(job_id)
