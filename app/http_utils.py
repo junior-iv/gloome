@@ -104,8 +104,10 @@ def get_response(newick_text: str, pattern_msa: str, categories_quantity: str, a
     mode_str = 'draw_tree' if mode is None else ' '.join(mode)
     # process_id = get_new_process_id() if process_id is None else process_id
     msa_file_path, tree_file_path = create_tmp_data_files(pattern_msa, newick_text, config.SERVERS_INPUT_DIR)
-    msa_file_path = msa_file_path.replace(config.WEBSERVER_STATIC_DIR, config.PRODJECT_DIR)
+    msa_file_path = msa_file_path.replace(config.WEBSERVER_STATIC_DIR, os.path.abspath(config.PRODJECT_DIR))
     tree_file_path = tree_file_path.replace(config.WEBSERVER_STATIC_DIR, os.path.abspath(config.PRODJECT_DIR))
+    config.set_job_logger_info(f'msa_file_path = {msa_file_path}')
+    config.set_job_logger_info(f'tree_file_path = {tree_file_path}')
 
     bin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(bin_dir)
@@ -114,17 +116,22 @@ def get_response(newick_text: str, pattern_msa: str, categories_quantity: str, a
            f'--tree_file {tree_file_path} --categories_quantity {categories_quantity} --alpha {alpha} '
            f'--is_radial_tree {is_radial_tree} --show_distance_to_parent {show_distance_to_parent} '
            f'--mode {mode_str}')
+    config.set_job_logger_info(f'cmd = {cmd}')
     print(cmd)
     # file_path = os.path.join(str(os.path.join(SERVERS_RESULTS_DIR, process_id)), OUTPUT_DIR_NAME)
     job_id = submit_job_to_q(config, cmd)
     print(job_id)
+    config.set_job_logger_info(f'job_id = {job_id}')
     if check_job_state(config, job_id):
         config.set_job_logger_info(f'job_id - {job_id} state is COMPLETED')
         print('>', job_id, 'COMPLETED')
         file_name = f'{mode_str.split(sep=" ")[0]}.json'
+        config.set_job_logger_info(f'file_name = {os.path.join(config.SERVERS_OUTPUT_DIR, file_name)}')
         file_contents = read_file(file_path=os.path.join(config.SERVERS_OUTPUT_DIR, file_name))
+        config.set_job_logger_info(f'file_contents = {file_contents}')
         if 'file' in file_name:
             file_contents = dumps_json(link_design(loads_json(file_contents), design))
+        config.set_job_logger_info(f'return file_contents -> file_contents = {file_contents}')
         return file_contents
     return None
     # print('result')
