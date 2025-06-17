@@ -2,8 +2,18 @@ from flask import Flask, request, render_template, jsonify, send_file, Response,
 from SharedConsts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, PROGRESS_BAR
 from config import FlaskConfig
 from os import path
-from http_utils import *
+from sys import path as sys_path
 
+root_path = path.abspath(path.dirname(path.dirname(__file__)))
+if root_path not in sys_path:
+    sys_path.insert(0, root_path)
+
+# Path to the script folder
+script_path = path.abspath(path.dirname(__file__))
+if script_path not in sys_path:
+    sys_path.insert(0, script_path)
+
+from http_utils import *
 # import warnings
 # from werkzeug.middleware.proxy_fix import ProxyFix
 

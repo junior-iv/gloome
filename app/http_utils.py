@@ -8,6 +8,7 @@ from typing import Callable, Any, Union, List, Tuple, Dict, Optional, Type
 from time import sleep
 from flask import url_for, request, Response, jsonify
 import os
+import traceback
 
 
 def json_find(data, key: Union[bool, int, float, str], value: Optional[Union[bool, int, float, str]] = None,
@@ -59,9 +60,14 @@ def execute_response(design: bool = False, mode: Optional[Tuple[str, ...]] = Non
             result = get_error(err_list)
         else:
             status = 200
-            result = get_response(*args, design=design, mode=mode)
-            print(result)
-            # result = link_design(read_json(result)) if design else result
+            try:
+                result = get_response(*args, design=design, mode=mode)
+                print(result)
+            except Exception as e:
+                with open("/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/route_debug.log", "a") as f:
+                    f.write(f"\n\n--- Exception at /draw_tree ---\n")
+                    f.write(traceback.format_exc())
+                raise  # Re-raise to still return 500
 
         return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
 
