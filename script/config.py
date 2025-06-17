@@ -96,7 +96,7 @@ class Config:
 
         if not path.exists(self.SERVERS_RESULTS_DIR):
             makedirs(self.SERVERS_RESULTS_DIR)
-        shutil.copytree(path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID), self.SERVERS_RESULTS_DIR, dirs_exist_ok=False)
+        # shutil.copytree(path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID), self.SERVERS_RESULTS_DIR, dirs_exist_ok=False)
         if not path.exists(self.SERVERS_INPUT_DIR):
             makedirs(self.SERVERS_INPUT_DIR)
         if not path.exists(self.SERVERS_OUTPUT_DIR):
