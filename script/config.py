@@ -94,8 +94,8 @@ class Config:
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
 
-        if not path.exists(self.SERVERS_RESULTS_DIR):
-            makedirs(self.SERVERS_RESULTS_DIR)
+        # if not path.exists(self.SERVERS_RESULTS_DIR):
+        #     makedirs(self.SERVERS_RESULTS_DIR)
         # shutil.copytree(path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID), self.SERVERS_RESULTS_DIR, dirs_exist_ok=False)
         if not path.exists(self.SERVERS_INPUT_DIR):
             makedirs(self.SERVERS_INPUT_DIR)
