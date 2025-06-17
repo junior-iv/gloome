@@ -117,7 +117,7 @@ def submit_job_to_q(config, cmd):
                 f'echo "Activating env..."\n'
                 f'{config.ENVIRONMENT_ACTIVATE}\n'
                 f'echo "Executing python script..."\n'
-                f'{cmd}'
+                f'sudo {cmd}'
                 # f'echo "cmd completed successfully, REST API request completed successfully" > /lsweb/rodion/gloome/tmp/{prefix}slurm_api_request_result.txt'
             ),
 
