@@ -94,7 +94,7 @@ class Config:
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
 
-        shutil.copy(path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID), self.SERVERS_RESULTS_DIR)
+        shutil.copytree(path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID), self.SERVERS_RESULTS_DIR)
 
         self.JOB_LOGGER = get_job_logger(f'b{process_id}', self.SERVERS_LOGS_DIR)
         self.set_job_logger_info(f'process_id = {process_id}')
