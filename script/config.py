@@ -94,7 +94,13 @@ class Config:
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
 
+        if not path.exists(self.SERVERS_RESULTS_DIR):
+            makedirs(self.SERVERS_RESULTS_DIR)
         shutil.copytree(path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID), self.SERVERS_RESULTS_DIR)
+        if not path.exists(self.SERVERS_INPUT_DIR):
+            makedirs(self.SERVERS_INPUT_DIR)
+        if not path.exists(self.SERVERS_OUTPUT_DIR):
+            makedirs(self.SERVERS_OUTPUT_DIR)
 
         self.JOB_LOGGER = get_job_logger(f'b{process_id}', self.SERVERS_LOGS_DIR)
         self.set_job_logger_info(f'process_id = {process_id}')
@@ -129,16 +135,6 @@ class Config:
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Error executing command \'calculate_ancestral_sequence\'',
                                                       traceback.format_exc()))
-        # result = [self.CALCULATED_ARGS.newick_tree.get_json_structure(),
-        #           self.CALCULATED_ARGS.newick_tree.get_json_structure(return_table=True),
-        #           Tree.get_columns_list_for_sorting()]
-        # size_factor = min(1 + self.CALCULATED_ARGS.newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
-        # result.append([size_factor, int(self.CURRENT_ARGS.get('is_radial_tree')),
-        #                int(self.CURRENT_ARGS.get('show_distance_to_parent'))])
-        # file_name = path.join(self.SERVERS_OUTPUT_DIR, 'tree.json')
-        # with open(file_name, 'w') as f:
-        #     f.write(dumps(result))
-
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
             try:
                 self.ACTIONS.draw_tree(newick_tree=self.CALCULATED_ARGS.newick_tree,
@@ -181,17 +177,6 @@ class Config:
                 self.CALCULATED_ARGS.err_list.append((f'Error executing command \'create_all_file_types\'', format_exc))
 
     def check_arguments_for_errors(self):
-        # os.chmod(SERVERS_RESULTS_DIR, 0o755)
-        if not path.exists(self.SERVERS_RESULTS_DIR):
-            makedirs(self.SERVERS_RESULTS_DIR)
-        if not path.exists(self.SERVERS_INPUT_DIR):
-            makedirs(self.SERVERS_INPUT_DIR)
-        if not path.exists(self.SERVERS_OUTPUT_DIR):
-            makedirs(self.SERVERS_OUTPUT_DIR)
-
-        # copy(self.MSA_FILE, self.INPUT_MSA_FILE)
-        # copy(self.TREE_FILE, self.INPUT_TREE_FILE)
-        #
         if path.isfile(self.TREE_FILE):
             with open(self.TREE_FILE, 'r') as f:
                 self.CALCULATED_ARGS.newick_text = f.read()
