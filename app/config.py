@@ -4,8 +4,8 @@ from typing import Optional, Type, ClassVar
 
 
 SERVERS_RESULTS_DIR = path.join(STATIC_DIR, 'results')
-SERVERS_LOGS_DIR = path.join(STATIC_DIR, 'logs')
-# SERVERS_LOGS_DIR = path.join(SERVERS_RESULTS_DIR, 'logs')
+# SERVERS_LOGS_DIR = path.join(STATIC_DIR, 'logs')
+# SERVERS_LOGS_DIR = path.join(SERVERS_RESULTS_DIR, 'LOGS')
 # SERVERS_LOGS_DIR = path.join(STATIC_DIR, 'logs')
 
 
@@ -26,7 +26,6 @@ class WebConfig:
     SRC_DIR: str
     INITIAL_DATA_DIR: str
     SERVERS_RESULTS_DIR: str
-    SERVERS_LOGS_DIR: str
     APP_DIR: str
     TEMPLATES_DIR: str
     ERROR_TEMPLATE: str
@@ -43,6 +42,7 @@ class WebConfig:
     SERVERS_OUTPUT_DIR: Optional[str]
     WEBSERVER_RESULTS_URL: Optional[str]
     WEBSERVER_LOG_URL: Optional[str]
+    SERVERS_LOGS_DIR: Optional[str]
     JOB_LOGGER: Optional['logging']
     LOGGER: Optional['logging']
 
@@ -63,7 +63,6 @@ class WebConfig:
         self.SRC_DIR = SRC_DIR
         self.INITIAL_DATA_DIR = INITIAL_DATA_DIR
         self.SERVERS_RESULTS_DIR = SERVERS_RESULTS_DIR
-        self.SERVERS_LOGS_DIR = SERVERS_LOGS_DIR
         self.APP_DIR = APP_DIR
         self.TEMPLATES_DIR = TEMPLATES_DIR
         self.ERROR_TEMPLATE = ERROR_TEMPLATE
@@ -81,6 +80,7 @@ class WebConfig:
         self.SERVERS_OUTPUT_DIR = None
         self.WEBSERVER_RESULTS_URL = None
         self.WEBSERVER_LOG_URL = None
+        self.SERVERS_LOGS_DIR = None
         self.JOB_LOGGER = None
         self.LOGGER = logger
 
@@ -93,6 +93,10 @@ class WebConfig:
         if self.PROCESS_ID is None:
             self.change_process_id(get_new_process_id())
 
+    def set_job_logger_info(self, log_msg: str):
+        self.LOGGER.info(log_msg)
+        self.JOB_LOGGER.info(log_msg)
+
     def change_process_id(self, process_id: str):
         self.PROCESS_ID = process_id
 
@@ -103,16 +107,12 @@ class WebConfig:
         self.INPUT_TREE_FILE = path.join(self.SERVERS_INPUT_DIR, self.TREE_FILE_NAME)
         self.SERVERS_OUTPUT_DIR = path.join(self.SERVERS_RESULTS_DIR, OUTPUT_DIR_NAME)
         self.check_dir(self.SERVERS_OUTPUT_DIR)
-        self.SERVERS_LOGS_DIR = SERVERS_LOGS_DIR
+        self.SERVERS_LOGS_DIR = path.join(self.SERVERS_RESULTS_DIR, 'logs')
 
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
-        self.JOB_LOGGER = get_job_logger(process_id, SERVERS_RESULTS_DIR)
+        self.JOB_LOGGER = get_job_logger(f'f{process_id}', self.SERVERS_LOGS_DIR)
         self.set_job_logger_info(f'process_id = {process_id}')
-
-    def set_job_logger_info(self, log_msg: str):
-        self.LOGGER.info(log_msg)
-        self.JOB_LOGGER.info(log_msg)
 
     @staticmethod
     def check_dir(file_path: str):

@@ -60,7 +60,9 @@ class Config:
         self.INPUT_MSA_FILE = None
         self.INPUT_TREE_FILE = None
         self.SERVERS_OUTPUT_DIR = None
+        self.JOB_LOGGER = None
 
+        self.LOGGER = logger
         self.USAGE = USAGE
 
         if attributes:
@@ -80,12 +82,18 @@ class Config:
         self.INPUT_MSA_FILE = path.join(self.SERVERS_INPUT_DIR, self.MSA_FILE_NAME)
         self.INPUT_TREE_FILE = path.join(self.SERVERS_INPUT_DIR, self.TREE_FILE_NAME)
         self.SERVERS_OUTPUT_DIR = path.join(str(self.SERVERS_RESULTS_DIR), OUTPUT_DIR_NAME)
-        self.SERVERS_LOGS_DIR = path.join(SERVERS_LOGS_DIR, self.PROCESS_ID)
+        self.SERVERS_LOGS_DIR = path.join(self.SERVERS_RESULTS_DIR, 'logs')
 
         self.CALCULATED_ARGS.file_path = self.SERVERS_RESULTS_DIR
 
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
+        self.JOB_LOGGER = get_job_logger(f'b{process_id}', self.SERVERS_LOGS_DIR)
+        self.set_job_logger_info(f'process_id = {process_id}')
+
+    def set_job_logger_info(self, log_msg: str):
+        self.LOGGER.info(log_msg)
+        self.JOB_LOGGER.info(log_msg)
 
     def check_and_set_input_and_output_variables(self):
         """get variables from input arguments and fill out the Variable Class properties"""
@@ -130,18 +138,24 @@ class Config:
                                        file_path=self.SERVERS_OUTPUT_DIR,
                                        is_radial_tree=self.CURRENT_ARGS.get('is_radial_tree'),
                                        show_distance_to_parent=self.CURRENT_ARGS.get('show_distance_to_parent'))
+                self.set_job_logger_info(f'Successfully completed \'draw_tree\' -> {self.ACTIONS.draw_tree}')
             except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'draw_tree\'',
-                                                      traceback.format_exc()))
+                format_exc = f'{traceback.format_exc()}'
+                self.set_job_logger_info(f'Error executing command \'draw_tree\' -> {format_exc}')
+                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'draw_tree\'', format_exc))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('compute_likelihood_of_tree', False):
             try:
                 self.ACTIONS.compute_likelihood_of_tree(newick_tree=self.CALCULATED_ARGS.newick_tree,
                                                         pattern=self.CALCULATED_ARGS.pattern_dict,
                                                         file_path=self.SERVERS_OUTPUT_DIR,
                                                         rate_vector=self.CALCULATED_ARGS.rate_vector)
+                self.set_job_logger_info(f'Successfully completed \'compute_likelihood_of_tree\' -> '
+                                         f'{self.ACTIONS.compute_likelihood_of_tree}')
             except ValueError:
+                format_exc = f'{traceback.format_exc()}'
+                self.set_job_logger_info(f'Error executing command \'compute_likelihood_of_tree\' -> {format_exc}')
                 self.CALCULATED_ARGS.err_list.append((f'Error executing command \'compute_likelihood_of_tree\'',
-                                                      traceback.format_exc()))
+                                                      format_exc))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
             try:
                 self.ACTIONS.create_all_file_types(newick_tree=self.CALCULATED_ARGS.newick_tree,
@@ -149,11 +163,15 @@ class Config:
                                                    file_path=self.SERVERS_OUTPUT_DIR,
                                                    rate_vector=self.CALCULATED_ARGS.rate_vector,
                                                    alphabet=self.CALCULATED_ARGS.alphabet)
+                self.set_job_logger_info(f'Successfully completed \'create_all_file_types\' -> '
+                                         f'{self.ACTIONS.create_all_file_types}')
                 archive_name = os.path.join(os.path.dirname(self.SERVERS_OUTPUT_DIR), f'{self.PROCESS_ID}')
+                self.set_job_logger_info(f'archive_name (zip) = {archive_name}')
                 make_archive(archive_name, 'zip', self.SERVERS_OUTPUT_DIR, '.')
             except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'create_all_file_types\'',
-                                                      traceback.format_exc()))
+                format_exc = f'{traceback.format_exc()}'
+                self.set_job_logger_info(f'Error executing command \'create_all_file_types\' -> {format_exc}')
+                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'create_all_file_types\'', format_exc))
 
     def check_arguments_for_errors(self):
         # os.chmod(SERVERS_RESULTS_DIR, 0o755)

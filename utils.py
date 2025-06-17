@@ -422,14 +422,14 @@ def convert_fs_to_upper_case(file):
     return 'OK'
 
 
-def get_job_logger(job_id, server_results_dir):
-    wd = os.path.join(server_results_dir, job_id)
-    if not os.path.exists(wd):
-        return None
+def get_job_logger(job_id, server_logs_dir):
+    # wd = os.path.join(server_results_dir, job_id)
+    if not os.path.exists(server_logs_dir):
+        os.makedirs(server_logs_dir)
     current_logger = logging.getLogger(job_id)
     current_logger.setLevel(logging.INFO)  # or whatever
     if len(current_logger.handlers) == 0:
-        log_file = os.path.join(wd, f'{job_id}.log')
+        log_file = os.path.join(server_logs_dir, f'{job_id}.log')
         handler = logging.FileHandler(log_file, 'w', 'utf-8')  # or whatever
         handler.setFormatter(formatter)
         current_logger.addHandler(handler)
