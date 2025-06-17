@@ -103,7 +103,10 @@ def get_response(newick_text: str, pattern_msa: str, categories_quantity: str, a
     config = WebConfig()
     mode_str = 'draw_tree' if mode is None else ' '.join(mode)
     # process_id = get_new_process_id() if process_id is None else process_id
-    file_names = create_tmp_data_files(pattern_msa, newick_text, config.SERVERS_INPUT_DIR)
+    msa_file_path, tree_file_path = create_tmp_data_files(pattern_msa, newick_text, config.SERVERS_INPUT_DIR)
+    msa_file_path = msa_file_path.replace(config.WEBSERVER_DIR, config.PRODJECT_DIR)
+    tree_file_path = tree_file_path.replace(config.WEBSERVER_DIR, config.PRODJECT_DIR)
+
     # print(file_names)
     # '/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/results'
     # file_names = ('/lsweb/rodion/gloome/src/initial_data/msa/patternMSA0.msa',
@@ -111,8 +114,8 @@ def get_response(newick_text: str, pattern_msa: str, categories_quantity: str, a
     bin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(bin_dir)
     print(bin_dir)
-    cmd = (f'python {os.path.join(".", "script/main.py")} --process_id {config.PROCESS_ID} --msa_file {file_names[0]} '
-           f'--tree_file {file_names[1]} --categories_quantity {categories_quantity} --alpha {alpha} '
+    cmd = (f'python {os.path.join(".", "script/main.py")} --process_id {config.PROCESS_ID} --msa_file {msa_file_path} '
+           f'--tree_file {tree_file_path} --categories_quantity {categories_quantity} --alpha {alpha} '
            f'--is_radial_tree {is_radial_tree} --show_distance_to_parent {show_distance_to_parent} '
            f'--mode {mode_str}')
     print(cmd)
