@@ -71,6 +71,10 @@ class Config:
                     self.change_process_id(value)
                 else:
                     setattr(self, key, value)
+        if len(self.COMMAND_LINE) > 4 and self.COMMAND_LINE[1].startswith('-') and self.COMMAND_LINE[3].startswith(
+                '-'):
+            self.parse_arguments()
+
         if not self.PROCESS_ID:
             self.change_process_id(get_new_process_id())
 
@@ -82,7 +86,7 @@ class Config:
         self.INPUT_MSA_FILE = path.join(self.SERVERS_INPUT_DIR, self.MSA_FILE_NAME)
         self.INPUT_TREE_FILE = path.join(self.SERVERS_INPUT_DIR, self.TREE_FILE_NAME)
         self.SERVERS_OUTPUT_DIR = path.join(str(self.SERVERS_RESULTS_DIR), OUTPUT_DIR_NAME)
-        self.SERVERS_LOGS_DIR = path.join(self.SERVERS_RESULTS_DIR, 'logs')
+        self.SERVERS_LOGS_DIR = SERVERS_LOGS_DIR
 
         self.CALCULATED_ARGS.file_path = self.SERVERS_RESULTS_DIR
 
@@ -103,7 +107,6 @@ class Config:
             sys.exit()
 
         if len(self.COMMAND_LINE) > 4 and self.COMMAND_LINE[1].startswith('-') and self.COMMAND_LINE[3].startswith('-'):
-            self.parse_arguments()
             self.check_arguments_for_errors()
 
     def execute_calculation(self):

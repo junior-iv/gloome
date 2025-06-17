@@ -101,7 +101,7 @@ def submit_job_to_q(config, cmd):
 
     job_name = f'gloome_{config.PROCESS_ID}'
     print(config.PROCESS_ID, job_name, sep='\n')
-    prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}{config.PROCESS_ID}_'
+    prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{config.PROCESS_ID}_'
     print(cmd)
 
     jobs_request = requests.post(

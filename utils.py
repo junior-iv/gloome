@@ -429,7 +429,7 @@ def get_job_logger(job_id, server_logs_dir):
     current_logger = logging.getLogger(job_id)
     current_logger.setLevel(logging.INFO)  # or whatever
     if len(current_logger.handlers) == 0:
-        log_file = os.path.join(server_logs_dir, f'{job_id}.log')
+        log_file = os.path.join(server_logs_dir, f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{job_id}.log')
         handler = logging.FileHandler(log_file, 'w', 'utf-8')  # or whatever
         handler.setFormatter(formatter)
         current_logger.addHandler(handler)
