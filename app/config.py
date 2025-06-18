@@ -105,7 +105,7 @@ class WebConfig:
         self.check_dir(self.SERVERS_INPUT_DIR)
         self.INPUT_MSA_FILE = path.join(self.SERVERS_INPUT_DIR, self.MSA_FILE_NAME)
         self.INPUT_TREE_FILE = path.join(self.SERVERS_INPUT_DIR, self.TREE_FILE_NAME)
-        self.SERVERS_OUTPUT_DIR = path.join(path.join(SERVERS_RESULTS_DIR, f'{self.PROCESS_ID}_out'), OUTPUT_DIR_NAME)
+        self.SERVERS_OUTPUT_DIR = path.join(self.SERVERS_RESULTS_DIR, OUTPUT_DIR_NAME)
         self.check_dir(self.SERVERS_OUTPUT_DIR)
         self.SERVERS_LOGS_DIR = SERVERS_LOGS_DIR
 

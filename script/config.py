@@ -81,7 +81,7 @@ class Config:
     def change_process_id(self, process_id: str):
         self.PROCESS_ID = process_id
 
-        self.SERVERS_RESULTS_DIR = path.join(SERVERS_RESULTS_DIR, f'{self.PROCESS_ID}_out')
+        self.SERVERS_RESULTS_DIR = path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID)
         self.SERVERS_INPUT_DIR = path.join(str(self.SERVERS_RESULTS_DIR), INPUT_DIR_NAME)
         self.INPUT_MSA_FILE = path.join(self.SERVERS_INPUT_DIR, self.MSA_FILE_NAME)
         self.INPUT_TREE_FILE = path.join(self.SERVERS_INPUT_DIR, self.TREE_FILE_NAME)
@@ -96,11 +96,11 @@ class Config:
         # if not path.exists(self.SERVERS_RESULTS_DIR):
         #     makedirs(self.SERVERS_RESULTS_DIR)
         if not path.exists(self.SERVERS_INPUT_DIR):
-            makedirs(self.SERVERS_INPUT_DIR, mode=0o666, exist_ok=True)
+            makedirs(self.SERVERS_INPUT_DIR)
         if not path.exists(self.SERVERS_OUTPUT_DIR):
-            makedirs(self.SERVERS_OUTPUT_DIR, mode=0o666, exist_ok=True)
-        copytree(path.join(path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID), INPUT_DIR_NAME),
-                 self.SERVERS_INPUT_DIR, copy_function=copy, dirs_exist_ok=True)
+            makedirs(self.SERVERS_OUTPUT_DIR)
+        # copytree(path.join(path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID), INPUT_DIR_NAME),
+        #          self.SERVERS_INPUT_DIR)
 
         self.JOB_LOGGER = get_job_logger(f'b{process_id}', self.SERVERS_LOGS_DIR)
         self.set_job_logger_info(f'process_id = {process_id}')
