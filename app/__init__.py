@@ -111,34 +111,17 @@ def get_file():
 
 @app.route('/create_all_file_types', methods=['POST'])
 def create_all_file_types():
-    print('type(request)')
-    print(type(request))
     return execute_response(design=True, mode=('create_all_file_types', ))
 
 
 @app.route('/draw_tree', methods=['POST'])
 def draw_tree():
-    print('type(request)')
-    print(type(request))
     return execute_response(design=False,  mode=('draw_tree', ))
 
 
 @app.route('/compute_likelihood_of_tree', methods=['POST'])
 def compute_likelihood_of_tree():
-    print('type(request)')
-    print(type(request))
     return execute_response(design=True, mode=('compute_likelihood_of_tree', ))
-
-
-#
-# @app.route('/get_progress', methods=['POST'])
-# def get_progress():
-#     if request.method == 'POST':
-#         current_progress = request.form.get('current_progress')
-#         current_progress
-#         result = request.form.get('current_progress')
-#         print(result)
-#         return jsonify(message=result)
 
 
 @app.route('/test', methods=['POST'])

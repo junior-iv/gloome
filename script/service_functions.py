@@ -3,7 +3,7 @@ from time import time, sleep
 from typing import Callable, Any
 from datetime import timedelta
 from flask import url_for
-from shutil import make_archive
+from shutil import make_archive, move
 from numpy import ndarray
 from .tree import Tree
 from .design_functions import *
@@ -88,6 +88,7 @@ def loads_json(data: str) -> Any:
 def dumps_json(data: Any) -> str:
     return json.dumps(data)
 
+
 def del_files(files: Union[str, Tuple[str, ...]]) -> None:
     if isinstance(files, str):
         del_file(files)
@@ -145,9 +146,11 @@ def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str
                      file_name=f'{file_path}/log-likelihood.csv', sep='\t', rate_vector=rate_vector)})
 
     archive_path = path.join(path.dirname(file_path), path.basename(path.dirname(path.dirname(file_path))))
-    # archive_name = make_archive(archive_path, 'zip', file_path, '.')
+    archive_name = make_archive(archive_path, 'zip', file_path, '.')
+    new_archive_name = path.join(file_path, path.basename(archive_name))
+    move(archive_name, new_archive_name)
 
-    path_dict.update({'Archive (zip)': make_archive(archive_path, 'zip', file_path, '.')})
+    path_dict.update({'Archive (zip)': new_archive_name})
     result = {'execution_time': convert_seconds(time() - start_time)}
     result.update(path_dict)
 
@@ -171,15 +174,15 @@ def draw_tree(newick_tree: Tree, is_radial_tree: bool, show_distance_to_parent: 
     return file_path
 
 
-def execute_function_with_delay(func: Callable, waiting_time: int = 10, steps_number: int = 6, **kwargs) -> Any:
-    # steps_number = waiting_time // 5 if waiting_time >= 5 else 1
+def execute_function_with_delay(func: Callable, waiting_time: int = 10, steps_number: int = 6, **kwargs
+                                ) -> Optional[Any]:
+    result_func = None
     for _ in range(steps_number):
         sleep(waiting_time)
-        result = func(**kwargs)
-        # print(**kwargs)
-        print(result)
+        result_func = func(**kwargs)
+        print(result_func)
 
-    return result
+    return result_func
 
 
 def convert_seconds(seconds: float) -> str:

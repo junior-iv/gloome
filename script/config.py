@@ -1,13 +1,8 @@
 import argparse
-import os.path
 import traceback
 import socket
-from shutil import copy, make_archive, copytree
 from SharedConsts import *
 from utils import *
-# from json import dumps
-# from typing import Set
-# import socket
 
 
 class Config:
@@ -83,24 +78,17 @@ class Config:
 
         self.SERVERS_RESULTS_DIR = path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID)
         self.SERVERS_INPUT_DIR = path.join(str(self.SERVERS_RESULTS_DIR), INPUT_DIR_NAME)
+        self.check_dir(self.SERVERS_INPUT_DIR)
         self.INPUT_MSA_FILE = path.join(self.SERVERS_INPUT_DIR, self.MSA_FILE_NAME)
         self.INPUT_TREE_FILE = path.join(self.SERVERS_INPUT_DIR, self.TREE_FILE_NAME)
         self.SERVERS_OUTPUT_DIR = path.join(str(self.SERVERS_RESULTS_DIR), OUTPUT_DIR_NAME)
+        self.check_dir(self.SERVERS_OUTPUT_DIR)
         self.SERVERS_LOGS_DIR = SERVERS_LOGS_DIR
 
         self.CALCULATED_ARGS.file_path = self.SERVERS_RESULTS_DIR
 
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
-
-        if not path.exists(self.SERVERS_RESULTS_DIR):
-            makedirs(self.SERVERS_RESULTS_DIR, mode=0o777)
-        if not path.exists(self.SERVERS_INPUT_DIR):
-            makedirs(self.SERVERS_INPUT_DIR, mode=0o777)
-        if not path.exists(self.SERVERS_OUTPUT_DIR):
-            makedirs(self.SERVERS_OUTPUT_DIR, mode=0o777)
-        # copytree(path.join(path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID), INPUT_DIR_NAME),
-        #          self.SERVERS_INPUT_DIR)
 
         self.JOB_LOGGER = get_job_logger(f'b{process_id}', self.SERVERS_LOGS_DIR)
         self.set_job_logger_info(f'process_id = {process_id}')
@@ -137,10 +125,10 @@ class Config:
                                                       traceback.format_exc()))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
             try:
-                val = self.ACTIONS.draw_tree(newick_tree=self.CALCULATED_ARGS.newick_tree,
-                                             file_path=self.SERVERS_OUTPUT_DIR,
-                                             is_radial_tree=self.CURRENT_ARGS.get('is_radial_tree'),
-                                             show_distance_to_parent=self.CURRENT_ARGS.get('show_distance_to_parent'))
+                func = self.ACTIONS.draw_tree
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.SERVERS_OUTPUT_DIR,
+                           is_radial_tree=self.CURRENT_ARGS.get('is_radial_tree'),
+                           show_distance_to_parent=self.CURRENT_ARGS.get('show_distance_to_parent'))
                 self.set_job_logger_info(f'Successfully completed \'draw_tree\' -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
@@ -148,10 +136,9 @@ class Config:
                 self.CALCULATED_ARGS.err_list.append((f'Error executing command \'draw_tree\'', format_exc))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('compute_likelihood_of_tree', False):
             try:
-                val = self.ACTIONS.compute_likelihood_of_tree(newick_tree=self.CALCULATED_ARGS.newick_tree,
-                                                              pattern=self.CALCULATED_ARGS.pattern_dict,
-                                                              file_path=self.SERVERS_OUTPUT_DIR,
-                                                              rate_vector=self.CALCULATED_ARGS.rate_vector)
+                func = self.ACTIONS.compute_likelihood_of_tree
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, pattern=self.CALCULATED_ARGS.pattern_dict,
+                           file_path=self.SERVERS_OUTPUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector)
                 self.set_job_logger_info(f'Successfully completed \'compute_likelihood_of_tree\' -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
@@ -160,15 +147,11 @@ class Config:
                                                       format_exc))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
             try:
-                val = self.ACTIONS.create_all_file_types(newick_tree=self.CALCULATED_ARGS.newick_tree,
-                                                         pattern=self.CALCULATED_ARGS.pattern_dict,
-                                                         file_path=self.SERVERS_OUTPUT_DIR,
-                                                         rate_vector=self.CALCULATED_ARGS.rate_vector,
-                                                         alphabet=self.CALCULATED_ARGS.alphabet)
+                func = self.ACTIONS.create_all_file_types
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, pattern=self.CALCULATED_ARGS.pattern_dict,
+                           file_path=self.SERVERS_OUTPUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector,
+                           alphabet=self.CALCULATED_ARGS.alphabet)
                 self.set_job_logger_info(f'Successfully completed \'create_all_file_types\' -> {val}')
-                # archive_name = os.path.join(os.path.dirname(self.SERVERS_OUTPUT_DIR), f'{self.PROCESS_ID}')
-                # self.set_job_logger_info(f'archive_name (zip) = {archive_name}')
-                # make_archive(archive_name, 'zip', self.SERVERS_OUTPUT_DIR, '.')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
                 self.set_job_logger_info(f'Error executing command \'create_all_file_types\' -> {format_exc}')
@@ -289,3 +272,8 @@ class Config:
                                          'calculate_ancestral_sequence': True,
                                          'create_all_file_types': True})
         return args
+
+    @staticmethod
+    def check_dir(file_path: str):
+        if not path.exists(file_path):
+            makedirs(file_path, mode=0o777)
