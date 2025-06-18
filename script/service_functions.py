@@ -3,6 +3,7 @@ from time import time, sleep
 from typing import Callable, Any
 from datetime import timedelta
 from flask import url_for
+from shutil import make_archive
 from numpy import ndarray
 from .tree import Tree
 from .design_functions import *
@@ -48,7 +49,7 @@ def get_tree_variables(request_form: Dict[str, str]) -> Tuple[Union[str, int, fl
 def create_file(file_path: str, data: Union[str, Any], file_name: Optional[str] = None) -> str:
     if file_name and isinstance(file_name, str):
         file_path = path.join(file_path, file_name)
-    with open(file_path, 'w') as f:
+    with open(file_path, 'a') as f:
         if isinstance(data, str):
             f.write(data)
         else:
@@ -143,20 +144,12 @@ def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str
     path_dict.update({'log-Likelihood (csv)': Tree.likelihood_to_csv(newick_tree, pattern,
                      file_name=f'{file_path}/log-likelihood.csv', sep='\t', rate_vector=rate_vector)})
 
+    archive_path = path.join(path.dirname(file_path), path.basename(path.dirname(path.dirname(file_path))))
+    # archive_name = make_archive(archive_path, 'zip', file_path, '.')
+
+    path_dict.update({'Archive (zip)': make_archive(archive_path, 'zip', file_path, '.')})
     result = {'execution_time': convert_seconds(time() - start_time)}
     result.update(path_dict)
-    # # result.update({'process id': process_id})
-    # for key, value in zip(path_dict.keys(), path_dict.values()):
-    #     if local:
-    #         result.update({f'{key}': f'{value}'})
-    #     else:
-    #         value = value[value.index(file_path) + len(file_path):]
-    #         result.update({f'{key}': f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-    #                                  f'href="{url_for("get_file", file_path=value, mode="download")}" '
-    #                                  f'target="_blank"><h7>download</h7></a>\t'
-    #                                  f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-    #                                  f'href="{url_for("get_file", file_path=value, mode="view")}" '
-    #                                  f'target="_blank"><h7>view</h7></a>'})
 
     file_path = create_file(file_path, result, 'create_all_file_types.json')
     print(f'result: {result}')

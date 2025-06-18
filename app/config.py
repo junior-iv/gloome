@@ -117,7 +117,7 @@ class WebConfig:
     @staticmethod
     def check_dir(file_path: str):
         if not path.exists(file_path):
-            makedirs(file_path)
+            makedirs(file_path, mode=0o777)
 
 
 class FlaskConfig:

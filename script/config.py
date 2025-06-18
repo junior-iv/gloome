@@ -93,12 +93,12 @@ class Config:
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
 
-        # if not path.exists(self.SERVERS_RESULTS_DIR):
-        #     makedirs(self.SERVERS_RESULTS_DIR)
+        if not path.exists(self.SERVERS_RESULTS_DIR):
+            makedirs(self.SERVERS_RESULTS_DIR, mode=0o777)
         if not path.exists(self.SERVERS_INPUT_DIR):
-            makedirs(self.SERVERS_INPUT_DIR)
+            makedirs(self.SERVERS_INPUT_DIR, mode=0o777)
         if not path.exists(self.SERVERS_OUTPUT_DIR):
-            makedirs(self.SERVERS_OUTPUT_DIR)
+            makedirs(self.SERVERS_OUTPUT_DIR, mode=0o777)
         # copytree(path.join(path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID), INPUT_DIR_NAME),
         #          self.SERVERS_INPUT_DIR)
 
@@ -137,22 +137,22 @@ class Config:
                                                       traceback.format_exc()))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
             try:
-                self.ACTIONS.draw_tree(newick_tree=self.CALCULATED_ARGS.newick_tree,
-                                       file_path=self.SERVERS_OUTPUT_DIR,
-                                       is_radial_tree=self.CURRENT_ARGS.get('is_radial_tree'),
-                                       show_distance_to_parent=self.CURRENT_ARGS.get('show_distance_to_parent'))
-                self.set_job_logger_info(f'Successfully completed \'draw_tree\' -> COMPLETED')
+                val = self.ACTIONS.draw_tree(newick_tree=self.CALCULATED_ARGS.newick_tree,
+                                             file_path=self.SERVERS_OUTPUT_DIR,
+                                             is_radial_tree=self.CURRENT_ARGS.get('is_radial_tree'),
+                                             show_distance_to_parent=self.CURRENT_ARGS.get('show_distance_to_parent'))
+                self.set_job_logger_info(f'Successfully completed \'draw_tree\' -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
                 self.set_job_logger_info(f'Error executing command \'draw_tree\' -> {format_exc}')
                 self.CALCULATED_ARGS.err_list.append((f'Error executing command \'draw_tree\'', format_exc))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('compute_likelihood_of_tree', False):
             try:
-                self.ACTIONS.compute_likelihood_of_tree(newick_tree=self.CALCULATED_ARGS.newick_tree,
-                                                        pattern=self.CALCULATED_ARGS.pattern_dict,
-                                                        file_path=self.SERVERS_OUTPUT_DIR,
-                                                        rate_vector=self.CALCULATED_ARGS.rate_vector)
-                self.set_job_logger_info(f'Successfully completed \'compute_likelihood_of_tree\' -> COMPLETED')
+                val = self.ACTIONS.compute_likelihood_of_tree(newick_tree=self.CALCULATED_ARGS.newick_tree,
+                                                              pattern=self.CALCULATED_ARGS.pattern_dict,
+                                                              file_path=self.SERVERS_OUTPUT_DIR,
+                                                              rate_vector=self.CALCULATED_ARGS.rate_vector)
+                self.set_job_logger_info(f'Successfully completed \'compute_likelihood_of_tree\' -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
                 self.set_job_logger_info(f'Error executing command \'compute_likelihood_of_tree\' -> {format_exc}')
@@ -160,15 +160,15 @@ class Config:
                                                       format_exc))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
             try:
-                self.ACTIONS.create_all_file_types(newick_tree=self.CALCULATED_ARGS.newick_tree,
-                                                   pattern=self.CALCULATED_ARGS.pattern_dict,
-                                                   file_path=self.SERVERS_OUTPUT_DIR,
-                                                   rate_vector=self.CALCULATED_ARGS.rate_vector,
-                                                   alphabet=self.CALCULATED_ARGS.alphabet)
-                self.set_job_logger_info(f'Successfully completed \'create_all_file_types\' -> COMPLETED')
-                archive_name = os.path.join(os.path.dirname(self.SERVERS_OUTPUT_DIR), f'{self.PROCESS_ID}')
-                self.set_job_logger_info(f'archive_name (zip) = {archive_name}')
-                make_archive(archive_name, 'zip', self.SERVERS_OUTPUT_DIR, '.')
+                val = self.ACTIONS.create_all_file_types(newick_tree=self.CALCULATED_ARGS.newick_tree,
+                                                         pattern=self.CALCULATED_ARGS.pattern_dict,
+                                                         file_path=self.SERVERS_OUTPUT_DIR,
+                                                         rate_vector=self.CALCULATED_ARGS.rate_vector,
+                                                         alphabet=self.CALCULATED_ARGS.alphabet)
+                self.set_job_logger_info(f'Successfully completed \'create_all_file_types\' -> {val}')
+                # archive_name = os.path.join(os.path.dirname(self.SERVERS_OUTPUT_DIR), f'{self.PROCESS_ID}')
+                # self.set_job_logger_info(f'archive_name (zip) = {archive_name}')
+                # make_archive(archive_name, 'zip', self.SERVERS_OUTPUT_DIR, '.')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
                 self.set_job_logger_info(f'Error executing command \'create_all_file_types\' -> {format_exc}')
