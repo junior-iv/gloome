@@ -5,7 +5,7 @@ from typing import Optional, Type, ClassVar
 
 SERVERS_RESULTS_DIR = path.join(STATIC_DIR, 'results')
 # SERVERS_LOGS_DIR = path.join(STATIC_DIR, 'logs')
-SERVERS_LOGS_DIR = path.join(SERVERS_RESULTS_DIR, 'logs')
+SERVERS_LOGS_DIR = path.join(STATIC_DIR, 'logs')
 # SERVERS_LOGS_DIR = path.join(STATIC_DIR, 'logs')
 
 
