@@ -102,11 +102,11 @@ class WebConfig:
 
         self.SERVERS_RESULTS_DIR = path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID)
         self.SERVERS_INPUT_DIR = path.join(self.SERVERS_RESULTS_DIR, INPUT_DIR_NAME)
-        self.check_dir(self.SERVERS_INPUT_DIR)
+        # self.check_dir(self.SERVERS_INPUT_DIR)
         self.INPUT_MSA_FILE = path.join(self.SERVERS_INPUT_DIR, self.MSA_FILE_NAME)
         self.INPUT_TREE_FILE = path.join(self.SERVERS_INPUT_DIR, self.TREE_FILE_NAME)
         self.SERVERS_OUTPUT_DIR = path.join(self.SERVERS_RESULTS_DIR, OUTPUT_DIR_NAME)
-        self.check_dir(self.SERVERS_OUTPUT_DIR)
+        # self.check_dir(self.SERVERS_OUTPUT_DIR)
         self.SERVERS_LOGS_DIR = SERVERS_LOGS_DIR
 
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
