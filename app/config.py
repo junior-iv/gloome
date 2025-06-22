@@ -75,8 +75,10 @@ class WebConfig:
 
         self.LOGGER = logger
         self.JOBS_NUMBER = JobsCounter()
-        # self.SUBMITER = SlurmSubmiter()
-        self.SUBMITER = SawSubmiter()
+        if int(getenv('USE_OLD_SUBMITER')):
+            self.SUBMITER = SlurmSubmiter()
+        else:
+            self.SUBMITER = SawSubmiter()
 
         if attributes:
             for key, value in attributes.items():
