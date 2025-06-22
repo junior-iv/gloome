@@ -1,9 +1,9 @@
-import os
 import numpy as np
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
-import json
+from json import loads
+from os import remove, path, makedirs
 from d3blocks import D3Blocks
 from .node import Node
 from typing import Optional, List, Union, Dict, Tuple, Set
@@ -445,7 +445,7 @@ class Tree:
         else:
             dict_json = self.root.node_to_json()
 
-        return json.loads(str(dict_json).replace(f'\'', r'"'))
+        return loads(str(dict_json).replace(f'\'', r'"'))
 
     def tree_to_newick_text(self, with_internal_nodes: bool = False, decimal_length: int = 0) -> str:
 
@@ -456,7 +456,7 @@ class Tree:
         result = {'List for sorting': ['Name', 'Node type', 'Distance to father', 'Sequence', 'Probability coefficient',
                                        'Ancestral sequence']}
 
-        return json.loads(str(result).replace(f'\'', r'"'))
+        return loads(str(result).replace(f'\'', r'"'))
 
     @staticmethod
     def tree_to_fasta(newick_tree: Union[str, 'Tree'], pattern: Union[Dict[str, str], str],
@@ -563,7 +563,7 @@ class Tree:
                         file_extension == 'svg') else {'format': file_extension}
                 plt.savefig(file_name, **kwargs)
                 plt.close()
-        os.remove(tmp_file)
+        remove(tmp_file)
 
         return file_names
 
@@ -724,11 +724,9 @@ class Tree:
                 return dictionary
 
     @staticmethod
-    def make_dir(path: str) -> None:
-        if path.find('/') > -1:
-            path = '/'.join(path.split('/')[:-1])
-            if not os.path.exists(path):
-                os.makedirs(path)
+    def make_dir(file_path: str) -> None:
+        dir_path = path.dirname(file_path)
+        makedirs(dir_path)
 
     @staticmethod
     def check_tree(newick_tree: Union[str, 'Tree']) -> 'Tree':

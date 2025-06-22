@@ -1,6 +1,7 @@
 import argparse
 import traceback
 import socket
+from sys import exit
 from utils import *
 
 
@@ -102,7 +103,7 @@ class Config:
         if len(self.COMMAND_LINE) < 5:
             print(len(self.COMMAND_LINE))
             print('At least two required parameters --msa_file --tree_file.' + self.USAGE)
-            sys.exit()
+            exit()
 
         if len(self.COMMAND_LINE) > 4 and self.COMMAND_LINE[1].startswith('-') and self.COMMAND_LINE[3].startswith('-'):
             self.check_arguments_for_errors()

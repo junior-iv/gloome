@@ -1,5 +1,6 @@
 import requests
 import traceback
+from os import makedirs
 from time import sleep
 from utils import *
 from script.service_functions import read_file, loads_json, dumps_json, create_file, result_design
@@ -191,16 +192,16 @@ class WebConfig:
         create_file(self.TREE_FILE, self.CALCULATED_ARGS.newick_text)
 
         if replace_path:
-            self.MSA_FILE = self.MSA_FILE.replace(STATIC_DIR, os.path.abspath(self.PRODJECT_DIR))
-            self.TREE_FILE = self.TREE_FILE.replace(STATIC_DIR, os.path.abspath(self.PRODJECT_DIR))
-            self.CALCULATED_ARGS.file_path = self.OUT_DIR.replace(STATIC_DIR, os.path.abspath(self.PRODJECT_DIR))
+            self.MSA_FILE = self.MSA_FILE.replace(STATIC_DIR, self.PRODJECT_DIR)
+            self.TREE_FILE = self.TREE_FILE.replace(STATIC_DIR, self.PRODJECT_DIR)
+            self.CALCULATED_ARGS.file_path = self.OUT_DIR.replace(STATIC_DIR, self.PRODJECT_DIR)
         self.set_job_logger_info(f'Create msa file: {self.MSA_FILE}')
         self.set_job_logger_info(f'Create newick file: {self.TREE_FILE}')
         self.set_job_logger_info(f'File path: {self.CALCULATED_ARGS.file_path}')
 
     def create_command_line(self) -> None:
         self.COMMAND_LINE = (
-            f'python {os.path.join(".", "script/main.py")} --process_id {self.PROCESS_ID} --msa_file {self.MSA_FILE} '
+            f'python {path.join(".", "script/main.py")} --process_id {self.PROCESS_ID} --msa_file {self.MSA_FILE} '
             f'--tree_file {self.TREE_FILE} --categories_quantity {self.CURRENT_ARGS.categories_quantity} --alpha '
             f'{self.CURRENT_ARGS.alpha} --is_radial_tree {self.CURRENT_ARGS.is_radial_tree} --show_distance_to_parent '
             f'{self.CURRENT_ARGS.show_distance_to_parent} --mode {self.MODE}')

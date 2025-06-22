@@ -1,8 +1,7 @@
 from enum import Enum
 import datetime
 import logging
-import os
-import sys
+from os import chdir, system, makedirs
 from SharedConsts import *
 import pickle
 import re
@@ -11,18 +10,18 @@ from random import randint
 
 LOGGER_LEVEL_JOB_MANAGE_THREAD_SAFE = logging.DEBUG
 LOGGER_LEVEL_JOB_MANAGE_API = logging.DEBUG
-BIN_DIR = os.path.dirname(os.path.abspath(__file__))
-# BIN_DIR = os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0])))
+BIN_DIR = path.dirname(path.abspath(__file__))
+# BIN_DIR = path.dirname(path.dirname(path.abspath(sys.argv[0])))
 SERVER_DIR = BIN_DIR
 
 
 def init_dir_path():
     path2change = SERVER_DIR
-    os.chdir(path2change)
+    chdir(path2change)
 
 
 init_dir_path()
-logging_file_name = os.path.join('logs/', datetime.datetime.now().strftime('%Y_%m_%d_%H_%M.log'))
+logging_file_name = path.join('logs/', datetime.datetime.now().strftime('%Y_%m_%d_%H_%M.log'))
 FORMAT = '%(asctime)s[%(levelname)s][%(filename)s][%(funcName)s]: %(message)s'
 formatter = logging.Formatter('%(asctime)s[%(levelname)s][%(filename)s][%(funcName)s]: %(message)s')
 logging.basicConfig(filename=logging_file_name, level=logging.WARNING, format=FORMAT)
@@ -67,7 +66,7 @@ def send_email_old(smtp_server, sender, receiver, subject='', content=''):
 def send_email(smtp_server, sender, receiver, subject='', content=''):
     cmd = (f'sendemail -f {sender} -t {receiver} -u \'{subject}\' -m \'{content}\' -s {SMTP_SERVER} '
            f'-o tls=yes -xu {sender} -xp {ADMIN_PASSWORD}')
-    os.system(cmd)
+    system(cmd)
 
 
 def current_time():
@@ -89,7 +88,7 @@ def current_time():
 # def write_daily_test(run_number, status):
 #     date = datetime.datetime.today().strftime('%d%m%Y')
 #     results_url = f'http://pepitope.tau.ac.il/results/{run_number}/output.html'
-#     with open(os.path.join(CONSTS.DAILY_TEST_DIR, f'pepitope_{date}.txt'), "w") as f:
+#     with open(path.join(CONSTS.DAILY_TEST_DIR, f'pepitope_{date}.txt'), "w") as f:
 #         f.write(f'{status},{results_url}')
 #     f.close()
 
@@ -158,7 +157,7 @@ def check_for_spam(file_name, working_dir):  # check the input for the possible 
                     break
         f.close()
         if is_spam:
-            with open(os.path.join(working_dir, file_name)) as f_out:
+            with open(path.join(working_dir, file_name)) as f_out:
                 pass
             f_out.close()
         return is_spam
@@ -172,7 +171,7 @@ def save_file_to_disk(wd, current_logger, file, file_name_on_disk=None):
 
     current_logger.info(f'Uploaded file name is:{file.filename}')
 
-    data_path = os.path.join(f'{wd}/{file_name_on_disk}')
+    data_path = path.join(f'{wd}/{file_name_on_disk}')
     file.save(data_path)
 
     '''
@@ -181,7 +180,7 @@ def save_file_to_disk(wd, current_logger, file, file_name_on_disk=None):
 
     if file_name_on_disk is None:
         file_name_on_disk = uploaded_file_name
-    data_path = os.path.join(f'{wd}/{file_name_on_disk}')
+    data_path = path.join(f'{wd}/{file_name_on_disk}')
 
     with open(data_path, 'wb') as data_f:
         data_f.write(data)
@@ -199,7 +198,7 @@ def save_text_to_disk(form, wd, current_logger, form_field_name, file_name_on_di
     data = form[form_field_name].rstrip()
     current_logger.info(f'first 100 chars are: {data[:100]}\n')
 
-    data_path = os.path.join(f'{wd}/{file_name_on_disk}')
+    data_path = path.join(f'{wd}/{file_name_on_disk}')
     with open(data_path, 'w') as data_f:
         data_f.write(data)
     data_f.close()
@@ -364,10 +363,10 @@ def print_SuperMSA_selection(AltMSA_list):
 
 
 def file_exists_not_empty(filename):
-    if not os.path.exists(filename):
+    if not path.exists(filename):
         return False
     else:
-        if os.path.getsize(filename) > 0:
+        if path.getsize(filename) > 0:
             return True
         else:
             return False
@@ -418,12 +417,12 @@ def convert_fs_to_upper_case(file):
 
 
 def get_job_logger(job_id, server_logs_dir):
-    if not os.path.exists(server_logs_dir):
-        os.makedirs(server_logs_dir)
+    if not path.exists(server_logs_dir):
+        makedirs(server_logs_dir)
     current_logger = logging.getLogger(job_id)
     current_logger.setLevel(logging.INFO)  # or whatever
     if len(current_logger.handlers) == 0:
-        log_file = os.path.join(server_logs_dir, f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{job_id}.log')
+        log_file = path.join(server_logs_dir, f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{job_id}.log')
         handler = logging.FileHandler(log_file, 'w', 'utf-8')  # or whatever
         handler.setFormatter(formatter)
         current_logger.addHandler(handler)

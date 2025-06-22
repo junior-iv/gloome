@@ -1,9 +1,9 @@
 import types
-from os import getenv, path, makedirs
+from os import getenv, path
 from sys import argv
 from script.tree import Tree
 from script.service_functions import check_data, ERR, create_all_file_types, compute_likelihood_of_tree, draw_tree
-from typing import List, Tuple, Union, Callable, Optional
+from typing import List, Tuple, Union
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,7 +29,7 @@ WEBSERVER_LOG_URL = path.join(WEBSERVER_URL, 'logs')
 WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
 MODULE_LOAD = 'module load mamba/mamba-1.5.8'
 PRODJECT_DIR = '/lsweb/rodion/gloome'
-ENVIRONMENT_DIR = f'{PRODJECT_DIR}gloome_env2'
+ENVIRONMENT_DIR = path.join(PRODJECT_DIR, 'gloome_env2')
 ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
 
 # WEBSERVER_DIR = path.join(f'/var/www/vhosts/{WEBSERVER_NAME}/', 'httpdocs')
