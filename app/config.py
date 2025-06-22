@@ -281,7 +281,7 @@ class WebConfig:
                                      f'\tResult contents: {file_contents}\n'
                                      f'\tReturn - file contents: {file_contents}')
 
-            return read_file(file_contents)
+            return file_contents
         return ''
 
     @staticmethod
