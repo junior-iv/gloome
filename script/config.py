@@ -235,7 +235,7 @@ class Config:
         parser.add_argument('--is_radial_tree', dest='is_radial_tree', type=bool, required=False,
                             default=self.CURRENT_ARGS.get('is_radial_tree', True), help=f'Specify beta. Default is '
                             f'{self.CURRENT_ARGS.get("is_radial_tree", True)}.')
-        parser.add_argument('--show_distance_to_parent', dest='show_distance_to_parent', type=float, required=False,
+        parser.add_argument('--show_distance_to_parent', dest='show_distance_to_parent', type=bool, required=False,
                             default=self.CURRENT_ARGS.get('show_distance_to_parent', True), help=f'Specify beta. '
                             f'Default is {self.CURRENT_ARGS.get("show_distance_to_parent", True)}.')
         args = parser.parse_args()
