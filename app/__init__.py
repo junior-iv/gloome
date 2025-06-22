@@ -1,4 +1,5 @@
-from flask import Flask, request, render_template, jsonify, send_file, Response, redirect, url_for
+from flask import Flask, render_template, send_file
+# , Response, redirect, url_for, request, jsonify)
 from SharedConsts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, PROGRESS_BAR
 from config import FlaskConfig
 from os import path
@@ -14,37 +15,8 @@ if script_path not in sys_path:
     sys_path.insert(0, script_path)
 
 from http_utils import *
-# import warnings
-# from werkzeug.middleware.proxy_fix import ProxyFix
-
-# TODO think about it
-# warnings.filterwarnings("ignore")
 app = Flask(__name__)
-# TODO think about it
-# app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
-# app.config.update(MAX_CONTENT_LENGTH=16 * 1024 * 1024,
-#                   SECRET_KEY=getenv('SECRET_KEY'),
-#                   DEBUG=True)
-# app.config.update(**conf.FLASK_CONFIG)
 app.config.from_object(FlaskConfig())
-# app.config['APPLICATION_ROOT'] = args_config.APPLICATION_ROOT
-# app.config['PREFERRED_URL_SCHEME'] = 'https'
-# app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
-# app.config['UPLOAD_FOLDERS_ROOT_PATH'] = WEBSERVER_RESULTS_DIR # path to folder
-# app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000 * 1000 # MAX file size to upload
-# app.config['RECAPTCHA_SITE_KEY'] = os.getenv('RECAPTCHA_SITE_KEY')
-# app.config['RECAPTCHA_SECRET_KEY'] = os.getenv('RECAPTCHA_SECRET_KEY')
-# process_id2update = []
-
-# app.config['PREFERRED_URL_SCHEME'] = PREFERRED_URL_SCHEME
-# app.config['DEBUG'] = DEBUG
-# app.config['SECRET_KEY'] = SECRET_KEY
-# app.config['UPLOAD_FOLDERS_ROOT_PATH'] = CONSTS.WEBSERVER_RESULTS_DIR # path to folder
-# app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH # MAX file size to upload
-# app.config['use_reloader']=False
-# app.config['RECAPTCHA_SITE_KEY'] = getenv('RECAPTCHA_SITE_KEY')
-# app.config['RECAPTCHA_SECRET_KEY'] = getenv('RECAPTCHA_SECRET_KEY')
-# recaptcha = ReCaptcha(app) # Create a ReCaptcha object by passing in 'app' as parameter
 
 
 @app.route('/')

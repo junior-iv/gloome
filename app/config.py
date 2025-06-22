@@ -1,6 +1,5 @@
 import requests
 import traceback
-from os import makedirs
 from time import sleep
 from utils import *
 from script.service_functions import read_file, loads_json, dumps_json, create_file, result_design
