@@ -724,9 +724,10 @@ class Tree:
                 return dictionary
 
     @staticmethod
-    def make_dir(file_path: str) -> None:
+    def make_dir(file_path: str, **kwargs) -> None:
         dir_path = path.dirname(file_path)
-        makedirs(dir_path)
+        if not path.exists(dir_path):
+            makedirs(dir_path, **kwargs)
 
     @staticmethod
     def check_tree(newick_tree: Union[str, 'Tree']) -> 'Tree':
