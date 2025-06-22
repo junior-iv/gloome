@@ -3,7 +3,7 @@ from os import getenv, path, makedirs
 from sys import argv
 from script.tree import Tree
 from script.service_functions import check_data, ERR, create_all_file_types, compute_likelihood_of_tree, draw_tree
-from typing import List, Tuple, Union, Callable
+from typing import List, Tuple, Union, Callable, Optional
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,6 +16,8 @@ PREFIX = '/'
 APPLICATION_ROOT = PREFIX
 DEBUG = not IS_PRODUCTION
 SECRET_KEY = getenv('SECRET_KEY')
+TOKEN = getenv('TOKEN')
+PARTITION = getenv('PARTITION')
 
 PREFERRED_URL_SCHEME = 'https'
 WEBSERVER_NAME_CAPITAL = 'Gloome'
@@ -26,29 +28,30 @@ WEBSERVER_LOG_URL = path.join(WEBSERVER_URL, 'logs')
 
 WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
 MODULE_LOAD = 'module load mamba/mamba-1.5.8'
-PRODJECT_DIR = '/lsweb/rodion/gloome/'
+PRODJECT_DIR = '/lsweb/rodion/gloome'
 ENVIRONMENT_DIR = f'{PRODJECT_DIR}gloome_env2'
 ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
 
-WEBSERVER_DIR = path.join(f'/var/www/vhosts/{WEBSERVER_NAME}/', 'httpdocs')
-WEBSERVER_APP_DIR = path.join(WEBSERVER_DIR, 'app')
-WEBSERVER_STATIC_DIR = path.join(WEBSERVER_APP_DIR, 'static')
+# WEBSERVER_DIR = path.join(f'/var/www/vhosts/{WEBSERVER_NAME}/', 'httpdocs')
+# WEBSERVER_APP_DIR = path.join(WEBSERVER_DIR, 'app')
+# WEBSERVER_STATIC_DIR = path.join(WEBSERVER_APP_DIR, 'static')
 
 BIN_DIR = path.dirname(path.abspath(__file__))
 SCRIPT_DIR = path.join(BIN_DIR, 'script')
 SRC_DIR = path.join(BIN_DIR, 'src')
 INITIAL_DATA_DIR = path.join(SRC_DIR, 'initial_data')
 SERVERS_RESULTS_DIR = path.join(BIN_DIR, 'results')
+IN_DIR = path.join(SERVERS_RESULTS_DIR, 'in')
+OUT_DIR = path.join(SERVERS_RESULTS_DIR, 'out')
 SERVERS_LOGS_DIR = path.join(BIN_DIR, 'logs')
 APP_DIR = path.join(BIN_DIR, 'app')
+TMP_DIR = path.join(BIN_DIR, 'tmp')
 TEMPLATES_DIR = path.join(APP_DIR, 'templates')
 STATIC_DIR = path.join(APP_DIR, 'static')
 ERROR_TEMPLATE = path.join(TEMPLATES_DIR, '404.html')
 
 MSA_FILE_NAME = 'msa_file.msa'
 TREE_FILE_NAME = 'tree_file.tree'
-INPUT_DIR_NAME = 'INPUT'
-OUTPUT_DIR_NAME = 'OUTPUT'
 
 
 class Actions:

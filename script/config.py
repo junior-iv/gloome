@@ -1,7 +1,6 @@
 import argparse
 import traceback
 import socket
-from SharedConsts import *
 from utils import *
 
 
@@ -13,19 +12,20 @@ class Config:
         self.MODE = MODE
         self.DEFAULT_FORM_ARGUMENTS = DEFAULT_FORM_ARGUMENTS
         self.COMMAND_LINE = COMMAND_LINE
+
         self.BIN_DIR = BIN_DIR
         self.SCRIPT_DIR = SCRIPT_DIR
         self.INITIAL_DATA_DIR = INITIAL_DATA_DIR
         self.SRC_DIR = SRC_DIR
         self.APP_DIR = APP_DIR
+        self.TMP_DIR = TMP_DIR
         self.TEMPLATES_DIR = TEMPLATES_DIR
+        self.IN_DIR = IN_DIR
+        self.OUT_DIR = OUT_DIR
         self.ERROR_TEMPLATE = ERROR_TEMPLATE
 
         self.IS_PRODUCTION = IS_PRODUCTION
-        # self.IS_LOCAL = False
         self.IS_LOCAL = 'powerslurm' not in socket.gethostname()
-        self.MSA_FILE_NAME = MSA_FILE_NAME
-        self.TREE_FILE_NAME = TREE_FILE_NAME
 
         self.ACTIONS = ACTIONS
         self.VALIDATION_ACTIONS = VALIDATION_ACTIONS
@@ -34,28 +34,27 @@ class Config:
         self.CURRENT_ARGS = DEFAULT_ARGUMENTS
         self.CURRENT_ARGS.update(DEFAULT_FORM_ARGUMENTS)
 
-        self.MSA_FILE = None
-        self.TREE_FILE = None
+        self.MSA_FILE_NAME = MSA_FILE_NAME
+        self.TREE_FILE_NAME = TREE_FILE_NAME
 
         self.CALCULATED_ARGS = CALCULATED_ARGS
         self.MENU = MENU
         self.PROGRESS_BAR = PROGRESS_BAR
 
+        self.PREFERRED_URL_SCHEME = PREFERRED_URL_SCHEME
         self.WEBSERVER_NAME_CAPITAL = WEBSERVER_NAME_CAPITAL
         self.WEBSERVER_NAME = WEBSERVER_NAME
         self.WEBSERVER_URL = WEBSERVER_URL
         self.WEBSERVER_TITLE = WEBSERVER_TITLE
-        self.WEBSERVER_RESULTS_URL = WEBSERVER_RESULTS_URL
-        self.WEBSERVER_LOG_URL = WEBSERVER_LOG_URL
 
         self.PROCESS_ID = None
         self.SERVERS_RESULTS_DIR = None
         self.SERVERS_LOGS_DIR = None
-        self.SERVERS_INPUT_DIR = None
-        self.INPUT_MSA_FILE = None
-        self.INPUT_TREE_FILE = None
-        self.SERVERS_OUTPUT_DIR = None
+        self.MSA_FILE = None
+        self.TREE_FILE = None
         self.JOB_LOGGER = None
+        self.WEBSERVER_RESULTS_URL = None
+        self.WEBSERVER_LOG_URL = None
 
         self.LOGGER = logger
         self.USAGE = USAGE
@@ -76,21 +75,22 @@ class Config:
     def change_process_id(self, process_id: str):
         self.PROCESS_ID = process_id
 
-        self.SERVERS_RESULTS_DIR = path.join(SERVERS_RESULTS_DIR, self.PROCESS_ID)
-        self.SERVERS_INPUT_DIR = path.join(str(self.SERVERS_RESULTS_DIR), INPUT_DIR_NAME)
-        self.check_dir(self.SERVERS_INPUT_DIR)
-        self.INPUT_MSA_FILE = path.join(self.SERVERS_INPUT_DIR, self.MSA_FILE_NAME)
-        self.INPUT_TREE_FILE = path.join(self.SERVERS_INPUT_DIR, self.TREE_FILE_NAME)
-        self.SERVERS_OUTPUT_DIR = path.join(str(self.SERVERS_RESULTS_DIR), OUTPUT_DIR_NAME)
-        self.check_dir(self.SERVERS_OUTPUT_DIR)
+        self.SERVERS_RESULTS_DIR = SERVERS_RESULTS_DIR
         self.SERVERS_LOGS_DIR = SERVERS_LOGS_DIR
+        self.check_dir(self.SERVERS_LOGS_DIR)
 
-        self.CALCULATED_ARGS.file_path = self.SERVERS_RESULTS_DIR
+        self.OUT_DIR = path.join(self.OUT_DIR, self.PROCESS_ID)
+        self.check_dir(self.OUT_DIR)
+        self.IN_DIR = path.join(self.IN_DIR, self.PROCESS_ID)
+
+        self.MSA_FILE = path.join(self.IN_DIR, self.MSA_FILE_NAME)
+        self.TREE_FILE = path.join(self.IN_DIR, self.TREE_FILE_NAME)
+
+        self.CALCULATED_ARGS.file_path = self.OUT_DIR
 
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
-
-        self.JOB_LOGGER = get_job_logger(f'b{process_id}', self.SERVERS_LOGS_DIR)
+        self.JOB_LOGGER = get_job_logger(f'f{process_id}', self.SERVERS_LOGS_DIR)
         self.set_job_logger_info(f'process_id = {process_id}')
 
     def set_job_logger_info(self, log_msg: str):
@@ -126,7 +126,7 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
             try:
                 func = self.ACTIONS.draw_tree
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.SERVERS_OUTPUT_DIR,
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR,
                            is_radial_tree=self.CURRENT_ARGS.get('is_radial_tree'),
                            show_distance_to_parent=self.CURRENT_ARGS.get('show_distance_to_parent'))
                 self.set_job_logger_info(f'Successfully completed \'draw_tree\' -> {val}')
@@ -138,7 +138,7 @@ class Config:
             try:
                 func = self.ACTIONS.compute_likelihood_of_tree
                 val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, pattern=self.CALCULATED_ARGS.pattern_dict,
-                           file_path=self.SERVERS_OUTPUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector)
+                           file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector)
                 self.set_job_logger_info(f'Successfully completed \'compute_likelihood_of_tree\' -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
@@ -149,7 +149,7 @@ class Config:
             try:
                 func = self.ACTIONS.create_all_file_types
                 val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, pattern=self.CALCULATED_ARGS.pattern_dict,
-                           file_path=self.SERVERS_OUTPUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector,
+                           file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector,
                            alphabet=self.CALCULATED_ARGS.alphabet)
                 self.set_job_logger_info(f'Successfully completed \'create_all_file_types\' -> {val}')
             except ValueError:
@@ -274,6 +274,6 @@ class Config:
         return args
 
     @staticmethod
-    def check_dir(file_path: str):
+    def check_dir(file_path: str, **kwargs):
         if not path.exists(file_path):
-            makedirs(file_path, mode=0o777)
+            makedirs(file_path, **kwargs)

@@ -3,21 +3,16 @@ import datetime
 import logging
 import os
 import sys
-# import shutil
-import SharedConsts as CONSTS
+from SharedConsts import *
 import pickle
-# import string
 import re
-# import uuid
-# import json
 from time import time
 from random import randint
 
 LOGGER_LEVEL_JOB_MANAGE_THREAD_SAFE = logging.DEBUG
 LOGGER_LEVEL_JOB_MANAGE_API = logging.DEBUG
-# Bin = os.path.dirname(os.path.abspath(sys.argv[0]))
 BIN_DIR = os.path.dirname(os.path.abspath(__file__))
-# BIN_DIR = os.path.dirname(Bin)
+# BIN_DIR = os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0])))
 SERVER_DIR = BIN_DIR
 
 
@@ -70,8 +65,8 @@ def send_email_old(smtp_server, sender, receiver, subject='', content=''):
 
 
 def send_email(smtp_server, sender, receiver, subject='', content=''):
-    cmd = (f'sendemail -f {sender} -t {receiver} -u \'{subject}\' -m \'{content}\' -s {CONSTS.SMTP_SERVER} '
-           f'-o tls=yes -xu {sender} -xp {CONSTS.ADMIN_PASSWORD}')
+    cmd = (f'sendemail -f {sender} -t {receiver} -u \'{subject}\' -m \'{content}\' -s {SMTP_SERVER} '
+           f'-o tls=yes -xu {sender} -xp {ADMIN_PASSWORD}')
     os.system(cmd)
 
 
@@ -99,14 +94,14 @@ def current_time():
 #     f.close()
 
 
-def save_obj(obj, path):
-    with open(path, "wb") as f:
+def save_obj(obj, file_path):
+    with open(file_path, "wb") as f:
         pickle.dump(obj, f)
     f.close()
 
 
-def load_obj(path):
-    with open(path, "rb") as f:
+def load_obj(file_path):
+    with open(file_path, "rb") as f:
         obj = pickle.load(f)
     f.close()
     return obj
@@ -150,32 +145,32 @@ def str_defined_and_not_equal_char(line, ch):
         return False
 
 
-def checkForSpam(inFile, working_dir):  # check the input for the possible of spammer
+def check_for_spam(file_name, working_dir):  # check the input for the possible of spammer
     try:
-        with open(inFile, "r") as f:
-            isSpam = 0
+        with open(file_name, "r") as f:
+            is_spam = 0
             for line in f:
                 if re.search('href\s*\=\s*', line):
-                    isSpam = 1
+                    is_spam = 1
                     break
                 if re.search('http.*?\:\/\/', line):
-                    isSpam = 1
+                    is_spam = 1
                     break
         f.close()
-        if isSpam:
-            with open(os.path.join(working_dir, inFile)) as f_out:
+        if is_spam:
+            with open(os.path.join(working_dir, file_name)) as f_out:
                 pass
             f_out.close()
-        return isSpam
+        return is_spam
 
     except:
-        raise Exception(f"checkForSpam can\'t open file: '{inFile}'", "sys")
+        raise Exception(f"checkForSpam can\'t open file: '{file_name}'", "sys")
 
 
-def save_file_to_disk(wd, logger, file, file_name_on_disk=None):
-    logger.info('Saving FILE to disk')
+def save_file_to_disk(wd, current_logger, file, file_name_on_disk=None):
+    current_logger.info('Saving FILE to disk')
 
-    logger.info(f'Uploaded file name is:{file.filename}')
+    current_logger.info(f'Uploaded file name is:{file.filename}')
 
     data_path = os.path.join(f'{wd}/{file_name_on_disk}')
     file.save(data_path)
@@ -193,16 +188,16 @@ def save_file_to_disk(wd, logger, file, file_name_on_disk=None):
     data_f.close()
     '''
 
-    logger.info(f'Uploaded data was saved to {data_path} successfully\n')
+    current_logger.info(f'Uploaded data was saved to {data_path} successfully\n')
 
     return data_path, file_name_on_disk
 
 
-def save_text_to_disk(form, wd, logger, form_field_name, file_name_on_disk):
-    logger.info(f'Saving TEXT to disk')
+def save_text_to_disk(form, wd, current_logger, form_field_name, file_name_on_disk):
+    current_logger.info(f'Saving TEXT to disk')
 
     data = form[form_field_name].rstrip()
-    logger.info(f'first 100 chars are: {data[:100]}\n')
+    current_logger.info(f'first 100 chars are: {data[:100]}\n')
 
     data_path = os.path.join(f'{wd}/{file_name_on_disk}')
     with open(data_path, 'w') as data_f:
@@ -214,19 +209,19 @@ def save_text_to_disk(form, wd, logger, form_field_name, file_name_on_disk):
     return data_path
 
 
-def peek_form(form, files, logger):
+def peek_form(form, files, current_logger):
     # logger = logging.getLogger('cgi')
     # for debugging
     sorted_form_keys = sorted(form.keys())
-    logger.info(f'These are the keys that the CGI received:\n{"; ".join(sorted_form_keys)}\n\n')
-    logger.info('Form values are:\n')
+    current_logger.info(f'These are the keys that the CGI received:\n{"; ".join(sorted_form_keys)}\n\n')
+    current_logger.info('Form values are:\n')
     for key in sorted_form_keys:
-        logger.info(f'{key} = {form[key]}')
+        current_logger.info(f'{key} = {form[key]}')
     if files:
         if 'usrSeq_File' in files:
             file = files['usrSeq_File']
             if file and file.filename != '':
-                logger.info(f'usrSeq_File = {file.filename}')
+                current_logger.info(f'usrSeq_File = {file.filename}')
             '''
             if form[key].filename:
                 logger.info(f'100 first characters of {key} = {form[key][:100]}\n')
@@ -235,9 +230,9 @@ def peek_form(form, files, logger):
             '''
 
 
-def is_float(str):
+def is_float(string):
     try:
-        val = float(str)
+        val = float(string)
         return True
     except ValueError:
         return False

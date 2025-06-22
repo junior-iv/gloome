@@ -2,19 +2,12 @@ from os import path, remove, makedirs
 from time import time, sleep
 from typing import Callable, Any
 from datetime import timedelta
-from flask import url_for
 from shutil import make_archive, move
 from numpy import ndarray
 from .tree import Tree
 from .design_functions import *
 import inspect
 import json
-
-# ERR = [f'{key_design("Incorrect phylogenetic tree of newick format", True, 14)}',
-#        f'{key_design("Incorrect pattern MSA", True, 14)}',
-#        f'{key_design("Number of leaves doesn`t match", True, 14)}',
-#        f'{key_design("Different length of the sequences in the pattern MSA", True, 14)}',
-#        f'{key_design("correct examples", True, 14)}']
 
 ERR = (f'Incorrect phylogenetic tree of newick format',
        f'Incorrect pattern MSA',
@@ -49,7 +42,7 @@ def get_tree_variables(request_form: Dict[str, str]) -> Tuple[Union[str, int, fl
 def create_file(file_path: str, data: Union[str, Any], file_name: Optional[str] = None) -> str:
     if file_name and isinstance(file_name, str):
         file_path = path.join(file_path, file_name)
-    with open(file_path, 'a') as f:
+    with open(file_path, 'w') as f:
         if isinstance(data, str):
             f.write(data)
         else:
