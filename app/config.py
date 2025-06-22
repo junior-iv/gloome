@@ -260,7 +260,7 @@ class WebConfig:
 
         return body.get(self.SUBMITER.__class__.__name__)
 
-    def get_response(self, design: bool = False) -> Optional[str]:
+    def get_response(self, design: bool = False) -> Optional[Any]:
         self.create_command_line()
         request_body = self.get_request_body()
 
@@ -287,7 +287,7 @@ class WebConfig:
                                      f'\tResult file: {self.OUTPUT_FILE}\n'
                                      f'\tResult contents: {file_contents}\n')
 
-            return file_contents
+            return json_object
         return ''
 
     @staticmethod
