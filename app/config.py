@@ -273,31 +273,37 @@ class WebConfig:
             print('>', self.CURRENT_JOB, job_state)
             file_contents = read_file(file_path=self.OUTPUT_FILE)
 
-            # if 'file' in path.basename(conf.OUTPUT_FILE):
-            if design:
-                file_contents = dumps_json(self.link_design(loads_json(file_contents), design))
-            self.set_job_logger_info(f'Job states (id: {self.CURRENT_JOB}) is {job_state}\n'
-                                     f'\tResult: {self.OUTPUT_FILE}\n'
-                                     f'\tResult contents: {file_contents}\n'
+            self.set_job_logger_info(f'Job states (id: {self.CURRENT_JOB}) is {job_state}\n\n\n'
                                      f'\tReturn - file contents: {file_contents}')
+
+            json_object = loads_json(file_contents)
+            if design:
+                json_object = result_design(json_object)
+            if 'file' in path.basename(self.OUTPUT_FILE):
+                json_object = self.link_design(json_object)
+
+            file_contents = dumps_json(json_object)
+            self.set_job_logger_info(f'Job states (id: {self.CURRENT_JOB}) is {job_state}\n'
+                                     f'\tResult file: {self.OUTPUT_FILE}\n'
+                                     f'\tResult contents: {file_contents}\n')
 
             return file_contents
         return ''
 
     @staticmethod
-    def link_design(json_objct: Any, design: bool = False):
-        for key, value in json_objct:
+    def link_design(json_object: Any):
+        for key, value in json_object:
             if key == 'execution_time':
                 continue
             # value = os.path.basename(value)
-            json_objct.update(
+            json_object.update(
                 {f'{key}': f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
                            f'href="{url_for("get_file", file_path=value, mode="download")}" '
                            f'target="_blank"><h7>download</h7></a>\t'
                            f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
                            f'href="{url_for("get_file", file_path=value, mode="view")}" '
                            f'target="_blank"><h7>view</h7></a>'})
-        return result_design(json_objct) if design else json_objct
+        return json_object
 
     @staticmethod
     def check_dir(file_path: str, **kwargs):
