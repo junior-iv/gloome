@@ -132,7 +132,6 @@ class WebConfig:
                 for current_type in current_types:
                     current_value = current_type(current_value)
                 self.CURRENT_ARGS.update({out_key: current_value})
-        print(vars(self.CURRENT_ARGS))
         mode = arguments.get('mode')
         self.MODE = ' '.join(mode)
         self.OUTPUT_FILE = path.join(self.OUT_DIR, f'{mode[0]}.json')
