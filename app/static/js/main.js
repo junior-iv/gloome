@@ -79,13 +79,13 @@ function drawPhylogeneticTree(jsonData) {
     const cy = height * 0.5;
     const radius = Math.min(cx, cy);
     let scale = 0.9;
-    const sizeFactor = jsonData[3]
-    let isRadialTree = true;
-    let showDistanceToParent = true;
-    // let isRadialTree = document.getElementById(`isRadialTree`);
-    // let showDistanceToParent = document.getElementById(`showDistanceToParent`);
-    // isRadialTree = Boolean(isRadialTree.checked)
-    // showDistanceToParent = Boolean(showDistanceToParent.checked)
+    const sizeFactor = jsonData[3].value
+    // let isRadialTree = true;
+    // let showDistanceToParent = true;
+    let isRadialTree = document.getElementById(`isRadialTree`);
+    let showDistanceToParent = document.getElementById(`showDistanceToParent`);
+    isRadialTree = Boolean(+isRadialTree.checked)
+    showDistanceToParent = Boolean(+showDistanceToParent.checked)
     // alert(`isRadialTree: ${isRadialTree}        showDistanceToParent: ${showDistanceToParent}`)
     // const isRadialTree = Boolean(jsonData[3][1])
     // const showDistanceToParent = Boolean(jsonData[3][2])
