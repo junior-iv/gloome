@@ -282,8 +282,8 @@ class WebConfig:
 
             if 'file' in path.basename(self.OUTPUT_FILE):
                 json_object = self.link_design(json_object)
-            # if design:
-            #     json_object = result_design(json_object)
+            if design:
+                json_object = result_design(json_object)
 
             file_contents = dumps_json(json_object)
             self.set_job_logger_info(f'Job states (id: {self.CURRENT_JOB}) is {job_state}\n'
