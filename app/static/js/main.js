@@ -85,10 +85,12 @@ function drawPhylogeneticTree(jsonData) {
     // alert(+jsonData[3])
     // let isRadialTree = true;
     // let showDistanceToParent = true;
-    let isRadialTree = document.getElementById(`isRadialTree`);
-    let showDistanceToParent = document.getElementById(`showDistanceToParent`);
-    isRadialTree = Boolean(+isRadialTree.checked)
-    showDistanceToParent = Boolean(+showDistanceToParent.checked)
+    let isRadialTree = true;
+    let showDistanceToParent = true;
+    // let isRadialTree = document.getElementById(`isRadialTree`);
+    // let showDistanceToParent = document.getElementById(`showDistanceToParent`);
+    // isRadialTree = true
+    // showDistanceToParent = true
     // alert(`isRadialTree: ${isRadialTree}        showDistanceToParent: ${showDistanceToParent}`)
     // const isRadialTree = Boolean(jsonData[3][1])
     // const showDistanceToParent = Boolean(jsonData[3][2])
