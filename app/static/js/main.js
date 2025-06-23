@@ -57,7 +57,7 @@ function loadExample(mode = 0) {
 }
 
 function getNodeStyle(d, nodeType, mode = 0, sizeFactor = 1){
-    let sizes = [parseInt(`${20 / sizeFactor}`), parseInt(`${15 / sizeFactor}`), parseInt(`${10 / sizeFactor}`)];
+    let sizes = [parseInt(20 / sizeFactor), parseInt(15 / sizeFactor), parseInt(10 / sizeFactor)];
     let sizes_with_side = [2 + sizes[0], 2 + sizes[1], 2 + sizes[2]];
     const answers = [["crimson", "darkorange", "forestgreen"], ["coral", "gold", "limegreen"], sizes, sizes_with_side];
     if (nodeType === "root"){
@@ -79,21 +79,11 @@ function drawPhylogeneticTree(jsonData) {
     const cy = height * 0.5;
     const radius = Math.min(cx, cy);
     let scale = 0.9;
-    // alert('112')
-    const sizeFactor = 2
-    // alert(+jsonData[3])
-    // alert(+jsonData[3])
-    // let isRadialTree = true;
-    // let showDistanceToParent = true;
-    let isRadialTree = true;
-    let showDistanceToParent = true;
-    // let isRadialTree = document.getElementById(`isRadialTree`);
-    // let showDistanceToParent = document.getElementById(`showDistanceToParent`);
-    // isRadialTree = true
-    // showDistanceToParent = true
-    // alert(`isRadialTree: ${isRadialTree}        showDistanceToParent: ${showDistanceToParent}`)
-    // const isRadialTree = Boolean(jsonData[3][1])
-    // const showDistanceToParent = Boolean(jsonData[3][2])
+    const sizeFactor = jsonData[3]
+    const isRadial = document.getElementById(`isRadialTree`);
+    const showDistance = document.getElementById(`showDistanceToParent`);
+    const isRadialTree = isRadial.checked;
+    const showDistanceToParent = showDistance.checked;
 
     const tree = d3.tree()
     if (isRadialTree) {
@@ -162,7 +152,7 @@ function drawPhylogeneticTree(jsonData) {
 
     nodes
         .append("text")
-        .style("font-size", d => !d.children ? parseInt(`${12 / sizeFactor}`) : parseInt(`${16 / sizeFactor}`))
+        .style("font-size", d => !d.children ? parseInt(12 / sizeFactor) : parseInt(16 / sizeFactor))
         .style("font-family", "Verdana")
         .style("text-anchor", d => d.children ? "start" : "start")
         .style("font-weight", d => !d.children ? "normal" : "bold")
@@ -171,19 +161,19 @@ function drawPhylogeneticTree(jsonData) {
             else if (jsonData[1][d.data.name]["Node type"] === "node") { return "navy" }
             else { return "black" }
         })
-        .attr("dy", d => !d.children ? parseInt(`${3 / sizeFactor}`) : parseInt(`${6 / sizeFactor}`))
-        .attr("dx", d => !d.children ? parseInt(`${18 / sizeFactor}`) : parseInt(`${24 / sizeFactor}`))
+        .attr("dy", d => !d.children ? parseInt(3 / sizeFactor) : parseInt(6 / sizeFactor))
+        .attr("dx", d => !d.children ? parseInt(18 / sizeFactor) : parseInt(24 / sizeFactor))
         .text(d => d.data.name);
     if (showDistanceToParent) {
         nodes
             .append("text")
-            .style("font-size", parseInt(`${10 / sizeFactor}`))
+            .style("font-size", parseInt(10 / sizeFactor))
             .style("font-family", "sans-serif")
             .style("text-anchor", "end")
             .style("font-weight", "normal")
             .style("fill", "darkcyan")
-            .attr("dy", d => !d.children ? parseInt(`${3 / sizeFactor}`) : parseInt(`${6 / sizeFactor}`))
-            .attr("dx", d => !d.children ? -parseInt(`${18 / sizeFactor}`) : -parseInt(`${24 / sizeFactor}`))
+            .attr("dy", d => !d.children ? parseInt(3 / sizeFactor) : parseInt(6 / sizeFactor))
+            .attr("dx", d => !d.children ? -parseInt(18 / sizeFactor) : -parseInt(24 / sizeFactor))
             .text(d => jsonData[1][d.data.name]["Node type"] !== "root" ? `[${parseFloat(d.data.distance)}]` : ``);
     }
 }

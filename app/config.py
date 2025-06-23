@@ -295,7 +295,7 @@ class WebConfig:
 
     @staticmethod
     def link_design(json_object: Any):
-        for key, value in json_object:
+        for key, value in json_object.items():
             if key == 'execution_time':
                 continue
             # value = os.path.basename(value)
