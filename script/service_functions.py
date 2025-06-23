@@ -159,7 +159,7 @@ def draw_tree(newick_tree: Tree, file_path: str):
               newick_tree.get_json_structure(return_table=True),
               newick_tree.get_columns_list_for_sorting()]
     size_factor = min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
-    result.append(size_factor)
+    result.append({'size_factor': size_factor})
     file_path = create_file(file_path, result, 'draw_tree.json')
     print(f'result: {result}')
     print(f'file_path: {file_path}')

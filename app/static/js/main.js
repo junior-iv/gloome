@@ -79,7 +79,7 @@ function drawPhylogeneticTree(jsonData) {
     const cy = height * 0.5;
     const radius = Math.min(cx, cy);
     let scale = 0.9;
-    const sizeFactor = jsonData[3]
+    const sizeFactor = jsonData[3]["size_factor"].
     const isRadial = document.getElementById(`isRadialTree`);
     const showDistance = document.getElementById(`showDistanceToParent`);
     const isRadialTree = isRadial.checked;
