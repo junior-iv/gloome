@@ -125,7 +125,7 @@ class WebConfig:
     def arguments_filling(self, **arguments):
         dct = zip(('categoriesQuantity', 'alpha', 'isRadialTree', 'showDistanceToParent'),
                   ('categories_quantity', 'alpha', 'is_radial_tree', 'show_distance_to_parent'),
-                  ((int, ), (float, ), (int, ), (int, )))
+                  ((int, ), (float, ), (int, bool), (int, bool)))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -276,6 +276,8 @@ class WebConfig:
                                      f'\tReturn - file contents: {file_contents}')
 
             json_object = loads_json(file_contents)
+            self.set_job_logger_info(f'\n\ntype(json_object): {type(json_object)}\n')
+
             if 'file' in path.basename(self.OUTPUT_FILE):
                 json_object = self.link_design(json_object)
             # if design:
