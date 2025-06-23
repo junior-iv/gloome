@@ -125,9 +125,7 @@ DEFAULT_ARGUMENTS = DefaultArgs(**{
 
 DEFAULT_FORM_ARGUMENTS = {
     'categories_quantity': 4,
-    'alpha': 0.5,
-    'is_radial_tree': False,
-    'show_distance_to_parent': False
+    'alpha': 0.5
     }
 
 ACTIONS = Actions(**{

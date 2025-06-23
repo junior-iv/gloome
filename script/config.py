@@ -127,9 +127,7 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
             try:
                 func = self.ACTIONS.draw_tree
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR,
-                           is_radial_tree=self.CURRENT_ARGS.get('is_radial_tree'),
-                           show_distance_to_parent=self.CURRENT_ARGS.get('show_distance_to_parent'))
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR)
                 self.set_job_logger_info(f'Successfully completed \'draw_tree\' -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'

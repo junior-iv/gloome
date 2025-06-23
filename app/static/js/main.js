@@ -79,9 +79,11 @@ function drawPhylogeneticTree(jsonData) {
     const cy = height * 0.5;
     const radius = Math.min(cx, cy);
     let scale = 0.9;
-    const sizeFactor = jsonData[3][0]
-    const isRadialTree = Boolean(jsonData[3][1])
-    const showDistanceToParent = Boolean(jsonData[3][2])
+    const sizeFactor = jsonData[3]
+    const isRadialTree = document.getElementById(`isRadialTree`).checked;
+    const showDistanceToParent = document.getElementById(`showDistanceToParent`).checked;
+    // const isRadialTree = Boolean(jsonData[3][1])
+    // const showDistanceToParent = Boolean(jsonData[3][2])
 
     const tree = d3.tree()
     if (isRadialTree) {
@@ -187,15 +189,15 @@ function makeTree(mode = 0) {
     const patternMSA = document.getElementById(`patternMSA`);
     const categoriesQuantity = document.getElementById(`categoriesQuantity`);
     const alpha = document.getElementById(`alpha`);
-    const isRadialTree = document.getElementById(`isRadialTree`);
-    const showDistanceToParent = document.getElementById(`showDistanceToParent`);
+    // const isRadialTree = document.getElementById(`isRadialTree`);
+    // const showDistanceToParent = document.getElementById(`showDistanceToParent`);
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`patternMSA`, patternMSA.value.trim());
     formData.append(`categoriesQuantity`, categoriesQuantity.value.trim());
     formData.append(`alpha`, alpha.value.trim());
-    formData.append(`isRadialTree`, +isRadialTree.checked);
-    formData.append(`showDistanceToParent`, +showDistanceToParent.checked);
+    // formData.append(`isRadialTree`, +isRadialTree.checked);
+    // formData.append(`showDistanceToParent`, +showDistanceToParent.checked);
 
 
     setVisibilityLoader(true);
