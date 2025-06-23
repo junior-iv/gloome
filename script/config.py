@@ -1,6 +1,7 @@
 import argparse
 import traceback
 import socket
+from script.service_functions import ERR
 from sys import exit
 from utils import *
 

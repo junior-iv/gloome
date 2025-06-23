@@ -2,7 +2,7 @@ import types
 from os import getenv, path
 from sys import argv
 from script.tree import Tree
-from script.service_functions import check_data, ERR, create_all_file_types, compute_likelihood_of_tree, draw_tree
+from script.service_functions import check_data, create_all_file_types, compute_likelihood_of_tree, draw_tree
 from typing import List, Tuple, Union
 from dotenv import load_dotenv
 
@@ -18,6 +18,7 @@ DEBUG = not IS_PRODUCTION
 SECRET_KEY = getenv('SECRET_KEY')
 TOKEN = getenv('TOKEN')
 PARTITION = getenv('PARTITION')
+USE_OLD_SUBMITER = getenv('USE_OLD_SUBMITER')
 
 PREFERRED_URL_SCHEME = 'https'
 WEBSERVER_NAME_CAPITAL = 'Gloome'
@@ -109,12 +110,6 @@ ADMIN_PASSWORD = getenv('ADMIN_PASSWORD')
 SEND_EMAIL_DIR_IBIS = getenv('SEND_EMAIL_DIR_IBIS')
 OWNER_EMAIL = getenv('OWNER_EMAIL')
 
-# this_file_path = path.abspath(__file__)
-# Bin = f'{path.dirname(this_file_path)}/script'
-# script_path = path.abspath(__file__)
-# Bin = f"{path.dirname(script_path)}/script" #path to the script folder
-# BIN_DIR = path.dirname(Bin)  #main project folder
-# COMMAND_LINE = path.abspath(__file__)
 COMMAND_LINE = argv
 
 DEFAULT_ARGUMENTS = DefaultArgs(**{

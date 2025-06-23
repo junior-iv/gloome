@@ -2,11 +2,9 @@ import requests
 import traceback
 from time import sleep
 from utils import *
-from script.service_functions import read_file, loads_json, dumps_json, create_file, result_design
+from script.service_functions import read_file, loads_json, dumps_json, create_file, result_design, ERR
 from flask import url_for
 from typing import Optional, Any, Set
-
-load_dotenv()
 
 
 SERVERS_RESULTS_DIR = path.join(STATIC_DIR, 'results')
@@ -75,7 +73,7 @@ class WebConfig:
 
         self.LOGGER = logger
         self.JOBS_NUMBER = JobsCounter()
-        if int(getenv('USE_OLD_SUBMITER')):
+        if int(USE_OLD_SUBMITER):
             self.SUBMITER = SlurmSubmiter()
         else:
             self.SUBMITER = SawSubmiter()
@@ -435,7 +433,7 @@ class SawSubmiter:
         while count:
             try:
                 job_info = self.get_job(conf.CURRENT_JOB)
-            except Exception as e:
+            except Exception:
                 sleep(waiting_time)
                 continue
 
@@ -453,9 +451,8 @@ class SawSubmiter:
 
 class SlurmSubmiter:
     def __init__(self):
-        self.current_user = getenv('USER_NAME')
-        self.api_key = getenv('SECRET_KEY')
-        # self.partition = getenv('PARTITION')
+        self.current_user = USER_NAME
+        self.api_key = SECRET_KEY
 
         self.base_url_auth = 'https://slurmtron.tau.ac.il'
         self.api = f"{self.base_url_auth}/slurmrestd"
@@ -533,7 +530,7 @@ class SlurmSubmiter:
         while count:
             try:
                 job_info = self.get_job_state(conf.CURRENT_JOB)
-            except Exception as e:
+            except Exception:
                 sleep(waiting_time)
                 continue
 

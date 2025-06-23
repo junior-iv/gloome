@@ -10,7 +10,6 @@ def execute_response(design: bool = False, mode: Optional[Tuple[str, ...]] = Non
         args = get_tree_variables(dict(request.form))
         err_list = check_form(args[0], args[1])
         kwargs = dict(request.form)
-        print(kwargs)
 
         if err_list:
             status = 400
@@ -23,8 +22,7 @@ def execute_response(design: bool = False, mode: Optional[Tuple[str, ...]] = Non
             conf.create_tmp_data_files()
             try:
                 result = conf.get_response(design)
-                print(result)
-            except Exception as e:
+            except Exception:
                 conf.set_job_logger_info(traceback.format_exc())
                 with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/{conf.CURRENT_JOB}_{conf.PROCESS_ID}_'
                           f'route_debug.log', 'a') as f:
