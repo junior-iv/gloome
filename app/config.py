@@ -276,10 +276,10 @@ class WebConfig:
                                      f'\tReturn - file contents: {file_contents}')
 
             json_object = loads_json(file_contents)
-            if design:
-                json_object = result_design(json_object)
             if 'file' in path.basename(self.OUTPUT_FILE):
                 json_object = self.link_design(json_object)
+            # if design:
+            #     json_object = result_design(json_object)
 
             file_contents = dumps_json(json_object)
             self.set_job_logger_info(f'Job states (id: {self.CURRENT_JOB}) is {job_state}\n'
@@ -427,7 +427,7 @@ class SawSubmiter:
             raise Exception(f"Error: {response.status_code}, {response.text}")
 
     def check_job_state(self, conf: WebConfig, state: Union[Tuple[str, ...], List[str], Set[str], str] = 'COMPLETED',
-                        count: int = 50, waiting_time: int = 10) -> bool:
+                        count: int = 50, waiting_time: int = 10) -> str:
         while count:
             try:
                 job_info = self.get_job(conf.CURRENT_JOB)
@@ -441,10 +441,10 @@ class SawSubmiter:
             if job_state in state_filter:
                 conf.set_job_logger_info(f'Job state: {job_state}')
                 print(job_state)
-                return job_state in state
+                return job_state
             count -= 1
             sleep(waiting_time)
-        return False
+        return ''
 
 
 class SlurmSubmiter:
