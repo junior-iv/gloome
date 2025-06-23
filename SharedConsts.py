@@ -179,8 +179,6 @@ USAGE = '''
                     --sort_values_by <type=tuple> default=('child', 'Name')
                     --categories_quantity <type=int> default=4
                     --alpha <type=float> default=0.5
-                    --is_radial_tree <type=bool> default=True
-                    --show_distance_to_parent <type=bool> default=True
             '''
 
 MENU = ({'name': 'HOME', 'url': 'index',

@@ -204,8 +204,7 @@ class WebConfig:
         self.COMMAND_LINE = (
             f'python {path.join(".", "script/main.py")} --process_id {self.PROCESS_ID} --msa_file {self.MSA_FILE} '
             f'--tree_file {self.TREE_FILE} --categories_quantity {self.CURRENT_ARGS.categories_quantity} --alpha '
-            f'{self.CURRENT_ARGS.alpha} --is_radial_tree {self.CURRENT_ARGS.is_radial_tree} --show_distance_to_parent '
-            f'{self.CURRENT_ARGS.show_distance_to_parent} --mode {self.MODE}')
+            f'{self.CURRENT_ARGS.alpha} --mode {self.MODE}')
         self.set_job_logger_info(f'COMMAND_LINE: {self.COMMAND_LINE}')
 
     def get_request_body(self):
