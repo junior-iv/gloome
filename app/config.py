@@ -125,14 +125,14 @@ class WebConfig:
     def arguments_filling(self, **arguments):
         dct = zip(('categoriesQuantity', 'alpha', 'isRadialTree', 'showDistanceToParent'),
                   ('categories_quantity', 'alpha', 'is_radial_tree', 'show_distance_to_parent'),
-                  ((int, ), (float, ), (int, bool), (int, bool)))
+                  ((int, ), (float, ), (int, ), (int, )))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
                 for current_type in current_types:
                     current_value = current_type(current_value)
                 self.CURRENT_ARGS.update({out_key: current_value})
-
+        print(vars(self.CURRENT_ARGS))
         mode = arguments.get('mode')
         self.MODE = ' '.join(mode)
         self.OUTPUT_FILE = path.join(self.OUT_DIR, f'{mode[0]}.json')
@@ -160,8 +160,8 @@ class WebConfig:
                                                       traceback.format_exc()))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rate_vector', False):
             try:
-                self.CALCULATED_ARGS.rate_vector = self.ACTIONS.rate_vector(
-                    self.CURRENT_ARGS.get('categories_quantity'), self.CURRENT_ARGS.get('alpha'))
+                self.CALCULATED_ARGS.rate_vector = self.ACTIONS.rate_vector(self.CURRENT_ARGS.categories_quantity,
+                                                                            self.CURRENT_ARGS.alpha)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append(('Error executing command \'rate_vector\'',
                                                       traceback.format_exc()))

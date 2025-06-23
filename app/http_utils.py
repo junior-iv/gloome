@@ -10,6 +10,7 @@ def execute_response(design: bool = False, mode: Optional[Tuple[str, ...]] = Non
         args = get_tree_variables(dict(request.form))
         err_list = check_form(args[0], args[1])
         kwargs = dict(request.form)
+        print(kwargs)
 
         if err_list:
             status = 400
