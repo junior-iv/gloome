@@ -282,7 +282,7 @@ class WebConfig:
                       f'route_debug.log', 'a') as f:
                 f.write(f"\n\n--- Exception at /draw_tree ---\n")
                 f.write(file_contents)
-                f.write(type(file_contents))
+                f.write(str(type(file_contents)))
 
             json_object = loads_json(file_contents)
             json_file_name = path.basename(self.OUTPUT_FILE)
