@@ -2,8 +2,9 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
+from shutil import rmtree
 from json import loads
-from os import remove, path, makedirs
+from os import path, makedirs
 from d3blocks import D3Blocks
 from .node import Node
 from typing import Optional, List, Union, Dict, Tuple, Set
@@ -541,9 +542,8 @@ class Tree:
             newick_tree = Tree.check_tree(newick_tree)
 
         Tree.make_dir(file_name)
-        j = file_name[::-1].find('/')
-        tmp_file = (f'{file_name[:-(j + 1)]}/tmp/{Tree.get_random_name()}'
-                    f'.tree') if len(file_name) > j > -1 else f'tmp/{Tree.get_random_name()}.tree'
+        tmp_dir = path.join(path.dirname(file_name), 'tmp')
+        tmp_file = path.join(tmp_dir, f'{Tree.get_random_name()}.tree')
         Tree.make_dir(tmp_file)
         Tree.tree_to_newick_file(newick_tree, tmp_file, with_internal_nodes)
         phylogenetic_tree = Phylo.read(tmp_file, 'newick')
@@ -563,7 +563,7 @@ class Tree:
                         file_extension == 'svg') else {'format': file_extension}
                 plt.savefig(file_name, **kwargs)
                 plt.close()
-        remove(tmp_file)
+        rmtree(tmp_dir, ignore_errors=True)
 
         return file_names
 

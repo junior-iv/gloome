@@ -1,3 +1,5 @@
+let jsonTreeData = null
+
 function getInteger(data) {
     let result = Math.trunc(Number(data) * 10)
     return result === 10 ? 9 : result
@@ -71,6 +73,12 @@ function getNodeStyle(d, nodeType, mode = 0, sizeFactor = 1){
     }
 }
 
+function reDrawPhylogeneticTree() {
+    if (jsonTreeData !== null){
+        drawPhylogeneticTree(jsonTreeData);
+    }
+}
+
 function drawPhylogeneticTree(jsonData) {
     const margin = { top: 20, right: 40, bottom: 20, left: 40 };
     const width = 600 - margin.left - margin.right;
@@ -84,6 +92,7 @@ function drawPhylogeneticTree(jsonData) {
     const showDistance = document.getElementById(`showDistanceToParent`);
     const isRadialTree = isRadial.checked;
     const showDistanceToParent = showDistance.checked;
+    jsonTreeData = jsonData
 
     const tree = d3.tree()
     if (isRadialTree) {

@@ -1,5 +1,5 @@
 from os import path, remove, makedirs
-from time import time, sleep
+from time import time
 from typing import Callable, Any
 from datetime import timedelta
 from shutil import make_archive, move
@@ -138,7 +138,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str
     path_dict.update({'log-Likelihood (csv)': Tree.likelihood_to_csv(newick_tree, pattern,
                      file_name=f'{file_path}/log-likelihood.csv', sep='\t', rate_vector=rate_vector)})
 
-    archive_path = path.join(path.dirname(file_path), path.basename(path.dirname(path.dirname(file_path))))
+    archive_path = path.join(path.dirname(file_path), path.basename(file_path))
     archive_name = make_archive(archive_path, 'zip', file_path, '.')
     new_archive_name = path.join(file_path, path.basename(archive_name))
     move(archive_name, new_archive_name)
