@@ -75,6 +75,8 @@ function getNodeStyle(d, nodeType, mode = 0, sizeFactor = 1){
 
 function reDrawPhylogeneticTree() {
     if (jsonTreeData !== null){
+        setVisibilityLoader(true);
+        setVisibilityLoader(false);
         drawPhylogeneticTree(jsonTreeData);
     }
 }
