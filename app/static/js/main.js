@@ -200,16 +200,13 @@ function makeTree(mode = 0) {
     const patternMSA = document.getElementById(`patternMSA`);
     const categoriesQuantity = document.getElementById(`categoriesQuantity`);
     const alpha = document.getElementById(`alpha`);
-    // const isRadialTree = document.getElementById(`isRadialTree`);
-    // const showDistanceToParent = document.getElementById(`showDistanceToParent`);
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`patternMSA`, patternMSA.value.trim());
     formData.append(`categoriesQuantity`, categoriesQuantity.value.trim());
     formData.append(`alpha`, alpha.value.trim());
-    // formData.append(`isRadialTree`, +isRadialTree.checked);
-    // formData.append(`showDistanceToParent`, +showDistanceToParent.checked);
 
+    jsonTreeData = null
 
     setVisibilityLoader(true);
     let absolutePath = [`/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
