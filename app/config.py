@@ -278,6 +278,12 @@ class WebConfig:
             print('>', self.CURRENT_JOB, job_state)
             file_contents = read_file(file_path=self.OUTPUT_FILE)
 
+            with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/{self.CURRENT_JOB}_{self.PROCESS_ID}_'
+                      f'route_debug.log', 'a') as f:
+                f.write(f"\n\n--- Exception at /draw_tree ---\n")
+                f.write(file_contents)
+                f.write(type(file_contents))
+
             json_object = loads_json(file_contents)
             json_file_name = path.basename(self.OUTPUT_FILE)
             if 'execute_all_actions' in json_file_name:
