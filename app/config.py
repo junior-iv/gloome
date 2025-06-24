@@ -259,6 +259,12 @@ class WebConfig:
 
         return body.get(self.SUBMITER.__class__.__name__)
 
+    def get_response_design(self, json_object: Optional[Any], action_name: str, design: bool = False) -> Optional[Any]:
+        if 'create_all_file_types' in action_name:
+            return self.link_design(json_object)
+        if design:
+            return result_design(json_object)
+
     def get_response(self, design: bool = False) -> Optional[Any]:
         self.create_command_line()
         request_body = self.get_request_body()
@@ -272,16 +278,14 @@ class WebConfig:
             print('>', self.CURRENT_JOB, job_state)
             file_contents = read_file(file_path=self.OUTPUT_FILE)
 
-            self.set_job_logger_info(f'Job states (id: {self.CURRENT_JOB}) is {job_state}\n\n\n'
-                                     f'\tReturn - file contents: {file_contents}')
-
             json_object = loads_json(file_contents)
-            self.set_job_logger_info(f'\n\ntype(json_object): {type(json_object)}\n')
-
-            if 'file' in path.basename(self.OUTPUT_FILE):
-                json_object = self.link_design(json_object)
-            if design:
-                json_object = result_design(json_object)
+            json_file_name = path.basename(self.OUTPUT_FILE)
+            if 'execute_all_actions' in json_file_name:
+                for key, value in json_object.items():
+                    json_object.update({key: self.get_response_design(value, key, design)})
+                pass
+            else:
+                json_object = self.get_response_design(json_object, json_file_name, design)
 
             file_contents = dumps_json(json_object)
             self.set_job_logger_info(f'Job states (id: {self.CURRENT_JOB}) is {job_state}\n'
@@ -298,12 +302,12 @@ class WebConfig:
                 continue
             # value = os.path.basename(value)
             json_object.update(
-                {f'{key}': f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                           f'href="{url_for("get_file", file_path=value, mode="download")}" '
-                           f'target="_blank"><h7>download</h7></a>\t'
-                           f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                           f'href="{url_for("get_file", file_path=value, mode="view")}" '
-                           f'target="_blank"><h7>view</h7></a>'})
+                {f'{key}': [f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+                            f'href="{url_for("get_file", file_path=value, mode="download")}" target="_blank">'
+                            f'<h7>download</h7></a>',
+                            f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+                            f'href="{url_for("get_file", file_path=value, mode="view")}" target="_blank">'
+                            f'<h7>view</h7></a>']})
         return json_object
 
     @staticmethod

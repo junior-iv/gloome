@@ -90,9 +90,32 @@ def del_files(files: Union[str, Tuple[str, ...]]) -> None:
             del_file(file)
 
 
+def execute_all_actions(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], file_path: str,
+                        rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
+                        alphabet: Optional[Tuple[str, ...]] = None) -> Union[Dict[str, str], str]:
+    if isinstance(newick_tree, str):
+        newick_tree = Tree.rename_nodes(newick_tree)
+    if isinstance(pattern, str):
+        pattern = newick_tree.get_pattern_dict(pattern)
+
+    newick_tree.calculate_likelihood(pattern, rate_vector=rate_vector)
+
+    result = dict()
+    result.update({'draw_tree': draw_tree(newick_tree, file_path, True)})
+    result.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree, pattern, rate_vector,
+                                                                            file_path, True)})
+    result.update({'create_all_file_types': create_all_file_types(newick_tree, pattern, file_path, rate_vector,
+                                                                  alphabet, True)})
+    file_path = create_file(file_path, result, 'execute_all_actions.json')
+    print(f'result: {result}')
+    print(f'file_path: {file_path}')
+
+    return file_path
+
+
 def compute_likelihood_of_tree(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], rate_vector:
                                Optional[Tuple[Union[float, ndarray], ...]] = None, file_path: Optional[str] = None,
-                               ) -> str:
+                               return_dict: bool = False) -> Union[Dict[str, str], str]:
     start_time = time()
     if isinstance(newick_tree, str):
         newick_tree = Tree.rename_nodes(newick_tree)
@@ -105,6 +128,9 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], pattern: Union[Dic
     result.update({'likelihood_of_the_tree': newick_tree.likelihood})
     result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
     result.update({'log-likelihood_list': newick_tree.log_likelihood_vector})
+    if return_dict:
+        return result
+
     file_path = create_file(file_path, result, 'compute_likelihood_of_tree.json')
     print(f'result: {result}')
     print(f'file_path: {file_path}')
@@ -114,7 +140,7 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], pattern: Union[Dic
 
 def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], file_path: str,
                           rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
-                          alphabet: Optional[Tuple[str, ...]] = None) -> str:
+                          alphabet: Optional[Tuple[str, ...]] = None, return_dict: bool = False) -> Union[Dict[str, str], str]:
     start_time = time()
     path_dict = dict()
     if isinstance(newick_tree, str):
@@ -146,6 +172,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str
     path_dict.update({'Archive (zip)': new_archive_name})
     result = {'execution_time': convert_seconds(time() - start_time)}
     result.update(path_dict)
+    if return_dict:
+        return result
 
     file_path = create_file(file_path, result, 'create_all_file_types.json')
     print(f'result: {result}')
@@ -154,12 +182,15 @@ def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str
     return file_path
 
 
-def draw_tree(newick_tree: Tree, file_path: str):
+def draw_tree(newick_tree: Tree, file_path: str, return_dict: bool = False) -> Union[List[Any], str]:
     result = [newick_tree.get_json_structure(),
               newick_tree.get_json_structure(return_table=True),
               newick_tree.get_columns_list_for_sorting()]
     size_factor = min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
     result.append({'Size factor': size_factor})
+    if return_dict:
+        return result
+
     file_path = create_file(file_path, result, 'draw_tree.json')
     print(f'result: {result}')
     print(f'file_path: {file_path}')

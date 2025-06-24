@@ -96,6 +96,11 @@ def compute_likelihood_of_tree():
     return execute_response(design=True, mode=('compute_likelihood_of_tree', ))
 
 
+@app.route('/execute_all_actions', methods=['POST'])
+def execute_all_actions():
+    return execute_response(design=True, mode=('execute_all_actions', ))
+
+
 @app.route('/test', methods=['POST'])
 def test():
     if request.method == 'POST':

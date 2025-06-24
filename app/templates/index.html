@@ -20,24 +20,38 @@
 {{ super() }}
 <div class="gap-2 d-flex flex-column justify-content-start h-100 w-100 text-center">
     <div class="gap-2 d-flex flex-row justify-content-start h-50 w-100 text-center">
-        <div class="d-flex gap-2 flex-row text-start w-50 justify-content-start mx-3 mt-4">
+        <div class="d-flex gap-2 flex-row text-start w-46 justify-content-start mx-3 mt-4">
             <script src="https://d3js.org/d3.v7.js"></script>
 {#            <script src="https://d3js.org/d3.v4.js"></script>#}
             <div id="result" class="container gap-2 d-flex w-100">
-{#                {{nwt.loaderCube()}}#}
                 {{nwt.alerts()}}
                 <div id="loader"></div>
                 <div id="tree" class="m-0 p-0 h-50 w-auto"></div>
                 <div id="tooltip" class="text-justify font-verdana"></div>
             </div>
         </div>
-        <div class="container gap-2 d-flex flex-column h-75 w-50 m-3">
+        <div class="d-flex gap-2 flex-column text-end w-8 justify-content-end m-3">
+            <label for="alpha" class="fw-bold h8 text-center text-danger mb-4">For JC with a constant rate <br> please use <br> <b>alpha = 0.5, 1 category<sup class="mx-1">&excl;</sup></b></label>
+            <input value="{{alpha}}" id="alpha" name="alpha" type="number"
+                   min="0.01" max="100000" step="0.01" class="form-control rounded-pill"/>
+            <label for="alpha" class="h7 text-start text-success-emphasis ms-3 mt-1 mb-4">alpha, beta</label>
+            <input value="{{categories_quantity}}" id="categoriesQuantity" name="categoriesQuantity"
+                   type="number" min="1" max="1000" step="1" class="form-control rounded-pill"/>
+            <label for="categoriesQuantity" class="h7 text-start text-success-emphasis ms-3 mt-1 mb-4">number of rate categories</label>
+            <input value="1" id="isRadialTree" name="isRadialTree" onchange="reDrawPhylogeneticTree()"
+                   type="checkbox" class="form-check-input rounded-1"/>
+            <label for="isRadialTree" class="fw-medium h7 text-start text-danger-emphasis ms-3 mt-0 mb-1">show radial tree</label>
+            <input value="1" id="showDistanceToParent" name="showDistanceToParent" onchange="reDrawPhylogeneticTree()"
+                   type="checkbox" class="form-check-input rounded-1"/>
+            <label for="showDistanceToParent" class="fw-medium h7 text-start  text-danger-emphasis ms-3 mt-0 mb-4">show distance to parent</label>
+        </div>
+        <div class="container gap-2 d-flex flex-column h-75 w-46 m-3">
             <label for="patternMSA" class="h7 text-success-emphasis my-2">please provide a phyletic pattern MSA into a text field or upload from file
                 (<a href="https://en.wikipedia.org/wiki/FASTA_format" target="_blank">FASTA format</a>)<sup>&quest;</sup>
             </label>
             <div class="d-flex gap-2 flex-row justify-content-end my-1">
                 <input id="patternMSAFile" name="patternMSAFile" type="file" accept="*.*"
-                       class="form-control rounded-pill" onchange="uploadFile('patternMSA', 'patternMSAFile')"/>
+                      class="form-control rounded-pill" onchange="uploadFile('patternMSA', 'patternMSAFile')"/>
             </div>
             <textarea spellcheck="false" id="patternMSA" name="patternMSA" autocomplete="on" rows="4" class="form-control btn-light font-verdana"
                       placeholder="please provide a phyletic pattern MSA here"></textarea>
@@ -49,40 +63,54 @@
                        class="form-control rounded-pill" onchange="uploadFile('newickText', 'newickTextFile')"/>
             </div>
             <textarea spellcheck="false" id="newickText" name="newickText" autocomplete="on" rows="3" class="form-control btn-light font-verdana"
-                      onchange="makeTree(0)" placeholder="please provide a phylogenetic tree here"></textarea>
+                      placeholder="please provide a phylogenetic tree here"></textarea>
             <div class="d-flex gap-2 flex-row text-center w-100 justify-content-center">
-                <label for="isRadialTree" class="h7 text-danger-emphasis my-2">radial tree</label>
-                <input value="1" id="isRadialTree" name="isRadialTree" onchange="reDrawPhylogeneticTree()"
-                       type="checkbox" class="form-check-input rounded-1"/>
-                <label for="showDistanceToParent" class="h7 text-danger-emphasis my-2">show distance to parent</label>
-                <input value="1" id="showDistanceToParent" name="showDistanceToParent" onchange="reDrawPhylogeneticTree()"
-                       type="checkbox" class="form-check-input rounded-1"/>
-                <input value="{{alpha}}" id="alpha" name="alpha" type="number"
-                       min="0.01" max="100000" step="0.01" class="form-control rounded-pill"/>
-                <label for="alpha" class="h7 text-success-emphasis my-2">alpha, beta</label>
-                <input value="{{categories_quantity}}" id="categoriesQuantity" name="categoriesQuantity"
-                       type="number" min="1" max="1000" step="1" class="form-control rounded-pill"/>
-                <label for="categoriesQuantity" class="h7 text-success-emphasis my-2">categories quantity</label>
-            </div>
-            <div class="gap-2 d-flex flex-column my-1">
-                <div class=" gap-2 row navbar">
-                    <input id="theСleaningButton" name="theСleaningButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
-                          value="clear" onclick="clearForm()"/>
-                    <input id="theDrawTreeButton" name="theDrawTreeButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
-                          value="draw tree" onclick="makeTree(0)"/>
-                    <input id="theButton" name="theButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
-                          value="calculate log-likelihood" onclick="makeTree(1)"/>
-                    <input id="theAllFileTypesButton" name="theDrawTreeButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
-                          value="download results" onclick="makeTree(2)"/>
-                    <input id="theExampleButton" name="theExampleButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
-                          value="load an example" onclick="loadExample(0)"/>
-                    <input id="theExample2Button" name="theExample2Button" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
-                          value="load an example #2" onclick="loadExample(1)"/>
+                <div class="gap-2 d-flex w-50 flex-column mx-3 m-2">
+                    <div class=" gap-2 row navbar">
+                        <input id="theDrawTreeButton" name="theDrawTreeButton" type="button" class="w-100 mw-100 form-control btn btn-outline-success rounded-pill"
+                              value="calculate" onclick="makeTree(0)"/>
+{#                        <input id="theButton" name="theButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"#}
+{#                              value="calculate log-likelihood" onclick="makeTree(1)"/>#}
+{#                        <input id="theAllFileTypesButton" name="theDrawTreeButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"#}
+{#                              value="download results" onclick="makeTree(2)"/>#}
+                    </div>
                 </div>
+                <div class="gap-2 d-flex w-50 flex-column mx-3 m-2">
+                    <div class=" gap-2 row navbar">
+                        <input id="theСleaningButton" name="theСleaningButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
+                              value="clear" onclick="clearForm()"/>
+{#                        <input id="theDrawTreeButton" name="theDrawTreeButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"#}
+{#                              value="draw tree" onclick="makeTree(0)"/>#}
+{#                        <input id="theButton" name="theButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"#}
+{#                              value="calculate log-likelihood" onclick="makeTree(1)"/>#}
+{#                        <input id="theAllFileTypesButton" name="theDrawTreeButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"#}
+{#                              value="download results" onclick="makeTree(2)"/>#}
+                        <input id="theExampleButton" name="theExampleButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
+                              value="load an example" onclick="loadExample(0)"/>
+                        <input id="theExample2Button" name="theExample2Button" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
+                              value="load an example #2" onclick="loadExample(1)"/>
+                    </div>
+                </div>
+{#                <div class="gap-2 d-flex w-50 flex-row m-2">#}
+{#                    <input value="{{alpha}}" id="alpha" name="alpha" type="number"#}
+{#                           min="0.01" max="100000" step="0.01" class="form-control rounded-pill"/>#}
+{#                    <label for="alpha" class="h7 text-success-emphasis my-2">alpha, beta</label>#}
+{#                    <input value="{{categories_quantity}}" id="categoriesQuantity" name="categoriesQuantity"#}
+{#                           type="number" min="1" max="1000" step="1" class="form-control rounded-pill"/>#}
+{#                    <label for="categoriesQuantity" class="h7 text-success-emphasis my-2">categories quantity</label>#}
+{#                </div>#}
             </div>
         </div>
     </div>
     <div id="nodeInfo" class="gap-2 d-flex justify-content-center h-50 w-100 text-center">
+    </div>
+    <div id="logLikelihood" class="gap-2 d-flex justify-content-center h-50 w-100 text-center">
+
+
+    </div>
+    <div id="fileList" class="gap-2 d-flex justify-content-center h-50 w-100 text-center">
+
+
     </div>
 {#    {{nwt.progressBar(progress_bar.value, progress_bar.status)}}#}
 </div>

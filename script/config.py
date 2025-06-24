@@ -156,6 +156,17 @@ class Config:
                 format_exc = f'{traceback.format_exc()}'
                 self.set_job_logger_info(f'Error executing command \'create_all_file_types\' -> {format_exc}')
                 self.CALCULATED_ARGS.err_list.append((f'Error executing command \'create_all_file_types\'', format_exc))
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
+            try:
+                func = self.ACTIONS.execute_all_actions
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, pattern=self.CALCULATED_ARGS.pattern_dict,
+                           file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector,
+                           alphabet=self.CALCULATED_ARGS.alphabet)
+                self.set_job_logger_info(f'Successfully completed \'execute_all_actions\' -> {val}')
+            except ValueError:
+                format_exc = f'{traceback.format_exc()}'
+                self.set_job_logger_info(f'Error executing command \'execute_all_actions\' -> {format_exc}')
+                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'execute_all_actions\'', format_exc))
 
     def check_arguments_for_errors(self):
         if path.isfile(self.TREE_FILE):
@@ -216,9 +227,9 @@ class Config:
         parser.add_argument('--process_id', dest='process_id', type=str, required=False, default=self.PROCESS_ID,
                             help=f'Process id (optional). Default is {self.PROCESS_ID}.')
         parser.add_argument('--mode', dest='mode', required=False, action="extend", nargs="+", type=str,
-                            help=f'Execution mode style (optional). Possible options: '
-                            f'("draw_tree", compute_likelihood_of_tree", "create_all_file_types"). Default is '
-                            f'{self.MODE[:1]}.')
+                            help=f'Execution mode style (optional). Possible options: ("draw_tree", '
+                            f'"compute_likelihood_of_tree", "create_all_file_types", "execute_all_actions"). Default '
+                            f'is {self.MODE[:1]}.')
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=bool, required=False,
                             default=self.CURRENT_ARGS.get('with_internal_nodes', True), help=f'Specify the Newick file '
                             f'style (optional). Default is {self.CURRENT_ARGS.get("with_internal_nodes", True)}.')
@@ -253,7 +264,8 @@ class Config:
                                      'calculate_tree_for_fasta': False,
                                      'calculate_ancestral_sequence': False,
                                      'draw_tree': False,
-                                     'create_all_file_types': False})
+                                     'create_all_file_types': False,
+                                     'execute_all_actions': False})
 
         if 'compute_likelihood_of_tree' in self.MODE:
             self.DEFAULT_ACTIONS.update({'compute_likelihood_of_tree': True})
@@ -265,6 +277,11 @@ class Config:
             self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
                                          'calculate_ancestral_sequence': True,
                                          'create_all_file_types': True})
+        if 'execute_all_actions' in self.MODE:
+            self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
+                                         'calculate_ancestral_sequence': True,
+                                         'execute_all_actions': False})
+
         return args
 
     @staticmethod

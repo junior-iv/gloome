@@ -2,23 +2,37 @@ import types
 from os import getenv, path
 from sys import argv
 from script.tree import Tree
-from script.service_functions import check_data, create_all_file_types, compute_likelihood_of_tree, draw_tree
+from script.service_functions import (check_data, create_all_file_types, compute_likelihood_of_tree, draw_tree,
+                                      execute_all_actions)
 from typing import List, Tuple, Union
 from dotenv import load_dotenv
 
 load_dotenv()
 # PREFIX = '/gloome'
-# MODE = ('create_all_file_types', 'draw_tree', compute_likelihood_of_tree)
-MODE = ('draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types')
+MODE = ('draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions')
 IS_PRODUCTION = True
 MAX_CONTENT_LENGTH = 16 * 1000 * 1000 * 1000
 PREFIX = '/'
 APPLICATION_ROOT = PREFIX
 DEBUG = not IS_PRODUCTION
+
 SECRET_KEY = getenv('SECRET_KEY')
 TOKEN = getenv('TOKEN')
 PARTITION = getenv('PARTITION')
 USE_OLD_SUBMITER = getenv('USE_OLD_SUBMITER')
+
+LOGIN_NODE_URLS = getenv('LOGIN_NODE_URLS')
+USER_NAME = getenv('USER_NAME')
+USER_ID = getenv('USER_ID')
+USER_PASSWORD = getenv('USER_PASSWORD')
+ADMIN_EMAIL = getenv('ADMIN_EMAIL')
+SMTP_SERVER = getenv('SMTP_SERVER')
+
+DEV_EMAIL = getenv('DEV_EMAIL')
+ADMIN_USER_NAME = getenv('ADMIN_USER_NAME')
+ADMIN_PASSWORD = getenv('ADMIN_PASSWORD')
+SEND_EMAIL_DIR_IBIS = getenv('SEND_EMAIL_DIR_IBIS')
+OWNER_EMAIL = getenv('OWNER_EMAIL')
 
 PREFERRED_URL_SCHEME = 'https'
 WEBSERVER_NAME_CAPITAL = 'Gloome'
@@ -97,19 +111,6 @@ class DefaultArgs:
                         setattr(self, key, value)
 
 
-LOGIN_NODE_URLS = getenv('LOGIN_NODE_URLS')
-USER_NAME = getenv('USER_NAME')
-USER_ID = getenv('USER_ID')
-USER_PASSWORD = getenv('USER_PASSWORD')
-ADMIN_EMAIL = getenv('ADMIN_EMAIL')
-SMTP_SERVER = getenv('SMTP_SERVER')
-
-DEV_EMAIL = getenv('DEV_EMAIL')
-ADMIN_USER_NAME = getenv('ADMIN_USER_NAME')
-ADMIN_PASSWORD = getenv('ADMIN_PASSWORD')
-SEND_EMAIL_DIR_IBIS = getenv('SEND_EMAIL_DIR_IBIS')
-OWNER_EMAIL = getenv('OWNER_EMAIL')
-
 COMMAND_LINE = argv
 
 DEFAULT_ARGUMENTS = DefaultArgs(**{
@@ -134,7 +135,8 @@ ACTIONS = Actions(**{
                      'calculate_tree_for_fasta': Tree.calculate_tree_for_fasta,
                      'calculate_ancestral_sequence': Tree.calculate_ancestral_sequence,
                      'draw_tree': draw_tree,
-                     'create_all_file_types': create_all_file_types
+                     'create_all_file_types': create_all_file_types,
+                     'execute_all_actions': execute_all_actions
                      })
 
 VALIDATION_ACTIONS = {
@@ -151,7 +153,8 @@ DEFAULT_ACTIONS = {
     'calculate_tree_for_fasta': False,
     'calculate_ancestral_sequence': False,
     'draw_tree': False,
-    'create_all_file_types': False
+    'create_all_file_types': False,
+    'execute_all_actions': False
     }
 
 

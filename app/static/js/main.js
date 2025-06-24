@@ -5,31 +5,6 @@ function getInteger(data) {
     return result === 10 ? 9 : result
 }
 
-function convertJSONToTable(jsonData, jsonSort) {
-    const sortingList = jsonSort["List for sorting"];
-    const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
-        "dodgerblue", "slateblue", "darkviolet"];
-    const colorsAS = {"A": "crimson", "G": "darkorange", "L": "forestgreen", "P": "slateblue"}
-    let table = `<details class="w-95 h-100 h7" open><summary>Node information</summary><table class="w-97 p-4 tborder table-danger">`;
-
-    sortingList.forEach(header => {
-        let value = ``;
-        let jsonValue = jsonData[header];
-        table += `<tr><th class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;
-        if (typeof jsonValue === "object" && header !== "Ancestral sequence") {Object.values(jsonValue).forEach(i => {
-            value += `<td style="color: ${colors[getInteger(i)]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
-        })}
-        else if (typeof jsonValue === "object" && header === "Ancestral sequence") {Object.values(jsonValue).forEach(i => {
-            value += `<td style="color: ${colorsAS[i]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
-        })}
-        else {value = `<td class="h7 w-auto text-center">${jsonValue}</td>`}
-        table += `<th>${value}</th></tr>`;
-    });
-
-    table += `</table></details>`;
-    return table;
-}
-
 function setLoader(loaderOn = true) {
     if (loaderOn) {
         document.getElementById('loader').innerHTML =
@@ -54,7 +29,7 @@ function loadExample(mode = 0) {
         })
         .catch(error => {
             console.error(`Error:`, error);
-            showMessage(3, error.message);
+            showMessage(error.message);
         });
 }
 
@@ -192,8 +167,81 @@ function drawPhylogeneticTree(jsonData) {
 function processError(error) {
     setVisibilityLoader(false);
     console.error(`Error:`, error);
-    showMessage(3, error.message);
+    showMessage(error.message);
 }
+
+function convertJSONToTable(jsonData, jsonSort) {
+    const sortingList = jsonSort["List for sorting"];
+    const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
+        "dodgerblue", "slateblue", "darkviolet"];
+    const colorsAS = {"A": "crimson", "G": "darkorange", "L": "forestgreen", "P": "slateblue"}
+    let table = `<details class="w-95 h-100 h7" open><summary>Node information</summary><table class="w-97 p-4 tborder table-danger">`;
+
+    sortingList.forEach(header => {
+        let value = ``;
+        let jsonValue = jsonData[header];
+        table += `<tr><th class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;
+        if (typeof jsonValue === "object" && header !== "Ancestral sequence") {Object.values(jsonValue).forEach(i => {
+            value += `<td style="color: ${colors[getInteger(i)]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+        })}
+        else if (typeof jsonValue === "object" && header === "Ancestral sequence") {Object.values(jsonValue).forEach(i => {
+            value += `<td style="color: ${colorsAS[i]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+        })}
+        else {value = `<td class="h7 w-auto text-center">${jsonValue}</td>`}
+        table += `<th>${value}</th></tr>`;
+    });
+
+    table += `</table></details>`;
+    return table;
+}
+
+function convertJSONToTableFoLogLikelihood(jsonData) {
+    let headers = Object.entries(jsonData).keys();
+    let table = `<details class="w-95 h-100 h7" open><summary>Log-likelihood information</summary>
+                        <table class="w-97 p-4 tborder table-danger">`;
+    headers.forEach(header => {
+        let jsonValue = jsonData[header];
+        table += `<tr><th style="color: crimson"  class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;
+        table += `<th style="color: crimson"  class="h7 w-auto text-center tborder-1 table-danger bg-light">${jsonValue}</th></tr>`;
+    });
+    table += `</table></details>`;
+    document.getElementById('logLikelihood').innerHTML = table;
+    return table;
+}
+
+function convertJSONToTableFoFileList(jsonData) {
+    let headers = Object.entries(jsonData).keys();
+    let headersRow = ``;
+    let firstRow = ``;
+    let secondRow = ``;
+    let table = '';
+    headers.forEach(header => {
+        headersRow += `<th style="color: crimson"  class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;
+        let jsonValue = jsonData[header];
+        if (typeof jsonValue === "object") {
+            firstRow += `<th style="color: crimson"  class="h7 w-auto text-center tborder-1 table-danger bg-light">${jsonValue[0]}</th>`;
+            secondRow += `<th style="color: crimson"  class="h7 w-auto text-center tborder-1 table-danger bg-light">${jsonValue[1]}</th>`;
+        }
+    });
+    table = `<details class="w-95 h-100 h7" open><summary>File list</summary>
+             <table class="w-97 p-4 tborder table-danger"><tr>${headersRow}</tr><tr>${firstRow}</tr><tr>${secondRow}</tr>
+             </table></details>`;
+    document.getElementById('fileList').innerHTML = table;
+    return table;
+}
+
+function showResponse(jsonData, mode = 0) {
+    let funcStrKey = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToTableFoLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
+    let funcIntKey = {1: drawPhylogeneticTree, 2: convertJSONToTableFoLogLikelihood, 3: convertJSONToTableFoFileList}
+    if (mode === 0) {
+        jsonData.forEach(([key, value]) => {
+            funcStrKey[key](value)
+        });
+    } else {
+        funcIntKey[mode](jsonData)
+    }
+}
+
 
 function makeTree(mode = 0) {
     const newickText = document.getElementById(`newickText`);
@@ -209,7 +257,7 @@ function makeTree(mode = 0) {
     jsonTreeData = null
 
     setVisibilityLoader(true);
-    let absolutePath = [`/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
+    let absolutePath = ['/execute_all_actions', `/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
 
     fetch(absolutePath, {
         method: `POST`,
@@ -224,7 +272,7 @@ function makeTree(mode = 0) {
         })
         .then(data => {
             setVisibilityLoader(false);
-            mode === 0 ? drawPhylogeneticTree(data.message) : showMessage(1, data.message);
+            mode === 0 ? drawPhylogeneticTree(data.message) : showMessage(data.message, 1);
         })
         .catch(error => {processError(error)});
 }
@@ -246,11 +294,11 @@ function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`
 
 function setVisibilityLoader(visible = true) {
     setLoader(visible)
-    if (visible) {
-        document.getElementById('tree').innerText = '';
-        document.getElementById('nodeInfo').innerText = '';
-        hide_all();
-    }
+    document.getElementById('tree').innerText = '';
+    document.getElementById('nodeInfo').innerText = '';
+    document.getElementById('logLikelihood').innerText = '';
+    document.getElementById('fileList').innerText = '';
+    hide_all();
 }
 
 function hide_all() {
@@ -260,10 +308,10 @@ function hide_all() {
     }
 }
 
-function showMessage(variant = 1, message = null) {
+function showMessage(message = null, variant = 2) {
     let elementNames = [`divInfo`, `divDanger`, `divWarning`, `divSuccess`, `divSecondary`];
     for (let i = 0; i < elementNames.length; i++) {
-        if (variant === i + 1) {
+        if (variant === i) {
             document.getElementById(elementNames[i]).style.visibility = `visible`;
         } else {
             document.getElementById(elementNames[i]).style.visibility = `hidden`;
@@ -302,6 +350,6 @@ function test(testData) {
         .catch(error => {
             setVisibilityLoader(false);
             console.error(`Error:`, error);
-            showMessage(3, error.message);
+            showMessage(error.message);
         });
 }
