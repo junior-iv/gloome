@@ -272,7 +272,7 @@ function makeTree(mode = 0) {
         })
         .then(data => {
             setVisibilityLoader(false);
-            mode === 0 ? drawPhylogeneticTree(data.message) : showMessage(data.message, 1);
+            typeof data.message === "object" ? showResponse(data.message, mode) : showMessage(data.message, 1);
         })
         .catch(error => {processError(error)});
 }
