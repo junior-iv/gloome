@@ -246,6 +246,7 @@ function showResponse(jsonData, mode = 0) {
     let dictActionNames = {1: 'draw_tree', 2: 'compute_likelihood_of_tree', 3: 'create_all_file_types'}
     if (mode === 0) {
         let keys = Object.entries(jsonData).keys();
+        alert(keys)
         keys.forEach(key => {
             chooseFunction(jsonData[key], key)
         });
