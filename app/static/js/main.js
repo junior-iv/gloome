@@ -230,16 +230,26 @@ function convertJSONToTableFoFileList(jsonData) {
     return table;
 }
 
+function chooseFunction(jsonData, actionName) {
+    if (actionName === 'draw_tree') {
+
+    } else if (actionName === 'compute_likelihood_of_tree') {
+
+    } else if (actionName === 'create_all_file_types') {
+
+    }
+}
+
 function showResponse(jsonData, mode = 0) {
     let funcStrKey = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToTableFoLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
-    let funcIntKey = {1: drawPhylogeneticTree, 2: convertJSONToTableFoLogLikelihood, 3: convertJSONToTableFoFileList}
-    let keys = Object.entries(jsonData).keys();
+    let dictActionNames = {1: 'draw_tree', 2: 'compute_likelihood_of_tree', 3: 'create_all_file_types'}
     if (mode === 0) {
+        let keys = Object.entries(jsonData).keys();
         keys.forEach(key => {
-            funcStrKey[key].value(jsonData[key])
+            chooseFunction(jsonData[key], key)
         });
     } else {
-        funcIntKey[mode].value(jsonData)
+        chooseFunction(jsonData, dictActionNames[mode])
     }
 }
 
