@@ -231,6 +231,7 @@ function convertJSONToTableFoFileList(jsonData) {
 }
 
 function chooseFunction(jsonData, actionName) {
+    alert(actionName)
     if (actionName === 'draw_tree') {
         drawPhylogeneticTree(jsonData)
     } else if (actionName === 'compute_likelihood_of_tree') {
@@ -238,6 +239,7 @@ function chooseFunction(jsonData, actionName) {
     } else if (actionName === 'create_all_file_types') {
         // convertJSONToTableFoFileList(jsonData)
     }
+    alert(actionName)
 }
 
 function showResponse(jsonData, mode = 0) {
