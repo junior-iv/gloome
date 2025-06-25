@@ -262,7 +262,8 @@ class WebConfig:
     def get_response_design(self, json_object: Optional[Any], action_name: str) -> Optional[Any]:
         if 'create_all_file_types' in action_name:
             json_object = self.link_design(json_object)
-        elif 'likelihood_of_the_tree' in action_name:
+        # if 'likelihood_of_the_tree' in action_name:
+        if 'draw_tree' not in action_name:
             json_object = result_design(json_object)
         return json_object
 
@@ -283,9 +284,6 @@ class WebConfig:
             json_file_name = path.basename(self.OUTPUT_FILE)
             if 'execute_all_actions' in json_file_name:
                 for key, value in json_object.items():
-                    self.set_job_logger_info(f'\n\n'
-                                             f'\t\tExecute all actions (key: {key}; type: {type(value)})\n'
-                                             f'\tValue: {value}')
                     json_object.update({key: self.get_response_design(value, key)})
                 pass
             else:

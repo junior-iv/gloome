@@ -72,10 +72,10 @@ def dna_design(dna: str, different_color: Optional[Tuple[int, int]] = None, styl
 
 def result_design(data: Dict[str, Union[str, int, float]], change_key: bool = True, change_value: bool = True
                   ) -> Dict[str, Union[str, int, float]]:
-
+    result_data = dict()
     for key, value in data.items():
-        data.update({key: value_design(str(value), change_value)})
-    return data
+        result_data.update({key_design(key, change_key): value_design(str(value), change_value)})
+    return result_data
 #
 #
 # def result_design(statistics: Union[Dict[str, Union[str, int, float]], List[Dict[str, Union[str, int, float]]]],

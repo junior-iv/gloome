@@ -236,10 +236,10 @@ function showResponse(jsonData, mode = 0) {
     let keys = Object.entries(jsonData).keys();
     if (mode === 0) {
         keys.forEach(key => {
-            funcStrKey[key](jsonData[key])
+            funcStrKey[key].value(jsonData[key])
         });
     } else {
-        funcIntKey[mode](jsonData)
+        funcIntKey[mode].value(jsonData)
     }
 }
 
