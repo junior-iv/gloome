@@ -287,7 +287,7 @@ class Config:
         if 'execute_all_actions' in self.MODE:
             self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
                                          'calculate_ancestral_sequence': True,
-                                         'execute_all_actions': False})
+                                         'execute_all_actions': True})
 
         return args
 
