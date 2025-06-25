@@ -90,19 +90,6 @@ def del_files(files: Union[str, Tuple[str, ...]]) -> None:
             del_file(file)
 
 
-def get_log_file(data: Any, file_path: str, num: int = 1) -> int:
-    log_name = path.basename(path.abspath(file_path))
-    new_path = path.join(path.join(path.dirname(path.dirname(path.dirname(path.abspath(file_path)))), 'tmp'),
-                         f'{log_name}_{num}.log')
-    with open(new_path, 'a') as f:
-        f.write(f"\n\n--- {log_name}_{num} str---\n")
-        f.write(str(data))
-        f.write(f"\n\n--- {log_name}_{num} data---\n")
-        f.write(json.dumps(data))
-    num += 1
-    return num
-
-
 def execute_all_actions(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], file_path: str,
                         rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
                         alphabet: Optional[Tuple[str, ...]] = None) -> Union[Dict[str, str], str]:
@@ -113,17 +100,12 @@ def execute_all_actions(newick_tree: Union[str, Tree], pattern: Union[Dict[str, 
 
     result = dict()
     result.update({'draw_tree': draw_tree(newick_tree, file_path, True)})
-    num = get_log_file(result, file_path)
     result.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree, pattern, rate_vector,
                                                                             file_path, True)})
-    num = get_log_file(result, file_path, num)
     result.update({'create_all_file_types': create_all_file_types(newick_tree, pattern, file_path, rate_vector,
                                                                   alphabet, True)})
 
-    num = get_log_file(result, file_path, num)
     file_path = create_file(file_path, result, 'execute_all_actions.json')
-    num = get_log_file(file_path, file_path, num)
-    print(f'num: {num}')
     print(f'result: {result}')
     print(f'file_path: {file_path}')
 
