@@ -83,7 +83,7 @@ def get_file():
 
 @app.route('/create_all_file_types', methods=['POST'])
 def create_all_file_types():
-    return execute_response(design=True, mode=('create_all_file_types', ))
+    return execute_response(design=False, mode=('create_all_file_types', ))
 
 
 @app.route('/draw_tree', methods=['POST'])

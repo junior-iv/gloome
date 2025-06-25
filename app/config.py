@@ -282,7 +282,7 @@ class WebConfig:
             json_file_name = path.basename(self.OUTPUT_FILE)
             if 'execute_all_actions' in json_file_name:
                 for key, value in json_object.items():
-                    json_object.update({key: self.get_response_design(value, key, design)})
+                    json_object.update({key: self.get_response_design(value, key, 'draw_tree' not in key)})
                 pass
             else:
                 json_object = self.get_response_design(json_object, json_file_name, design)
