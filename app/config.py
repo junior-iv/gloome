@@ -264,6 +264,7 @@ class WebConfig:
             return self.link_design(json_object)
         if design:
             return result_design(json_object)
+        return json_object
 
     def get_response(self, design: bool = False) -> Optional[Any]:
         self.create_command_line()
