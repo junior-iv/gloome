@@ -234,9 +234,9 @@ function chooseFunction(jsonData, actionName) {
     if (actionName === 'draw_tree') {
         drawPhylogeneticTree(jsonData)
     } else if (actionName === 'compute_likelihood_of_tree') {
-        convertJSONToTableFoLogLikelihood(jsonData)
+        // convertJSONToTableFoLogLikelihood(jsonData)
     } else if (actionName === 'create_all_file_types') {
-        convertJSONToTableFoFileList(jsonData)
+        // convertJSONToTableFoFileList(jsonData)
     }
 }
 
