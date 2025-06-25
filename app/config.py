@@ -282,7 +282,8 @@ class WebConfig:
             json_file_name = path.basename(self.OUTPUT_FILE)
             if 'execute_all_actions' in json_file_name:
                 for key, value in json_object.items():
-                    self.set_job_logger_info(f'Execute all actions (key: {key})\n'
+                    self.set_job_logger_info(f'\n\n'
+                                             f'\t\tExecute all actions (key: {key}; type: {type(value)})\n'
                                              f'\tValue: {value}')
                     json_object.update({key: self.get_response_design(value, key, 'draw_tree' not in key)})
                 pass
