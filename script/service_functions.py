@@ -90,6 +90,20 @@ def del_files(files: Union[str, Tuple[str, ...]]) -> None:
             del_file(file)
 
 
+def get_log_file(data: Any, file_path: str, num: int = 1) -> int:
+    log_name = path.basename(path.abspath(file_path))
+    new_path = path.join(path.join(path.dirname(path.dirname(path.dirname(path.abspath(file_path)))), 'tmp'),
+                         f'{log_name}_{num}.log')
+    with open(new_path, 'a') as f:
+        f.write(f"\n\n--- {log_name}_{num} str---\n")
+        f.write(str(data))
+        if not isinstance(data, str):
+            f.write(f"\n\n--- {log_name}_{num} data---\n")
+            f.write(json.dumps(data))
+    num += 1
+    return num
+
+
 def execute_all_actions(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], file_path: str,
                         rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
                         alphabet: Optional[Tuple[str, ...]] = None) -> Union[Dict[str, str], str]:
