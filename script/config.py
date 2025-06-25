@@ -93,7 +93,14 @@ class Config:
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
         self.JOB_LOGGER = get_job_logger(f'f{process_id}', self.SERVERS_LOGS_DIR)
-        self.set_job_logger_info(f'process_id = {process_id}')
+        self.set_job_logger_info(f'PROCESS ID: {process_id}\n'
+                                 f'\tSERVERS_RESULTS_DIR: {self.SERVERS_RESULTS_DIR}\n'
+                                 f'\tSERVERS_LOGS_DIR: {self.SERVERS_LOGS_DIR}\n'
+                                 f'\tMSA_FILE: {self.MSA_FILE}\n'
+                                 f'\tTREE_FILE: {self.TREE_FILE}\n'
+                                 f'\tJOB_LOGGER: {self.JOB_LOGGER}\n'
+                                 f'\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}\n'
+                                 f'\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
 
     def set_job_logger_info(self, log_msg: str):
         self.LOGGER.info(log_msg)

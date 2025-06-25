@@ -106,6 +106,15 @@ def execute_all_actions(newick_tree: Union[str, Tree], pattern: Union[Dict[str, 
                                                                             file_path, True)})
     result.update({'create_all_file_types': create_all_file_types(newick_tree, pattern, file_path, rate_vector,
                                                                   alphabet, True)})
+    log_name = path.basename(path.abspath(file_path))
+    new_path = path.join(path.join(path.dirname(path.dirname(path.dirname(path.abspath(file_path)))), 'logs'),
+                         f'{log_name}.log')
+    # json.dumps(data)
+    with open(new_path, 'a') as f:
+        f.write(f"\n\n--- {log_name} ---\n")
+        f.write(json.dumps(result))
+        f.write(str(result))
+
     file_path = create_file(file_path, result, 'execute_all_actions.json')
     print(f'result: {result}')
     print(f'file_path: {file_path}')
