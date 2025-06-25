@@ -234,24 +234,20 @@ function chooseFunction(jsonData, actionName) {
     if (actionName === 'draw_tree') {
         drawPhylogeneticTree(jsonData)
     } else if (actionName === 'compute_likelihood_of_tree') {
-        // convertJSONToTableFoLogLikelihood(jsonData)
+        convertJSONToTableFoLogLikelihood(jsonData)
     } else if (actionName === 'create_all_file_types') {
-        // convertJSONToTableFoFileList(jsonData)
+        convertJSONToTableFoFileList(jsonData)
     }
-    alert(actionName)
 }
 
 function showResponse(jsonData, mode = 0) {
-    let dictActionNames = {1: 'draw_tree', 2: 'compute_likelihood_of_tree', 3: 'create_all_file_types'}
+    let actions = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types']
     if (mode === 0) {
-
-        let keys = jsonData.keys();
-        keys.forEach(key => {
-            alert(key)
+        actions.forEach(key => {
             chooseFunction(jsonData[key], key)
         });
     } else {
-        chooseFunction(jsonData, dictActionNames[mode])
+        chooseFunction(jsonData, actions[mode-1])
     }
 }
 
