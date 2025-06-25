@@ -92,7 +92,7 @@ def del_files(files: Union[str, Tuple[str, ...]]) -> None:
 
 def get_log_file(data: Any, file_path: str, num: int = 1) -> int:
     log_name = path.basename(path.abspath(file_path))
-    new_path = path.join(path.join(path.dirname(path.dirname(path.dirname(path.abspath(file_path)))), 'logs'),
+    new_path = path.join(path.join(path.dirname(path.dirname(path.dirname(path.abspath(file_path)))), 'tmp'),
                          f'{log_name}_{num}.log')
     with open(new_path, 'a') as f:
         f.write(f"\n\n--- {log_name}_{num} str---\n")
