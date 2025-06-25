@@ -233,9 +233,10 @@ function convertJSONToTableFoFileList(jsonData) {
 function showResponse(jsonData, mode = 0) {
     let funcStrKey = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToTableFoLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
     let funcIntKey = {1: drawPhylogeneticTree, 2: convertJSONToTableFoLogLikelihood, 3: convertJSONToTableFoFileList}
+    let keys = Object.entries(jsonData).keys();
     if (mode === 0) {
-        jsonData.forEach(([key, value]) => {
-            funcStrKey[key](value)
+        keys.forEach(key => {
+            funcStrKey[key](jsonData[key])
         });
     } else {
         funcIntKey[mode](jsonData)
