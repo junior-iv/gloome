@@ -241,7 +241,6 @@ function chooseFunction(jsonData, actionName) {
 }
 
 function showResponse(jsonData, mode = 0) {
-    let funcStrKey = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToTableFoLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
     let dictActionNames = {1: 'draw_tree', 2: 'compute_likelihood_of_tree', 3: 'create_all_file_types'}
     if (mode === 0) {
         let keys = Object.entries(jsonData).keys();
