@@ -259,11 +259,11 @@ class WebConfig:
 
         return body.get(self.SUBMITER.__class__.__name__)
 
-    def get_response_design(self, json_object: Optional[Any], action_name: str, design: bool = False) -> Optional[Any]:
+    def get_response_design(self, json_object: Optional[Any], action_name: str) -> Optional[Any]:
         if 'create_all_file_types' in action_name:
-            return self.link_design(json_object)
-        if design:
-            return result_design(json_object)
+            json_object = self.link_design(json_object)
+        elif 'likelihood_of_the_tree' in action_name:
+            json_object = result_design(json_object)
         return json_object
 
     def get_response(self, design: bool = False) -> Optional[Any]:
@@ -286,10 +286,10 @@ class WebConfig:
                     self.set_job_logger_info(f'\n\n'
                                              f'\t\tExecute all actions (key: {key}; type: {type(value)})\n'
                                              f'\tValue: {value}')
-                    json_object.update({key: self.get_response_design(value, key, 'draw_tree' not in key)})
+                    json_object.update({key: self.get_response_design(value, key)})
                 pass
             else:
-                json_object = self.get_response_design(json_object, json_file_name, design)
+                json_object = self.get_response_design(json_object, json_file_name)
 
             file_contents = dumps_json(json_object)
             self.set_job_logger_info(f'Job states (id: {self.CURRENT_JOB}) is {job_state}\n'
