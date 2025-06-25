@@ -74,7 +74,7 @@ def result_design(data: Dict[str, Union[str, int, float]], change_key: bool = Tr
                   ) -> Dict[str, Union[str, int, float]]:
 
     for key, value in data.items():
-        data.update({key_design(key, change_key): value_design(str(value), change_value)})
+        data.update({key: value_design(str(value), change_value)})
     return data
 #
 #
