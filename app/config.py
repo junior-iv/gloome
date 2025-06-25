@@ -266,7 +266,7 @@ class WebConfig:
             json_object = result_design(json_object)
         return json_object
 
-    def get_response(self, design: bool = False) -> Optional[Any]:
+    def get_response(self) -> Optional[Any]:
         self.create_command_line()
         request_body = self.get_request_body()
 

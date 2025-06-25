@@ -5,7 +5,7 @@ from flask import request, Response, jsonify
 import traceback
 
 
-def execute_response(design: bool = False, mode: Optional[Tuple[str, ...]] = None) -> Response:
+def execute_response(mode: Optional[Tuple[str, ...]] = None) -> Response:
     if request.method == 'POST':
         args = get_tree_variables(dict(request.form))
         err_list = check_form(args[0], args[1])
@@ -21,7 +21,7 @@ def execute_response(design: bool = False, mode: Optional[Tuple[str, ...]] = Non
             conf.check_arguments_for_errors()
             conf.create_tmp_data_files()
             try:
-                result = conf.get_response(design)
+                result = conf.get_response()
             except Exception:
                 conf.set_job_logger_info(traceback.format_exc())
                 with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/{conf.CURRENT_JOB}_{conf.PROCESS_ID}_'

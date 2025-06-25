@@ -83,22 +83,22 @@ def get_file():
 
 @app.route('/create_all_file_types', methods=['POST'])
 def create_all_file_types():
-    return execute_response(design=False, mode=('create_all_file_types', ))
+    return execute_response(mode=('create_all_file_types', ))
 
 
 @app.route('/draw_tree', methods=['POST'])
 def draw_tree():
-    return execute_response(design=False,  mode=('draw_tree', ))
+    return execute_response( mode=('draw_tree', ))
 
 
 @app.route('/compute_likelihood_of_tree', methods=['POST'])
 def compute_likelihood_of_tree():
-    return execute_response(design=True, mode=('compute_likelihood_of_tree', ))
+    return execute_response(mode=('compute_likelihood_of_tree', ))
 
 
 @app.route('/execute_all_actions', methods=['POST'])
 def execute_all_actions():
-    return execute_response(design=True, mode=('execute_all_actions', ))
+    return execute_response( mode=('execute_all_actions', ))
 
 
 @app.route('/test', methods=['POST'])
