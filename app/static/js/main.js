@@ -201,8 +201,8 @@ function convertJSONToTableFoLogLikelihood(jsonData) {
     let table = `<details class="w-95 my-2 h-100 h7" open><summary>Log-likelihood information</summary>
                         <table class="w-97 table-success table-success">`;
     Object.entries(jsonData).forEach(([key, value]) => {
-        table += `<tr><th class="text-center w-auto text-break alert alert-success opacity-50">${key}</th>`;
-        table += `<th class="w-auto text-center text-break alert alert-success opacity-50">${value}</th></tr>`;
+        table += `<tr><th class="text-center w-auto text-break alert alert-success bg-opacity-75">${key}</th>`;
+        table += `<th class="w-auto text-center text-break alert alert-success bg-opacity-75">${value}</th></tr>`;
     });
     table += `</table></details>`;
     document.getElementById('logLikelihood').innerHTML = table;
@@ -214,12 +214,12 @@ function convertJSONToTableFoFileList(jsonData) {
     let firstRow = ``;
     let secondRow = ``;
     Object.entries(jsonData).forEach(([key, value]) => {
-        headersRow += `<th  class="text-center text-danger w-auto text-break alert alert-info opacity-50">${key}</th>`;
-        firstRow += `<th  class="w-auto text-center text-break alert alert-info opacity-50">${value[0]}</th>`;
-        secondRow += `<th class="w-auto text-center text-break alert alert-info opacity-50">${value[1]}</th>`;
+        headersRow += `<th  class="text-center text-danger w-auto text-break alert alert-info bg-opacity-50 table-hover ">${key}</th>`;
+        firstRow += `<th  class="w-auto text-center text-break alert alert-info bg-opacity-75 table-hover">${value[0]}</th>`;
+        secondRow += `<th class="w-auto text-center text-break alert alert-info bg-opacity-75 table-hover">${value[1]}</th>`;
     });
     let table = `<details class=" my-2 w-95 h-100 h7" open><summary>File list</summary>
-             <table class="w-97  table-success table-info"><tr>${secondRow}</tr><tr>${headersRow}</tr><tr>${firstRow}</tr>
+             <table class="w-97  table-success table-info table-hover"><tr>${secondRow}</tr><tr>${headersRow}</tr><tr>${firstRow}</tr>
              </table></details>`;
     document.getElementById('fileList').innerHTML = table;
     return table;
