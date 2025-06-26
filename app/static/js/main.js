@@ -177,7 +177,7 @@ function convertJSONToTable(jsonData, jsonSort) {
     const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
         "dodgerblue", "slateblue", "darkviolet"];
     const colorsAS = {"A": "crimson", "L": "darkorange", "G": "forestgreen", "P": "slateblue"}
-    let table = `<details class="w-95 h-100 h7" open><summary>Node information</summary><table class="w-97 p-4 tborder table-danger">`;
+    let table = `<details class="m-2 p-2 w-95 h-100 h7" open><summary>Node information</summary><table class="w-97 p-4 tborder table-danger">`;
 
     sortingList.forEach(header => {
         let value = ``;
@@ -202,8 +202,8 @@ function convertJSONToTable(jsonData, jsonSort) {
 }
 
 function convertJSONToTableFoLogLikelihood(jsonData) {
-    let table = `<details class="w-90 my-4 h-100 h7" open><summary>Log-likelihood information</summary>
-                        <table class="w-97 my-2 table-borderless">`;
+    let table = `<details class="m-2 p-2 w-90 my-4 h-100 h7" open><summary>Log-likelihood information</summary>
+                        <table class="w-97 table-borderless">`;
     Object.entries(jsonData).forEach(([key, value]) => {
         table += `<tr><th class="p-2 h7 h-auto w-auto text-center toast-body alert alert-light bg-opacity-25 text-danger-emphasis">${key}</th>`;
         table += `<th class="p-2 h7 h-auto w-auto text-center toast-body alert alert-light bg-opacity-50">${value}</th></tr>`;
@@ -222,8 +222,8 @@ function convertJSONToTableFoFileList(jsonData) {
         firstRow += `<th class="p-2 h7 h-auto w-auto text-center toast-body alert alert-light bg-opacity-25">${value[0]}</th>`;
         secondRow += `<th class="p-2 h7 h-auto w-auto text-center toast-body alert alert-light  bg-opacity-25">${value[1]}</th>`;
     });
-    let table = `<details class="my-4 w-90 h-100 h7" open><summary>File list</summary>
-             <table class="w-97 my-2 table-borderless ">
+    let table = `<details class="m-2 p-2 w-90 h-100 h7" open><summary>File list</summary>
+             <table class="w-97 table-borderless ">
              <tr>${secondRow}</tr>
              <tr>${firstRow}</tr>
              <tr>${headersRow}</tr>
