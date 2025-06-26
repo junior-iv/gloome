@@ -199,10 +199,10 @@ function convertJSONToTable(jsonData, jsonSort) {
 
 function convertJSONToTableFoLogLikelihood(jsonData) {
     let table = `<details class="w-95 my-2 h-100 h7" open><summary>Log-likelihood information</summary>
-                        <table class="w-97 p-4 tborder table-primary">`;
+                        <table class="w-97 p-4 tborder table-info">`;
     Object.entries(jsonData).forEach(([key, value]) => {
-        table += `<tr><th style="color: crimson"  class="p-2 h7 w-auto tborder-0 table-primary">${key}</th>`;
-        table += `<th style="color: crimson"  class="h7 w-auto text-center tborder-0 table-primary bg-light">${value}</th></tr>`;
+        table += `<tr><th class="p-2 h7 w-auto tborder-0 table-info">${key}</th>`;
+        table += `<th class="h7 w-auto text-center tborder-0 table-info bg-info">${value}</th></tr>`;
     });
     table += `</table></details>`;
     document.getElementById('logLikelihood').innerHTML = table;
@@ -214,12 +214,12 @@ function convertJSONToTableFoFileList(jsonData) {
     let firstRow = ``;
     let secondRow = ``;
     Object.entries(jsonData).forEach(([key, value]) => {
-        headersRow += `<th style="color: crimson"  class="p-2 h7 w-auto tborder-0 table-primary">${key}</th>`;
-        firstRow += `<th style="color: crimson"  class="h7 w-auto text-center tborder-0 table-primary bg-light">${value[0]}</th>`;
-        secondRow += `<th style="color: crimson"  class="h7 w-auto text-center tborder-0 table-primary bg-light">${value[1]}</th>`;
+        headersRow += `<th  class="p-2 h7 w-auto tborder-0 table-info">${key}</th>`;
+        firstRow += `<th  class="h7 w-auto text-center tborder-0 table-info bg-info">${value[0]}</th>`;
+        secondRow += `<th  class="h7 w-auto text-center tborder-0 table-info bg-info">${value[1]}</th>`;
     });
     let table = `<details class=" my-2 w-95 h-100 h7" open><summary>File list</summary>
-             <table class="w-97 p-4 tborder table-danger"><tr>${headersRow}</tr><tr>${firstRow}</tr><tr>${secondRow}</tr>
+             <table class="w-97 p-4 tborder table-info"><tr>${headersRow}</tr><tr>${firstRow}</tr><tr>${secondRow}</tr>
              </table></details>`;
     document.getElementById('fileList').innerHTML = table;
     return table;
