@@ -293,7 +293,8 @@ class Node:
         info = f'Name: {self.name}<br>Distance: {str(self.distance_to_father)}<br>Sequence: <br>{sequence}'
         probability_mark = ancestral_sequence = probability_coefficient = ''
         if self.father:
-            ancestral_sequence = f'<br>Ancestral sequence: <br>'
+            ancestral_sequence = (f'<br>Ancestral Comparison (P = maintained presence , A = maintained absence , '
+                                  f'L = loss, G = gain): <br>')
             ancestral_sequence += '\t'.join([i for i in self.ancestral_sequence])
         if self.children:
             probability_mark = f'<br>Probability mark (0-9): <br>'

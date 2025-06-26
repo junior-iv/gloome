@@ -183,12 +183,16 @@ function convertJSONToTable(jsonData, jsonSort) {
         let value = ``;
         let jsonValue = jsonData[header];
         table += `<tr><th class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;
-        if (typeof jsonValue === "object" && header !== "Ancestral sequence") {Object.values(jsonValue).forEach(i => {
-            value += `<td style="color: ${colors[getInteger(i)]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
-        })}
-        else if (typeof jsonValue === "object" && header === "Ancestral sequence") {Object.values(jsonValue).forEach(i => {
-            value += `<td style="color: ${colorsAS[i]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
-        })}
+        if (typeof jsonValue === "object" && header !== "Ancestral Comparison (P = maintained presence , A = maintained absence , L = loss, G = gain)")
+            {Object.values(jsonValue).forEach(i => {
+                value += `<td style="color: ${colors[getInteger(i)]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+                })
+            }
+        else if (typeof jsonValue === "object" && header === "Ancestral Comparison (P = maintained presence , A = maintained absence , L = loss, G = gain)")
+            {Object.values(jsonValue).forEach(i => {
+                value += `<td style="color: ${colorsAS[i]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+        }
+            )}
         else {value = `<td class="h7 w-auto text-center">${jsonValue}</td>`}
         table += `<th>${value}</th></tr>`;
     });
@@ -198,11 +202,11 @@ function convertJSONToTable(jsonData, jsonSort) {
 }
 
 function convertJSONToTableFoLogLikelihood(jsonData) {
-    let table = `<details class="w-95 my-2 h-100 h7" open><summary>Log-likelihood information</summary>
-                        <table class="w-97 table-success table-success">`;
+    let table = `<details class="w-80 my-4 h-100 h7" open><summary>Log-likelihood information</summary>
+                        <table class="w-97 table-borderless">`;
     Object.entries(jsonData).forEach(([key, value]) => {
-        table += `<tr><th class="text-center w-auto text-break alert alert-success bg-opacity-25">${key}</th>`;
-        table += `<th class="w-auto text-center text-break alert alert-success bg-opacity-25">${value}</th></tr>`;
+        table += `<tr><th class="w-auto text-center text-break alert alert-info bg-opacity-50">${key}</th>`;
+        table += `<th class="w-auto text-center text-break alert alert-info bg-opacity-75">${value}</th></tr>`;
     });
     table += `</table></details>`;
     document.getElementById('logLikelihood').innerHTML = table;
@@ -214,12 +218,12 @@ function convertJSONToTableFoFileList(jsonData) {
     let firstRow = ``;
     let secondRow = ``;
     Object.entries(jsonData).forEach(([key, value]) => {
-        headersRow += `<th  class="text-center text-danger w-auto text-break alert alert-info bg-opacity-50 table-hover ">${key}</th>`;
-        firstRow += `<th  class="w-auto text-center text-break alert alert-info visually-hidden-focusable bg-opacity-75 table-hover">${value[0]}</th>`;
-        secondRow += `<th class="w-auto text-center text-break alert alert-info visually-hidden bg-opacity-50 table-hover">${value[1]}</th>`;
+        headersRow += `<th  class="text-center text-danger w-auto text-break alert alert-info bg-opacity-75">${key}</th>`;
+        firstRow += `<th  class="w-auto text-center text-break alert alert-info bg-opacity-50">${value[0]}</th>`;
+        secondRow += `<th class="w-auto text-center text-break alert alert-info bg-opacity-75">${value[1]}</th>`;
     });
-    let table = `<details class=" my-2 w-95 h-100 h7" open><summary>File list</summary>
-             <table class="w-97  table-success table-info table-hover"><tr>${secondRow}</tr><tr>${headersRow}</tr><tr>${firstRow}</tr>
+    let table = `<details class=" my-4 w-80 h-100 h7" open><summary>File list</summary>
+             <table class="w-97 table-borderless "><tr>${secondRow}</tr><tr>${headersRow}</tr><tr>${firstRow}</tr>
              </table></details>`;
     document.getElementById('fileList').innerHTML = table;
     return table;

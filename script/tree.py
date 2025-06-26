@@ -260,7 +260,8 @@ class Tree:
                                            'likelihood': 'Likelihood', 'marginal_vector': 'Marginal vector',
                                            'probability_vector': 'Probability vector', 'probable_character':
                                            'Probable character', 'sequence': 'Sequence', 'ancestral_sequence':
-                                           'Ancestral sequence', 'probabilities_sequence_characters':
+                                           'Ancestral Comparison (P = maintained presence , A = maintained absence , '
+                                           'L = loss, G = gain)', 'probabilities_sequence_characters':
                                            'Probabilities sequence characters'}
         lists = lists if lists else ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector',
                                      'probability_vector', 'probabilities_sequence_characters')
@@ -416,7 +417,8 @@ class Tree:
 
     def get_fasta_text(self, columns: Optional[Dict[str, str]] = None) -> str:
         columns = columns if columns else {'node': 'Name', 'sequence': 'Sequence', 'ancestral_sequence':
-                                           'Ancestral sequence', 'children': 'child', 'lavel': 'Lavel', 'node_type':
+                                           'Ancestral Comparison (P = maintained presence , A = maintained absence , '
+                                           'L = loss, G = gain)', 'children': 'child', 'lavel': 'Lavel', 'node_type':
                                            'Node Type'}
         table = self.tree_to_table(('Node Type', 'Name'), columns=columns)
         fasta_text = ''
@@ -432,7 +434,8 @@ class Tree:
             columns = columns if columns else {'node': 'Name', 'node_type': 'Node type', 'distance':
                                                'Distance to father', 'sequence': 'Sequence',
                                                'probabilities_sequence_characters': 'Probability coefficient',
-                                               'ancestral_sequence': 'Ancestral sequence'}
+                                               'ancestral_sequence': 'Ancestral Comparison (P = maintained presence , '
+                                               'A = maintained absence , L = loss, G = gain)'}
             lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
 
             table = self.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float,
@@ -455,7 +458,8 @@ class Tree:
     @staticmethod
     def get_columns_list_for_sorting() -> Dict[str, List[str]]:
         result = {'List for sorting': ['Name', 'Node type', 'Distance to father', 'Sequence', 'Probability coefficient',
-                                       'Ancestral sequence']}
+                                       'Ancestral Comparison (P = maintained presence , A = maintained absence , '
+                                       'L = loss, G = gain)']}
 
         return loads(str(result).replace(f'\'', r'"'))
 
@@ -619,7 +623,9 @@ class Tree:
             if df_copy["node_type"][i] != 'root':
                 ancestral_sequence = ''.join([Node.draw_cell_html_table(colors_as[j], j)
                                               for j in df_copy['ancestral_sequence'][i]])
-                ancestral_sequence = Node.draw_row_html_table('Ancestral sequence', ancestral_sequence)
+                ancestral_sequence = Node.draw_row_html_table('Ancestral Comparison (P = maintained presence , '
+                                                              'A = maintained absence , L = loss, G = gain)',
+                                                              ancestral_sequence)
             if df_copy["node_type"][i] != 'leaf':
                 probability_mark = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], "9" if j == 1 else
                                             int(j * 10)) for j in df_copy['prob_characters'][i]])
