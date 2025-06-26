@@ -38,7 +38,8 @@ def key_design(key: str, change_style: bool = True, style: int = 6) -> str:
 def value_design(value: Optional[Union[str, Tuple[str, ...], List[str], Set[str]]], change_style: bool = True,
                  style: int = 4) -> str:
     if isinstance(value, (tuple, list, set)):
-        return "".join([value_design("<p>" + i + "</p>", True, 5) for i in value])
+        return ''.join([value_design(f'<p>{i:.10f}</p>' if isinstance(i, float) else f'<p>{i}</p>', True, 5)
+                        for i in value])
     style_tag = STYLE_TAG[style] if change_style else STYLE_TAG[0]
     return f'{style_tag[0]}{value}{style_tag[1]}'
 
