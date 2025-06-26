@@ -205,8 +205,8 @@ function convertJSONToTableFoLogLikelihood(jsonData) {
     let table = `<details class="w-80 my-4 h-100 h7" open><summary>Log-likelihood information</summary>
                         <table class="w-97 table-borderless">`;
     Object.entries(jsonData).forEach(([key, value]) => {
-        table += `<tr><th class="w-auto text-center toast-body alert alert-info opacity-25">${key}</th>`;
-        table += `<th class="w-auto text-center toast-body alert alert-info opacity-25">${value}</th></tr>`;
+        table += `<tr><th class="w-auto text-center toast-body alert alert-info bg-opacity-75">${key}</th>`;
+        table += `<th class="w-auto text-center toast-body alert alert-info opacity-75">${value}</th></tr>`;
     });
     table += `</table></details>`;
     document.getElementById('logLikelihood').innerHTML = table;
@@ -218,8 +218,8 @@ function convertJSONToTableFoFileList(jsonData) {
     let firstRow = ``;
     let secondRow = ``;
     Object.entries(jsonData).forEach(([key, value]) => {
-        headersRow += `<th  class="text-center text-danger w-auto toast-body alert alert-info opacity-25">${key}</th>`;
-        firstRow += `<th  class="w-auto text-center toast-body alert alert-info opacity-50">${value[0]}</th>`;
+        headersRow += `<th  class="text-center text-danger w-auto toast-body alert alert-info bg-opacity-75">${key}</th>`;
+        firstRow += `<th  class="w-auto text-center toast-body alert alert-info opacity-75">${value[0]}</th>`;
         secondRow += `<th class="w-auto text-center toast-body alert alert-info opacity-75">${value[1]}</th>`;
     });
     let table = `<details class=" my-4 w-80 h-100 h7" open><summary>File list</summary>
@@ -255,6 +255,7 @@ function makeTree(mode = 0) {
     jsonTreeData = null
 
     setVisibilityLoader(true);
+    setAccessibility();
     let absolutePath = ['/execute_all_actions', `/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
 
     fetch(absolutePath, {
@@ -270,6 +271,7 @@ function makeTree(mode = 0) {
         })
         .then(data => {
             setVisibilityLoader(false);
+            setAccessibility();
             typeof data.message === "object" ? showResponse(data.message, mode) : showMessage(data.message, 1);
         })
         .catch(error => {processError(error)});
@@ -297,6 +299,20 @@ function setVisibilityLoader(visible = true) {
     document.getElementById('logLikelihood').innerText = '';
     document.getElementById('fileList').innerText = '';
     hide_all();
+}
+
+function setAccessibility() {
+    let elementNames = [`theButton`, `theСleaningButton`, `theExampleButton`, `theExample2Button`, `patternMSA`,
+        `patternMSAFile`, `newickText`, `newickTextFile`, 'alpha', `categoriesQuantity`];
+    ``
+    elementNames.forEach(elementId => {
+        let element = document.getElementById(elementId)
+        if (element.classList.contains('disabled')) {
+            element.classList.remove('disabled');
+        } else {
+            element.classList.add('disabled');
+        }
+    })
 }
 
 function hide_all() {
