@@ -74,9 +74,10 @@ def result_design(data: Dict[str, Union[str, int, float]], change_key: bool = Tr
                   ) -> Dict[str, Union[str, int, float]]:
     result_data = dict()
     for key, value in data.items():
-        new_value = value_design(value, change_value
-                                 ) if isinstance(value, str) else [value_design(i, change_value) for i in value]
-        result_data.update({key_design(key, change_key): new_value})
+        # new_value = value_design(value, change_value
+        #                          ) if isinstance(value, str) else [value_design(i, change_value) for i in value]
+        # result_data.update({key_design(key, change_key): new_value})
+        result_data.update({key_design(key, change_key): value_design(value, change_value)})
     return result_data
 #
 #
