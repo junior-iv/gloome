@@ -690,7 +690,7 @@ class Tree:
     @staticmethod
     def get_ancestral_alphabet() -> Tuple[str, ...]:
 
-        return 'A', 'G', 'L', 'P'
+        return 'A', 'L', 'G', 'P'
 
     @staticmethod
     def get_alphabet(search_argument: Union[Set[str], int, str]) -> Tuple[str, ...]:

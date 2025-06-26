@@ -262,9 +262,8 @@ class WebConfig:
     def get_response_design(self, json_object: Optional[Any], action_name: str) -> Optional[Any]:
         if 'create_all_file_types' in action_name:
             json_object = self.link_design(json_object)
-        # # if 'likelihood_of_the_tree' in action_name:
-        # if 'draw_tree' not in action_name:
-        #     json_object = result_design(json_object)
+        if 'draw_tree' not in action_name:
+            json_object = result_design(json_object)
         return json_object
 
     def get_response(self) -> Optional[Any]:

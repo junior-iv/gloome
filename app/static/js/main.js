@@ -199,10 +199,10 @@ function convertJSONToTable(jsonData, jsonSort) {
 
 function convertJSONToTableFoLogLikelihood(jsonData) {
     let table = `<details class="w-95 my-2 h-100 h7" open><summary>Log-likelihood information</summary>
-                        <table class="w-97 p-4 tborder table-info">`;
+                        <table class="w-97 table-success list-group-item-info">`;
     Object.entries(jsonData).forEach(([key, value]) => {
-        table += `<tr><th class="p-2 h7 w-auto tborder-0 table-info">${key}</th>`;
-        table += `<th class="h7 w-auto text-center tborder-0 table-info bg-info">${value}</th></tr>`;
+        table += `<tr><th class="text-center w-auto text-break">${key}</th>`;
+        table += `<th class="w-auto text-center text-break">${value}</th></tr>`;
     });
     table += `</table></details>`;
     document.getElementById('logLikelihood').innerHTML = table;
@@ -214,25 +214,15 @@ function convertJSONToTableFoFileList(jsonData) {
     let firstRow = ``;
     let secondRow = ``;
     Object.entries(jsonData).forEach(([key, value]) => {
-        headersRow += `<th  class="p-2 h7 w-auto tborder-0 table-info">${key}</th>`;
-        firstRow += `<th  class="h7 w-auto text-center tborder-0 table-info bg-info">${value[0]}</th>`;
-        secondRow += `<th  class="h7 w-auto text-center tborder-0 table-info bg-info">${value[1]}</th>`;
+        headersRow += `<th  class="text-center w-auto text-break">${key}</th>`;
+        firstRow += `<th  class="w-auto text-center text-break">${value[0]}</th>`;
+        secondRow += `<th class="w-auto text-center text-break">${value[1]}</th>`;
     });
     let table = `<details class=" my-2 w-95 h-100 h7" open><summary>File list</summary>
-             <table class="w-97 p-4 tborder table-info"><tr>${headersRow}</tr><tr>${firstRow}</tr><tr>${secondRow}</tr>
+             <table class="w-97  table-success list-group-item-info"><tr>${headersRow}</tr><tr>${firstRow}</tr><tr>${secondRow}</tr>
              </table></details>`;
     document.getElementById('fileList').innerHTML = table;
     return table;
-}
-
-function chooseFunction(jsonData, actionName) {
-    if (actionName === 'draw_tree') {
-        drawPhylogeneticTree(jsonData)
-    } else if (actionName === 'compute_likelihood_of_tree') {
-        convertJSONToTableFoLogLikelihood(jsonData)
-    } else if (actionName === 'create_all_file_types') {
-        convertJSONToTableFoFileList(jsonData)
-    }
 }
 
 function showResponse(jsonData, mode = 0) {
