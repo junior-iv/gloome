@@ -205,7 +205,7 @@ function convertJSONToTableFoLogLikelihood(jsonData) {
     let table = `<details class="w-90 my-4 h-100 h7" open><summary>Log-likelihood information</summary>
                         <table class="w-97 my-2 table-borderless">`;
     Object.entries(jsonData).forEach(([key, value]) => {
-        table += `<tr><th class="h-auto w-auto text-center toast-body alert alert-light bg-opacity-50">${key}</th>`;
+        table += `<tr><th class="h-auto w-auto text-center toast-body bg-opacity-50">${key}</th>`;
         table += `<th class="h-auto w-auto text-center toast-body alert alert-light bg-opacity-50">${value}</th></tr>`;
     });
     table += `</table></details>`;
@@ -218,7 +218,7 @@ function convertJSONToTableFoFileList(jsonData) {
     let firstRow = ``;
     let secondRow = ``;
     Object.entries(jsonData).forEach(([key, value]) => {
-        headersRow += `<th  class="text-center text-danger-emphasis h-auto w-auto toast-body alert alert-light bg-opacity-50">${key}</th>`;
+        headersRow += `<th  class="text-center text-danger-emphasis h-auto w-auto toast-body bg-opacity-50">${key}</th>`;
         firstRow += `<th  class="h-auto w-auto text-center toast-body lert alert-light bg-opacity-50">${value[0]}</th>`;
         secondRow += `<th class="h-auto w-auto text-center toast-body lert alert-light bg-opacity-50">${value[1]}</th>`;
     });
