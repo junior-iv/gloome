@@ -218,7 +218,7 @@ function convertJSONToTableFoFileList(jsonData) {
     let firstRow = ``;
     let secondRow = ``;
     Object.entries(jsonData).forEach(([key, value]) => {
-        headersRow += `<th  class="text-center text-danger w-auto toast-body alert alert-info opacity-75">${key}</th>`;
+        headersRow += `<th  class="text-center text-danger w-auto toast-body alert alert-info opacity-25">${key}</th>`;
         firstRow += `<th  class="w-auto text-center toast-body alert alert-info opacity-50">${value[0]}</th>`;
         secondRow += `<th class="w-auto text-center toast-body alert alert-info opacity-75">${value[1]}</th>`;
     });
