@@ -223,7 +223,10 @@ function convertJSONToTableFoFileList(jsonData) {
         secondRow += `<th class="p-2 h7 h-auto w-auto text-center toast-body alert alert-light  bg-opacity-25">${value[1]}</th>`;
     });
     let table = `<details class="my-4 w-90 h-100 h7" open><summary>File list</summary>
-             <table class="w-97 my-2 table-borderless "><tr>${secondRow}</tr><tr>${headersRow}</tr><tr>${firstRow}</tr>
+             <table class="w-97 my-2 table-borderless ">
+             <tr>${secondRow}</tr>
+             <tr>${firstRow}</tr>
+             <tr>${headersRow}</tr>
              </table></details>`;
     document.getElementById('fileList').innerHTML = table;
     return table;
