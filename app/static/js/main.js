@@ -196,13 +196,11 @@ function convertJSONToTable(jsonData, jsonSort) {
 }
 
 function convertJSONToTableFoLogLikelihood(jsonData) {
-    let headers = Object.entries(jsonData).keys();
     let table = `<details class="w-95 h-100 h7" open><summary>Log-likelihood information</summary>
                         <table class="w-97 p-4 tborder table-danger">`;
-    headers.forEach(header => {
-        let jsonValue = jsonData[header];
-        table += `<tr><th style="color: crimson"  class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;
-        table += `<th style="color: crimson"  class="h7 w-auto text-center tborder-1 table-danger bg-light">${jsonValue}</th></tr>`;
+    Object.entries(jsonData).forEach(([key, value]) => {
+        table += `<tr><th style="color: crimson"  class="p-2 h7 w-auto tborder-0 table-danger">${key}</th>`;
+        table += `<th style="color: crimson"  class="h7 w-auto text-center tborder-0 table-danger bg-light">${value}</th></tr>`;
     });
     table += `</table></details>`;
     document.getElementById('logLikelihood').innerHTML = table;
@@ -210,20 +208,18 @@ function convertJSONToTableFoLogLikelihood(jsonData) {
 }
 
 function convertJSONToTableFoFileList(jsonData) {
-    let headers = Object.entries(jsonData).keys();
     let headersRow = ``;
     let firstRow = ``;
     let secondRow = ``;
-    let table = '';
-    headers.forEach(header => {
-        headersRow += `<th style="color: crimson"  class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;
-        let jsonValue = jsonData[header];
-        if (typeof jsonValue === "object") {
-            firstRow += `<th style="color: crimson"  class="h7 w-auto text-center tborder-1 table-danger bg-light">${jsonValue[0]}</th>`;
-            secondRow += `<th style="color: crimson"  class="h7 w-auto text-center tborder-1 table-danger bg-light">${jsonValue[1]}</th>`;
+    Object.entries(jsonData).forEach(([key, value]) => {
+        headersRow += `<th style="color: crimson"  class="p-2 h7 w-auto tborder-0 table-danger">${key}</th>`;
+        // let jsonValue = jsonData[header];
+        if (typeof value === "object") {
+            firstRow += `<th style="color: crimson"  class="h7 w-auto text-center tborder-0 table-danger bg-light">${value[0]}</th>`;
+            secondRow += `<th style="color: crimson"  class="h7 w-auto text-center tborder-0 table-danger bg-light">${value[1]}</th>`;
         }
     });
-    table = `<details class="w-95 h-100 h7" open><summary>File list</summary>
+    let table = `<details class="w-95 h-100 h7" open><summary>File list</summary>
              <table class="w-97 p-4 tborder table-danger"><tr>${headersRow}</tr><tr>${firstRow}</tr><tr>${secondRow}</tr>
              </table></details>`;
     document.getElementById('fileList').innerHTML = table;
@@ -242,12 +238,12 @@ function chooseFunction(jsonData, actionName) {
 
 function showResponse(jsonData, mode = 0) {
     let actions = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types']
+    let dictActions = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToTableFoLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
     if (mode === 0) {
-        actions.forEach(key => {
-            chooseFunction(jsonData[key], key)
-        });
+        Object.entries(dictActions).forEach(([key, func]) => func(jsonData[key]));
     } else {
-        chooseFunction(jsonData, actions[mode-1])
+        dictActions[actions[mode-1]](jsonData);
+        // chooseFunction(jsonData, actions[mode-1])
     }
 }
 
