@@ -201,8 +201,8 @@ function convertJSONToTableFoLogLikelihood(jsonData) {
     let table = `<details class="w-95 my-2 h-100 h7" open><summary>Log-likelihood information</summary>
                         <table class="w-97 table-success table-success">`;
     Object.entries(jsonData).forEach(([key, value]) => {
-        table += `<tr><th class="text-center w-auto text-break table-success">${key}</th>`;
-        table += `<th class="w-auto text-center text-break table-success">${value}</th></tr>`;
+        table += `<tr><th class="text-center w-auto text-break alert alert-success">${key}</th>`;
+        table += `<th class="w-auto text-center text-break alert alert-success">${value}</th></tr>`;
     });
     table += `</table></details>`;
     document.getElementById('logLikelihood').innerHTML = table;
@@ -214,9 +214,9 @@ function convertJSONToTableFoFileList(jsonData) {
     let firstRow = ``;
     let secondRow = ``;
     Object.entries(jsonData).forEach(([key, value]) => {
-        headersRow += `<th  class="text-center w-auto text-break table-info">${key}</th>`;
-        firstRow += `<th  class="w-auto text-center text-break table-info">${value[0]}</th>`;
-        secondRow += `<th class="w-auto text-center text-break table-info">${value[1]}</th>`;
+        headersRow += `<th  class="text-center w-auto text-break alert alert-info ">${key}</th>`;
+        firstRow += `<th  class="w-auto text-center text-break alert alert-info ">${value[0]}</th>`;
+        secondRow += `<th class="w-auto text-center text-break alert alert-info ">${value[1]}</th>`;
     });
     let table = `<details class=" my-2 w-95 h-100 h7" open><summary>File list</summary>
              <table class="w-97  table-success table-info"><tr>${secondRow}</tr><tr>${headersRow}</tr><tr>${firstRow}</tr>
