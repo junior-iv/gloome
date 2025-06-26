@@ -53,7 +53,6 @@ function reDrawPhylogeneticTree() {
         setLoader(false)
         hide_all();
         document.getElementById('tree').innerText = '';
-        document.getElementById('nodeInfo').innerText = '';
         drawPhylogeneticTree(jsonTreeData);
     }
 }
