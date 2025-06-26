@@ -610,7 +610,7 @@ class Tree:
 
         colors = ['crimson', 'orangered', 'darkorange', 'gold', 'yellowgreen', 'forestgreen', 'mediumturquoise',
                   'dodgerblue', 'slateblue', 'darkviolet']
-        colors_as = {"A": "crimson", "G": "darkorange", "L": "forestgreen", "P": "slateblue"}
+        colors_as = {'A': 'crimson', 'L': 'darkorange', 'G': 'forestgreen', 'P': 'slateblue'}
         for i in df_copy.T:
             probability_mark = probability_coefficient = ancestral_sequence = ''
             sequence = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], j)
