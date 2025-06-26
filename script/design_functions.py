@@ -11,23 +11,23 @@ STYLE_TAG = (('', ''),                                              # 0
              ('<sub class="text-light-emphasis">', '</sub>'),       # 7
              ('<sub class="text-dark-emphasis">', '</sub>'),        # 8
 
-             ('<span class="text-primary">', '</span>'),            # 9
-             ('<span class="text-secondary">', '</span>'),          # 10
-             ('<span class="text-success">', '</span>'),            # 11
-             ('<span class="text-info">', '</span>'),               # 12
-             ('<span class="text-warning">', '</span>'),            # 13
-             ('<span class="text-danger">', '</span>'),             # 14
-             ('<span class="text-light">', '</span>'),              # 15
-             ('<span class="text-dark">', '</span>'),               # 16
+             ('<span class="text-primary">', '</span>'),                # 9
+             ('<span class="text-secondary">', '</span>'),              # 10
+             ('<span class="text-success">', '</span>'),                # 11
+             ('<span class="text-info">', '</span>'),                   # 12
+             ('<span class="text-warning">', '</span>'),                # 13
+             ('<span class="text-danger">', '</span>'),                 # 14
+             ('<span class="text-light">', '</span>'),                  # 15
+             ('<span class="text-dark">', '</span>'),                   # 16
 
-             ('<span class="text-primary-emphasis">', '</span>'),   # 17
-             ('<span class="text-secondary-emphasis">', '</span>'), # 18
-             ('<span class="text-success-emphasis">', '</span>'),   # 19
-             ('<span class="text-info-emphasis">', '</span>'),      # 20
-             ('<span class="text-warning-emphasis">', '</span>'),   # 21
-             ('<span class="text-danger-emphasis">', '</span>'),    # 22
-             ('<span class="text-light-emphasis">', '</span>'),     # 23
-             ('<span class="text-dark-emphasis">', '</span>')       # 24
+             ('<span class="text-primary-emphasis">', '</span>'),       # 17
+             ('<span class="text-secondary-emphasis">', '</span>'),     # 18
+             ('<span class="text-success-emphasis">', '</span>'),       # 19
+             ('<span class="text-info-emphasis">', '</span>'),          # 20
+             ('<span class="text-warning-emphasis">', '</span>'),       # 21
+             ('<span class="text-danger-emphasis">', '</span>'),        # 22
+             ('<span class="text-light-emphasis">', '</span>'),         # 23
+             ('<span class="text-dark-emphasis">', '</span>')           # 24
              )
 
 
@@ -74,14 +74,15 @@ def dna_design(dna: str, different_color: Optional[Tuple[int, int]] = None, styl
     return f'<b>{str_result}</b>'
 
 
-def result_design(data: Dict[str, Union[str, int, float]], change_key: bool = True, change_value: bool = True
-                  ) -> Dict[str, Union[str, int, float]]:
+def result_design(data: Dict[str, Union[str, int, float]], change_key_style: bool = True, change_value: bool = True,
+                  change_key: bool = True, change_value_style: bool = True) -> Dict[str, Union[str, int, float]]:
     result_data = dict()
     for key, value in data.items():
-        # new_value = value_design(value, change_value
-        #                          ) if isinstance(value, str) else [value_design(i, change_value) for i in value]
-        # result_data.update({key_design(key, change_key): new_value})
-        result_data.update({key_design(key, change_key): value_design(value, change_value)})
+        if change_key:
+            key = key_design(key, change_key_style)
+        if change_value:
+            value = value_design(value, change_value_style)
+        result_data.update({key: value})
     return result_data
 #
 #
