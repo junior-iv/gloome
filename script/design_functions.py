@@ -1,43 +1,43 @@
 import json
 from typing import Union, Tuple, Optional, Dict, List, Set
 
-STYLE_TAG = (('', ''),
-             ('<sub class="text-primary-emphasis">', '</sub>'),
-             ('<sub class="text-secondary-emphasis">', '</sub>'),
-             ('<sub class="text-success-emphasis">', '</sub>'),
-             ('<sub class="text-info-emphasis">', '</sub>'),
-             ('<sub class="text-warning-emphasis">', '</sub>'),
-             ('<sub class="text-danger-emphasis">', '</sub>'),
-             ('<sub class="text-light-emphasis">', '</sub>'),
-             ('<sub class="text-dark-emphasis">', '</sub>'),
+STYLE_TAG = (('', ''),                                              # 0
+             ('<sub class="text-primary-emphasis">', '</sub>'),     # 1
+             ('<sub class="text-secondary-emphasis">', '</sub>'),   # 2
+             ('<sub class="text-success-emphasis">', '</sub>'),     # 3
+             ('<sub class="text-info-emphasis">', '</sub>'),        # 4
+             ('<sub class="text-warning-emphasis">', '</sub>'),     # 5
+             ('<sub class="text-danger-emphasis">', '</sub>'),      # 6
+             ('<sub class="text-light-emphasis">', '</sub>'),       # 7
+             ('<sub class="text-dark-emphasis">', '</sub>'),        # 8
 
-             ('<span class="text-primary">', '</span>'),
-             ('<span class="text-secondary">', '</span>'),
-             ('<span class="text-success">', '</span>'),
-             ('<span class="text-info">', '</span>'),
-             ('<span class="text-warning">', '</span>'),
-             ('<span class="text-danger">', '</span>'),
-             ('<span class="text-light">', '</span>'),
-             ('<span class="text-dark">', '</span>'),
+             ('<span class="text-primary">', '</span>'),            # 9
+             ('<span class="text-secondary">', '</span>'),          # 10
+             ('<span class="text-success">', '</span>'),            # 11
+             ('<span class="text-info">', '</span>'),               # 12
+             ('<span class="text-warning">', '</span>'),            # 13
+             ('<span class="text-danger">', '</span>'),             # 14
+             ('<span class="text-light">', '</span>'),              # 15
+             ('<span class="text-dark">', '</span>'),               # 16
 
-             ('<span class="text-primary-emphasis">', '</span>'),
-             ('<span class="text-secondary-emphasis">', '</span>'),
-             ('<span class="text-success-emphasis">', '</span>'),
-             ('<span class="text-info-emphasis">', '</span>'),
-             ('<span class="text-warning-emphasis">', '</span>'),
-             ('<span class="text-danger-emphasis">', '</span>'),
-             ('<span class="text-light-emphasis">', '</span>'),
-             ('<span class="text-dark-emphasis">', '</span>')
+             ('<span class="text-primary-emphasis">', '</span>'),   # 17
+             ('<span class="text-secondary-emphasis">', '</span>'), # 18
+             ('<span class="text-success-emphasis">', '</span>'),   # 19
+             ('<span class="text-info-emphasis">', '</span>'),      # 20
+             ('<span class="text-warning-emphasis">', '</span>'),   # 21
+             ('<span class="text-danger-emphasis">', '</span>'),    # 22
+             ('<span class="text-light-emphasis">', '</span>'),     # 23
+             ('<span class="text-dark-emphasis">', '</span>')       # 24
              )
 
 
-def key_design(key: str, change_style: bool = True, style: int = 6) -> str:
+def key_design(key: str, change_style: bool = True, style: int = 22) -> str:
     style_tag = STYLE_TAG[style] if change_style else STYLE_TAG[0]
     return f'{style_tag[0]}{key.replace("_", " ")}:\t{style_tag[1]}'
 
 
 def value_design(value: Optional[Union[str, Tuple[str, ...], List[str], Set[str]]], change_style: bool = True,
-                 style: int = 4) -> str:
+                 style: int = 20) -> str:
     # if isinstance(value, (tuple, list, set)):
     #     return ''.join([value_design(f'<p>{i:.10f}</p>' if isinstance(i, float) else f'<p>{i}</p>', True, 5)
     #                     for i in value])
