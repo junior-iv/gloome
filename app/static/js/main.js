@@ -183,12 +183,12 @@ function convertJSONToTable(jsonData, jsonSort) {
         let value = ``;
         let jsonValue = jsonData[header];
         table += `<tr><th class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;
-        if (typeof jsonValue === "object" && header !== "Ancestral Comparison (P = maintained presence , A = maintained absence , L = loss, G = gain)")
+        if (typeof jsonValue === "object" && header !== "Ancestral Comparison")
             {Object.values(jsonValue).forEach(i => {
                 value += `<td style="color: ${colors[getInteger(i)]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
                 })
             }
-        else if (typeof jsonValue === "object" && header === "Ancestral Comparison (P = maintained presence , A = maintained absence , L = loss, G = gain)")
+        else if (typeof jsonValue === "object" && header === "Ancestral Comparison")
             {Object.values(jsonValue).forEach(i => {
                 value += `<td style="color: ${colorsAS[i]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
         }
