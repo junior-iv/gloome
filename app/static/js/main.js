@@ -50,8 +50,10 @@ function getNodeStyle(d, nodeType, mode = 0, sizeFactor = 1){
 
 function reDrawPhylogeneticTree() {
     if (jsonTreeData !== null){
-        setVisibilityLoader(true);
-        setVisibilityLoader(false);
+        setLoader(false)
+        hide_all();
+        document.getElementById('tree').innerText = '';
+        document.getElementById('nodeInfo').innerText = '';
         drawPhylogeneticTree(jsonTreeData);
     }
 }
@@ -213,11 +215,8 @@ function convertJSONToTableFoFileList(jsonData) {
     let secondRow = ``;
     Object.entries(jsonData).forEach(([key, value]) => {
         headersRow += `<th style="color: crimson"  class="p-2 h7 w-auto tborder-0 table-danger">${key}</th>`;
-        // let jsonValue = jsonData[header];
-        if (typeof value === "object") {
-            firstRow += `<th style="color: crimson"  class="h7 w-auto text-center tborder-0 table-danger bg-light">${value[0]}</th>`;
-            secondRow += `<th style="color: crimson"  class="h7 w-auto text-center tborder-0 table-danger bg-light">${value[1]}</th>`;
-        }
+        firstRow += `<th style="color: crimson"  class="h7 w-auto text-center tborder-0 table-danger bg-light">${value[0]}</th>`;
+        secondRow += `<th style="color: crimson"  class="h7 w-auto text-center tborder-0 table-danger bg-light">${value[1]}</th>`;
     });
     let table = `<details class="w-95 h-100 h7" open><summary>File list</summary>
              <table class="w-97 p-4 tborder table-danger"><tr>${headersRow}</tr><tr>${firstRow}</tr><tr>${secondRow}</tr>
@@ -326,7 +325,7 @@ function showMessage(message = null, variant = 2) {
 }
 
 function clearForm() {
-    let elementNames = {'value': [`newickText`, `patternMSA`], 'innerHTML': [`tree`, `nodeInfo`]};
+    let elementNames = {'value': [`newickText`, `patternMSA`], 'innerHTML': [`tree`, `nodeInfo`, `logLikelihood`, `fileList`]};
     for (let i = 0; i < elementNames.value.length; i++) {
         document.getElementById(elementNames.value[i]).value = '';
     }
