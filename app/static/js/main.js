@@ -202,7 +202,7 @@ function convertJSONToTable(jsonData, jsonSort) {
 
 function convertJSONToTableFoLogLikelihood(jsonData) {
     let table = `<details class="m-2 p-2 w-90 my-4 h-100 h7" open><summary>Log-likelihood information</summary>
-                        <table class="w-97 table-borderless">`;
+                        <table class="m-2 w-97 table-borderless">`;
     Object.entries(jsonData).forEach(([key, value]) => {
         table += `<tr><th class="p-2 h7 h-auto w-auto text-center toast-body alert alert-light bg-opacity-25 text-danger-emphasis">${key}</th>`;
         table += `<th class="p-2 h7 h-auto w-auto text-center toast-body alert alert-light bg-opacity-50">${value}</th></tr>`;
@@ -222,7 +222,7 @@ function convertJSONToTableFoFileList(jsonData) {
         secondRow += `<th class="p-2 h7 h-auto w-auto text-center toast-body alert alert-light  bg-opacity-25">${value[1]}</th>`;
     });
     let table = `<details class="m-2 p-2 w-90 h-100 h7" open><summary>File list</summary>
-             <table class="w-97 table-borderless ">
+             <table class="m-2 w-97 table-borderless ">
              <tr>${secondRow}</tr>
              <tr>${firstRow}</tr>
              <tr>${headersRow}</tr>
