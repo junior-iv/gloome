@@ -50,12 +50,18 @@
             <input value="{{categories_quantity}}" id="categoriesQuantity" name="categoriesQuantity"
                    type="number" min="1" max="1000" step="1" class="form-control rounded-pill"/>
             <label for="categoriesQuantity" class="h7 text-start text-success-emphasis ms-3 mt-1 mb-2">number of rate categories</label>
-            <input value="1" id="isRadialTree" name="isRadialTree" onchange="reDrawPhylogeneticTree()"
-                   type="checkbox" class="form-check-input rounded-1"/>
-            <label for="isRadialTree" class="fw-medium h7 text-start text-danger-emphasis ms-3 mt-0 mb-1">show radial tree</label>
-            <input value="1" id="showDistanceToParent" name="showDistanceToParent" onchange="reDrawPhylogeneticTree()"
-                   type="checkbox" class="form-check-input rounded-1"/>
-            <label for="showDistanceToParent" class="fw-medium h7 text-start text-danger-emphasis ms-3 mt-0 mb-4">show distance to parent</label>
+            <div class="container gap-2 d-flex flex-column h-auto w-100 m-2">
+                <div class="container gap-2 d-flex flex-column h-auto w-50 m-1">
+                    <input value="1" id="isRadialTree" name="isRadialTree" onchange="reDrawPhylogeneticTree()"
+                           type="checkbox" class="form-check-input rounded-1"/>
+                    <label for="isRadialTree" class="fw-medium h7 text-start text-danger-emphasis ms-3 mt-0">show radial tree</label>
+                </div>
+                <div class="container gap-2 d-flex flex-column h-auto w-50 m-1">
+                    <input value="1" id="showDistanceToParent" name="showDistanceToParent" onchange="reDrawPhylogeneticTree()"
+                           type="checkbox" class="form-check-input rounded-1"/>
+                    <label for="showDistanceToParent" class="fw-medium h7 text-start text-danger-emphasis ms-3 mt-0">show distance to parent</label>
+                </div>
+            </div>
         </div>
         <div class="container gap-2 d-flex flex-column h-75 w-50 m-3">
             <label for="patternMSA" class="h7 text-success-emphasis my-2">please provide a phyletic pattern MSA into a text field or upload from file
