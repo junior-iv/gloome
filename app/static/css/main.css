@@ -8,9 +8,30 @@
 /*}*/
     /*background-image: url("images/bg_atgc_137_137.png");*/
     /*display: block;*/
+.text-color-salmon {
+    color: salmon !important;
+}
+
+.zoomable-element {
+    transition: transform 0.3s ease;
+    /*font-size: .6rem;*/
+    border-color: lightgrey;
+    border-width: 0;
+    border-radius: 0;
+}
+
+.zoomable-element:hover {
+    transform: scale(1.25);
+    /*font-size: .8rem;*/
+    border-color: lightsalmon;
+    border-width: 0.5em;
+    border-radius: 0.5em;
+    box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+}
+
 .tborder-1 {
     border-collapse: collapse;
-    border-width: 0.03em;
+    border-width: 0.3em;
     border-radius: 0.3em;
 }
 
