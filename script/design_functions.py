@@ -32,8 +32,8 @@ STYLE_TAG = (('', ''),                                              # 0
 
 
 def key_design(key: str, change_style: bool = True, style: int = 22) -> str:
-    style_tag = STYLE_TAG[style] if change_style else STYLE_TAG[0]
-    return f'{style_tag[0]}{key.replace("_", " ")}:\t{style_tag[1]}'
+    style_tags = STYLE_TAG[style] if change_style else STYLE_TAG[0]
+    return f'{style_tags[0]}{key.replace("_", " ")}:\t{style_tags[1]}'
 
 
 def value_design(value: Optional[Union[str, Tuple[str, ...], List[str], Set[str]]], change_style: bool = True,
@@ -42,8 +42,8 @@ def value_design(value: Optional[Union[str, Tuple[str, ...], List[str], Set[str]
     #     return ''.join([value_design(f'<p>{i:.10f}</p>' if isinstance(i, float) else f'<p>{i}</p>', True, 5)
     #                     for i in value])
     style_tag = STYLE_TAG[style] if change_style else STYLE_TAG[0]
-    if isinstance(value, (tuple, list, set)):
-        return f'{style_tag[0]}{json.dumps(value)}{style_tag[1]}'
+    # if isinstance(value, (tuple, list, set)):
+    #     return f'{style_tag[0]}{json.dumps(value)}{style_tag[1]}'
     return f'{style_tag[0]}{value}{style_tag[1]}'
 
 
