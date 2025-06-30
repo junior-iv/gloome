@@ -304,11 +304,11 @@ class WebConfig:
                 continue
             json_object.update(
                 {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                                        f'href="{url_for("get_file", file_path=value, mode="download")}" '
-                                        f'target="_blank">download</a>',
-                                        f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                                        f'href="{url_for("get_file", file_path=value, mode="view")}" '
-                                        f'target="_blank">view</a>']})
+                            f'href="{url_for("get_file", file_path=value, mode="download")}" '
+                            f'target="_blank">download</a>',
+                            f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+                            f'href="{url_for("get_file", file_path=value, mode="view")}" '
+                            f'target="_blank">view</a>']})
         return json_object
 
     @staticmethod
