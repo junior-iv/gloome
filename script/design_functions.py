@@ -84,8 +84,8 @@ def result_design(data: Dict[str, Union[str, int, float]], change_key_style: boo
             value = value_design(value, change_value_style)
         result_data.update({key: value})
     return result_data
-#
-#
+
+
 # def result_design(statistics: Union[Dict[str, Union[str, int, float]], List[Dict[str, Union[str, int, float]]]],
 #                   change_key: bool = True, change_value: bool = True) -> str:
 #     result = ''
