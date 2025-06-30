@@ -299,18 +299,19 @@ class WebConfig:
 
     @staticmethod
     def link_design(json_object: Any):
+        result_object = dict()
         for key, value in json_object.items():
             if key == 'execution_time':
                 continue
             # value = os.path.basename(value)
-            json_object.update(
+            result_object.update(
                 {f'{key_design(key)}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
                                         f'href="{url_for("get_file", file_path=value, mode="download")}" '
                                         f'target="_blank">download</a>',
                                         f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
                                         f'href="{url_for("get_file", file_path=value, mode="view")}" '
                                         f'target="_blank">view</a>']})
-        return json_object
+        return result_object
 
     @staticmethod
     def check_dir(file_path: str, **kwargs):
