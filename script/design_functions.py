@@ -1,15 +1,14 @@
-import json
 from typing import Union, Tuple, Optional, Dict, List, Set
 
-STYLE_TAG = (('', ''),                                              # 0
-             ('<sub class="text-primary-emphasis">', '</sub>'),     # 1
-             ('<sub class="text-secondary-emphasis">', '</sub>'),   # 2
-             ('<sub class="text-success-emphasis">', '</sub>'),     # 3
-             ('<sub class="text-info-emphasis">', '</sub>'),        # 4
-             ('<sub class="text-warning-emphasis">', '</sub>'),     # 5
-             ('<sub class="text-danger-emphasis">', '</sub>'),      # 6
-             ('<sub class="text-light-emphasis">', '</sub>'),       # 7
-             ('<sub class="text-dark-emphasis">', '</sub>'),        # 8
+STYLE_TAG = (('', ''),                                                  # 0
+             ('<sub class="text-primary-emphasis">', '</sub>'),         # 1
+             ('<sub class="text-secondary-emphasis">', '</sub>'),       # 2
+             ('<sub class="text-success-emphasis">', '</sub>'),         # 3
+             ('<sub class="text-info-emphasis">', '</sub>'),            # 4
+             ('<sub class="text-warning-emphasis">', '</sub>'),         # 5
+             ('<sub class="text-danger-emphasis">', '</sub>'),          # 6
+             ('<sub class="text-light-emphasis">', '</sub>'),           # 7
+             ('<sub class="text-dark-emphasis">', '</sub>'),            # 8
 
              ('<span class="text-primary">', '</span>'),                # 9
              ('<span class="text-secondary">', '</span>'),              # 10
