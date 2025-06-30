@@ -3,6 +3,7 @@ import traceback
 from time import sleep
 from utils import *
 from script.service_functions import read_file, loads_json, dumps_json, create_file, ERR
+from script.design_functions import key_design
 from flask import url_for
 from typing import Optional, Any, Set
 
@@ -303,12 +304,12 @@ class WebConfig:
                 continue
             # value = os.path.basename(value)
             json_object.update(
-                {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                            f'href="{url_for("get_file", file_path=value, mode="download")}" target="_blank">'
-                            f'download</a>',
-                            f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                            f'href="{url_for("get_file", file_path=value, mode="view")}" target="_blank">'
-                            f'view</a>']})
+                {f'{key_design(key)}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+                                        f'href="{url_for("get_file", file_path=value, mode="download")}" '
+                                        f'target="_blank">download</a>',
+                                        f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+                                        f'href="{url_for("get_file", file_path=value, mode="view")}" '
+                                        f'target="_blank">view</a>']})
         return json_object
 
     @staticmethod
