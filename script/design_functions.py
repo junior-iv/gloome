@@ -42,7 +42,7 @@ def value_design(value: Optional[Union[str, Tuple[str, ...], List[str], Set[str]
     #                     for i in value])
     style_tag = STYLE_TAG[style] if change_style else STYLE_TAG[0]
     if isinstance(value, (tuple, list, set)):
-        return f'{style_tag[0]}{" ".join(value)}{style_tag[1]}'
+        return f'{style_tag[0]}{" ".join(map(str, value))}{style_tag[1]}'
     return f'{style_tag[0]}{value}{style_tag[1]}'
 
 
