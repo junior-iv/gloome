@@ -2,8 +2,7 @@ import requests
 import traceback
 from time import sleep
 from utils import *
-from script.service_functions import read_file, loads_json, dumps_json, create_file, ERR
-from script.design_functions import key_design
+from script.service_functions import read_file, loads_json, dumps_json, create_file, ERR, result_design
 from flask import url_for
 from typing import Optional, Any, Set
 
@@ -263,8 +262,9 @@ class WebConfig:
     def get_response_design(self, json_object: Optional[Any], action_name: str) -> Optional[Any]:
         if 'create_all_file_types' in action_name:
             json_object = self.link_design(json_object)
-        # if 'draw_tree' not in action_name:
-        #     json_object = result_design(json_object, change_value='compute_likelihood_of_tree' in action_name)
+        if 'draw_tree' not in action_name:
+            json_object = result_design(json_object, change_value='compute_likelihood_of_tree' in action_name,
+                                        change_value_style=False, change_key=True, change_key_style=False)
         return json_object
 
     def get_response(self) -> Optional[Any]:
@@ -299,19 +299,17 @@ class WebConfig:
 
     @staticmethod
     def link_design(json_object: Any):
-        result_object = dict()
         for key, value in json_object.items():
             if key == 'execution_time':
                 continue
-            # value = os.path.basename(value)
-            result_object.update(
-                {f'{key_design(key)}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+            json_object.update(
+                {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
                                         f'href="{url_for("get_file", file_path=value, mode="download")}" '
                                         f'target="_blank">download</a>',
                                         f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
                                         f'href="{url_for("get_file", file_path=value, mode="view")}" '
                                         f'target="_blank">view</a>']})
-        return result_object
+        return json_object
 
     @staticmethod
     def check_dir(file_path: str, **kwargs):

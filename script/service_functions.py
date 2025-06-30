@@ -151,7 +151,8 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], pattern: Union[Dic
 
 def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], file_path: str,
                           rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
-                          alphabet: Optional[Tuple[str, ...]] = None, return_dict: bool = False) -> Union[Dict[str, str], str]:
+                          alphabet: Optional[Tuple[str, ...]] = None, return_dict: bool = False
+                          ) -> Union[Dict[str, str], str]:
     # start_time = time()
     if isinstance(newick_tree, str):
         newick_tree = Tree.rename_nodes(newick_tree)

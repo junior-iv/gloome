@@ -74,8 +74,8 @@ def dna_design(dna: str, different_color: Optional[Tuple[int, int]] = None, styl
     return f'<b>{str_result}</b>'
 
 
-def result_design(data: Dict[str, Union[str, int, float]], change_key_style: bool = True, change_value: bool = True,
-                  change_key: bool = True, change_value_style: bool = True) -> Dict[str, Union[str, int, float]]:
+def result_design(data: Dict[str, Union[str, int, float]], change_key: bool = True, change_value: bool = True,
+                  change_key_style: bool = True, change_value_style: bool = True) -> Dict[str, Union[str, int, float]]:
     result_data = dict()
     for key, value in data.items():
         if change_key:
