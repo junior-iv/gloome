@@ -176,23 +176,23 @@ function convertJSONToTable(jsonData, jsonSort) {
     const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
         "dodgerblue", "slateblue", "darkviolet"];
     const colorsAS = {"A": "crimson", "L": "darkorange", "G": "forestgreen", "P": "slateblue"}
-    let table = `<details class="m-2 p-2 w-95 h-100 h6" open><summary>Node information</summary><table class="w-97 p-4 tborder table-danger">`;
+    let table = `<details class="m-2 p-2 w-95 h-100 h6" open><summary>Node information</summary><table class="w-97 p-4 h6 tborder table-light text-center">`;
 
     sortingList.forEach(header => {
         let value = ``;
         let jsonValue = jsonData[header];
-        table += `<tr><th class="p-2 h6 w-auto tborder-2 table-danger">${header}</th>`;
+        table += `<tr><th class="p-2 w-auto tborder-2">${header}</th>`;
         if (typeof jsonValue === "object" && header !== "Ancestral Comparison")
             {Object.values(jsonValue).forEach(i => {
-                value += `<td style="color: ${colors[getInteger(i)]}" class="p-2 h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+                value += `<td style="color: ${colors[getInteger(i)]}" class="p-2 w-auto tborder-1 bg-light">${i}</td>`;
                 })
             }
         else if (typeof jsonValue === "object" && header === "Ancestral Comparison")
             {Object.values(jsonValue).forEach(i => {
-                value += `<td style="color: ${colorsAS[i]}" class="p-2 h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+                value += `<td style="color: ${colorsAS[i]}" class="p-2 w-auto tborder-1 bg-light">${i}</td>`;
         }
             )}
-        else {value = `<td class="p-2 h7 w-auto text-center">${jsonValue}</td>`}
+        else {value = `<td class="p-2 w-auto">${jsonValue}</td>`}
         table += `<th>${value}</th></tr>`;
     });
 
@@ -201,11 +201,11 @@ function convertJSONToTable(jsonData, jsonSort) {
 }
 
 function convertJSONToTableFoLogLikelihood(jsonData) {
-    let table = `<details class="m-2 p-2 w-90 my-4 h-100 h6" open><summary>Log-likelihood information</summary>
-                        <table class="m-2 w-97 table-borderless">`;
+    let table = `<details class="m-2 p-2 w-95 h-100 h6" open><summary>Log-likelihood information</summary>
+                        <table class="m-2 w-97 p-4 table-light h6 text-center">`;
     Object.entries(jsonData).forEach(([key, value]) => {
-        table += `<tr><th class="p-2 h6 h-auto w-auto text-center toast-body alert alert-light bg-opacity-25 text-danger-emphasis">${key}</th>`;
-        table += `<th class="p-2 h7 h-auto w-auto text-center toast-body alert alert-light bg-opacity-50">${value}</th></tr>`;
+        table += `<tr><th class="p-2 w-auto tborder-2">${key}</th><th></th>`;
+        table += `<th class="p-2 w-auto tborder-1 bg-light text-info-emphasis">${value}</th></tr>`;
     });
     table += `</table></details>`;
     document.getElementById('logLikelihood').innerHTML = table;
@@ -217,12 +217,12 @@ function convertJSONToTableFoFileList(jsonData) {
     let firstRow = ``;
     let secondRow = ``;
     Object.entries(jsonData).forEach(([key, value]) => {
-        headersRow += `<th class="p-2 h6 h-auto w-auto text-center toast-body alert alert-light bg-opacity-50 text-danger-emphasis">${key}</th>`;
-        firstRow += `<th class="p-2 h7 h-auto w-auto text-center toast-body alert alert-light bg-opacity-25">${value[0]}</th>`;
-        secondRow += `<th class="p-2 h7 h-auto w-auto text-center toast-body alert alert-light  bg-opacity-25">${value[1]}</th>`;
+        headersRow += `<th class="p-2 w-auto text-danger-emphasis tborder-2">${key}</th>`;
+        firstRow += `<th class="p-2 w-auto tborder-1 bg-light">${value[0]}</th>`;
+        secondRow += `<th class="p-2 w-auto tborder-1 bg-light">${value[1]}</th>`;
     });
-    let table = `<details class="m-2 p-2 w-90 h-100 h6" open><summary>File list</summary>
-             <table class="m-2 w-97 table-borderless ">
+    let table = `<details class="m-2 p-2 w-95 h-100 h6" open><summary>File list</summary>
+             <table class="m-2 w-97 p-4 table-light h6 text-center">
              <tr>${secondRow}</tr>
              <tr>${firstRow}</tr>
              <tr>${headersRow}</tr>

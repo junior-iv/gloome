@@ -2,7 +2,7 @@ import requests
 import traceback
 from time import sleep
 from utils import *
-from script.service_functions import read_file, loads_json, dumps_json, create_file, result_design, ERR
+from script.service_functions import read_file, loads_json, dumps_json, create_file, ERR
 from flask import url_for
 from typing import Optional, Any, Set
 
@@ -262,15 +262,15 @@ class WebConfig:
     def get_response_design(self, json_object: Optional[Any], action_name: str) -> Optional[Any]:
         if 'create_all_file_types' in action_name:
             json_object = self.link_design(json_object)
-        if 'draw_tree' not in action_name:
-            json_object = result_design(json_object, change_value='compute_likelihood_of_tree' in action_name)
+        # if 'draw_tree' not in action_name:
+        #     json_object = result_design(json_object, change_value='compute_likelihood_of_tree' in action_name)
         return json_object
 
     def get_response(self) -> Optional[Any]:
         self.create_command_line()
         request_body = self.get_request_body()
 
-        self.CURRENT_JOB = self.SUBMITER.submit_job(request_body).get('job_id', self.JOBS_NUMBER.value)
+        self.CURRENT_JOB = self.SUBMITER.submit_job(json=request_body).get('job_id', self.JOBS_NUMBER.value)
         self.HISTORY.append(self.CURRENT_JOB)
         self.set_job_logger_info(f'Submit job (id: {self.CURRENT_JOB}): {request_body}\n'
                                  f'\tRequest body: {request_body}')
@@ -303,12 +303,12 @@ class WebConfig:
                 continue
             # value = os.path.basename(value)
             json_object.update(
-                {f'{key}': [f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+                {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
                             f'href="{url_for("get_file", file_path=value, mode="download")}" target="_blank">'
-                            f'<h7>download</h7></a>',
-                            f'<a mx-2 class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+                            f'download</a>',
+                            f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
                             f'href="{url_for("get_file", file_path=value, mode="view")}" target="_blank">'
-                            f'<h7>view</h7></a>']})
+                            f'view</a>']})
         return json_object
 
     @staticmethod
@@ -408,7 +408,7 @@ class SawSubmiter:
         url = f'{self.api}/jobs/history/{job_id}/'
         return self.exec_request(url, **kwargs)
 
-    def submit_job(self, payload, **kwargs):
+    def submit_job(self, **kwargs):
         """
             params = {
                 'script':                       '(str, Required) '  'Bash script to execute. This script is
@@ -427,7 +427,7 @@ class SawSubmiter:
             }
         """
         url = f'{self.api}/job/submit/'
-        response = self.exec_request(url, method='POST', json=payload, **kwargs)
+        response = self.exec_request(url, method='POST', **kwargs)
         if response.status_code == 200:
             return response.json()  # Assuming the token is returned in JSON format
         else:
