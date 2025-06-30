@@ -181,7 +181,7 @@ function convertJSONToTable(jsonData, jsonSort) {
     sortingList.forEach(header => {
         let value = ``;
         let jsonValue = jsonData[header];
-        table += `<tr><th class="p-1 w-auto tborder-2">${header}</th>`;
+        table += `<tr><th class="p-1 w-auto text-danger-emphasis tborder-2 toast-body">${header}</th>`;
         if (typeof jsonValue === "object" && header !== "Ancestral Comparison")
             {Object.values(jsonValue).forEach(i => {
                 value += `<td style="color: ${colors[getInteger(i)]}" class="p-1 h7 w-auto tborder-1 bg-light">${i}</td>`;
@@ -192,7 +192,7 @@ function convertJSONToTable(jsonData, jsonSort) {
                 value += `<td style="color: ${colorsAS[i]}" class="p-1 h7 w-auto tborder-1 bg-light">${i}</td>`;
         }
             )}
-        else {value = `<td class="p-1 w-auto text-danger-emphasis tborder-2 toast-body">${jsonValue}</td>`}
+        else {value = `<td class="p-1 w-auto">${jsonValue}</td>`}
         table += `<th class="p-1">${value}</th></tr>`;
     });
 
@@ -204,7 +204,7 @@ function convertJSONToTableFoLogLikelihood(jsonData) {
     let table = `<details class="m-2 p-1 w-95 h-100 h6" open><summary>Log-likelihood information</summary>
                         <table class="m-2 w-97 p-4 h6 table-light text-center">`;
     Object.entries(jsonData).forEach(([key, value]) => {
-        table += `<tr><th class="p-1 w-auto text-danger-emphasis tborder-2 toast-body">${key}</th><th class="p-1 w-auto text-danger-emphasis tborder-2 toast-body"></th>`;
+        table += `<tr><th class="p-1 w-auto text-danger-emphasis tborder-2 toast-body">${key}</th><th class="p-1"></th>`;
         table += `<th class="p-1 w-auto tborder-1 bg-light text-info-emphasis toast-body">${value}</th></tr>`;
     });
     table += `</table></details>`;

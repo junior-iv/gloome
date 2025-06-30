@@ -1,5 +1,5 @@
 from os import path, remove, makedirs
-from typing import Callable, Any, Union, Dict, List
+from typing import Callable, Any
 from datetime import timedelta
 from shutil import make_archive, move
 from numpy import ndarray
