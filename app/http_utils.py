@@ -18,7 +18,6 @@ def execute_response(mode: Optional[Tuple[str, ...]] = None) -> Response:
             status = 200
             conf = WebConfig()
             conf.arguments_filling(**kwargs, mode=mode)
-            conf.check_arguments_for_errors()
             conf.create_tmp_data_files()
             try:
                 result = conf.get_response()

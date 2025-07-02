@@ -324,7 +324,7 @@ function hide_all() {
     }
 }
 
-function showMessage(message = null, variant = 2) {
+function showMessage(message = null, variant = 1) {
     let elementNames = [`divInfo`, `divDanger`, `divWarning`, `divSuccess`, `divSecondary`];
     for (let i = 0; i < elementNames.length; i++) {
         if (variant === i) {

@@ -109,11 +109,16 @@ class Config:
         """get variables from input arguments and fill out the Variable Class properties"""
         if len(self.COMMAND_LINE) < 5:
             print(len(self.COMMAND_LINE))
-            print('At least two required parameters --msa_file --tree_file.' + self.USAGE)
+            print('At least two required parameters --msa_file --tree_file')
+            print(self.USAGE)
             exit()
 
         if len(self.COMMAND_LINE) > 4 and self.COMMAND_LINE[1].startswith('-') and self.COMMAND_LINE[3].startswith('-'):
-            self.check_arguments_for_errors()
+            if not self.check_arguments_for_errors():
+                for error_type, error in self.CALCULATED_ARGS.err_list:
+                    print(f'{error_type}: {error}')
+                print(self.USAGE)
+                exit()
 
     def execute_calculation(self):
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_tree_for_fasta', False):
@@ -174,7 +179,7 @@ class Config:
                 self.set_job_logger_info(f'Error executing command \'execute_all_actions\' -> {format_exc}')
                 self.CALCULATED_ARGS.err_list.append((f'Error executing command \'execute_all_actions\'', format_exc))
 
-    def check_arguments_for_errors(self):
+    def check_arguments_for_errors(self) -> bool:
         if path.isfile(self.TREE_FILE):
             with open(self.TREE_FILE, 'r') as f:
                 self.CALCULATED_ARGS.newick_text = f.read()
@@ -187,44 +192,18 @@ class Config:
         else:
             self.CALCULATED_ARGS.err_list.append((f'The File does not exist',
                                                   f'File "{self.MSA_FILE}" does not exist '))
+        if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_data', False):
+            self.CALCULATED_ARGS.err_list += self.ACTIONS.check_data(self.CALCULATED_ARGS.newick_text,
+                                                                     self.CALCULATED_ARGS.pattern_msa,
+                                                                     self.CURRENT_ARGS.get('categories_quantity', 4),
+                                                                     self.CURRENT_ARGS.get('alpha', 0.5))
 
-        # if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_data', False):
-        #     self.CALCULATED_ARGS.err_list += self.ACTIONS.check_data(self.CALCULATED_ARGS.newick_text,
-        #                                                              self.CALCULATED_ARGS.pattern_msa)
-        # if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
-        #     try:
-        #         self.CALCULATED_ARGS.newick_tree = self.ACTIONS.check_tree(self.CALCULATED_ARGS.newick_text)
-        #     except ValueError:
-        #         self.CALCULATED_ARGS.err_list.append((ERR[0], self.CALCULATED_ARGS.newick_text.split('\n')))
-        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rename_nodes', False):
-        #     try:
-        #         self.ACTIONS.rename_nodes(self.CALCULATED_ARGS.newick_tree)
-        #     except ValueError:
-        #         self.CALCULATED_ARGS.err_list.append((f'Error executing command \'rename_nodes\'',
-        #                                               traceback.format_exc()))
-        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rate_vector', False):
-        #     try:
-        #         self.CALCULATED_ARGS.rate_vector = self.ACTIONS.rate_vector(
-        #             self.CURRENT_ARGS.get('categories_quantity'), self.CURRENT_ARGS.get('alpha'))
-        #     except ValueError:
-        #         self.CALCULATED_ARGS.err_list.append(('Error executing command \'rate_vector\'',
-        #                                               traceback.format_exc()))
-        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('pattern_dict', False):
-        #     try:
-        #         self.CALCULATED_ARGS.pattern_dict = self.ACTIONS.pattern_dict(self.CALCULATED_ARGS.newick_tree,
-        #                                                                       self.CALCULATED_ARGS.pattern_msa)
-        #     except ValueError:
-        #         self.CALCULATED_ARGS.err_list.append(('Error executing command \'pattern_dict\'',
-        #                                               traceback.format_exc()))
-        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('alphabet', False):
-        #     try:
-        #         self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.pattern_dict)
-        #     except ValueError:
-        #         self.CALCULATED_ARGS.err_list.append(('Error executing command \'alphabet\'', traceback.format_exc()))
         if self.CALCULATED_ARGS.err_list:
             self.set_job_logger_info(f'Error list: {self.CALCULATED_ARGS.err_list}')
         else:
             self.set_job_logger_info(f'Verification completed successfully')
+
+        return not self.CALCULATED_ARGS.err_list
 
     def parse_arguments(self):
         """parse arguments and fill out the relevant Variable Class properties"""
@@ -239,7 +218,7 @@ class Config:
         parser.add_argument('--mode', dest='mode', required=False, action="extend", nargs="+", type=str,
                             help=f'Execution mode style (optional). Possible options: ("draw_tree", '
                             f'"compute_likelihood_of_tree", "create_all_file_types", "execute_all_actions"). Default '
-                            f'is {self.MODE[:1]}.')
+                            f'is {self.MODE[3:]}.')
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=bool, required=False,
                             default=self.CURRENT_ARGS.get('with_internal_nodes', True), help=f'Specify the Newick file '
                             f'style (optional). Default is {self.CURRENT_ARGS.get("with_internal_nodes", True)}.')
