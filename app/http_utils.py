@@ -1,5 +1,5 @@
 from app.config import WebConfig
-from script.service_functions import get_tree_variables, check_form, get_error
+from script.service_functions import get_variables, check_data, get_error
 from typing import Tuple, Optional
 from flask import request, Response, jsonify
 import traceback
@@ -7,8 +7,8 @@ import traceback
 
 def execute_response(mode: Optional[Tuple[str, ...]] = None) -> Response:
     if request.method == 'POST':
-        args = get_tree_variables(dict(request.form))
-        err_list = check_form(args[0], args[1])
+        args = get_variables(dict(request.form))
+        err_list = check_data(*args)
         kwargs = dict(request.form)
 
         if err_list:

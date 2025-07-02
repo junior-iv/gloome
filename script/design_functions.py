@@ -40,9 +40,6 @@ def value_design(value: Optional[Union[str, Tuple[str, ...], List[str], Set[str]
     style_tag = STYLE_TAG[style] if change_style else STYLE_TAG[0]
     if isinstance(value, (tuple, list, set)):
         return f'{style_tag[0]}{" ".join(map(str, value))}{style_tag[1]}'
-    # if isinstance(value, (tuple, list, set)):
-    #     return ''.join([value_design(f'<p>{i:.10f}</p>' if isinstance(i, float) else f'<p>{i}</p>', True, 5)
-    #                     for i in value])
     return f'{style_tag[0]}{value}{style_tag[1]}'
 
 
@@ -83,12 +80,3 @@ def result_design(data: Dict[str, Union[str, int, float]], change_key: bool = Tr
             value = value_design(value, change_value_style)
         result_data.update({key: value})
     return result_data
-
-
-# def result_design(statistics: Union[Dict[str, Union[str, int, float]], List[Dict[str, Union[str, int, float]]]],
-#                   change_key: bool = True, change_value: bool = True) -> str:
-#     result = ''
-#
-#     for key, value in statistics.items():
-#         result += f'{key_design(key, change_key)}{value_design(str(value), change_value)}<br>'
-#     return f'<b>{result}</b>'

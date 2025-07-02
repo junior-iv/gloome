@@ -198,5 +198,3 @@ MENU = ({'name': 'HOME', 'url': 'index',
          'submenu': ()
          }
         )
-
-PROGRESS_BAR = {'value': 0, 'status': 'active'}

@@ -1,7 +1,7 @@
 import argparse
 import traceback
 import socket
-from script.service_functions import ERR
+# from script.service_functions import ERR
 from sys import exit
 from utils import *
 
@@ -41,7 +41,6 @@ class Config:
 
         self.CALCULATED_ARGS = CALCULATED_ARGS
         self.MENU = MENU
-        self.PROGRESS_BAR = PROGRESS_BAR
 
         self.PREFERRED_URL_SCHEME = PREFERRED_URL_SCHEME
         self.WEBSERVER_NAME_CAPITAL = WEBSERVER_NAME_CAPITAL
@@ -189,39 +188,43 @@ class Config:
             self.CALCULATED_ARGS.err_list.append((f'The File does not exist',
                                                   f'File "{self.MSA_FILE}" does not exist '))
 
-        if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_data', False):
-            self.CALCULATED_ARGS.err_list += self.ACTIONS.check_data(self.CALCULATED_ARGS.newick_text,
-                                                                     self.CALCULATED_ARGS.pattern_msa)
-        if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
-            try:
-                self.CALCULATED_ARGS.newick_tree = self.ACTIONS.check_tree(self.CALCULATED_ARGS.newick_text)
-            except ValueError:
-                self.CALCULATED_ARGS.err_list.append((ERR[0], self.CALCULATED_ARGS.newick_text.split('\n')))
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rename_nodes', False):
-            try:
-                self.ACTIONS.rename_nodes(self.CALCULATED_ARGS.newick_tree)
-            except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'rename_nodes\'',
-                                                      traceback.format_exc()))
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rate_vector', False):
-            try:
-                self.CALCULATED_ARGS.rate_vector = self.ACTIONS.rate_vector(
-                    self.CURRENT_ARGS.get('categories_quantity'), self.CURRENT_ARGS.get('alpha'))
-            except ValueError:
-                self.CALCULATED_ARGS.err_list.append(('Error executing command \'rate_vector\'',
-                                                      traceback.format_exc()))
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('pattern_dict', False):
-            try:
-                self.CALCULATED_ARGS.pattern_dict = self.ACTIONS.pattern_dict(self.CALCULATED_ARGS.newick_tree,
-                                                                              self.CALCULATED_ARGS.pattern_msa)
-            except ValueError:
-                self.CALCULATED_ARGS.err_list.append(('Error executing command \'pattern_dict\'',
-                                                      traceback.format_exc()))
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('alphabet', False):
-            try:
-                self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.pattern_dict)
-            except ValueError:
-                self.CALCULATED_ARGS.err_list.append(('Error executing command \'alphabet\'', traceback.format_exc()))
+        # if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_data', False):
+        #     self.CALCULATED_ARGS.err_list += self.ACTIONS.check_data(self.CALCULATED_ARGS.newick_text,
+        #                                                              self.CALCULATED_ARGS.pattern_msa)
+        # if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
+        #     try:
+        #         self.CALCULATED_ARGS.newick_tree = self.ACTIONS.check_tree(self.CALCULATED_ARGS.newick_text)
+        #     except ValueError:
+        #         self.CALCULATED_ARGS.err_list.append((ERR[0], self.CALCULATED_ARGS.newick_text.split('\n')))
+        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rename_nodes', False):
+        #     try:
+        #         self.ACTIONS.rename_nodes(self.CALCULATED_ARGS.newick_tree)
+        #     except ValueError:
+        #         self.CALCULATED_ARGS.err_list.append((f'Error executing command \'rename_nodes\'',
+        #                                               traceback.format_exc()))
+        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rate_vector', False):
+        #     try:
+        #         self.CALCULATED_ARGS.rate_vector = self.ACTIONS.rate_vector(
+        #             self.CURRENT_ARGS.get('categories_quantity'), self.CURRENT_ARGS.get('alpha'))
+        #     except ValueError:
+        #         self.CALCULATED_ARGS.err_list.append(('Error executing command \'rate_vector\'',
+        #                                               traceback.format_exc()))
+        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('pattern_dict', False):
+        #     try:
+        #         self.CALCULATED_ARGS.pattern_dict = self.ACTIONS.pattern_dict(self.CALCULATED_ARGS.newick_tree,
+        #                                                                       self.CALCULATED_ARGS.pattern_msa)
+        #     except ValueError:
+        #         self.CALCULATED_ARGS.err_list.append(('Error executing command \'pattern_dict\'',
+        #                                               traceback.format_exc()))
+        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('alphabet', False):
+        #     try:
+        #         self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.pattern_dict)
+        #     except ValueError:
+        #         self.CALCULATED_ARGS.err_list.append(('Error executing command \'alphabet\'', traceback.format_exc()))
+        if self.CALCULATED_ARGS.err_list:
+            self.set_job_logger_info(f'Error list: {self.CALCULATED_ARGS.err_list}')
+        else:
+            self.set_job_logger_info(f'Verification completed successfully')
 
     def parse_arguments(self):
         """parse arguments and fill out the relevant Variable Class properties"""

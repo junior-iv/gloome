@@ -8,17 +8,6 @@ from .design_functions import *
 import inspect
 import json
 
-ERR = (f'Incorrect phylogenetic tree of newick format',
-       f'Incorrect pattern MSA',
-       f'Number of leaves doesn`t match',
-       f'Different length of the sequences in the pattern MSA',
-       f'correct examples')
-
-EXAMPLES = (('((S1:0.3,S2:0.15):0.1,S3:0.4);', '((S1:0.3,S2:0.15)N2:0.1,S3:0.4)N1;'),
-            ('>S1', '0', '>S2', '1', '>S3', '0'),
-            ('>S1', '0', '>S2', '1', '>S3', '0', '((S1:0.3,S2:0.15):0.1,S3:0.4);'),
-            ('>S1', '010', '>S2', '111', '>S3', '001'))
-
 
 def get_digit(data: str) -> Union[int, float, str]:
     try:
@@ -30,7 +19,7 @@ def get_digit(data: str) -> Union[int, float, str]:
             return str(data)
 
 
-def get_tree_variables(request_form: Dict[str, str]) -> Tuple[Union[str, int, float], ...]:
+def get_variables(request_form: Dict[str, str]) -> Tuple[Union[str, int, float], ...]:
     result = []
     for key in request_form.keys():
         result.append(get_digit(request_form[key]))
@@ -206,44 +195,67 @@ def draw_tree(newick_tree: Tree, file_path: str, return_dict: bool = False) -> U
     print(f'file_path: {file_path}')
 
     return file_path
-#
-#
-# def execute_function_with_delay(func: Callable, waiting_time: int = 10, steps_number: int = 6, **kwargs
-#                                 ) -> Optional[Any]:
-#     result_func = None
-#     for _ in range(steps_number):
-#         sleep(waiting_time)
-#         result_func = func(**kwargs)
-#         print(result_func)
-#
-#     return result_func
 
 
 def convert_seconds(seconds: float) -> str:
     return str(timedelta(seconds=seconds))
 
 
-def get_error(err_list: List[Tuple[int, str]]) -> str:
-    return ''.join([f'{ERR[i]}{value_design(err, True, 5)}'
-                    f'{ERR[-1]}{value_design(EXAMPLES[i], True, 5)}' for i, err in err_list])
+def get_error(err_list: List[Tuple[str, str]]) -> str:
+    return ''.join([f'{key_design(error_type, True, 14)}'
+                    f'{value_design(error, True, 14)}\n' for error_type, error in err_list])
 
 
-def check_data(newick_text: str, pattern_msa: str) -> List[Tuple[str, str]]:
+def check_data(*args) -> List[Tuple[str, str]]:
     err_list = []
+    newick_text = args[0].strip()
+    pattern_msa = args[1].strip()
+    categories_quantity = args[2]
+    alpha = args[3]
 
-    # print(newick_text)
-    if not Tree.check_newick(newick_text):
-        err_list.append((ERR[0], newick_text if newick_text else 'text missing'))
+    if isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 1000:
+        err_list.append(('Number of rate categories value error', 'text missing'))
+    if isinstance(alpha, int) or not 0.01 <= alpha <= 100000:
+        err_list.append(('Alpha value error', 'text missing'))
+
     if not pattern_msa:
-        err_list.append((ERR[1], 'text missing'))
-    elif (Tree.check_newick(newick_text) and
-          not (Tree(newick_text).get_node_count({'node_type': ['leaf']}) == len(pattern_msa.split('\n')) / 2 ==
-          pattern_msa.count('>'))):
-        err_list.append((ERR[2], pattern_msa.split('\n') if pattern_msa else 'text missing'))
+        err_list.append(('MSA value error', 'text missing'))
+    elif len(pattern_msa.split('\n')) / 2 < 2:
+        err_list.append(('MSA value error', 'least two sequences are needed'))
     else:
-        row_len = len(pattern_msa.split('\n')[1].strip())
-        if not min([len(j.strip()) == row_len for i, j in enumerate(pattern_msa.split('\n')) if i % 2]):
-            err_list.append((ERR[3], pattern_msa.split('\n')))
+        len_list = []
+        incorrect_characters = ''
+        for i, current_line in enumerate(pattern_msa.split('\n')):
+            if i % 2:
+                current_line = current_line.strip()
+                len_list.append(len(current_line))
+                for j in current_line:
+                    if j not in '01':
+                        incorrect_characters += f'{j} '
+        if min(len_list) != max(len_list):
+            err_list.append(('MSA value error', 'Different length of the sequences in the MSA pattern'))
+        elif incorrect_characters:
+            err_list.append(('MSA value error',
+                             f'There are incorrect characters in the MSA pattern: {incorrect_characters}'))
+
+        if not newick_text:
+            err_list.append(('TREE value error', 'text missing'))
+        elif (not (newick_text.startswith('(') and newick_text.endswith(';') and newick_text[:-1].endswith(')')) or
+              (newick_text.count('(') != newick_text.count(')'))):
+            err_list.append(('TREE value error', 'Incorrect phylogenetic tree'))
+        else:
+            try:
+                current_tree = Tree(newick_text)
+            except ValueError:
+                current_tree = None
+
+            if current_tree:
+                if not (current_tree.get_node_count({'node_type': ['leaf']}) == len(pattern_msa.split('\n')) / 2 ==
+                        pattern_msa.count('>')):
+                    err_list.append(('MSA value error',
+                                     'The number of leaves does not match the number of sequences in the MSA data'))
+            else:
+                err_list.append(('TREE value error', 'Incorrect phylogenetic tree'))
 
     return err_list
 
@@ -269,23 +281,3 @@ def check_form(newick_text: str, pattern_msa: str) -> List[Tuple[int, str]]:
 
 def get_function_parameters(func: Callable) -> Tuple[str, ...]:
     return tuple(inspect.signature(func).parameters.keys())
-
-
-#
-# def progress_bar(progress: Union[str, int, float]):
-#     def actual_decorator(func):
-#         import time
-#
-#         def wrapper(*args, **kwargs):
-#             total = 0
-#             for i in range(iters):
-#                 start = time.time()
-#                 return_value = func(*args, **kwargs)
-#                 end = time.time()
-#                 total = total + (end - start)
-#             print('[*] Среднее время выполнения: {} секунд.'.format(total / iters))
-#             return return_value
-#
-#         return wrapper
-#
-#     return actual_decorator

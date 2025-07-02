@@ -1,18 +1,18 @@
 from flask import Flask, render_template, send_file
 # , Response, redirect, url_for, request, jsonify)
-from SharedConsts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, PROGRESS_BAR
+from SharedConsts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR
 from config import FlaskConfig
 from os import path
-from sys import path as sys_path
-
-root_path = path.abspath(path.dirname(path.dirname(__file__)))
-if root_path not in sys_path:
-    sys_path.insert(0, root_path)
-
-# Path to the script folder
-script_path = path.abspath(path.dirname(__file__))
-if script_path not in sys_path:
-    sys_path.insert(0, script_path)
+# from sys import path as sys_path
+#
+# root_path = path.abspath(path.dirname(path.dirname(__file__)))
+# if root_path not in sys_path:
+#     sys_path.insert(0, root_path)
+#
+# # Path to the script folder
+# script_path = path.abspath(path.dirname(__file__))
+# if script_path not in sys_path:
+#     sys_path.insert(0, script_path)
 
 from http_utils import *
 app = Flask(__name__)
@@ -22,8 +22,7 @@ app.config.from_object(FlaskConfig())
 @app.route('/')
 @app.route('/index', methods=['GET'])
 def index():
-    return render_template('index.html', menu=MENU, progress_bar=PROGRESS_BAR,
-                           title=(':', f'  {MENU[0].get("name")}'), **DEFAULT_FORM_ARGUMENTS)
+    return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("name")}'), **DEFAULT_FORM_ARGUMENTS)
 
 
 @app.route('/overview', methods=['GET'])
