@@ -213,9 +213,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
     categories_quantity = args[2]
     alpha = args[3]
 
-    if isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 1000:
+    if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 1000:
         err_list.append(('Number of rate categories value error', 'text missing'))
-    if isinstance(alpha, int) or not 0.01 <= alpha <= 100000:
+    if not isinstance(alpha, float) or not 0.01 <= alpha <= 100000:
         err_list.append(('Alpha value error', 'text missing'))
 
     if not pattern_msa:
