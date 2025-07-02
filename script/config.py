@@ -222,6 +222,13 @@ class Config:
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append(('Error executing command \'pattern_dict\'',
                                                       traceback.format_exc()))
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('alphabet', False):
+            try:
+                self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.pattern_dict)
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append(('Error executing command \'alphabet\'',
+                                                      traceback.format_exc()))
+
         if self.CALCULATED_ARGS.err_list:
             self.set_job_logger_info(f'Error list: {self.CALCULATED_ARGS.err_list}')
         else:
