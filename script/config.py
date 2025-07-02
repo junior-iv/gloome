@@ -198,6 +198,29 @@ class Config:
                                                                      self.CURRENT_ARGS.get('categories_quantity', 4),
                                                                      self.CURRENT_ARGS.get('alpha', 0.5))
 
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rename_nodes', False):
+            try:
+                self.ACTIONS.rename_nodes(self.CALCULATED_ARGS.newick_tree)
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'rename_nodes\'',
+                                                      traceback.format_exc()))
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rate_vector', False):
+            try:
+                self.CALCULATED_ARGS.rate_vector = self.ACTIONS.rate_vector(
+                    self.CURRENT_ARGS.get('categories_quantity'), self.CURRENT_ARGS.get('alpha'))
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append(('Error executing command \'rate_vector\'',
+                                                      traceback.format_exc()))
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('pattern_dict', False):
+            try:
+                self.CALCULATED_ARGS.pattern_dict = self.ACTIONS.pattern_dict(self.CALCULATED_ARGS.newick_tree,
+                                                                              self.CALCULATED_ARGS.pattern_msa)
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append(('Error executing command \'pattern_dict\'',
+                                                      traceback.format_exc()))
+
+
+
         if self.CALCULATED_ARGS.err_list:
             self.set_job_logger_info(f'Error list: {self.CALCULATED_ARGS.err_list}')
         else:
