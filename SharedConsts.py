@@ -126,7 +126,7 @@ DEFAULT_FORM_ARGUMENTS = {
 
 ACTIONS = Actions(**{
                      'check_data': check_data,
-                     # 'check_tree': Tree.check_tree,
+                     'check_tree': Tree.check_tree,
                      'rename_nodes': Tree.rename_nodes,
                      'rate_vector': Tree.get_gamma_distribution_categories_vector,
                      'pattern_dict': Tree.get_pattern_dict,
@@ -140,9 +140,8 @@ ACTIONS = Actions(**{
                      })
 
 VALIDATION_ACTIONS = {
-    'check_data': True
-    # ,
-    # 'check_tree': True
+    'check_data': True,
+    'check_tree': True
     }
 
 DEFAULT_ACTIONS = {

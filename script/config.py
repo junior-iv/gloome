@@ -197,7 +197,11 @@ class Config:
                                                                      self.CALCULATED_ARGS.pattern_msa,
                                                                      self.CURRENT_ARGS.get('categories_quantity', 4),
                                                                      self.CURRENT_ARGS.get('alpha', 0.5))
-
+        if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
+            try:
+                self.CALCULATED_ARGS.newick_tree = self.ACTIONS.check_tree(self.CALCULATED_ARGS.newick_text)
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append(('TREE value error', 'Incorrect phylogenetic tree'))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rename_nodes', False):
             try:
                 self.ACTIONS.rename_nodes(self.CALCULATED_ARGS.newick_tree)
@@ -218,9 +222,6 @@ class Config:
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append(('Error executing command \'pattern_dict\'',
                                                       traceback.format_exc()))
-
-
-
         if self.CALCULATED_ARGS.err_list:
             self.set_job_logger_info(f'Error list: {self.CALCULATED_ARGS.err_list}')
         else:
