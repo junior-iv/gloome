@@ -237,9 +237,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
                         incorrect_characters += f'{j} '
         if min(len_list) != max(len_list):
             err_list.append((f'MSA error', f'The MSA contains sequences of different lengths.'))
-        elif incorrect_characters:
+        if incorrect_characters:
             err_list.append(('MSA error',
-                             f'MSA file contains an illegal character(s) <{incorrect_characters}>.\n'
+                             f'MSA file contains an illegal character(s) <{incorrect_characters.strip()}>.'
                              f'Please note that “0” and “1” are the only allowed characters in the phyletic '
                              f'pattern MSAs.'))
 
