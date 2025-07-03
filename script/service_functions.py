@@ -214,14 +214,17 @@ def check_data(*args) -> List[Tuple[str, str]]:
     alpha = args[3]
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 1000:
-        err_list.append(('Number of rate categories value error', 'text missing'))
+        err_list.append((f'Number of rate categories value error <{categories_quantity}>',
+                         f'The value must be between 1 and 1000.'))
     if not isinstance(alpha, float) or not 0.01 <= alpha <= 100000:
-        err_list.append(('Alpha value error', 'text missing'))
+        err_list.append((f'Alpha value error <{alpha}>', f'The value must be between 1 and 1000.'))
 
     if not pattern_msa:
-        err_list.append(('MSA value error', 'text missing'))
+        err_list.append(('MSA error', 'No MSA was provided.'))
+    elif not 'pattern_msa'.startswith('>'):
+        err_list.append(('MSA error', 'Wrong MSA format. Please provide MSA in FASTA format.'))
     elif len(pattern_msa.split('\n')) / 2 < 2:
-        err_list.append(('MSA value error', 'least two sequences are needed'))
+        err_list.append(('MSA error', 'There should be at least two sequences in the MSA.'))
     else:
         len_list = []
         incorrect_characters = ''
@@ -233,16 +236,18 @@ def check_data(*args) -> List[Tuple[str, str]]:
                     if j not in '01':
                         incorrect_characters += f'{j} '
         if min(len_list) != max(len_list):
-            err_list.append(('MSA value error', 'Different length of the sequences in the MSA pattern'))
+            err_list.append((f'MSA error', f'The MSA contains sequences of different lengths.'))
         elif incorrect_characters:
-            err_list.append(('MSA value error',
-                             f'There are incorrect characters in the MSA pattern: {incorrect_characters}'))
+            err_list.append(('MSA error',
+                             f'MSA file contains an illegal character(s) <{incorrect_characters}>.\n'
+                             f'Please note that “0” and “1” are the only allowed characters in the phyletic '
+                             f'pattern MSAs.'))
 
         if not newick_text:
-            err_list.append(('TREE value error', 'text missing'))
+            err_list.append((f'TREE error', f'No Phylogenetic tree was provided.'))
         elif (not (newick_text.startswith('(') and newick_text.endswith(';') and newick_text[:-1].endswith(')')) or
               (newick_text.count('(') != newick_text.count(')'))):
-            err_list.append(('TREE value error', 'Incorrect phylogenetic tree'))
+            err_list.append((f'TREE error', f'Wrong Phylogenetic tree format. Please provide a tree in Newick format'))
         else:
             try:
                 current_tree = Tree(newick_text)
@@ -252,10 +257,12 @@ def check_data(*args) -> List[Tuple[str, str]]:
             if current_tree:
                 if not (current_tree.get_node_count({'node_type': ['leaf']}) == len(pattern_msa.split('\n')) / 2 ==
                         pattern_msa.count('>')):
-                    err_list.append(('MSA value error',
-                                     'The number of leaves does not match the number of sequences in the MSA data'))
+                    err_list.append((f'MSA error',
+                                     f'A discrepancy exists between the number of leaves in the phylogenetic tree and '
+                                     f'the number of sequences present in the MSA data'))
             else:
-                err_list.append(('TREE value error', 'Incorrect phylogenetic tree'))
+                err_list.append((f'TREE error',
+                                 f'Wrong Phylogenetic tree format. Please provide a tree in Newick format'))
 
     return err_list
 

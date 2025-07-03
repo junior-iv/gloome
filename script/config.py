@@ -128,33 +128,34 @@ class Config:
                                                       self.CALCULATED_ARGS.alphabet,
                                                       self.CALCULATED_ARGS.rate_vector)
             except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'calculate_tree_for_fasta\'',
+                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'calculate_tree_for_fasta\'',
                                                       traceback.format_exc()))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_ancestral_sequence', False):
             try:
                 self.ACTIONS.calculate_ancestral_sequence(self.CALCULATED_ARGS.newick_tree)
             except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'calculate_ancestral_sequence\'',
+                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'calculate_ancestral_sequence\'',
                                                       traceback.format_exc()))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
             try:
                 func = self.ACTIONS.draw_tree
                 val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR)
-                self.set_job_logger_info(f'Successfully completed \'draw_tree\' -> {val}')
+                self.set_job_logger_info(f'Successfully Command \'draw_tree\' executed successfully. -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
-                self.set_job_logger_info(f'Error executing command \'draw_tree\' -> {format_exc}')
-                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'draw_tree\'', format_exc))
+                self.set_job_logger_info(f'Failed to execute the command \'draw_tree\' -> {format_exc}')
+                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'draw_tree\'', format_exc))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('compute_likelihood_of_tree', False):
             try:
                 func = self.ACTIONS.compute_likelihood_of_tree
                 val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, pattern=self.CALCULATED_ARGS.pattern_dict,
                            file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector)
-                self.set_job_logger_info(f'Successfully completed \'compute_likelihood_of_tree\' -> {val}')
+                self.set_job_logger_info(f'Command \'compute_likelihood_of_tree\' executed successfully. -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
-                self.set_job_logger_info(f'Error executing command \'compute_likelihood_of_tree\' -> {format_exc}')
-                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'compute_likelihood_of_tree\'',
+                self.set_job_logger_info(f'Failed to execute the command \'compute_likelihood_of_tree\' -> '
+                                         f'{format_exc}')
+                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'compute_likelihood_of_tree\'',
                                                       format_exc))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
             try:
@@ -162,22 +163,24 @@ class Config:
                 val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, pattern=self.CALCULATED_ARGS.pattern_dict,
                            file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector,
                            alphabet=self.CALCULATED_ARGS.alphabet)
-                self.set_job_logger_info(f'Successfully completed \'create_all_file_types\' -> {val}')
+                self.set_job_logger_info(f'Command \'create_all_file_types\' executed successfully. -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
-                self.set_job_logger_info(f'Error executing command \'create_all_file_types\' -> {format_exc}')
-                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'create_all_file_types\'', format_exc))
+                self.set_job_logger_info(f'Failed to execute the command \'create_all_file_types\' -> {format_exc}')
+                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'create_all_file_types\'',
+                                                      format_exc))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
             try:
                 func = self.ACTIONS.execute_all_actions
                 val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, pattern=self.CALCULATED_ARGS.pattern_dict,
                            file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector,
                            alphabet=self.CALCULATED_ARGS.alphabet)
-                self.set_job_logger_info(f'Successfully completed \'execute_all_actions\' -> {val}')
+                self.set_job_logger_info(f'Command \'execute_all_actions\' executed successfully. -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
-                self.set_job_logger_info(f'Error executing command \'execute_all_actions\' -> {format_exc}')
-                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'execute_all_actions\'', format_exc))
+                self.set_job_logger_info(f'Failed to execute the command \'execute_all_actions\' -> {format_exc}')
+                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'execute_all_actions\'',
+                                                      format_exc))
 
     def check_arguments_for_errors(self) -> bool:
         if path.isfile(self.TREE_FILE):
@@ -201,32 +204,32 @@ class Config:
             try:
                 self.CALCULATED_ARGS.newick_tree = self.ACTIONS.check_tree(self.CALCULATED_ARGS.newick_text)
             except ValueError:
-                self.CALCULATED_ARGS.err_list.append(('TREE value error', 'Incorrect phylogenetic tree'))
+                self.CALCULATED_ARGS.err_list.append((f'TREE error', f'Wrong Phylogenetic tree format.'))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rename_nodes', False):
             try:
                 self.ACTIONS.rename_nodes(self.CALCULATED_ARGS.newick_tree)
             except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Error executing command \'rename_nodes\'',
+                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'rename_nodes\'',
                                                       traceback.format_exc()))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rate_vector', False):
             try:
                 self.CALCULATED_ARGS.rate_vector = self.ACTIONS.rate_vector(
                     self.CURRENT_ARGS.get('categories_quantity'), self.CURRENT_ARGS.get('alpha'))
             except ValueError:
-                self.CALCULATED_ARGS.err_list.append(('Error executing command \'rate_vector\'',
+                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'rate_vector\'',
                                                       traceback.format_exc()))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('pattern_dict', False):
             try:
                 self.CALCULATED_ARGS.pattern_dict = self.ACTIONS.pattern_dict(self.CALCULATED_ARGS.newick_tree,
                                                                               self.CALCULATED_ARGS.pattern_msa)
             except ValueError:
-                self.CALCULATED_ARGS.err_list.append(('Error executing command \'pattern_dict\'',
+                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'pattern_dict\'',
                                                       traceback.format_exc()))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('alphabet', False):
             try:
                 self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.pattern_dict)
             except ValueError:
-                self.CALCULATED_ARGS.err_list.append(('Error executing command \'alphabet\'',
+                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'alphabet\'',
                                                       traceback.format_exc()))
 
         if self.CALCULATED_ARGS.err_list:
