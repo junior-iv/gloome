@@ -221,7 +221,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not pattern_msa:
         err_list.append(('MSA error', 'No MSA was provided.'))
-    elif not 'pattern_msa'.startswith('>'):
+    elif not pattern_msa.startswith('>'):
         err_list.append(('MSA error', 'Wrong MSA format. Please provide MSA in FASTA format.'))
     elif len(pattern_msa.split('\n')) / 2 < 2:
         err_list.append(('MSA error', 'There should be at least two sequences in the MSA.'))
