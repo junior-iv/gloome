@@ -214,10 +214,10 @@ def check_data(*args) -> List[Tuple[str, str]]:
     alpha = args[3]
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 1000:
-        err_list.append((f'Number of rate categories value error <{categories_quantity}>',
+        err_list.append((f'Number of rate categories value error [{categories_quantity}]',
                          f'The value must be between 1 and 1000.'))
     if not isinstance(alpha, float) or not 0.01 <= alpha <= 100000:
-        err_list.append((f'Alpha value error <{alpha}>', f'The value must be between 1 and 1000.'))
+        err_list.append((f'Alpha value error [{alpha}]', f'The value must be between 1 and 1000.'))
 
     if not pattern_msa:
         err_list.append(('MSA error', 'No MSA was provided.'))
@@ -239,7 +239,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
             err_list.append((f'MSA error', f'The MSA contains sequences of different lengths.'))
         if incorrect_characters:
             err_list.append(('MSA error',
-                             f'MSA file contains an illegal character(s) <{incorrect_characters.strip()}>.'
+                             f'MSA file contains an illegal character(s) [{incorrect_characters.strip()}].'
                              f'Please note that “0” and “1” are the only allowed characters in the phyletic '
                              f'pattern MSAs.'))
 
