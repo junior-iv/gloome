@@ -25,6 +25,11 @@ def index():
     return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("name")}'), **DEFAULT_FORM_ARGUMENTS)
 
 
+@app.route('/results/<process_id>', methods=['GET'])
+def get_results():
+    return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("name")}'), **DEFAULT_FORM_ARGUMENTS)
+
+
 @app.route('/overview', methods=['GET'])
 def overview():
     return render_template('overview.html', menu=MENU, title=(':', f'  {MENU[1].get("name")}'))
