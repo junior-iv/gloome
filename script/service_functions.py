@@ -273,6 +273,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
                 tree_taxa_info = current_tree.tree_to_table(filters={'node_type': ['leaf']},
                                                             columns={'node': 'node'}).T.values[0].tolist()
+
                 if len(tree_taxa_info) != len(set(tree_taxa_info)):
                     err_list.append((f'TREE error', f'Duplicate taxa names found.'))
 
