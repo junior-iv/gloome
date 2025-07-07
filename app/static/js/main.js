@@ -16,7 +16,7 @@ function setLoader(loaderOn = true) {
 
 function loadExample(mode = 0) {
     let newickText = document.getElementById('newickText');
-    let patternMSA = document.getElementById('patternMSA');
+    let msaText = document.getElementById('msaText');
     hide_all();
 
     fetch(`/get_exemple?mode=${mode}`, {
@@ -24,7 +24,7 @@ function loadExample(mode = 0) {
     })
         .then(response => response.json())
         .then(data => {
-            patternMSA.value = data.message[0];
+            msaText.value = data.message[0];
             newickText.value = data.message[1];
         })
         .catch(error => {
@@ -245,12 +245,12 @@ function showResponse(jsonData, mode = 0) {
 
 function makeTree(mode = 0) {
     const newickText = document.getElementById(`newickText`);
-    const patternMSA = document.getElementById(`patternMSA`);
+    const msaText = document.getElementById(`msaText`);
     const categoriesQuantity = document.getElementById(`categoriesQuantity`);
     const alpha = document.getElementById(`alpha`);
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
-    formData.append(`patternMSA`, patternMSA.value.trim());
+    formData.append(`msaText`, msaText.value.trim());
     formData.append(`categoriesQuantity`, categoriesQuantity.value.trim());
     formData.append(`alpha`, alpha.value.trim());
 
@@ -304,8 +304,8 @@ function setVisibilityLoader(visible = true) {
 }
 
 function setAccessibility() {
-    let elementNames = [`theButton`, `theСleaningButton`, `theExampleButton`, `theExample2Button`, `patternMSA`,
-        `patternMSAFile`, `newickText`, `newickTextFile`, 'alpha', `categoriesQuantity`];
+    let elementNames = [`theButton`, `theСleaningButton`, `theExampleButton`, `theExample2Button`, `msaText`,
+        `msaTextFile`, `newickText`, `newickTextFile`, 'alpha', `categoriesQuantity`];
     ``
     elementNames.forEach(elementId => {
         let element = document.getElementById(elementId)
@@ -337,7 +337,7 @@ function showMessage(message = null, variant = 1) {
 }
 
 function clearForm() {
-    let elementNames = {'value': [`newickText`, `patternMSA`], 'innerHTML': [`tree`, `nodeInfo`, `logLikelihood`, `fileList`]};
+    let elementNames = {'value': [`newickText`, `msaText`], 'innerHTML': [`tree`, `nodeInfo`, `logLikelihood`, `fileList`]};
     for (let i = 0; i < elementNames.value.length; i++) {
         document.getElementById(elementNames.value[i]).value = '';
     }

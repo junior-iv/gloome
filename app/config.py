@@ -133,16 +133,16 @@ class WebConfig:
         self.MODE = ' '.join(mode)
         self.OUTPUT_FILE = path.join(self.OUT_DIR, f'{mode[0]}.json')
         self.CALCULATED_ARGS.newick_text = arguments.get('newickText')
-        self.CALCULATED_ARGS.pattern_msa = arguments.get('patternMSA')
+        self.CALCULATED_ARGS.msa = arguments.get('msaText')
         self.set_job_logger_info(f'MODE: {self.MODE}\n'
                                  f'\tOUTPUT_FILE: {self.OUTPUT_FILE}\n'
                                  f'\tnewick_text: {self.CALCULATED_ARGS.newick_text}\n'
-                                 f'\tpattern_msa: {self.CALCULATED_ARGS.pattern_msa}\n')
+                                 f'\tmsa: {self.CALCULATED_ARGS.msa}\n')
 
     def create_tmp_data_files(self, replace_path: bool = True) -> None:
         self.check_dir(self.CALCULATED_ARGS.file_path)
 
-        create_file(self.MSA_FILE, self.CALCULATED_ARGS.pattern_msa)
+        create_file(self.MSA_FILE, self.CALCULATED_ARGS.msa)
         create_file(self.TREE_FILE, self.CALCULATED_ARGS.newick_text)
 
         if replace_path:

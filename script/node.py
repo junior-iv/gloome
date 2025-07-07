@@ -256,19 +256,19 @@ class Node:
             for child in self.children:
                 child.calculate_down(tree_info, alphabet_size, rate_vector)
 
-    def calculate_likelihood(self, pattern_msa_dict: Dict[str, str], alphabet: Union[Tuple[str, ...], str],
+    def calculate_likelihood(self, msa_dict: Dict[str, str], alphabet: Union[Tuple[str, ...], str],
                              rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None
                              ) -> Tuple[List[float], float, float]:
 
         leaves_info = self.get_list_nodes_info(True, 'pre-order', {'node_type': ['leaf']})
 
-        len_seq = len(min(list(pattern_msa_dict.values())))
+        len_seq = len(min(list(msa_dict.values())))
         likelihood, log_likelihood, log_likelihood_list = 1, 0, []
         for i_char in range(len_seq):
             nodes_dict = dict()
             for i in range(len(leaves_info)):
                 node_name = leaves_info[i].get('node')
-                character = pattern_msa_dict.get(node_name)[i_char]
+                character = msa_dict.get(node_name)[i_char]
                 nodes_dict.update({node_name: tuple([int(j == character) for j in alphabet])})
 
             char_likelihood = self.calculate_up(nodes_dict, alphabet, rate_vector)

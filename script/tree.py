@@ -317,7 +317,7 @@ class Tree:
                         current_node.ancestral_sequence += ancestral_alphabet[3]
 
     def calculate_marginal(self, newick_node: Optional[Union[Node, str]], alphabet: Union[Tuple[str, ...], str],
-                           pattern: Optional[str] = None, node_name: Optional[str] = None,
+                           msa: Optional[str] = None, node_name: Optional[str] = None,
                            rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None
                            ) -> Tuple[Union[Union[List[List[np.ndarray]], List[List[float]]], float],
                                       Union[np.ndarray, float]]:
@@ -332,8 +332,8 @@ class Tree:
             if isinstance(newick_node, str):
                 newick_node = self.get_node_by_name(newick_node)
             node_list.append(newick_node)
-        if not newick_node.up_vector and pattern:
-            self.calculate_up(pattern, alphabet, rate_vector)
+        if not newick_node.up_vector and msa:
+            self.calculate_up(msa, alphabet, rate_vector)
         if not newick_node.down_vector and newick_node.up_vector:
             self.calculate_down(alphabet, rate_vector)
 
@@ -342,77 +342,77 @@ class Tree:
 
         return result
 
-    def calculate_up(self, pattern: str, alphabet: Union[Tuple[str, ...], str],
+    def calculate_up(self, msa: str, alphabet: Union[Tuple[str, ...], str],
                      rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None
                      ) -> Union[Tuple[Union[List[np.ndarray], List[float]], float], float]:
 
-        return self.root.calculate_up(self.get_pattern_dict(pattern, alphabet), alphabet, rate_vector)
+        return self.root.calculate_up(self.get_msa_dict(msa, alphabet), alphabet, rate_vector)
 
     def calculate_down(self, alphabet: Union[Tuple[str, ...], str],
                        rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> None:
 
         self.root.calculate_down(self.get_tree_info(), len(alphabet), rate_vector)
 
-    def get_pattern_dict(self, pattern: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None, only_leaves:
-                         bool = True, value_is_string: bool = True) -> Dict[str, Union[Tuple[int, ...], str]]:
+    def get_msa_dict(self, msa: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None, only_leaves: bool = True,
+                     value_is_string: bool = True) -> Dict[str, Union[Tuple[int, ...], str]]:
         node_types = ['leaf'] if only_leaves else ['leaf', 'node', 'root']
         nodes_info = self.get_list_nodes_info(True, 'pre-order', {'node_type': node_types})
-        pattern_list = pattern.strip().split()
-        pattern_list_size, pattern_dict = len(pattern_list), dict()
-        if pattern_list_size == 1:
+        msa_list = msa.strip().split()
+        msa_list_size, msa_dict = len(msa_list), dict()
+        if msa_list_size == 1:
             for i, node_info in enumerate(nodes_info):
                 if alphabet:
                     value = [0] * len(alphabet)
-                    value[alphabet.index(pattern[i])] = 1
+                    value[alphabet.index(msa[i])] = 1
                 else:
-                    value = pattern[i]
-                pattern_dict.update({node_info.get('node'): tuple(value)})
+                    value = msa[i]
+                msa_dict.update({node_info.get('node'): tuple(value)})
         else:
-            for j in range(pattern_list_size // 2):
-                node_name = pattern_list[j + j][1::]
+            for j in range(msa_list_size // 2):
+                node_name = msa_list[j + j][1::]
                 if self.find_dict_in_iterable(nodes_info, 'node', node_name):
                     if alphabet:
-                        value = [int(k == pattern_list[j + j + 1]) for k in alphabet]
+                        value = [int(k == msa_list[j + j + 1]) for k in alphabet]
                     else:
-                        value = pattern_list[j + j + 1]
+                        value = msa_list[j + j + 1]
                     value = ''.join(value) if value_is_string else tuple(value)
-                    pattern_dict.update({node_name: value})
+                    msa_dict.update({node_name: value})
 
-        return pattern_dict
+        return msa_dict
 
-    def calculate_tree_for_fasta(self, pattern: Union[Dict[str, str], str], alphabet: Union[Tuple[str, ...], str],
+    def calculate_tree_for_fasta(self, msa: Union[Dict[str, str], str], alphabet: Union[Tuple[str, ...], str],
                                  rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
         node_list = self.root.get_list_nodes_info(only_node_list=True)
         for current_node in node_list:
             current_node.sequence = ''
 
-        if isinstance(pattern, str):
-            self.calculate_up(pattern, alphabet, rate_vector)
+        if isinstance(msa, str):
+            self.calculate_up(msa, alphabet, rate_vector)
             self.calculate_down(alphabet, rate_vector)
-            self.calculate_marginal(self.root, alphabet, pattern, rate_vector=rate_vector)
+            self.calculate_marginal(self.root, alphabet, msa, rate_vector=rate_vector)
         else:
             leaves_info = self.get_list_nodes_info(True, None, {'node_type': ['leaf']})
-            len_seq = len(min(list(pattern.values())))
+            len_seq = len(min(list(msa.values())))
             for i_char in range(len_seq):
-                current_pattern = ''
+                current_msa = ''
                 for i in range(len(leaves_info)):
                     node_name = leaves_info[i].get('node')
-                    current_pattern += pattern.get(node_name)[i_char]
-                self.calculate_up(current_pattern, alphabet, rate_vector)
+                    current_msa += msa.get(node_name)[i_char]
+                self.calculate_up(current_msa, alphabet, rate_vector)
                 self.calculate_down(alphabet, rate_vector)
-                self.calculate_marginal(None, alphabet, current_pattern, rate_vector=rate_vector)
+                self.calculate_marginal(None, alphabet, current_msa, rate_vector=rate_vector)
 
         return self.get_fasta_text()
 
-    def calculate_likelihood(self, pattern: Union[Dict[str, str], str], alphabet: Optional[Tuple[str, ...]]
+    def calculate_likelihood(self, msa: Union[Dict[str, str], str], alphabet: Optional[Tuple[str, ...]]
                              = None, rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> None:
-        if isinstance(pattern, str):
-            pattern = self.get_pattern_dict(pattern)
+        if isinstance(msa, str):
+            msa = self.get_msa_dict(msa)
         if alphabet is None:
-            alphabet = Tree.get_alphabet_from_dict(pattern)
+            alphabet = Tree.get_alphabet_from_dict(msa)
 
         self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
-            self.root.calculate_likelihood(pattern, alphabet, rate_vector))
+            self.root.calculate_likelihood(msa, alphabet, rate_vector))
 
     def get_fasta_text(self, columns: Optional[Dict[str, str]] = None) -> str:
         columns = columns if columns else {'node': 'Name', 'sequence': 'Sequence', 'ancestral_sequence':
@@ -460,17 +460,17 @@ class Tree:
         return loads(str(result).replace(f'\'', r'"'))
 
     @staticmethod
-    def tree_to_fasta(newick_tree: Union[str, 'Tree'], pattern: Union[Dict[str, str], str],
+    def tree_to_fasta(newick_tree: Union[str, 'Tree'], msa: Union[Dict[str, str], str],
                       alphabet: Tuple[str, ...], file_name: str = 'file.fasta', node_name: Optional[str] = None,
                       rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
             newick_tree = Tree.check_tree(newick_tree)
-        if isinstance(pattern, str):
-            pattern = newick_tree.get_pattern_dict(pattern)
+        if isinstance(msa, str):
+            msa = newick_tree.get_msa_dict(msa)
 
-        newick_tree.calculate_tree_for_fasta(pattern, alphabet, rate_vector)
+        newick_tree.calculate_tree_for_fasta(msa, alphabet, rate_vector)
         Tree.make_dir(file_name)
         fasta_text = newick_tree.get_fasta_text()
         with open(file_name, 'w') as f:
@@ -479,18 +479,18 @@ class Tree:
         return file_name
 
     @staticmethod
-    def likelihood_to_csv(newick_tree: Union[str, 'Tree'], pattern: Union[Dict[str, str], str],
+    def likelihood_to_csv(newick_tree: Union[str, 'Tree'], msa: Union[Dict[str, str], str],
                           file_name: str = 'file.csv', sep: str = '\t', node_name: Optional[str] = None, rate_vector:
                           Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
             newick_tree = Tree.check_tree(newick_tree)
-        if isinstance(pattern, str):
-            pattern = newick_tree.get_pattern_dict(pattern)
+        if isinstance(msa, str):
+            msa = newick_tree.get_msa_dict(msa)
 
         Tree.make_dir(file_name)
-        newick_tree.calculate_likelihood(pattern, rate_vector=rate_vector)
+        newick_tree.calculate_likelihood(msa, rate_vector=rate_vector)
         tree_table = pd.DataFrame({'POS': range(len(newick_tree.log_likelihood_vector)),
                                    'log-likelihood': newick_tree.log_likelihood_vector})
         tree_table.to_csv(file_name, sep=sep, index=False)
@@ -568,7 +568,7 @@ class Tree:
         return file_names
 
     @staticmethod
-    def tree_to_interactive_html(newick_tree: Union[str, 'Tree'], pattern: Union[Dict[str, str], str],
+    def tree_to_interactive_html(newick_tree: Union[str, 'Tree'], msa: Union[Dict[str, str], str],
                                  alphabet: Union[Tuple[str, ...], str], file_name: str = 'interactive_tree.svg',
                                  node_name: Optional[str] = None, rate_vector:
                                  Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
@@ -576,10 +576,10 @@ class Tree:
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
             newick_tree = Tree.check_tree(newick_tree)
-        if isinstance(pattern, str):
-            pattern = newick_tree.get_pattern_dict(pattern)
+        if isinstance(msa, str):
+            msa = newick_tree.get_msa_dict(msa)
 
-        newick_tree.calculate_tree_for_fasta(pattern, alphabet, rate_vector)
+        newick_tree.calculate_tree_for_fasta(msa, alphabet, rate_vector)
         newick_tree.calculate_ancestral_sequence()
         size_factor = min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
 
@@ -707,9 +707,9 @@ class Tree:
                     return alphabet
 
     @staticmethod
-    def get_alphabet_from_dict(pattern_msa_dict: Dict[str, str]) -> Tuple[str, ...]:
+    def get_alphabet_from_dict(msa_dict: Dict[str, str]) -> Tuple[str, ...]:
         character_list = []
-        for sequence in pattern_msa_dict.values():
+        for sequence in msa_dict.values():
             character_list += [i for i in sequence]
 
         return Tree.get_alphabet(set(character_list))

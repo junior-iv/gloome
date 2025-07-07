@@ -39,12 +39,12 @@ def create_file(file_path: str, data: Union[str, Any], file_name: Optional[str] 
     return file_path
 
 
-def create_tmp_data_files(pattern: str, newick_tree: str, file_path: Optional[str] = None) -> Tuple[str, ...]:
+def create_tmp_data_files(msa: str, newick_tree: str, file_path: Optional[str] = None) -> Tuple[str, ...]:
     file_path = path.join(path.dirname(path.dirname(path.abspath(__file__))), 'tmp') if file_path is None else file_path
     if not path.exists(file_path):
         makedirs(file_path)
 
-    msa_file_path = create_file(file_path, pattern, 'msa_file.msa')
+    msa_file_path = create_file(file_path, msa, 'msa_file.msa')
     tree_file_path = create_file(file_path, newick_tree, 'tree_file.tree')
 
     return msa_file_path, tree_file_path
@@ -92,18 +92,18 @@ def get_log_file(data: Any, file_path: str, num: int = 1) -> int:
     return num
 
 
-def execute_all_actions(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], file_path: str,
+def execute_all_actions(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str], file_path: str,
                         rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
                         alphabet: Optional[Tuple[str, ...]] = None) -> Union[Dict[str, str], str]:
     if isinstance(newick_tree, str):
         newick_tree = Tree.rename_nodes(newick_tree)
-    if isinstance(pattern, str):
-        pattern = newick_tree.get_pattern_dict(pattern)
+    if isinstance(msa, str):
+        msa = newick_tree.get_msa_dict(msa)
 
     result = {'draw_tree': draw_tree(newick_tree, file_path, True)}
-    result.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree, pattern, rate_vector,
+    result.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree, msa, rate_vector,
                                                                             file_path, True)})
-    result.update({'create_all_file_types': create_all_file_types(newick_tree, pattern, file_path, rate_vector,
+    result.update({'create_all_file_types': create_all_file_types(newick_tree, msa, file_path, rate_vector,
                                                                   alphabet, True)})
 
     file_path = create_file(file_path, result, 'execute_all_actions.json')
@@ -113,17 +113,17 @@ def execute_all_actions(newick_tree: Union[str, Tree], pattern: Union[Dict[str, 
     return file_path
 
 
-def compute_likelihood_of_tree(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], rate_vector:
+def compute_likelihood_of_tree(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str], rate_vector:
                                Optional[Tuple[Union[float, ndarray], ...]] = None, file_path: Optional[str] = None,
                                return_dict: bool = False) -> Union[dict[str, Union[float, ndarray,
                                                                    list[Union[float, ndarray]]]], str]:
     # start_time = time()
     if isinstance(newick_tree, str):
         newick_tree = Tree.rename_nodes(newick_tree)
-    if isinstance(pattern, str):
-        pattern = newick_tree.get_pattern_dict(pattern)
+    if isinstance(msa, str):
+        msa = newick_tree.get_msa_dict(msa)
 
-    newick_tree.calculate_likelihood(pattern, rate_vector=rate_vector)
+    newick_tree.calculate_likelihood(msa, rate_vector=rate_vector)
 
     result = {'likelihood_of_the_tree': newick_tree.likelihood}
     result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
@@ -138,18 +138,18 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], pattern: Union[Dic
     return file_path
 
 
-def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str, str], str], file_path: str,
+def create_all_file_types(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str], file_path: str,
                           rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
                           alphabet: Optional[Tuple[str, ...]] = None, return_dict: bool = False
                           ) -> Union[Dict[str, str], str]:
     # start_time = time()
     if isinstance(newick_tree, str):
         newick_tree = Tree.rename_nodes(newick_tree)
-    if isinstance(pattern, str):
-        pattern = newick_tree.get_pattern_dict(pattern)
+    if isinstance(msa, str):
+        msa = newick_tree.get_msa_dict(msa)
     if alphabet is None:
-        alphabet = Tree.get_alphabet_from_dict(pattern)
-    path_dict = {'Interactive tree (html)': Tree.tree_to_interactive_html(newick_tree, pattern, alphabet,
+        alphabet = Tree.get_alphabet_from_dict(msa)
+    path_dict = {'Interactive tree (html)': Tree.tree_to_interactive_html(newick_tree, msa, alphabet,
                  file_name=f'{file_path}/interactive_tree.html', rate_vector=rate_vector)}
     path_dict.update(Tree.tree_to_graph(newick_tree, file_name=f'{file_path}/graph.txt',
                      file_extensions=('dot', 'png', 'svg')))
@@ -159,9 +159,9 @@ def create_all_file_types(newick_tree: Union[str, Tree], pattern: Union[Dict[str
                      file_name=f'{file_path}/newick_tree.tree', with_internal_nodes=True)})
     path_dict.update({'Table of nodes (csv)': Tree.tree_to_csv(newick_tree, file_name=f'{file_path}/tree.csv',
                      sep='\t', sort_values_by=('child', 'Name'), decimal_length=8)})
-    path_dict.update({'Fasta (fasta)': Tree.tree_to_fasta(newick_tree, pattern, alphabet,
+    path_dict.update({'Fasta (fasta)': Tree.tree_to_fasta(newick_tree, msa, alphabet,
                      file_name=f'{file_path}/fasta_file.fasta', rate_vector=rate_vector)})
-    path_dict.update({'log-Likelihood (csv)': Tree.likelihood_to_csv(newick_tree, pattern,
+    path_dict.update({'log-Likelihood (csv)': Tree.likelihood_to_csv(newick_tree, msa,
                      file_name=f'{file_path}/log-likelihood.csv', sep='\t', rate_vector=rate_vector)})
 
     archive_path = path.join(path.dirname(file_path), path.basename(file_path))
@@ -209,26 +209,26 @@ def get_error(err_list: List[Tuple[str, str]]) -> str:
 def check_data(*args) -> List[Tuple[str, str]]:
     err_list = []
     newick_text = args[0].strip()
-    pattern_msa = args[1].strip()
+    msa = args[1].strip()
     categories_quantity = args[2]
     alpha = args[3]
 
-    if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 1000:
+    if not isinstance(categories_quantity, int) or not 4 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
-                         f'The value must be between 1 and 1000.'))
-    if not isinstance(alpha, float) or not 0.01 <= alpha <= 100000:
-        err_list.append((f'Alpha value error [ {alpha} ]', f'The value must be between 1 and 1000.'))
+                         f'The value must be between 4 and 16.'))
+    if not isinstance(alpha, float) or not 0.1 <= alpha <= 20:
+        err_list.append((f'Alpha value error [ {alpha} ]', f'The value must be between 0.1 and 20.'))
 
-    if not pattern_msa:
+    if not msa:
         err_list.append(('MSA error', 'No MSA was provided.'))
-    elif not pattern_msa.startswith('>'):
+    elif not msa.startswith('>'):
         err_list.append(('MSA error', 'Wrong MSA format. Please provide MSA in FASTA format.'))
-    elif len(pattern_msa.split('\n')) / 2 < 2:
+    elif len(msa.split('\n')) / 2 < 2:
         err_list.append(('MSA error', 'There should be at least two sequences in the MSA.'))
     else:
         len_list = []
         incorrect_characters = ''
-        for i, current_line in enumerate(pattern_msa.split('\n')):
+        for i, current_line in enumerate(msa.split('\n')):
             if i % 2:
                 current_line = current_line.strip()
                 len_list.append(len(current_line))
@@ -240,8 +240,13 @@ def check_data(*args) -> List[Tuple[str, str]]:
         if incorrect_characters:
             err_list.append(('MSA error',
                              f'MSA file contains an illegal character(s) [ {incorrect_characters.strip()} ]. '
-                             f'Please note that “0” and “1” are the only allowed characters in the phyletic '
-                             f'pattern MSAs.'))
+                             f'Please note that “0” and “1” are the only allowed characters in the phyletic  MSAs.'))
+
+        msa_list = msa.strip().split('\n')
+        msa_taxa_info = [msa_list[j + j][1::] for j in range(len(msa_list) // 2)]
+
+        if len(msa_taxa_info) != len(msa_taxa_info):
+            err_list.append((f'MSA error', f'Duplicate taxa names found.'))
 
         if not newick_text:
             err_list.append((f'TREE error', f'No Phylogenetic tree was provided.'))
@@ -260,33 +265,23 @@ def check_data(*args) -> List[Tuple[str, str]]:
                                                                   distance_type=float).T.values[0].tolist()
                 if not all(edges_distances_list):
                     err_list.append((f'TREE error', f'One or more branches in the tree have zero length.'))
-                if not (current_tree.get_node_count({'node_type': ['leaf']}) == len(pattern_msa.split('\n')) / 2 ==
-                        pattern_msa.count('>')):
+                if not (current_tree.get_node_count({'node_type': ['leaf']}) == len(msa.split('\n')) / 2 ==
+                        msa.count('>')):
                     err_list.append((f'MSA error',
                                      f'A discrepancy exists between the number of leaves in the phylogenetic tree and '
                                      f'the number of sequences present in the MSA data'))
+
+                tree_taxa_info = current_tree.tree_to_table(filters={'node_type': ['leaf']},
+                                                            columns={'node': 'node'}).T.values[0].tolist()
+                if len(tree_taxa_info) != len(set(tree_taxa_info)):
+                    err_list.append((f'TREE error', f'Duplicate taxa names found.'))
+
+                if set(tree_taxa_info).difference(set(msa_taxa_info)):
+                    err_list.append((f'DATA MISMATCH error',
+                                     f'Taxa names in the MSA and phylogenetic tree do not match.'))
             else:
                 err_list.append((f'TREE error',
                                  f'Wrong Phylogenetic tree format. Please provide a tree in Newick format'))
-
-    return err_list
-
-
-def check_form(newick_text: str, pattern_msa: str) -> List[Tuple[int, str]]:
-    err_list = []
-
-    if not Tree.check_newick(newick_text):
-        err_list.append((0, newick_text if newick_text else 'text missing'))
-    if not pattern_msa:
-        err_list.append((1, 'text missing'))
-    elif (Tree.check_newick(newick_text) and
-          not (Tree(newick_text).get_node_count({'node_type': ['leaf']}) == len(pattern_msa.split('\n')) / 2 ==
-          pattern_msa.count('>'))):
-        err_list.append((2, pattern_msa.split('\n') if pattern_msa else 'text missing'))
-    else:
-        row_len = len(pattern_msa.split('\n')[1].strip())
-        if not min([len(j.strip()) == row_len for i, j in enumerate(pattern_msa.split('\n')) if i % 2]):
-            err_list.append((3, pattern_msa.split('\n')))
 
     return err_list
 

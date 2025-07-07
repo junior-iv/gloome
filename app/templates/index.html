@@ -82,16 +82,16 @@
 {#            </div>#}
         </div>
         <div class="container gap-2 d-flex flex-column h-75 w-50 m-3">
-            <label for="patternMSA" class="h6 text-success-emphasis my-2">please provide a phyletic pattern MSA into a text field or upload from file
+            <label for="msaText" class="h6 text-success-emphasis my-2">Add a phyletic pattern MSA in FASTA format via text input or file upload
                 (<a href="https://en.wikipedia.org/wiki/FASTA_format" target="_blank">FASTA format</a>)<sup>&quest;</sup>
             </label>
             <div class="d-flex gap-2 flex-row justify-content-end my-1">
-                <input id="patternMSAFile" name="patternMSAFile" type="file" accept="*.*"
-                      class="form-control rounded-pill" onchange="uploadFile('patternMSA', 'patternMSAFile')"/>
+                <input id="msaTextFile" name="msaTextFile" type="file" accept="*.*"
+                      class="form-control rounded-pill" onchange="uploadFile('msaText', 'msaTextFile')"/>
             </div>
-            <textarea spellcheck="false" id="patternMSA" name="patternMSA" autocomplete="on" rows="4" class="form-control btn-light font-verdana"
-                      placeholder="please provide a phyletic pattern MSA here"></textarea>
-            <label for="newickText" class="h6 text-success-emphasis my-2">please provide a phylogenetic tree into a text field or upload from file
+            <textarea spellcheck="false" id="msaText" name="msaText" autocomplete="on" rows="4" class="form-control btn-light font-verdana"
+                      placeholder="please provide a phyletic MSA here"></textarea>
+            <label for="newickText" class="h6 text-success-emphasis my-2">Add a phylogenetic tree in Newick format via text input or file upload
                 (<a href="https://en.wikipedia.org/wiki/Newick_format" target="_blank">Newick format</a>)<sup>&quest;</sup>
             </label>
             <div class="d-flex gap-2 flex-row justify-content-end my-1">

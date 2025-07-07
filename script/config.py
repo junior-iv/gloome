@@ -124,7 +124,7 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_tree_for_fasta', False):
             try:
                 self.ACTIONS.calculate_tree_for_fasta(self.CALCULATED_ARGS.newick_tree,
-                                                      self.CALCULATED_ARGS.pattern_dict,
+                                                      self.CALCULATED_ARGS.msa_dict,
                                                       self.CALCULATED_ARGS.alphabet,
                                                       self.CALCULATED_ARGS.rate_vector)
             except ValueError:
@@ -148,7 +148,7 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('compute_likelihood_of_tree', False):
             try:
                 func = self.ACTIONS.compute_likelihood_of_tree
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, pattern=self.CALCULATED_ARGS.pattern_dict,
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa_dict,
                            file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector)
                 self.set_job_logger_info(f'Command \'compute_likelihood_of_tree\' executed successfully. -> {val}')
             except ValueError:
@@ -160,7 +160,7 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
             try:
                 func = self.ACTIONS.create_all_file_types
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, pattern=self.CALCULATED_ARGS.pattern_dict,
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa_dict,
                            file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector,
                            alphabet=self.CALCULATED_ARGS.alphabet)
                 self.set_job_logger_info(f'Command \'create_all_file_types\' executed successfully. -> {val}')
@@ -172,7 +172,7 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
             try:
                 func = self.ACTIONS.execute_all_actions
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, pattern=self.CALCULATED_ARGS.pattern_dict,
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa_dict,
                            file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector,
                            alphabet=self.CALCULATED_ARGS.alphabet)
                 self.set_job_logger_info(f'Command \'execute_all_actions\' executed successfully. -> {val}')
@@ -191,13 +191,13 @@ class Config:
                                                   f'File "{self.TREE_FILE}" does not exist '))
         if path.isfile(self.MSA_FILE):
             with open(self.MSA_FILE, 'r') as f:
-                self.CALCULATED_ARGS.pattern_msa = f.read()
+                self.CALCULATED_ARGS.msa = f.read()
         else:
             self.CALCULATED_ARGS.err_list.append((f'The File does not exist',
                                                   f'File "{self.MSA_FILE}" does not exist '))
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_data', False):
             self.CALCULATED_ARGS.err_list += self.ACTIONS.check_data(self.CALCULATED_ARGS.newick_text,
-                                                                     self.CALCULATED_ARGS.pattern_msa,
+                                                                     self.CALCULATED_ARGS.msa_msa,
                                                                      self.CURRENT_ARGS.get('categories_quantity', 4),
                                                                      self.CURRENT_ARGS.get('alpha', 0.5))
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
@@ -218,16 +218,16 @@ class Config:
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'rate_vector\'',
                                                       traceback.format_exc()))
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('pattern_dict', False):
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('msa_dict', False):
             try:
-                self.CALCULATED_ARGS.pattern_dict = self.ACTIONS.pattern_dict(self.CALCULATED_ARGS.newick_tree,
-                                                                              self.CALCULATED_ARGS.pattern_msa)
+                self.CALCULATED_ARGS.msa_dict = self.ACTIONS.msa_dict(self.CALCULATED_ARGS.newick_tree,
+                                                                      self.CALCULATED_ARGS.msa)
             except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'pattern_dict\'',
+                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'msa_dict\'',
                                                       traceback.format_exc()))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('alphabet', False):
             try:
-                self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.pattern_dict)
+                self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.msa_dict)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'alphabet\'',
                                                       traceback.format_exc()))

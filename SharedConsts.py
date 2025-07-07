@@ -129,7 +129,7 @@ ACTIONS = Actions(**{
                      'check_tree': Tree.check_tree,
                      'rename_nodes': Tree.rename_nodes,
                      'rate_vector': Tree.get_gamma_distribution_categories_vector,
-                     'pattern_dict': Tree.get_pattern_dict,
+                     'msa_dict': Tree.get_msa_dict,
                      'alphabet': Tree.get_alphabet_from_dict,
                      'compute_likelihood_of_tree': compute_likelihood_of_tree,
                      'calculate_tree_for_fasta': Tree.calculate_tree_for_fasta,
@@ -147,7 +147,7 @@ VALIDATION_ACTIONS = {
 DEFAULT_ACTIONS = {
     'rename_nodes': True,
     'rate_vector': True,
-    'pattern_dict': True,
+    'msa_dict': True,
     'alphabet': True,
     'compute_likelihood_of_tree': False,
     'calculate_tree_for_fasta': False,
@@ -162,9 +162,9 @@ CALCULATED_ARGS = CalculatedArgs(**{
                                     'file_path': None,
                                     'rate_vector': None,
                                     'newick_text': None,
-                                    'pattern_msa': None,
+                                    'msa': None,
                                     'newick_tree': None,
-                                    'pattern_dict': None,
+                                    'msa_dict': None,
                                     'alphabet': None
                                     })
 
