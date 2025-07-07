@@ -14,6 +14,19 @@ function setLoader(loaderOn = true) {
     }
 }
 
+function validateInput(id, defaultValue){
+    let currentElement = document.getElementById(id);
+    let  min = currentElement.min;
+    let  max = currentElement.max;
+    if (currentElement.value > max) {
+        alert(`${currentElement.title}.`);
+        currentElement.value = max;
+    }else if (currentElement.value < min) {
+        alert(`${currentElement.title}.`);
+        currentElement.value = min;
+    }
+}
+
 function loadExample(mode = 0) {
     let newickText = document.getElementById('newickText');
     let msaText = document.getElementById('msaText');
