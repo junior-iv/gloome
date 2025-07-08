@@ -228,7 +228,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
     else:
         len_list = []
         incorrect_characters = ''
-        for i, current_line in enumerate(msa.split('\n')):
+        for i, current_line in enumerate(msa.split()):
             if i % 2:
                 current_line = current_line.strip()
                 len_list.append(len(current_line))
@@ -242,7 +242,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
                              f'MSA file contains an illegal character(s) [ {incorrect_characters.strip()} ]. '
                              f'Please note that “0” and “1” are the only allowed characters in the phyletic  MSAs.'))
 
-        msa_list = msa.strip().split('\n')
+        msa_list = msa.strip().split()
         msa_taxa_info = [msa_list[j + j][1::] for j in range(len(msa_list) // 2)]
 
         if len(msa_taxa_info) != len(msa_taxa_info):
@@ -277,11 +277,11 @@ def check_data(*args) -> List[Tuple[str, str]]:
                 if len(tree_taxa_info) != len(set(tree_taxa_info)):
                     err_list.append((f'TREE error', f'Duplicate taxa names found.'))
 
-                with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/route_debug.log', 'a') as f:
-                    f.write(f'{tree_taxa_info}\n')
-                    f.write(f'{msa_taxa_info}\n')
-                    f.write(f'{set(tree_taxa_info)}\n')
-                    f.write(f'{set(msa_taxa_info)}\n')
+                # with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/route_debug.log', 'a') as f:
+                #     f.write(f'{tree_taxa_info}\n')
+                #     f.write(f'{msa_taxa_info}\n')
+                #     f.write(f'{set(tree_taxa_info)}\n')
+                #     f.write(f'{set(msa_taxa_info)}\n')
                 if set(tree_taxa_info).difference(set(msa_taxa_info)):
                     err_list.append((f'DATA MISMATCH error',
                                      f'Taxa names in the MSA and phylogenetic tree do not match.'))
