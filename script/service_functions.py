@@ -240,7 +240,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
         if incorrect_characters:
             err_list.append(('MSA error',
                              f'MSA file contains an illegal character(s) [ {incorrect_characters.strip()} ]. '
-                             f'Please note that “0” and “1” are the only allowed characters in the phyletic  MSAs.'))
+                             f'Please note that “0” and “1” are the only allowed characters in the phyletic MSAs.'))
 
         msa_list = msa.strip().split()
         msa_taxa_info = [msa_list[j + j][1::] for j in range(len(msa_list) // 2)]
@@ -252,7 +252,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
             err_list.append((f'TREE error', f'No Phylogenetic tree was provided.'))
         elif (not (newick_text.startswith('(') and newick_text.endswith(';') and newick_text[:-1].endswith(')')) or
               (newick_text.count('(') != newick_text.count(')'))):
-            err_list.append((f'TREE error', f'Wrong Phylogenetic tree format. Please provide a tree in Newick format'))
+            err_list.append((f'TREE error', f'Wrong Phylogenetic tree format. Please provide a tree in Newick format.'))
         else:
             try:
                 current_tree = Tree(newick_text)
@@ -269,7 +269,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
                         msa.count('>')):
                     err_list.append((f'MSA error',
                                      f'A discrepancy exists between the number of leaves in the phylogenetic tree and '
-                                     f'the number of sequences present in the MSA data'))
+                                     f'the number of sequences present in the MSA data.'))
 
                 tree_taxa_info = current_tree.tree_to_table(filters={'node_type': ['leaf']},
                                                             columns={'node': 'node'}).T.values[0].tolist()
@@ -282,7 +282,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
                                      f'Taxa names in the MSA and phylogenetic tree do not match.'))
             else:
                 err_list.append((f'TREE error',
-                                 f'Wrong Phylogenetic tree format. Please provide a tree in Newick format'))
+                                 f'Wrong Phylogenetic tree format. Please provide a tree in Newick format.'))
 
     return err_list
 

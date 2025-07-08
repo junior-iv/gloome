@@ -14,16 +14,25 @@ function setLoader(loaderOn = true) {
     }
 }
 
+function showAlert(message, duration = 3000) {
+    showMessage(message, 2)
+    setTimeout(() => {
+        hide_all()
+    }, duration);
+}
+
 function validateInput(id, defaultValue){
     let currentElement = document.getElementById(id);
-    let  min = currentElement.min;
-    let  max = currentElement.max;
-    if (currentElement.value > max) {
-        alert(`${currentElement.title}.`);
-        currentElement.value = max;
-    }else if (currentElement.value < min) {
-        alert(`${currentElement.title}.`);
-        currentElement.value = min;
+    let currentValue = Number(currentElement.value);
+    let  minValue = Number(currentElement.min);
+    let  maxValue = Number(currentElement.max);
+    if (currentValue > maxValue) {
+        showAlert(`${currentElement.title}.`);
+        currentElement.value = maxValue;
+    }
+    if (currentValue < minValue) {
+        showAlert(`${currentElement.title}.`);
+        currentElement.value = minValue;
     }
 }
 
