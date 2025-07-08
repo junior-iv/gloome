@@ -197,7 +197,7 @@ class Config:
                                                   f'File "{self.MSA_FILE}" does not exist '))
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_data', False):
             self.CALCULATED_ARGS.err_list += self.ACTIONS.check_data(self.CALCULATED_ARGS.newick_text,
-                                                                     self.CALCULATED_ARGS.msa_msa,
+                                                                     self.CALCULATED_ARGS.msa,
                                                                      self.CURRENT_ARGS.get('categories_quantity', 4),
                                                                      self.CURRENT_ARGS.get('alpha', 0.5))
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):

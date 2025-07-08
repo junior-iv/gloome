@@ -277,11 +277,6 @@ def check_data(*args) -> List[Tuple[str, str]]:
                 if len(tree_taxa_info) != len(set(tree_taxa_info)):
                     err_list.append((f'TREE error', f'Duplicate taxa names found.'))
 
-                # with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/route_debug.log', 'a') as f:
-                #     f.write(f'{tree_taxa_info}\n')
-                #     f.write(f'{msa_taxa_info}\n')
-                #     f.write(f'{set(tree_taxa_info)}\n')
-                #     f.write(f'{set(msa_taxa_info)}\n')
                 if set(tree_taxa_info).difference(set(msa_taxa_info)):
                     err_list.append((f'DATA MISMATCH error',
                                      f'Taxa names in the MSA and phylogenetic tree do not match.'))
