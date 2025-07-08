@@ -25,7 +25,7 @@ def execute_response(mode: Optional[Tuple[str, ...]] = None) -> Response:
                 conf.set_job_logger_info(traceback.format_exc())
                 with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/{conf.CURRENT_JOB}_{conf.PROCESS_ID}_'
                           f'route_debug.log', 'a') as f:
-                    f.write(f"\n\n--- Exception at /draw_tree ---\n")
+                    f.write(f'\n\n--- Exception at /draw_tree ---\n')
                     f.write(traceback.format_exc())
                 raise  # Re-raise to still return 500
 
