@@ -26,11 +26,13 @@ function validateInput(id, defaultValue){
     let currentValue = Number(currentElement.value);
     let  minValue = Number(currentElement.min);
     let  maxValue = Number(currentElement.max);
-    if (currentValue > maxValue) {
+    if (currentValue <= 0) {
+        showAlert(`${currentElement.title}.`);
+        currentElement.value = defaultValue;
+    } else if (currentValue > maxValue) {
         showAlert(`${currentElement.title}.`);
         currentElement.value = maxValue;
-    }
-    if (currentValue < minValue) {
+    } else if (currentValue < minValue && currentValue > 0) {
         showAlert(`${currentElement.title}.`);
         currentElement.value = minValue;
     }
