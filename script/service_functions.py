@@ -106,7 +106,7 @@ def execute_all_actions(newick_tree: Union[str, Tree], msa: Union[Dict[str, str]
     result.update({'create_all_file_types': create_all_file_types(newick_tree, msa, file_path, rate_vector,
                                                                   alphabet, True)})
 
-    file_path = create_file(file_path, result, 'execute_all_actions.json')
+    file_path = create_file(file_path, {'action_name': 'execute_all_actions', 'data': result}, 'result.json')
     print(f'result: {result}')
     print(f'file_path: {file_path}')
 
@@ -131,7 +131,7 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], msa: Union[Dict[st
     if return_dict:
         return result
 
-    file_path = create_file(file_path, result, 'compute_likelihood_of_tree.json')
+    file_path = create_file(file_path, {'action_name': 'compute_likelihood_of_tree', 'data': result}, 'result.json')
     print(f'result: {result}')
     print(f'file_path: {file_path}')
 
@@ -174,9 +174,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], msa: Union[Dict[str, st
     if return_dict:
         return path_dict
 
-    file_path = create_file(file_path, path_dict, 'create_all_file_types.json')
-    print(f'result: {path_dict}')
-    print(f'file_path: {file_path}')
+    file_path = create_file(file_path, {'action_name': 'create_all_file_types', 'data': path_dict}, 'result.json')
 
     return file_path
 
@@ -190,9 +188,7 @@ def draw_tree(newick_tree: Tree, file_path: str, return_dict: bool = False) -> U
     if return_dict:
         return result
 
-    file_path = create_file(file_path, result, 'draw_tree.json')
-    print(f'result: {result}')
-    print(f'file_path: {file_path}')
+    file_path = create_file(file_path, {'action_name': 'draw_tree', 'data': result}, 'result.json')
 
     return file_path
 

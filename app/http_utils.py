@@ -5,7 +5,23 @@ from flask import request, Response, jsonify
 import traceback
 
 
-def execute_response(mode: Optional[Tuple[str, ...]] = None) -> Response:
+def get_response(process_id: int) -> Response:
+    status = 200
+    conf = WebConfig(PROCESS_ID=process_id)
+    try:
+        result = conf.read_response()
+    except Exception:
+        conf.set_job_logger_info(traceback.format_exc())
+        with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/{conf.CURRENT_JOB}_{conf.PROCESS_ID}_'
+                  f'route_debug.log', 'a') as f:
+            f.write(f'\n\n--- Exception at /draw_tree ---\n')
+            f.write(traceback.format_exc())
+        raise  # Re-raise to still return 500
+
+    return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
+
+
+def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
     if request.method == 'POST':
         args = get_variables(dict(request.form))
         err_list = check_data(*args)

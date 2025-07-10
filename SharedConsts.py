@@ -177,7 +177,7 @@ USAGE = '''
                     --sort_values_by <type=tuple> default=('child', 'Name')
                     --categories_quantity <type=int> default=4
                     --alpha <type=float> default=0.5
-            '''
+        '''
 
 MENU = ({'name': 'HOME', 'url': 'index',
          'submenu': ()

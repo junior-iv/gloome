@@ -97,6 +97,7 @@ class WebConfig:
         self.OUT_DIR = path.join(self.OUT_DIR, self.PROCESS_ID)
         self.IN_DIR = path.join(self.IN_DIR, self.PROCESS_ID)
         self.check_dir(self.IN_DIR)
+        self.OUTPUT_FILE = path.join(self.OUT_DIR, f'result.json')
 
         self.MSA_FILE = path.join(self.IN_DIR, self.MSA_FILE_NAME)
         self.TREE_FILE = path.join(self.IN_DIR, self.TREE_FILE_NAME)
@@ -131,7 +132,7 @@ class WebConfig:
                 self.CURRENT_ARGS.update({out_key: current_value})
         mode = arguments.get('mode')
         self.MODE = ' '.join(mode)
-        self.OUTPUT_FILE = path.join(self.OUT_DIR, f'{mode[0]}.json')
+        # self.OUTPUT_FILE = path.join(self.OUT_DIR, f'{mode[0]}.json')
         self.CALCULATED_ARGS.newick_text = arguments.get('newickText')
         self.CALCULATED_ARGS.msa = arguments.get('msaText')
         self.set_job_logger_info(f'MODE: {self.MODE}\n'
@@ -161,6 +162,7 @@ class WebConfig:
         self.set_job_logger_info(f'COMMAND_LINE: {self.COMMAND_LINE}')
 
     def get_request_body(self):
+        # TODO think about job_name = f'gloome_{self.PROCESS_ID}_{self.JOBS_NUMBER.inc()}'
         job_name = f'gloome_{self.PROCESS_ID}_{self.JOBS_NUMBER.inc()}'
         prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{self.PROCESS_ID}_'
         tmp_dir = path.join(self.PRODJECT_DIR, 'tmp')
@@ -222,34 +224,48 @@ class WebConfig:
                                         change_value_style=False, change_key=True, change_key_style=False)
         return json_object
 
+    def get_form_data(self) -> Any:
+        form_data = {'msaText': self.CALCULATED_ARGS.msa,
+                     'newickText': self.CALCULATED_ARGS.newick_text,
+                     'alpha': self.CURRENT_ARGS.alpha,
+                     'categoriesQuantity': self.CURRENT_ARGS.categories_quantity}
+
+        return form_data
+
+    def read_response(self) -> Any:
+        file_contents = read_file(file_path=self.OUTPUT_FILE)
+
+        json_object = loads_json(file_contents)
+        action_name = json_object.get('action_name')
+        data = json_object.get('data')
+
+        if 'execute_all_actions' in action_name:
+            for key, value in data.items():
+                data.update({key: self.get_response_design(value, key)})
+            pass
+        else:
+            data = self.get_response_design(data, action_name)
+
+        data.update({'title': self.PROCESS_ID})
+        data.update({'form_data': self.get_form_data()})
+
+        return json_object
+
     def get_response(self) -> Optional[Any]:
         self.create_command_line()
         request_body = self.get_request_body()
 
         self.CURRENT_JOB = self.SUBMITER.submit_job(json=request_body).get('job_id', self.JOBS_NUMBER.value)
         self.HISTORY.append(self.CURRENT_JOB)
-        self.set_job_logger_info(f'Submit job (id: {self.CURRENT_JOB}): {request_body}\n'
-                                 f'\tRequest body: {request_body}')
+        self.set_job_logger_info(f'\tSubmit job (id: {self.CURRENT_JOB})'
+                                 f'\tRequest body: {request_body}\n')
+
         job_state = self.SUBMITER.check_job_state(self)
+
         if job_state:
-            print('>', self.CURRENT_JOB, job_state)
-            file_contents = read_file(file_path=self.OUTPUT_FILE)
-
-            json_object = loads_json(file_contents)
-            json_file_name = path.basename(self.OUTPUT_FILE)
-            if 'execute_all_actions' in json_file_name:
-                for key, value in json_object.items():
-                    json_object.update({key: self.get_response_design(value, key)})
-                pass
-            else:
-                json_object = self.get_response_design(json_object, json_file_name)
-
-            file_contents = dumps_json(json_object)
-            self.set_job_logger_info(f'Job states (id: {self.CURRENT_JOB}) is {job_state}\n'
-                                     f'\tResult file: {self.OUTPUT_FILE}\n'
-                                     f'\tResult contents: {file_contents}\n')
-
-            return json_object
+            self.set_job_logger_info(f'\tJob states: {job_state}\n'
+                                     f'\tResult file: {self.OUTPUT_FILE}\n')
+            return self.read_response()
         return ''
 
     @staticmethod

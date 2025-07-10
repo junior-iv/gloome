@@ -17,7 +17,7 @@ function setLoader(loaderOn = true) {
 function showAlert(message, duration = 3000) {
     showMessage(message, 2)
     setTimeout(() => {
-        hide_all()
+        hideAll();
     }, duration);
 }
 
@@ -41,7 +41,7 @@ function validateInput(id, defaultValue){
 function loadExample(mode = 0) {
     let newickText = document.getElementById('newickText');
     let msaText = document.getElementById('msaText');
-    hide_all();
+    hideAll();
 
     fetch(`/get_exemple?mode=${mode}`, {
         method: 'GET',
@@ -75,7 +75,7 @@ function getNodeStyle(d, nodeType, mode = 0, sizeFactor = 1){
 function reDrawPhylogeneticTree() {
     if (jsonTreeData !== null){
         setLoader(false)
-        hide_all();
+        hideAll();
         document.getElementById('tree').innerText = '';
         drawPhylogeneticTree(jsonTreeData);
     }
@@ -256,13 +256,18 @@ function convertJSONToTableFoFileList(jsonData) {
 }
 
 function showResponse(jsonData, mode = 0) {
-    let actions = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types']
-    let dictActions = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToTableFoLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
+    const actions = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types']
+    const dictActions = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToTableFoLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
+
+    document.getElementById('title').innerHTML = jsonData['title'];
+    Object.entries(jsonData['form_data']).forEach(([id, value]) => {
+        document.getElementById(id).value = value;
+    });
+
     if (mode === 0) {
         Object.entries(dictActions).forEach(([key, func]) => func(jsonData[key]));
     } else {
-        dictActions[actions[mode-1]](jsonData);
-        // chooseFunction(jsonData, actions[mode-1])
+        dictActions[actions[mode-1]](jsonData[actions[mode-1]]);
     }
 }
 
@@ -324,13 +329,12 @@ function setVisibilityLoader(visible = true) {
     document.getElementById('nodeInfo').innerText = '';
     document.getElementById('logLikelihood').innerText = '';
     document.getElementById('fileList').innerText = '';
-    hide_all();
+    hideAll();
 }
 
 function setAccessibility() {
     let elementNames = [`theButton`, `theСleaningButton`, `theExampleButton`, `theExample2Button`, `msaText`,
         `msaTextFile`, `newickText`, `newickTextFile`, 'alpha', `categoriesQuantity`];
-    ``
     elementNames.forEach(elementId => {
         let element = document.getElementById(elementId)
         if (element.classList.contains('disabled')) {
@@ -341,7 +345,7 @@ function setAccessibility() {
     })
 }
 
-function hide_all() {
+function hideAll() {
     let elementNames = [`divInfo`, `divDanger`, `divWarning`, `divSuccess`, `divSecondary`];
     for (let i = 0; i < elementNames.length; i++) {
         document.getElementById(elementNames[i]).style.visibility = `hidden`;
@@ -368,14 +372,14 @@ function clearForm() {
     for (let i = 0; i < elementNames.innerHTML.length; i++) {
         document.getElementById(elementNames.innerHTML[i]).innerHTML = '';
     }
-    hide_all();
+    hideAll();
 }
 
 function test(testData) {
     const formData = new FormData();
     formData.append(`svgData`, testData);
 
-    hide_all();
+    hideAll();
     // document.getElementById('tree').innerText = ''
     setVisibilityLoader(true);
 
