@@ -1,12 +1,12 @@
 from app.config import WebConfig
 from script.service_functions import get_variables, check_data, get_error
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Any
 from flask import request, Response, jsonify
 import traceback
 
 
-def get_response(process_id: int) -> Response:
-    status = 200
+def get_response(process_id: int) -> Any:
+    # status = 200
     conf = WebConfig(PROCESS_ID=process_id)
     try:
         result = conf.read_response()
@@ -18,7 +18,8 @@ def get_response(process_id: int) -> Response:
             f.write(traceback.format_exc())
         raise  # Re-raise to still return 500
 
-    return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
+    return result
+    # return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
 
 
 def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
