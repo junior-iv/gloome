@@ -249,7 +249,7 @@ class WebConfig:
         data.update({'title': self.PROCESS_ID})
         data.update({'form_data': self.get_form_data()})
 
-        return json_object
+        return data
 
     def get_response(self) -> Optional[Any]:
         self.create_command_line()
