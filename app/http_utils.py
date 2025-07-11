@@ -19,7 +19,6 @@ def get_response(process_id: int) -> Any:
         raise  # Re-raise to still return 500
 
     return result
-    # return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
 
 
 def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
