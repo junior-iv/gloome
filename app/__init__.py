@@ -102,8 +102,7 @@ def execute_all_actions():
 
 @app.route('/results/<process_id>', methods=['GET'])
 def get_results(process_id):
-    return render_template('index.html', menu=MENU,  title=(':', f'  {MENU[0].get("name")}'),
-                           data=get_response(process_id))
+    return render_template('index.html', menu=MENU, data=get_response(process_id))
     # return get_response(process_id)
 
 

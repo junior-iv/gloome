@@ -18,9 +18,9 @@
 
 {% block content %}
 {{ super() }}
-{%- if jsonData -%}
+{%- if data -%}
     <script>
-        document.addEventListener("DOMContentLoaded", showResponse({{jsonData}}));
+        document.addEventListener("DOMContentLoaded", showResponse({{data}}));
     </script>
 {% endif -%}
 <div class="gap-2 d-flex flex-column justify-content-start h-100 w-100 text-center">
