@@ -18,11 +18,7 @@
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
     {%- endblock -%}
 </head>
-{%- if data -%}
-    <body onload="showResponse({{data | tojson | safe}})">
-{% else -%}
-    <body>
-{% endif -%}
+<body>
 {%- block menu -%}
 <header class="sticky-top bg-white">
 <div class="d-flex gap-2 horizontal-gradient flex-row">
@@ -53,7 +49,7 @@
 {%- block header -%}
 <div class="px-3 d-flex gap-2 bg-white border-bottom">
     <div class="text-lg-start text-success h5"><sub> GLOOME
-        {{title[0]|safe}}<small id="title" class="text-warning-emphasis text-opacity-25">{{title[1]|safe}}</small></sub>
+        {{title[0]|safe}} <small id="title" class="text-warning-emphasis text-opacity-25">{{title[1]|safe}}</small></sub>
     </div>
 </div>
 </header>

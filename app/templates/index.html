@@ -18,6 +18,14 @@
 
 {% block content %}
 {{ super() }}
+{%- if data -%}
+<script>
+    showResponse({{data | tojson | safe}});
+</script>
+{#    <body onload="showResponse({{data | tojson | safe}})">#}
+{#{% else -%}#}
+{#    <body>#}
+{% endif -%}
 <div class="gap-2 d-flex flex-column justify-content-start h-100 w-100 text-center">
     <div class="gap-2 d-flex flex-row justify-content-start h-50 w-100 text-center">
         <div class="d-flex gap-2 flex-row text-start w-35 justify-content-start mx-3 mt-4">

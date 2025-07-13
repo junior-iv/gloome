@@ -163,7 +163,8 @@ class WebConfig:
 
     def get_request_body(self):
         # TODO think about job_name = f'gloome_{self.PROCESS_ID}_{self.JOBS_NUMBER.inc()}'
-        job_name = f'gloome_{self.PROCESS_ID}_{self.JOBS_NUMBER.inc()}'
+        # job_name = f'gloome_{self.PROCESS_ID}_{self.JOBS_NUMBER.inc()}'
+        job_name = f'gloome_{self.PROCESS_ID}'
         prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{self.PROCESS_ID}_'
         tmp_dir = path.join(self.PRODJECT_DIR, 'tmp')
         cmd = (f'#!/bin/bash\n'
