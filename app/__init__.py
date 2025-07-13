@@ -27,8 +27,7 @@ def index():
 
 @app.route('/results/<process_id>', methods=['GET'])
 def get_results(process_id):
-    data = get_response(process_id)
-    return render_template('index.html', menu=MENU, data=data)
+    return render_template('index.html', menu=MENU, data=get_response(process_id))
 
 
 @app.route('/overview', methods=['GET'])
