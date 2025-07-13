@@ -19,7 +19,7 @@
     {%- endblock -%}
 </head>
 {%- if data -%}
-    <body onload="showResponse({{data|tojson}})">
+    <body onload="showResponse({{data | tojson | safe}})">
 {% else -%}
     <body>
 {% endif -%}
