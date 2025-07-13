@@ -209,9 +209,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
     categories_quantity = args[2]
     alpha = args[3]
 
-    if not isinstance(categories_quantity, int) or not 4 <= categories_quantity <= 16:
+    if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
-                         f'The value must be between 4 and 16.'))
+                         f'The value must be between 1 and 16.'))
 
     if not isinstance(alpha, float) or not 0.1 <= alpha <= 20:
         err_list.append((f'Alpha value error [ {alpha} ]', f'The value must be between 0.1 and 20.'))
