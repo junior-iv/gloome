@@ -25,6 +25,12 @@ def index():
     return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("name")}'), **DEFAULT_FORM_ARGUMENTS)
 
 
+@app.route('/results/<process_id>', methods=['GET'])
+def get_results(process_id):
+    data = get_response(process_id)
+    return render_template('index.html', menu=MENU, data=data)
+
+
 @app.route('/overview', methods=['GET'])
 def overview():
     return render_template('overview.html', menu=MENU, title=(':', f'  {MENU[1].get("name")}'))
@@ -98,11 +104,6 @@ def compute_likelihood_of_tree():
 @app.route('/execute_all_actions', methods=['POST'])
 def execute_all_actions():
     return execute_request(mode=('execute_all_actions', ))
-
-
-@app.route('/results/<process_id>', methods=['GET'])
-def get_results(process_id):
-    return render_template('index.html', menu=MENU, data=get_response(process_id))
 
 
 @app.route('/test', methods=['POST'])
