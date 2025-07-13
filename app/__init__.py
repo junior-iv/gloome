@@ -27,11 +27,7 @@ def index():
 
 @app.route('/results/<process_id>', methods=['GET'])
 def get_results(process_id):
-    data = get_response(process_id)
-    with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/test_route_debug.log', 'a') as f:
-        f.write(f'\n\n--- Exception at /draw_tree ---\n')
-        f.write(data)
-    return render_template('index.html', menu=MENU, data=data)
+    return render_template('index.html', menu=MENU, data=get_response(process_id))
 
 
 @app.route('/overview', methods=['GET'])

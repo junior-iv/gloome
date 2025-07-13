@@ -140,6 +140,19 @@ class WebConfig:
                                  f'\tnewick_text: {self.CALCULATED_ARGS.newick_text}\n'
                                  f'\tmsa: {self.CALCULATED_ARGS.msa}\n')
 
+    def texts_filling(self, replace_path: bool = True) -> None:
+        if replace_path:
+            self.replace_files_path()
+        with open(self.TREE_FILE, 'r') as f:
+            self.CALCULATED_ARGS.newick_text = f.read()
+        with open(self.MSA_FILE, 'r') as f:
+            self.CALCULATED_ARGS.msa = f.read()
+
+    def replace_files_path(self) -> None:
+        self.MSA_FILE = self.MSA_FILE.replace(STATIC_DIR, self.PRODJECT_DIR)
+        self.TREE_FILE = self.TREE_FILE.replace(STATIC_DIR, self.PRODJECT_DIR)
+        self.CALCULATED_ARGS.file_path = self.OUT_DIR.replace(STATIC_DIR, self.PRODJECT_DIR)
+
     def create_tmp_data_files(self, replace_path: bool = True) -> None:
         self.check_dir(self.CALCULATED_ARGS.file_path)
 
@@ -147,9 +160,7 @@ class WebConfig:
         create_file(self.TREE_FILE, self.CALCULATED_ARGS.newick_text)
 
         if replace_path:
-            self.MSA_FILE = self.MSA_FILE.replace(STATIC_DIR, self.PRODJECT_DIR)
-            self.TREE_FILE = self.TREE_FILE.replace(STATIC_DIR, self.PRODJECT_DIR)
-            self.CALCULATED_ARGS.file_path = self.OUT_DIR.replace(STATIC_DIR, self.PRODJECT_DIR)
+            self.replace_files_path()
         self.set_job_logger_info(f'Create msa file: {self.MSA_FILE}')
         self.set_job_logger_info(f'Create newick file: {self.TREE_FILE}')
         self.set_job_logger_info(f'File path: {self.CALCULATED_ARGS.file_path}')
