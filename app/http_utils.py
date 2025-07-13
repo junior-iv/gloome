@@ -7,13 +7,9 @@ import traceback
 
 def get_response(process_id: int) -> Any:
     conf = WebConfig(PROCESS_ID=process_id)
+    conf.texts_filling()
     try:
         result = conf.read_response()
-        with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/test_route_debug.log', 'a') as f:
-            f.write(f'\n\n--- get_response ---\n')
-            f.write(f'{process_id}')
-            import json
-            f.write(json.dumps(result))
     except Exception:
         conf.set_job_logger_info(traceback.format_exc())
         with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/{conf.CURRENT_JOB}_{conf.PROCESS_ID}_'
