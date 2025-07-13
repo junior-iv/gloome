@@ -20,8 +20,9 @@
 {{ super() }}
 {%- if data -%}
 <script>
-    const data = JSON.parse('{{data | tojson | safe}}');
-    showResponse(data);
+    alert('{{data | tojson | safe}}')
+    {#const data = JSON.parse('{{data | tojson | safe}}');#}
+    {#showResponse(data);#}
 </script>
 {#    <body onload="showResponse({{data | tojson | safe}})">#}
 {#{% else -%}#}
