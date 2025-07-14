@@ -6,9 +6,9 @@ import traceback
 
 
 def get_response(process_id: int) -> Any:
+    conf = WebConfig(PROCESS_ID=process_id)
     try:
         # result = json.loads(conf.read_response())
-        conf = WebConfig(PROCESS_ID=process_id)
         conf.texts_filling()
         result = conf.read_response()
     except Exception:
