@@ -12,7 +12,7 @@ def get_response(process_id: int) -> Any:
         result = conf.read_response()
         with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/{conf.CURRENT_JOB}_route_debug.log', 'a') as f:
             f.write(f'\n\n--- result ---\n')
-            f.write(result)
+            f.write(f'{result}')
     except Exception:
         conf.set_job_logger_info(traceback.format_exc())
         with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/{conf.CURRENT_JOB}_{conf.PROCESS_ID}_'
