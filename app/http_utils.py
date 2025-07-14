@@ -11,7 +11,7 @@ def get_response(process_id: int) -> Any:
     conf = WebConfig(PROCESS_ID=process_id)
     conf.texts_filling()
     try:
-        result = json.loads(conf.read_response())
+        result = jsonify(message=conf.read_response()).response
     except Exception:
         conf.set_job_logger_info(traceback.format_exc())
         with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/{conf.CURRENT_JOB}_{conf.PROCESS_ID}_'
