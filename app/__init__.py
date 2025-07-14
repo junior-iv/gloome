@@ -28,9 +28,17 @@ def index():
 @app.route('/results/<process_id>', methods=['GET'])
 def get_results(process_id):
     data = get_response(process_id)
-    return render_template('index.html', menu=MENU, title=data.form_data.title,
-                           alpha=data.form_data.alpha, categories_quantity=data.form_data.categoriesQuantity,
-                           msa=data.form_data.msaText, newick=data.form_data.newickText)
+    try:
+        result = render_template('index.html', menu=MENU, title=data.form_data.title,
+                                 alpha=data.form_data.alpha, categories_quantity=data.form_data.categoriesQuantity,
+                                 msa=data.form_data.msaText, newick=data.form_data.newickText)
+    except Exception:
+        with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/err.log', 'a') as f:
+            f.write(f'\n\n--- Exception at /draw_tree ---\n')
+            f.write(traceback.format_exc())
+        raise  # Re-raise to still return 500
+
+    return result
 
 
 @app.route('/overview', methods=['GET'])
