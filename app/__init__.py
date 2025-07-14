@@ -28,12 +28,6 @@ def index():
 @app.route('/results/<process_id>', methods=['GET'])
 def get_results(process_id):
     data = get_response(process_id)
-    with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/{process_id}_result.log', 'a') as f:
-        f.write(f'\n\n--- result ---\n')
-        f.write(f'{type(data)}')
-        f.write(f'{data}')
-        # f.write(f'{type(data.response.message)}')
-        # f.write(f'{data.response.message}')
     return render_template('index.html', menu=MENU, data=data)
 
 
