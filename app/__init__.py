@@ -32,7 +32,9 @@ def get_results(process_id):
         f.write(f'\n\n--- result ---\n')
         f.write(f'{type(data)}')
         f.write(f'{data}')
-    return render_template('index.html', menu=MENU, data=data)
+        f.write(f'{type(data.response)}')
+        f.write(f'{data.response}')
+    return render_template('index.html', menu=MENU, data=data.response)
 
 
 @app.route('/overview', methods=['GET'])
