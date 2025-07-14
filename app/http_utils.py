@@ -1,3 +1,5 @@
+import json
+
 from app.config import WebConfig
 from script.service_functions import get_variables, check_data, get_error
 from typing import Tuple, Optional, Any
@@ -18,7 +20,7 @@ def get_response(process_id: int) -> Any:
             f.write(traceback.format_exc())
         raise  # Re-raise to still return 500
 
-    return result
+    return json.dumps(result)
 
 
 def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
