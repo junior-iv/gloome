@@ -11,7 +11,7 @@ def get_response(process_id: int) -> Any:
     conf = WebConfig(PROCESS_ID=process_id)
     conf.texts_filling()
     try:
-        result = conf.read_response()
+        result = json.dumps(conf.read_response())
     except Exception:
         conf.set_job_logger_info(traceback.format_exc())
         with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/{conf.CURRENT_JOB}_{conf.PROCESS_ID}_'
@@ -20,7 +20,7 @@ def get_response(process_id: int) -> Any:
             f.write(traceback.format_exc())
         raise  # Re-raise to still return 500
 
-    return json.dumps(result)
+    return result
 
 
 def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
