@@ -7,9 +7,8 @@ import traceback
 
 def get_response(process_id: int) -> Any:
     conf = WebConfig(PROCESS_ID=process_id)
+    conf.texts_filling()
     try:
-        # result = json.loads(conf.read_response())
-        conf.texts_filling()
         result = conf.read_response()
     except Exception:
         conf.set_job_logger_info(traceback.format_exc())
