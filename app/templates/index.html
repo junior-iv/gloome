@@ -21,7 +21,9 @@
 {%- if data -%}
     <script>
         let data = '{{ data | tojson }}';
-        alert(`${data.title}`)
+        console.log(`${data.title}`)
+        console.log(`${typeof data}`)
+        console.log(`${data}`)
         showResponse(data);
     </script>
 {% endif -%}

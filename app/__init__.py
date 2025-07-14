@@ -1,4 +1,4 @@
-from flask import Flask, render_template, send_file
+from flask import Flask, render_template, send_file, json
 # , Response, redirect, url_for, request, jsonify)
 from SharedConsts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR
 from config import FlaskConfig
@@ -32,9 +32,9 @@ def get_results(process_id):
         f.write(f'\n\n--- result ---\n')
         f.write(f'{type(data)}')
         f.write(f'{data}')
-        f.write(f'{type(data.response.message)}')
-        f.write(f'{data.response.message}')
-    return render_template('index.html', menu=MENU, data=data.response.message)
+        # f.write(f'{type(data.response.message)}')
+        # f.write(f'{data.response.message}')
+    return render_template('index.html', menu=MENU, data=data)
 
 
 @app.route('/overview', methods=['GET'])

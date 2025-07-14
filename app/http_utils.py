@@ -1,7 +1,7 @@
 from app.config import WebConfig
 from script.service_functions import get_variables, check_data, get_error
 from typing import Tuple, Optional, Any
-from flask import request, Response, jsonify
+from flask import request, Response, jsonify, json
 import traceback
 
 
@@ -9,7 +9,8 @@ def get_response(process_id: int) -> Any:
     conf = WebConfig(PROCESS_ID=process_id)
     conf.texts_filling()
     try:
-        result = jsonify(message=conf.read_response())
+        # result = json.loads(conf.read_response())
+        result = conf.read_response()
     except Exception:
         conf.set_job_logger_info(traceback.format_exc())
         with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/results_{conf.PROCESS_ID}_'
