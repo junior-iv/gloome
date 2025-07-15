@@ -20,6 +20,7 @@
 {{ super() }}
 {%- if data -%}
     <script>
+        console.log(`qwe`)
         let data = '{{ data | tojson }}';
         console.log(`${data.title}`)
         console.log(`${typeof data}`)
