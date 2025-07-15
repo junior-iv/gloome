@@ -1,4 +1,5 @@
 import types
+
 from os import getenv, path
 from sys import argv
 from script.tree import Tree
@@ -67,6 +68,9 @@ ERROR_TEMPLATE = path.join(TEMPLATES_DIR, '404.html')
 
 MSA_FILE_NAME = 'msa_file.msa'
 TREE_FILE_NAME = 'tree_file.tree'
+
+REQUESTS_NUMBER = 100
+REQUEST_WAITING_TIME = 30
 
 
 class Actions:

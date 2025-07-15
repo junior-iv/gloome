@@ -1,10 +1,11 @@
-from enum import Enum
 import datetime
 import logging
-from os import chdir, system, makedirs
-from SharedConsts import *
 import pickle
 import re
+
+from enum import Enum
+from os import chdir, system, makedirs
+from consts import *
 from time import time
 from random import randint
 

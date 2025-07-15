@@ -1,3 +1,6 @@
+import inspect
+import json
+
 from os import path, remove, makedirs
 from typing import Callable, Any
 from datetime import timedelta
@@ -5,8 +8,6 @@ from shutil import make_archive, move
 from numpy import ndarray
 from .tree import Tree
 from .design_functions import *
-import inspect
-import json
 
 
 def get_digit(data: str) -> Union[int, float, str]:

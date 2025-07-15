@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
+
 from shutil import rmtree
 from json import loads
 from os import path, makedirs

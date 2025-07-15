@@ -1,8 +1,9 @@
+import traceback
+
 from app.config import WebConfig
 from script.service_functions import get_variables, check_data, get_error
 from typing import Tuple, Optional, Any
-from flask import request, Response, jsonify, json
-import traceback
+from flask import request, Response, jsonify
 
 
 def get_response(process_id: int) -> Any:

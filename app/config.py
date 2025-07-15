@@ -1,7 +1,5 @@
-import json
-
 import requests
-# import traceback
+
 from time import sleep
 from utils import *
 from script.service_functions import read_file, loads_json, create_file, result_design
@@ -10,7 +8,6 @@ from typing import Optional, Any, Set, Dict
 
 
 SERVERS_RESULTS_DIR = path.join(STATIC_DIR, 'results')
-# SERVERS_LOGS_DIR = path.join(STATIC_DIR, 'logs')
 SERVERS_LOGS_DIR = path.join(SERVERS_RESULTS_DIR, 'logs')
 IN_DIR = path.join(SERVERS_RESULTS_DIR, 'in')
 OUT_DIR = path.join(SERVERS_RESULTS_DIR, 'out')
@@ -134,7 +131,6 @@ class WebConfig:
                 self.CURRENT_ARGS.update({out_key: current_value})
         mode = arguments.get('mode')
         self.MODE = ' '.join(mode)
-        # self.OUTPUT_FILE = path.join(self.OUT_DIR, f'{mode[0]}.json')
         self.CALCULATED_ARGS.newick_text = arguments.get('newickText')
         self.CALCULATED_ARGS.msa = arguments.get('msaText')
         self.set_job_logger_info(f'MODE: {self.MODE}\n'
@@ -274,7 +270,7 @@ class WebConfig:
         self.set_job_logger_info(f'\tSubmit job (id: {self.CURRENT_JOB})'
                                  f'\tRequest body: {request_body}\n')
 
-        job_state = self.SUBMITER.check_job_state(self)
+        job_state = self.SUBMITER.check_job_state(self, count=REQUESTS_NUMBER, waiting_time=REQUEST_WAITING_TIME)
 
         if job_state:
             self.set_job_logger_info(f'\tJob states: {job_state}\n'
