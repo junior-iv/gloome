@@ -29,9 +29,10 @@ def index():
 def get_results(process_id):
     data = get_response(process_id)
     try:
-        result = render_template('index.html', menu=MENU, title=data.form_data.title,
-                                 alpha=data.form_data.alpha, categories_quantity=data.form_data.categoriesQuantity,
-                                 msa=data.form_data.msaText, newick=data.form_data.newickText)
+        result = render_template('index.html', menu=MENU, title=data.get('form_data').title,
+                                 msa=data.get('form_data').msaText, alpha=data.get('form_data').alpha,
+                                 categories_quantity=data.get('form_data').categoriesQuantity,
+                                 newick=data.get('form_data').newickText)
     except Exception:
         with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/err.log', 'a') as f:
             f.write(f'\n\n--- Exception at /draw_tree ---\n')

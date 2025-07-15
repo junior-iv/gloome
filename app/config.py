@@ -262,9 +262,6 @@ class WebConfig:
 
         data.update({'title': self.PROCESS_ID})
         data.update({'form_data': self.get_form_data()})
-        with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/data.log', 'a') as f:
-            f.write(f'\n\n--- form_data ---\n')
-            f.write(json.dumps(data))
 
         return data
 
