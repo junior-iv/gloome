@@ -18,7 +18,11 @@
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
     {%- endblock -%}
 </head>
-<body>
+{%- if data -%}
+    <body onload="showResponse({{data}})">
+{% else -%}
+    <body>
+{% endif -%}
 {%- block menu -%}
 <header class="sticky-top bg-white">
 <div class="d-flex gap-2 horizontal-gradient flex-row">
