@@ -23,7 +23,7 @@
         console.log(`qwe`);
         {#let data = JSON.parse('{{ data | tojson | safe}}');#}
 
-        let data = {{ data }};
+        let data = {{ data | tojson }};
         console.log(`${data.title}`);
         console.log(`${typeof data}`);
         console.log(`${data}`);
