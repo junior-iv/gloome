@@ -20,11 +20,11 @@
 {{ super() }}
 {%- if data -%}
     <script>
-        console.log(`qwe`)
-        let data = '{{ data | tojson }}';
-        console.log(`${data.title}`)
-        console.log(`${typeof data}`)
-        console.log(`${data}`)
+        console.log(`qwe`);
+        let data = JSON.parse('{{ data | tojson }}');
+        console.log(`${data.title}`);
+        console.log(`${typeof data}`);
+        console.log(`${data}`);
         showResponse(data);
     </script>
 {% endif -%}
