@@ -1,10 +1,12 @@
+import json
+
 import requests
 # import traceback
 from time import sleep
 from utils import *
 from script.service_functions import read_file, loads_json, create_file, result_design
 from flask import url_for
-from typing import Optional, Any, Set
+from typing import Optional, Any, Set, Dict
 
 
 SERVERS_RESULTS_DIR = path.join(STATIC_DIR, 'results')
@@ -236,7 +238,7 @@ class WebConfig:
                                         change_value_style=False, change_key=True, change_key_style=False)
         return json_object
 
-    def get_form_data(self) -> Any:
+    def get_form_data(self) -> Dict[str, Union[str, int]]:
         form_data = {'msaText': self.CALCULATED_ARGS.msa,
                      'newickText': self.CALCULATED_ARGS.newick_text,
                      'alpha': self.CURRENT_ARGS.alpha,
@@ -260,6 +262,9 @@ class WebConfig:
 
         data.update({'title': self.PROCESS_ID})
         data.update({'form_data': self.get_form_data()})
+        with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/data.log', 'a') as f:
+            f.write(f'\n\n--- form_data ---\n')
+            f.write(json.dumps(data))
 
         return data
 
