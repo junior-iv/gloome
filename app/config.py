@@ -117,11 +117,11 @@ class WebConfig:
                                  f'\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
 
     def arguments_filling(self, **arguments):
-        dct = zip(('categoriesQuantity', 'alpha'),
+        dct = zip(('categoriesQuantity', 'alpha', 'pi1'),
                   # , 'isRadialTree', 'showDistanceToParent'),
                   # , 'is_radial_tree', 'show_distance_to_parent'),
                   # , (int, bool), (int, bool)))
-                  ('categories_quantity', 'alpha'),
+                  ('categories_quantity', 'alpha', 'pi_1'),
                   ((int, ), (float, )))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)

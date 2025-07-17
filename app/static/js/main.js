@@ -277,12 +277,13 @@ function makeTree(mode = 0) {
     const msaText = document.getElementById(`msaText`);
     const categoriesQuantity = document.getElementById(`categoriesQuantity`);
     const alpha = document.getElementById(`alpha`);
+    const pi1 = document.getElementById(`pi1`);
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`msaText`, msaText.value.trim());
     formData.append(`categoriesQuantity`, categoriesQuantity.value.trim());
     formData.append(`alpha`, alpha.value.trim());
-    formData.append(`alpha`, alpha.value.trim());
+    formData.append(`pi1`, pi1.value.trim());
 
     jsonTreeData = null
 
