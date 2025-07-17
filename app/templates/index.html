@@ -48,7 +48,7 @@
                 </ul>
             </div>
             <div id="treeHelp" class="d-flex gap-2 flex-column border-danger-subtle border-1 bg-light-subtle text-center rounded-3 h7 p-2 zoomable-element text-color-salmon">
-                For JC with a constant rate please use <br> <span class="h6">alpha = 0.5, 1 category</span>
+                For JC with a constant rate please use <br> <span class="h6">π1 = 0.5, alpha = 0.5, <br> category = 1</span>
             </div>
             <div class="container gap-2 d-flex flex-row h-auto w-100 m-1">
                 <input value="1" id="isRadialTree" name="isRadialTree" onchange="reDrawPhylogeneticTree()"
@@ -114,7 +114,7 @@
                     </div>
                 </div>
                 <div class="gap-2 d-flex w-50 flex-column mx-3 m-2">
-                    <div class="gap-2 justify-content row navbar">
+                    <div class="gap-2 justify-content row navbar align-content-stretch">
                         <input id="theСleaningButton" name="theСleaningButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
                               value="clear" onclick="clearForm()"/>
                         <input id="theExampleButton" name="theExampleButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
@@ -125,17 +125,23 @@
                 </div>
             </div>
             <div class="d-flex gap-2 flex-row align-content-stretch h-auto w-100 mt-1 mb-2">
-                <div class="d-flex gap-2 flex-row h-auto w-50 mx-2">
-                    <input value="{{alpha}}" id="alpha" name="alpha" type="number"
+                <div class="d-flex gap-2 flex-row h-auto w-20 mx-2 align-content-stretch">
+                    <input value="{{pi_1}}" id="pi1" name="pi1" type="number" min="0.01" max="1" step="0.01"
+                           title="The value must be between 0.01 and 1" onchange="validateInput('pi1', {{pi1}})"
+                           class="form-control rounded-pill"/>
+                    <label for="pi1" class="h6 text-start text-success-emphasis ms-3">π1</label>
+                </div>
+                <div class="d-flex gap-2 flex-row h-auto w-40 mx-2 align-content-stretch">
+                    <input value="{{alpha}}" id="alpha" name="alpha" type="number" min="0.1" max="20" step="0.1"
                            title="The value must be between 0.1 and 20" onchange="validateInput('alpha', {{alpha}})"
-                           min="0.1" max="20" step="0.1" class="form-control rounded-pill w-20"/>
+                           class="form-control rounded-pill"/>
                     <label for="alpha" class="h6 text-start text-success-emphasis ms-3">alpha, beta</label>
                 </div>
-                <div class="d-flex gap-2 flex-row h-auto w-50 mx-2">
+                <div class="d-flex gap-2 flex-row h-auto w-40 mx-2 align-content-stretch">
                     <input value="{{categories_quantity}}" id="categoriesQuantity" name="categoriesQuantity"
-                           title="The value must be between 1 and 16"
+                           title="The value must be between 1 and 16" type="number" min="1" max="16" step="1"
                            onchange="validateInput('categoriesQuantity', {{categories_quantity}})"
-                           type="number" min="1" max="16" step="1" class="form-control rounded-pill w-20"/>
+                           class="form-control rounded-pill"/>
                     <label for="categoriesQuantity" class="h6 text-start text-success-emphasis">number of rate categories</label>
                 </div>
             </div>

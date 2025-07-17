@@ -167,7 +167,7 @@ class WebConfig:
         self.COMMAND_LINE = (
             f'python {path.join(".", "script/main.py")} --process_id {self.PROCESS_ID} --msa_file {self.MSA_FILE} '
             f'--tree_file {self.TREE_FILE} --categories_quantity {self.CURRENT_ARGS.categories_quantity} --alpha '
-            f'{self.CURRENT_ARGS.alpha} --mode {self.MODE}')
+            f'{self.CURRENT_ARGS.alpha} --categories_quantity {self.CURRENT_ARGS.categories_quantity} --mode {self.MODE}')
         self.set_job_logger_info(f'COMMAND_LINE: {self.COMMAND_LINE}')
 
     def get_request_body(self):
@@ -237,6 +237,7 @@ class WebConfig:
     def get_form_data(self) -> Dict[str, Union[str, int]]:
         form_data = {'msaText': self.CALCULATED_ARGS.msa,
                      'newickText': self.CALCULATED_ARGS.newick_text,
+                     'pi_1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
                      'categoriesQuantity': self.CURRENT_ARGS.categories_quantity}
 

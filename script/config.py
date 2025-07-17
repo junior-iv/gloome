@@ -199,7 +199,8 @@ class Config:
             self.CALCULATED_ARGS.err_list += self.ACTIONS.check_data(self.CALCULATED_ARGS.newick_text,
                                                                      self.CALCULATED_ARGS.msa,
                                                                      self.CURRENT_ARGS.get('categories_quantity', 4),
-                                                                     self.CURRENT_ARGS.get('alpha', 0.5))
+                                                                     self.CURRENT_ARGS.get('alpha', 0.5),
+                                                                     self.CURRENT_ARGS.get('pi_1', 0.5))
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
             try:
                 self.CALCULATED_ARGS.newick_tree = self.ACTIONS.check_tree(self.CALCULATED_ARGS.newick_text)
@@ -265,6 +266,8 @@ class Config:
                             f'quantity. Default is {self.CURRENT_ARGS.get("categories_quantity", 4)}.')
         parser.add_argument('--alpha', dest='alpha', type=float, required=False, default=self.CURRENT_ARGS.get('alpha',
                             0.5), help=f'Specify alpha. Default is {self.CURRENT_ARGS.get("alpha", 0.5)}.')
+        parser.add_argument('--pi_1', dest='pi_1', type=float, required=False, default=self.CURRENT_ARGS.get('pi_1',
+                            0.5), help=f'Specify pi_1. Default is {self.CURRENT_ARGS.get("pi_1", 0.5)}.')
         args = parser.parse_args()
 
         for arg_name, arg_value in vars(args).items():

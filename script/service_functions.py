@@ -209,6 +209,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
     msa = args[1].strip()
     categories_quantity = args[2]
     alpha = args[3]
+    pi_1 = args[4]
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -216,6 +217,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not isinstance(alpha, float) or not 0.1 <= alpha <= 20:
         err_list.append((f'Alpha value error [ {alpha} ]', f'The value must be between 0.1 and 20.'))
+
+    if not isinstance(pi_1, float) or not 0.01 <= pi_1 <= 1:
+        err_list.append((f'π1 value error [ {pi_1} ]', f'The value must be between 0.01 and 1.'))
 
     if not msa:
         err_list.append(('MSA error', 'No MSA was provided.'))

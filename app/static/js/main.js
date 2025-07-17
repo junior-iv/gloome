@@ -282,6 +282,7 @@ function makeTree(mode = 0) {
     formData.append(`msaText`, msaText.value.trim());
     formData.append(`categoriesQuantity`, categoriesQuantity.value.trim());
     formData.append(`alpha`, alpha.value.trim());
+    formData.append(`alpha`, alpha.value.trim());
 
     jsonTreeData = null
 

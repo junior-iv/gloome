@@ -125,7 +125,8 @@ DEFAULT_ARGUMENTS = DefaultArgs(**{
 
 DEFAULT_FORM_ARGUMENTS = {
     'categories_quantity': 4,
-    'alpha': 0.5
+    'alpha': 0.5,
+    'pi_1': 0.5
     }
 
 ACTIONS = Actions(**{
