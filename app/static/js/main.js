@@ -32,7 +32,7 @@ function validateInput(id, defaultValue){
     } else if (currentValue > maxValue) {
         showAlert(`${currentElement.title}.`);
         currentElement.value = maxValue;
-    } else if (currentValue < minValue && currentValue > 0) {
+    } else if (currentValue <= minValue && currentValue >= 0) {
         showAlert(`${currentElement.title}.`);
         currentElement.value = minValue;
     }
@@ -336,7 +336,7 @@ function setVisibilityLoader(visible = true) {
 
 function setAccessibility() {
     let elementNames = [`theButton`, `theСleaningButton`, `theExampleButton`, `theExample2Button`, `msaText`,
-        `msaTextFile`, `newickText`, `newickTextFile`, 'alpha', `categoriesQuantity`];
+        `msaTextFile`, `newickText`, `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`];
     elementNames.forEach(elementId => {
         let element = document.getElementById(elementId)
         if (element.classList.contains('disabled')) {

@@ -237,7 +237,7 @@ class WebConfig:
     def get_form_data(self) -> Dict[str, Union[str, int]]:
         form_data = {'msaText': self.CALCULATED_ARGS.msa,
                      'newickText': self.CALCULATED_ARGS.newick_text,
-                     'pi_1': self.CURRENT_ARGS.pi_1,
+                     'pi1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
                      'categoriesQuantity': self.CURRENT_ARGS.categories_quantity}
 
