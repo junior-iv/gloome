@@ -122,7 +122,7 @@ class WebConfig:
                   # , 'is_radial_tree', 'show_distance_to_parent'),
                   # , (int, bool), (int, bool)))
                   ('categories_quantity', 'alpha', 'pi_1'),
-                  ((int, ), (float, )))
+                  ((int, ), (float, ), (float, )))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
