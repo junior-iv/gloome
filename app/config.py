@@ -235,19 +235,10 @@ class WebConfig:
                                         change_value_style=False, change_key=True, change_key_style=False)
         return json_object
 
-    def get_form_data(self) -> Dict[str, Union[str, int]]:
-        form_data = {'msaText': self.CALCULATED_ARGS.msa,
-                     'newickText': self.CALCULATED_ARGS.newick_text,
-                     'pi1': self.CURRENT_ARGS.pi_1,
-                     'alpha': self.CURRENT_ARGS.alpha,
-                     'categoriesQuantity': self.CURRENT_ARGS.categories_quantity}
-
-        return form_data
-
     def read_response(self) -> Any:
         file_contents = read_file(file_path=self.OUTPUT_FILE)
 
-        with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/kwargs_route_debug.log', 'a') as f:
+        with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/file_contents.log', 'a') as f:
             f.write(f'\n\n--- file_contents ---\n')
             f.write(file_contents)
         json_object = loads_json(file_contents)
@@ -262,7 +253,7 @@ class WebConfig:
             data = self.get_response_design(data, action_name)
 
         data.update({'title': self.PROCESS_ID})
-        data.update({'form_data': self.get_form_data()})
+        data.update({'form_data': json_object.get('form_data')})
 
         return data
 

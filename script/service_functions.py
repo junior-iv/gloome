@@ -93,32 +93,46 @@ def get_log_file(data: Any, file_path: str, num: int = 1) -> int:
     return num
 
 
+def get_result_data(data: Union[Dict[str, Union[str, int, float, ndarray, List[Union[float, ndarray]]]],
+                                List[Union[float, ndarray, Any]]],
+                    action_name: str, form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
+                    ) -> Dict[str, Union[str, int, float, ndarray, Dict[str, Union[str, int, float, ndarray]],
+                                         List[Union[float, ndarray,Any]]]]:
+    result = {'action_name': action_name, 'data': data}
+    if form_data is not None:
+        result.update({'form_data': form_data})
+
+    return result
+
+
 def execute_all_actions(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str], file_path: str,
                         rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
-                        alphabet: Optional[Tuple[str, ...]] = None) -> Union[Dict[str, str], str]:
+                        alphabet: Optional[Tuple[str, ...]] = None,
+                        form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
+                        create_new_file: bool = False
+                        ) -> Union[Dict[str, str], str]:
+
     if isinstance(newick_tree, str):
         newick_tree = Tree.rename_nodes(newick_tree)
     if isinstance(msa, str):
         msa = newick_tree.get_msa_dict(msa)
 
-    result = {'draw_tree': draw_tree(newick_tree, file_path, True)}
-    result.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree, msa, rate_vector,
-                                                                            file_path, True)})
-    result.update({'create_all_file_types': create_all_file_types(newick_tree, msa, file_path, rate_vector,
-                                                                  alphabet, True)})
+    result_data = {'draw_tree': draw_tree(newick_tree, file_path)}
+    result_data.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree, msa, rate_vector,
+                                                                                 file_path)})
+    result_data.update({'create_all_file_types': create_all_file_types(newick_tree, msa, file_path, rate_vector,
+                                                                       alphabet)})
+    if create_new_file:
+        return create_file(file_path, get_result_data(result_data, 'execute_all_actions', form_data), 'result.json')
 
-    file_path = create_file(file_path, {'action_name': 'execute_all_actions', 'data': result}, 'result.json')
-    print(f'result: {result}')
-    print(f'file_path: {file_path}')
-
-    return file_path
+    return result_data
 
 
 def compute_likelihood_of_tree(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str], rate_vector:
                                Optional[Tuple[Union[float, ndarray], ...]] = None, file_path: Optional[str] = None,
-                               return_dict: bool = False) -> Union[dict[str, Union[float, ndarray,
-                                                                   list[Union[float, ndarray]]]], str]:
-    # start_time = time()
+                               create_new_file: bool = False,
+                               form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
+                               ) -> Union[Dict[str, Union[float, ndarray, List[Union[float, ndarray]]]], str]:
     if isinstance(newick_tree, str):
         newick_tree = Tree.rename_nodes(newick_tree)
     if isinstance(msa, str):
@@ -129,69 +143,64 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], msa: Union[Dict[st
     result = {'likelihood_of_the_tree': newick_tree.likelihood}
     result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
     result.update({'log-likelihood_list': newick_tree.log_likelihood_vector})
-    if return_dict:
-        return result
 
-    file_path = create_file(file_path, {'action_name': 'compute_likelihood_of_tree', 'data': result}, 'result.json')
-    print(f'result: {result}')
-    print(f'file_path: {file_path}')
+    if create_new_file:
+        return create_file(file_path, get_result_data(result, 'compute_likelihood_of_tree', form_data), 'result.json')
 
-    return file_path
+    return result
 
 
 def create_all_file_types(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str], file_path: str,
                           rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
-                          alphabet: Optional[Tuple[str, ...]] = None, return_dict: bool = False
+                          alphabet: Optional[Tuple[str, ...]] = None, create_new_file: bool = False,
+                          form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
                           ) -> Union[Dict[str, str], str]:
-    # start_time = time()
     if isinstance(newick_tree, str):
         newick_tree = Tree.rename_nodes(newick_tree)
     if isinstance(msa, str):
         msa = newick_tree.get_msa_dict(msa)
     if alphabet is None:
         alphabet = Tree.get_alphabet_from_dict(msa)
-    path_dict = {'Interactive tree (html)': Tree.tree_to_interactive_html(newick_tree, msa, alphabet,
-                 file_name=f'{file_path}/interactive_tree.html', rate_vector=rate_vector)}
-    path_dict.update(Tree.tree_to_graph(newick_tree, file_name=f'{file_path}/graph.txt',
-                     file_extensions=('dot', 'png', 'svg')))
-    path_dict.update(Tree.tree_to_visual_format(newick_tree, file_name=f'{file_path}/visual_tree.svg',
-                     file_extensions=('txt', 'png', 'svg'), with_internal_nodes=True))
-    path_dict.update({'Newick text (tree)': Tree.tree_to_newick_file(newick_tree,
-                     file_name=f'{file_path}/newick_tree.tree', with_internal_nodes=True)})
-    path_dict.update({'Table of nodes (csv)': Tree.tree_to_csv(newick_tree, file_name=f'{file_path}/tree.csv',
-                     sep='\t', sort_values_by=('child', 'Name'), decimal_length=8)})
-    path_dict.update({'Fasta (fasta)': Tree.tree_to_fasta(newick_tree, msa, alphabet,
-                     file_name=f'{file_path}/fasta_file.fasta', rate_vector=rate_vector)})
-    path_dict.update({'log-Likelihood (csv)': Tree.likelihood_to_csv(newick_tree, msa,
-                     file_name=f'{file_path}/log-likelihood.csv', sep='\t', rate_vector=rate_vector)})
+    result = {'Interactive tree (html)': Tree.tree_to_interactive_html(newick_tree, msa, alphabet,
+              file_name=f'{file_path}/interactive_tree.html', rate_vector=rate_vector)}
+    result.update(Tree.tree_to_graph(newick_tree, file_name=f'{file_path}/graph.txt',
+                  file_extensions=('dot', 'png', 'svg')))
+    result.update(Tree.tree_to_visual_format(newick_tree, file_name=f'{file_path}/visual_tree.svg',
+                  file_extensions=('txt', 'png', 'svg'), with_internal_nodes=True))
+    result.update({'Newick text (tree)': Tree.tree_to_newick_file(newick_tree,
+                  file_name=f'{file_path}/newick_tree.tree', with_internal_nodes=True)})
+    result.update({'Table of nodes (csv)': Tree.tree_to_csv(newick_tree, file_name=f'{file_path}/tree.csv',
+                  sep='\t', sort_values_by=('child', 'Name'), decimal_length=8)})
+    result.update({'Fasta (fasta)': Tree.tree_to_fasta(newick_tree, msa, alphabet,
+                  file_name=f'{file_path}/fasta_file.fasta', rate_vector=rate_vector)})
+    result.update({'log-Likelihood (csv)': Tree.likelihood_to_csv(newick_tree, msa,
+                  file_name=f'{file_path}/log-likelihood.csv', sep='\t', rate_vector=rate_vector)})
 
     archive_path = path.join(path.dirname(file_path), path.basename(file_path))
     archive_name = make_archive(archive_path, 'zip', file_path, '.')
     new_archive_name = path.join(file_path, path.basename(archive_name))
     move(archive_name, new_archive_name)
 
-    path_dict.update({'Archive (zip)': new_archive_name})
+    result.update({'Archive (zip)': new_archive_name})
 
-    if return_dict:
-        return path_dict
+    if create_new_file:
+        return create_file(file_path, get_result_data(result, 'create_all_file_types', form_data), 'result.json')
 
-    file_path = create_file(file_path, {'action_name': 'create_all_file_types', 'data': path_dict}, 'result.json')
-
-    return file_path
+    return result
 
 
-def draw_tree(newick_tree: Tree, file_path: str, return_dict: bool = False) -> Union[List[Any], str]:
+def draw_tree(newick_tree: Tree, file_path: str, create_new_file: bool = False,
+              form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None) -> Union[List[Any], str]:
+    size_factor = min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
     result = [newick_tree.get_json_structure(),
               newick_tree.get_json_structure(return_table=True),
-              newick_tree.get_columns_list_for_sorting()]
-    size_factor = min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
-    result.append({'Size factor': size_factor})
-    if return_dict:
-        return result
+              newick_tree.get_columns_list_for_sorting(),
+              {'Size factor': size_factor}]
 
-    file_path = create_file(file_path, {'action_name': 'draw_tree', 'data': result}, 'result.json')
+    if create_new_file:
+        return create_file(file_path, get_result_data(result, 'draw_tree', form_data), 'result.json')
 
-    return file_path
+    return result
 
 
 def convert_seconds(seconds: float) -> str:

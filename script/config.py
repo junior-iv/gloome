@@ -4,6 +4,7 @@ import socket
 
 from sys import exit
 from utils import *
+from typing import Dict
 
 
 class Config:
@@ -120,6 +121,14 @@ class Config:
                 print(self.USAGE)
                 exit()
 
+    def get_form_data(self) -> Dict[str, Union[str, int]]:
+        form_data = {'msaText': self.CALCULATED_ARGS.msa,
+                     'newickText': self.CALCULATED_ARGS.newick_text,
+                     'pi1': self.CURRENT_ARGS.pi_1,
+                     'alpha': self.CURRENT_ARGS.alpha,
+                     'categoriesQuantity': self.CURRENT_ARGS.categories_quantity}
+        return form_data
+
     def execute_calculation(self):
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_tree_for_fasta', False):
             try:
@@ -139,7 +148,8 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
             try:
                 func = self.ACTIONS.draw_tree
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR)
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR, create_new_file=True,
+                           form_data=self.get_form_data())
                 self.set_job_logger_info(f'Successfully Command \'draw_tree\' executed successfully. -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
@@ -149,7 +159,8 @@ class Config:
             try:
                 func = self.ACTIONS.compute_likelihood_of_tree
                 val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa_dict,
-                           file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector)
+                           file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector, create_new_file=True,
+                           form_data=self.get_form_data())
                 self.set_job_logger_info(f'Command \'compute_likelihood_of_tree\' executed successfully. -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
@@ -162,7 +173,7 @@ class Config:
                 func = self.ACTIONS.create_all_file_types
                 val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa_dict,
                            file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector,
-                           alphabet=self.CALCULATED_ARGS.alphabet)
+                           alphabet=self.CALCULATED_ARGS.alphabet, create_new_file=True, form_data=self.get_form_data())
                 self.set_job_logger_info(f'Command \'create_all_file_types\' executed successfully. -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
@@ -174,7 +185,7 @@ class Config:
                 func = self.ACTIONS.execute_all_actions
                 val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa_dict,
                            file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector,
-                           alphabet=self.CALCULATED_ARGS.alphabet)
+                           alphabet=self.CALCULATED_ARGS.alphabet, create_new_file=True, form_data=self.get_form_data())
                 self.set_job_logger_info(f'Command \'execute_all_actions\' executed successfully. -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
