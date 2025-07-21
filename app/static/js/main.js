@@ -32,7 +32,7 @@ function validateInput(id, defaultValue){
     } else if (currentValue > maxValue) {
         showAlert(`${currentElement.title}.`);
         currentElement.value = maxValue;
-    } else if (currentValue <= minValue && currentValue >= 0) {
+    } else if (currentValue < minValue && currentValue > 0) {
         showAlert(`${currentElement.title}.`);
         currentElement.value = minValue;
     }
