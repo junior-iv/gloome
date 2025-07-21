@@ -129,10 +129,6 @@ class WebConfig:
                 for current_type in current_types:
                     current_value = current_type(current_value)
                 self.CURRENT_ARGS.update({out_key: current_value})
-        import json
-        with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/kwargs_route_debug.log', 'a') as f:
-            f.write(f'\n\n--- vars(self.CURRENT_ARGS) ---\n')
-            f.write(json.dumps(vars(self.CURRENT_ARGS)))
 
         mode = arguments.get('mode')
         self.MODE = ' '.join(mode)
@@ -172,7 +168,7 @@ class WebConfig:
         self.COMMAND_LINE = (
             f'python {path.join(".", "script/main.py")} --process_id {self.PROCESS_ID} --msa_file {self.MSA_FILE} '
             f'--tree_file {self.TREE_FILE} --categories_quantity {self.CURRENT_ARGS.categories_quantity} --alpha '
-            f'{self.CURRENT_ARGS.alpha} --categories_quantity {self.CURRENT_ARGS.categories_quantity} --mode {self.MODE}')
+            f'{self.CURRENT_ARGS.alpha} --pi_1 {self.CURRENT_ARGS.pi_1} --mode {self.MODE}')
         self.set_job_logger_info(f'COMMAND_LINE: {self.COMMAND_LINE}')
 
     def get_request_body(self):
