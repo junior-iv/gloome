@@ -29,12 +29,12 @@ function validateInput(id, defaultValue){
     if (currentValue <= 0) {
         showAlert(`${currentElement.title}.`);
         currentElement.value = defaultValue;
+    } else if (0 < currentValue < minValue) {
+        showAlert(`${currentElement.title}.`);
+        currentElement.value = minValue;
     } else if (currentValue > maxValue) {
         showAlert(`${currentElement.title}.`);
         currentElement.value = maxValue;
-    } else if (currentValue < minValue && currentValue > 0) {
-        showAlert(`${currentElement.title}.`);
-        currentElement.value = minValue;
     }
 }
 
