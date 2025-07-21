@@ -27,12 +27,20 @@ function validateInput(id, defaultValue){
     let  minValue = Number(currentElement.min);
     let  maxValue = Number(currentElement.max);
     if (currentValue <= 0) {
+        console.log(`currentValue <= 0 = ${currentValue <= 0}`)
+        console.log(`currentValue = ${currentValue}`)
         showAlert(`${currentElement.title}.`);
         currentElement.value = defaultValue;
     } else if (0 < currentValue < minValue) {
+        console.log(`0 < currentValue < minValue = ${0 < currentValue < minValue}`)
+        console.log(`minValue = ${minValue}`)
+        console.log(`currentValue = ${currentValue}`)
         showAlert(`${currentElement.title}.`);
         currentElement.value = minValue;
     } else if (currentValue > maxValue) {
+        console.log(`currentValue > maxValue = ${currentValue > maxValue}`)
+        console.log(`maxValue = ${maxValue}`)
+        console.log(`currentValue = ${currentValue}`)
         showAlert(`${currentElement.title}.`);
         currentElement.value = maxValue;
     }
