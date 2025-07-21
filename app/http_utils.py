@@ -32,10 +32,6 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
         args = get_variables(dict(request.form))
         err_list = check_data(*args)
         kwargs = dict(request.form)
-        with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/kwargs_route_debug.log', 'a') as f:
-            f.write(f'\n\n--- Exception at /draw_tree ---\n')
-            f.write(json.dumps(kwargs))
-
         if err_list:
             status = 400
             result = get_error(err_list)

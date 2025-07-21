@@ -129,6 +129,11 @@ class WebConfig:
                 for current_type in current_types:
                     current_value = current_type(current_value)
                 self.CURRENT_ARGS.update({out_key: current_value})
+        import json
+        with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/kwargs_route_debug.log', 'a') as f:
+            f.write(f'\n\n--- Exception at /draw_tree ---\n')
+            f.write(json.dumps(dict(self.CURRENT_ARGS)))
+
         mode = arguments.get('mode')
         self.MODE = ' '.join(mode)
         self.CALCULATED_ARGS.newick_text = arguments.get('newickText')
