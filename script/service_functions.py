@@ -216,9 +216,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
     err_list = []
     newick_text = args[0].strip()
     msa = args[1].strip()
-    categories_quantity = args[2]
-    alpha = args[3]
-    pi_1 = args[4]
+    categories_quantity = int(args[2])
+    alpha = float(args[3])
+    pi_1 = float(args[4])
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
