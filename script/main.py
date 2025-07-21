@@ -15,12 +15,5 @@ from config import Config
 
 if __name__ == '__main__':
     config = Config()
-    import json
-    with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/kwargs_route_debug.log', 'a') as f:
-        f.write(f'\n\n--- vars(config.CURRENT_ARGS) ---\n')
-        f.write(json.dumps(vars(config.CURRENT_ARGS)))
     config.check_and_set_input_and_output_variables()
-    with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/kwargs_route_debug.log', 'a') as f:
-        f.write(f'\n\n--- vars(config.CURRENT_ARGS) ---\n')
-        f.write(json.dumps(vars(config.CURRENT_ARGS)))
     config.execute_calculation()
