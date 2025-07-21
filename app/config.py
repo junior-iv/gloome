@@ -247,6 +247,9 @@ class WebConfig:
     def read_response(self) -> Any:
         file_contents = read_file(file_path=self.OUTPUT_FILE)
 
+        with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/kwargs_route_debug.log', 'a') as f:
+            f.write(f'\n\n--- file_contents ---\n')
+            f.write(file_contents)
         json_object = loads_json(file_contents)
         action_name = json_object.get('action_name')
         data = json_object.get('data')
