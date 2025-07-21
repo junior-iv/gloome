@@ -131,8 +131,8 @@ class WebConfig:
                 self.CURRENT_ARGS.update({out_key: current_value})
         import json
         with open(f'/var/www/vhosts/gloomedev.tau.ac.il/httpdocs/tmp/kwargs_route_debug.log', 'a') as f:
-            f.write(f'\n\n--- Exception at /draw_tree ---\n')
-            f.write(json.dumps(dict(self.CURRENT_ARGS)))
+            f.write(f'\n\n--- vars(self.CURRENT_ARGS) ---\n')
+            f.write(json.dumps(vars(self.CURRENT_ARGS)))
 
         mode = arguments.get('mode')
         self.MODE = ' '.join(mode)
