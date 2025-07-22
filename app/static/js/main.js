@@ -26,23 +26,13 @@ function validateInput(id, defaultValue){
     let currentValue = Number(currentElement.value);
     let  minValue = Number(currentElement.min);
     let  maxValue = Number(currentElement.max);
-    console.log(`0 < currentValue < minValue = ${0 < currentValue < minValue}`);
-    console.log(`currentValue < minValue && currentValue > 0 = ${currentValue < minValue && currentValue > 0}`);
     if (currentValue <= 0) {
-        console.log(`currentValue <= 0 = ${currentValue <= 0}`);
-        console.log(`currentValue = ${currentValue}`);
         showAlert(`${currentElement.title}.`);
         currentElement.value = defaultValue;
     } else if (currentValue < minValue && currentValue > 0) {
-        console.log(`currentValue < minValue && currentValue > 0 = ${currentValue < minValue && currentValue > 0}`);
-        console.log(`minValue = ${minValue}`);
-        console.log(`currentValue = ${currentValue}`);
         showAlert(`${currentElement.title}.`);
         currentElement.value = minValue;
     } else if (currentValue > maxValue) {
-        console.log(`currentValue > maxValue = ${currentValue > maxValue}`);
-        console.log(`maxValue = ${maxValue}`);
-        console.log(`currentValue = ${currentValue}`);
         showAlert(`${currentElement.title}.`);
         currentElement.value = maxValue;
     }
