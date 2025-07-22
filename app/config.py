@@ -36,7 +36,6 @@ class WebConfig:
         self.CURRENT_ARGS.update(DEFAULT_FORM_ARGUMENTS)
 
         self.ACTIONS = ACTIONS
-        # self.VALIDATION_ACTIONS = VALIDATION_ACTIONS
         self.DEFAULT_ACTIONS = DEFAULT_ACTIONS
 
         self.MSA_FILE_NAME = MSA_FILE_NAME
@@ -517,7 +516,6 @@ class SlurmSubmiter:
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
             if job_state in state_filter:
                 conf.set_job_logger_info(f'Job state: {job_state}')
-                print(job_state)
                 return job_state in state
             count -= 1
             sleep(waiting_time)

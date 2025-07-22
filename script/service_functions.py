@@ -97,7 +97,7 @@ def get_result_data(data: Union[Dict[str, Union[str, int, float, ndarray, List[U
                                 List[Union[float, ndarray, Any]]],
                     action_name: str, form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
                     ) -> Dict[str, Union[str, int, float, ndarray, Dict[str, Union[str, int, float, ndarray]],
-                                         List[Union[float, ndarray,Any]]]]:
+                                         List[Union[float, ndarray, Any]]]]:
     result = {'action_name': action_name, 'data': data}
     if form_data is not None:
         result.update({'form_data': form_data})
