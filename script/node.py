@@ -279,6 +279,18 @@ class Node:
 
         return log_likelihood_list, log_likelihood, likelihood
 
+    def get_one_parameter_qmatrix(self, rate: Union[float, np.ndarray] = 1,
+                                  p0: Optional[float] = None, p1: Optional[float] = None) -> np.ndarray:
+        qmatrix = np.zeros((2, 2), dtype='float32')
+        p1 = p1 if p1 else 1 - (p0 if p0 else 0.5)
+
+        qmatrix[0, 0] = - 1 / (2 * (1 - p1))
+        qmatrix[0, 1] = 1 / (2 * (1 - p1))
+        qmatrix[1, 0] = 1 / (2 * p1)
+        qmatrix[1, 1] = - 1 / (2 * p1)
+
+        return expm(qmatrix * (self.distance_to_father * rate))
+
     def get_jukes_cantor_qmatrix(self, alphabet_size: int, rate: Union[float, np.ndarray] = 1) -> np.ndarray:
         qmatrix = np.ones((alphabet_size, alphabet_size))
         np.fill_diagonal(qmatrix, 1 - alphabet_size)
