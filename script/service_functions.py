@@ -138,8 +138,9 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], msa: Union[Dict[st
     if isinstance(msa, str):
         msa = newick_tree.get_msa_dict(msa)
 
-    if not newick_tree.likelihood and not newick_tree.log_likelihood and newick_tree.log_likelihood_vector:
-        newick_tree.calculate_likelihood(msa, rate_vector=rate_vector)
+    newick_tree.calculate_likelihood(msa, rate_vector=rate_vector)
+    # if not newick_tree.likelihood and not newick_tree.log_likelihood and newick_tree.log_likelihood_vector:
+    #     newick_tree.calculate_likelihood(msa, rate_vector=rate_vector)
 
     result = {'likelihood_of_the_tree': newick_tree.likelihood}
     result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
