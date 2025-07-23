@@ -105,21 +105,27 @@ def get_result_data(data: Union[Dict[str, Union[str, int, float, ndarray, List[U
     return result
 
 
-def execute_all_actions(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str], file_path: str,
-                        rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
-                        alphabet: Optional[Tuple[str, ...]] = None,
-                        form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
-                        create_new_file: bool = False
-                        ) -> Union[Dict[str, str], str]:
-
+def check_tree_data(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str],
+                    alphabet: Optional[Tuple[str, ...]]):
     if isinstance(newick_tree, str):
         newick_tree = Tree.rename_nodes(newick_tree)
     if isinstance(msa, str):
         msa = newick_tree.get_msa_dict(msa)
+    if alphabet is None:
+        alphabet = Tree.get_alphabet_from_dict(msa)
+    return newick_tree, msa, alphabet
+
+
+def execute_all_actions(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str], file_path: str,
+                        rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
+                        alphabet: Optional[Tuple[str, ...]] = None, create_new_file: bool = False,
+                        form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
+                        ) -> Union[Dict[str, str], str]:
+    newick_tree, msa, alphabet = check_tree_data(newick_tree, msa, alphabet)
 
     result_data = {'draw_tree': draw_tree(newick_tree, file_path)}
     result_data.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree, msa, rate_vector,
-                                                                                 file_path)})
+                                                                                 file_path, alphabet=alphabet)})
     result_data.update({'create_all_file_types': create_all_file_types(newick_tree, msa, file_path, rate_vector,
                                                                        alphabet)})
     if create_new_file:
@@ -130,17 +136,15 @@ def execute_all_actions(newick_tree: Union[str, Tree], msa: Union[Dict[str, str]
 
 def compute_likelihood_of_tree(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str], rate_vector:
                                Optional[Tuple[Union[float, ndarray], ...]] = None, file_path: Optional[str] = None,
-                               create_new_file: bool = False,
+                               create_new_file: bool = False, alphabet: Optional[Tuple[str, ...]] = None,
                                form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
                                ) -> Union[Dict[str, Union[float, ndarray, List[Union[float, ndarray]]]], str]:
-    if isinstance(newick_tree, str):
-        newick_tree = Tree.rename_nodes(newick_tree)
-    if isinstance(msa, str):
-        msa = newick_tree.get_msa_dict(msa)
+    newick_tree, msa, alphabet = check_tree_data(newick_tree, msa, alphabet)
 
-    newick_tree.calculate_likelihood(msa, rate_vector=rate_vector)
+    # newick_tree.calculate_likelihood(msa, rate_vector=rate_vector)
     # if not newick_tree.likelihood or not newick_tree.log_likelihood or not newick_tree.log_likelihood_vector:
-    #     newick_tree.calculate_likelihood(msa, rate_vector=rate_vector)
+    if not all((newick_tree.likelihood, newick_tree.log_likelihood, newick_tree.log_likelihood_vector)):
+        newick_tree.calculate_likelihood(msa=msa, alphabet=alphabet, rate_vector=rate_vector)
 
     result = {'likelihood_of_the_tree': newick_tree.likelihood}
     result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
@@ -157,12 +161,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], msa: Union[Dict[str, st
                           alphabet: Optional[Tuple[str, ...]] = None, create_new_file: bool = False,
                           form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
                           ) -> Union[Dict[str, str], str]:
-    if isinstance(newick_tree, str):
-        newick_tree = Tree.rename_nodes(newick_tree)
-    if isinstance(msa, str):
-        msa = newick_tree.get_msa_dict(msa)
-    if alphabet is None:
-        alphabet = Tree.get_alphabet_from_dict(msa)
+    newick_tree, msa, alphabet = check_tree_data(newick_tree, msa, alphabet)
+
     result = {'Interactive tree (html)': Tree.tree_to_interactive_html(newick_tree, msa, alphabet,
               file_name=f'{file_path}/interactive_tree.html', rate_vector=rate_vector)}
     result.update(Tree.tree_to_graph(newick_tree, file_name=f'{file_path}/graph.txt',
@@ -175,7 +175,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], msa: Union[Dict[str, st
                   sep='\t', sort_values_by=('child', 'Name'), decimal_length=8)})
     result.update({'Fasta (fasta)': Tree.tree_to_fasta(newick_tree, msa, alphabet,
                   file_name=f'{file_path}/fasta_file.fasta', rate_vector=rate_vector)})
-    result.update({'log-Likelihood (csv)': Tree.likelihood_to_csv(newick_tree, msa,
+    result.update({'log-Likelihood (csv)': Tree.likelihood_to_csv(newick_tree, msa, alphabet=alphabet,
                   file_name=f'{file_path}/log-likelihood.csv', sep='\t', rate_vector=rate_vector)})
 
     archive_path = path.join(path.dirname(file_path), path.basename(file_path))

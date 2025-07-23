@@ -160,7 +160,7 @@ class Config:
                 func = self.ACTIONS.compute_likelihood_of_tree
                 val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa_dict,
                            file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector, create_new_file=True,
-                           form_data=self.get_form_data())
+                           alphabet= self.CALCULATED_ARGS.alphabet, form_data=self.get_form_data())
                 self.set_job_logger_info(f'Command \'compute_likelihood_of_tree\' executed successfully. -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
@@ -222,26 +222,6 @@ class Config:
                 self.ACTIONS.rename_nodes(self.CALCULATED_ARGS.newick_tree)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'rename_nodes\'',
-                                                      traceback.format_exc()))
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rate_vector', False):
-            try:
-                self.CALCULATED_ARGS.rate_vector = self.ACTIONS.rate_vector(
-                    self.CURRENT_ARGS.get('categories_quantity'), self.CURRENT_ARGS.get('alpha'))
-            except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'rate_vector\'',
-                                                      traceback.format_exc()))
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('msa_dict', False):
-            try:
-                self.CALCULATED_ARGS.msa_dict = self.ACTIONS.msa_dict(self.CALCULATED_ARGS.newick_tree,
-                                                                      self.CALCULATED_ARGS.msa)
-            except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'msa_dict\'',
-                                                      traceback.format_exc()))
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('alphabet', False):
-            try:
-                self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.msa_dict)
-            except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'alphabet\'',
                                                       traceback.format_exc()))
 
         if self.CALCULATED_ARGS.err_list:

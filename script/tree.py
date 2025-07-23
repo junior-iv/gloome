@@ -15,12 +15,16 @@ from scipy.special import gammainc
 
 
 class Tree:
-    root: Optional[Node]
-    log_likelihood_vector: List[Union[float, np.ndarray]]
-    log_likelihood: Union[float, np.ndarray]
-    likelihood: Union[float, np.ndarray]
+    root: Optional[Node] = None
+    log_likelihood_vector: List[Union[float, np.ndarray]] = []
+    log_likelihood: Union[float, np.ndarray] = 0.0
+    likelihood: Union[float, np.ndarray] = 0.0
+    calculated_ancestor_sequence: bool = False
+    calculated_tree_for_fasta: bool = False
+    calculated_likelihood: bool = False
 
     def __init__(self, data: Union[str, Node, None] = None, node_name: Optional[str] = None) -> None:
+
         if isinstance(data, str):
             self.newick_to_tree(data)
             if node_name and isinstance(node_name, str):
@@ -316,6 +320,7 @@ class Tree:
                         current_node.ancestral_sequence += ancestral_alphabet[2]
                     elif current_node.sequence[i] == current_node.father.sequence[i] == alphabet[1]:
                         current_node.ancestral_sequence += ancestral_alphabet[3]
+        self.calculated_ancestor_sequence = True
 
     def calculate_marginal(self, newick_node: Optional[Union[Node, str]], alphabet: Union[Tuple[str, ...], str],
                            msa: Optional[str] = None, node_name: Optional[str] = None,
@@ -403,10 +408,11 @@ class Tree:
                 self.calculate_down(alphabet, rate_vector)
                 self.calculate_marginal(None, alphabet, current_msa, rate_vector=rate_vector)
 
+        self.calculated_tree_for_fasta = True
         return self.get_fasta_text()
 
-    def calculate_likelihood(self, msa: Union[Dict[str, str], str], alphabet: Optional[Tuple[str, ...]]
-                             = None, rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> None:
+    def calculate_likelihood(self, msa: Union[Dict[str, str], str], alphabet: Optional[Tuple[str, ...]] = None,
+                             rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> None:
         if isinstance(msa, str):
             msa = self.get_msa_dict(msa)
         if alphabet is None:
@@ -414,6 +420,7 @@ class Tree:
 
         self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
             self.root.calculate_likelihood(msa, alphabet, rate_vector))
+        self.calculated_likelihood = True
 
     def get_fasta_text(self, columns: Optional[Dict[str, str]] = None) -> str:
         columns = columns if columns else {'node': 'Name', 'sequence': 'Sequence', 'ancestral_sequence':
@@ -464,14 +471,10 @@ class Tree:
     def tree_to_fasta(newick_tree: Union[str, 'Tree'], msa: Union[Dict[str, str], str],
                       alphabet: Tuple[str, ...], file_name: str = 'file.fasta', node_name: Optional[str] = None,
                       rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
-        if node_name and isinstance(node_name, str):
-            newick_tree = Tree.rename_nodes(newick_tree, node_name)
-        else:
-            newick_tree = Tree.check_tree(newick_tree)
-        if isinstance(msa, str):
-            msa = newick_tree.get_msa_dict(msa)
+        newick_tree, msa, alphabet = Tree.check_tree_data(newick_tree, msa, alphabet, node_name)
 
-        newick_tree.calculate_tree_for_fasta(msa, alphabet, rate_vector)
+        if not newick_tree.calculated_tree_for_fasta:
+            newick_tree.calculate_tree_for_fasta(msa, alphabet, rate_vector)
         Tree.make_dir(file_name)
         fasta_text = newick_tree.get_fasta_text()
         with open(file_name, 'w') as f:
@@ -480,18 +483,14 @@ class Tree:
         return file_name
 
     @staticmethod
-    def likelihood_to_csv(newick_tree: Union[str, 'Tree'], msa: Union[Dict[str, str], str],
-                          file_name: str = 'file.csv', sep: str = '\t', node_name: Optional[str] = None, rate_vector:
-                          Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
-        if node_name and isinstance(node_name, str):
-            newick_tree = Tree.rename_nodes(newick_tree, node_name)
-        else:
-            newick_tree = Tree.check_tree(newick_tree)
-        if isinstance(msa, str):
-            msa = newick_tree.get_msa_dict(msa)
+    def likelihood_to_csv(newick_tree: Union[str, 'Tree'], msa: Union[Dict[str, str], str], alphabet: Tuple[str, ...],
+                          file_name: str = 'file.csv', sep: str = '\t', node_name: Optional[str] = None,
+                          rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
+        newick_tree, msa, alphabet = Tree.check_tree_data(newick_tree, msa, alphabet, node_name)
 
         Tree.make_dir(file_name)
-        newick_tree.calculate_likelihood(msa, rate_vector=rate_vector)
+        if not newick_tree.calculated_likelihood:
+            newick_tree.calculate_likelihood(msa, rate_vector=rate_vector, alphabet=alphabet)
         tree_table = pd.DataFrame({'POS': range(len(newick_tree.log_likelihood_vector)),
                                    'log-likelihood': newick_tree.log_likelihood_vector})
         tree_table.to_csv(file_name, sep=sep, index=False)
@@ -569,19 +568,29 @@ class Tree:
         return file_names
 
     @staticmethod
-    def tree_to_interactive_html(newick_tree: Union[str, 'Tree'], msa: Union[Dict[str, str], str],
-                                 alphabet: Union[Tuple[str, ...], str], file_name: str = 'interactive_tree.svg',
-                                 node_name: Optional[str] = None, rate_vector:
-                                 Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
+    def check_tree_data(newick_tree: Union[str, 'Tree'], msa: Union[Dict[str, str], str],
+                        alphabet: Optional[Tuple[str, ...]], node_name: Optional[str] = None):
         if node_name and isinstance(node_name, str):
             newick_tree = Tree.rename_nodes(newick_tree, node_name)
         else:
             newick_tree = Tree.check_tree(newick_tree)
         if isinstance(msa, str):
             msa = newick_tree.get_msa_dict(msa)
+        if alphabet is None:
+            alphabet = Tree.get_alphabet_from_dict(msa)
+        return newick_tree, msa, alphabet
 
-        newick_tree.calculate_tree_for_fasta(msa, alphabet, rate_vector)
-        newick_tree.calculate_ancestral_sequence()
+    @staticmethod
+    def tree_to_interactive_html(newick_tree: Union[str, 'Tree'], msa: Union[Dict[str, str], str],
+                                 alphabet: Union[Tuple[str, ...], str], file_name: str = 'interactive_tree.svg',
+                                 node_name: Optional[str] = None, rate_vector:
+                                 Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> str:
+        newick_tree, msa, alphabet = Tree.check_tree_data(newick_tree, msa, alphabet, node_name)
+
+        if not newick_tree.calculated_tree_for_fasta:
+            newick_tree.calculate_tree_for_fasta(msa, alphabet, rate_vector)
+        if not newick_tree.calculated_ancestor_sequence:
+            newick_tree.calculate_ancestral_sequence()
         size_factor = min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
 
         df = newick_tree.tree_to_table(columns={'node': 'target', 'father_name': 'source', 'distance': 'weight',
