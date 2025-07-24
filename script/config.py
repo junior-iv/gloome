@@ -217,6 +217,19 @@ class Config:
                 self.CALCULATED_ARGS.newick_tree = self.ACTIONS.check_tree(self.CALCULATED_ARGS.newick_text)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'TREE error', f'Wrong Phylogenetic tree format.'))
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('msa_dict', False):
+            try:
+                self.CALCULATED_ARGS.msa_dict = self.ACTIONS.msa_dict(self.CALCULATED_ARGS.newick_tree,
+                                                                      self.CALCULATED_ARGS.msa)
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append((f'MSA error',
+                                                      f'Wrong MSA format. Please provide MSA in FASTA format.'))
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('alphabet', False):
+            try:
+                self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.msa_dict)
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append((f'MSA error',
+                                                      f'Wrong MSA format. Please provide MSA in FASTA format.'))
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rename_nodes', False):
             try:
                 self.ACTIONS.rename_nodes(self.CALCULATED_ARGS.newick_tree)
