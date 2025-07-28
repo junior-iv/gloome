@@ -160,7 +160,6 @@ class Node:
         rate_vector = rate_vector if rate_vector else (1.0,)
         rate_vector_size = len(rate_vector)
         self.marginal_vector = []
-        # qmatrix = tuple([self.get_jukes_cantor_qmatrix(alphabet_size, r) for r in rate_vector])
         qmatrix = tuple([self.get_qmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector])
 
         for r in range(rate_vector_size):
@@ -206,8 +205,6 @@ class Node:
 
         dict_children = {}
         for child in self.children:
-            # dict_children.update({child.name: (tuple([child.get_jukes_cantor_qmatrix(alphabet_size, r) for r in
-            #                       rate_vector]), child.calculate_up(nodes_dict, alphabet, rate_vector, pi_1))})
             dict_children.update({child.name: (tuple([child.get_qmatrix(alphabet_size, r, pi_0, pi_1) for r in
                                   rate_vector]), child.calculate_up(nodes_dict, alphabet, rate_vector, pi_0, pi_1))})
 

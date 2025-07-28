@@ -118,9 +118,6 @@ class WebConfig:
 
     def arguments_filling(self, **arguments):
         dct = zip(('categoriesQuantity', 'alpha', 'pi1'),
-                  # , 'isRadialTree', 'showDistanceToParent'),
-                  # , 'is_radial_tree', 'show_distance_to_parent'),
-                  # , (int, bool), (int, bool)))
                   ('categories_quantity', 'alpha', 'pi_1'),
                   ((int, ), (float, ), (float, )))
         for in_key, out_key, current_types in dct:

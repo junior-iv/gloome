@@ -9,7 +9,6 @@ from typing import List, Tuple, Union
 from dotenv import load_dotenv
 
 load_dotenv()
-# PREFIX = '/gloome'
 MODE = ('draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions')
 IS_PRODUCTION = True
 MAX_CONTENT_LENGTH = 16 * 1000 * 1000 * 1000
@@ -47,10 +46,6 @@ MODULE_LOAD = 'module load mamba/mamba-1.5.8'
 PRODJECT_DIR = '/lsweb/rodion/gloome'
 ENVIRONMENT_DIR = path.join(PRODJECT_DIR, 'gloome_env2')
 ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
-
-# WEBSERVER_DIR = path.join(f'/var/www/vhosts/{WEBSERVER_NAME}/', 'httpdocs')
-# WEBSERVER_APP_DIR = path.join(WEBSERVER_DIR, 'app')
-# WEBSERVER_STATIC_DIR = path.join(WEBSERVER_APP_DIR, 'static')
 
 BIN_DIR = path.dirname(path.abspath(__file__))
 SCRIPT_DIR = path.join(BIN_DIR, 'script')
@@ -131,12 +126,8 @@ DEFAULT_FORM_ARGUMENTS = {
 
 ACTIONS = Actions(**{
                      'check_data': check_data,
-                     # 'check_tree': Tree.check_tree,
                      'check_tree': Tree.rename_nodes,
                      'set_tree_data': Tree.set_tree_data,
-                     # 'rate_vector': Tree.get_gamma_distribution_categories_vector,
-                     # 'msa_dict': Tree.get_msa_dict,
-                     # 'alphabet': Tree.get_alphabet_from_dict,
                      'compute_likelihood_of_tree': compute_likelihood_of_tree,
                      'calculate_tree_for_fasta': Tree.calculate_tree_for_fasta,
                      'calculate_ancestral_sequence': Tree.calculate_ancestral_sequence,
@@ -151,10 +142,6 @@ VALIDATION_ACTIONS = {
     }
 
 DEFAULT_ACTIONS = {
-    # 'rename_nodes': True,
-    # 'rate_vector': True,
-    # 'msa_dict': True,
-    # 'alphabet': True,
     'set_tree_data': True,
     'compute_likelihood_of_tree': False,
     'calculate_tree_for_fasta': False,
@@ -167,12 +154,9 @@ DEFAULT_ACTIONS = {
 
 CALCULATED_ARGS = CalculatedArgs(**{
                                     'file_path': None,
-                                    # 'rate_vector': None,
                                     'newick_text': None,
                                     'msa': None,
                                     'newick_tree': None
-                                    # 'msa_dict': None,
-                                    # 'alphabet': None
                                     })
 
 USAGE = ''' 

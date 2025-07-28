@@ -481,21 +481,6 @@ class Tree:
             self.pi_1 = pi_1
         self.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
 
-    @staticmethod
-    def get_alphabet_from_dict(msa_dict: Dict[str, str]) -> Tuple[str, ...]:
-        character_list = []
-        for sequence in msa_dict.values():
-            character_list += [i for i in sequence]
-
-        return Tree.get_alphabet(set(character_list))
-
-    @staticmethod
-    def get_columns_list_for_sorting() -> Dict[str, List[str]]:
-        result = {'List for sorting': ['Name', 'Node type', 'Distance to father', 'Sequence', 'Probability coefficient',
-                                       'Ancestral Comparison']}
-
-        return loads(str(result).replace(f'\'', r'"'))
-
     def tree_to_fasta(self, file_name: str = 'file.fasta') -> str:
 
         if not self.calculated_tree_for_fasta:
@@ -671,6 +656,21 @@ class Tree:
                 nx.drawing.nx_pydot.write_dot(graph, file_name)
 
         return file_names
+
+    @staticmethod
+    def get_alphabet_from_dict(msa_dict: Dict[str, str]) -> Tuple[str, ...]:
+        character_list = []
+        for sequence in msa_dict.values():
+            character_list += [i for i in sequence]
+
+        return Tree.get_alphabet(set(character_list))
+
+    @staticmethod
+    def get_columns_list_for_sorting() -> Dict[str, List[str]]:
+        result = {'List for sorting': ['Name', 'Node type', 'Distance to father', 'Sequence', 'Probability coefficient',
+                                       'Ancestral Comparison']}
+
+        return loads(str(result).replace(f'\'', r'"'))
 
     @staticmethod
     def get_random_name(lenght: int = 24) -> str:

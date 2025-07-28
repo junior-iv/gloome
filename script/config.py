@@ -9,9 +9,6 @@ from typing import Dict
 
 class Config:
     def __init__(self, **attributes):
-        # self.DEFAULT_ARGUMENTS = DEFAULT_ARGUMENTS
-        # self.PREFIX = PREFIX
-        # self.APPLICATION_ROOT = APPLICATION_ROOT
         self.MODE = MODE
         self.DEFAULT_FORM_ARGUMENTS = DEFAULT_FORM_ARGUMENTS
         self.COMMAND_LINE = COMMAND_LINE
@@ -129,63 +126,38 @@ class Config:
                      'categoriesQuantity': self.CURRENT_ARGS.categories_quantity}
         return form_data
 
+    def execute_action(self, func, command_name: str, *args, **kwargs):
+        try:
+            val = func(*args, **kwargs)
+            self.set_job_logger_info(f'Successfully Command \'{command_name}\' executed successfully. -> {val}')
+        except ValueError:
+            format_exc = f'{traceback.format_exc()}'
+            self.set_job_logger_info(f'Failed to execute the command \'{command_name}\' -> {format_exc}')
+            self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'{command_name}\'', format_exc))
+
     def execute_calculation(self):
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_tree_for_fasta', False):
-            try:
-                self.ACTIONS.calculate_tree_for_fasta(self.CALCULATED_ARGS.newick_tree)
-            except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'calculate_tree_for_fasta\'',
-                                                      traceback.format_exc()))
+            self.execute_action(self.ACTIONS.calculate_tree_for_fasta, 'calculate_tree_for_fasta',
+                                self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_ancestral_sequence', False):
-            try:
-                self.ACTIONS.calculate_ancestral_sequence(self.CALCULATED_ARGS.newick_tree)
-            except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'calculate_ancestral_sequence\'',
-                                                      traceback.format_exc()))
+            self.execute_action(self.ACTIONS.calculate_ancestral_sequence, 'calculate_ancestral_sequence',
+                                self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
-            try:
-                func = self.ACTIONS.draw_tree
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR, create_new_file=True,
-                           form_data=self.get_form_data())
-                self.set_job_logger_info(f'Successfully Command \'draw_tree\' executed successfully. -> {val}')
-            except ValueError:
-                format_exc = f'{traceback.format_exc()}'
-                self.set_job_logger_info(f'Failed to execute the command \'draw_tree\' -> {format_exc}')
-                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'draw_tree\'', format_exc))
+            self.execute_action(self.ACTIONS.draw_tree, 'draw_tree',
+                                file_path=self.OUT_DIR, create_new_file=True, form_data=self.get_form_data(),
+                                newick_tree=self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('compute_likelihood_of_tree', False):
-            try:
-                func = self.ACTIONS.compute_likelihood_of_tree
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR, create_new_file=True,
-                           form_data=self.get_form_data())
-                self.set_job_logger_info(f'Command \'compute_likelihood_of_tree\' executed successfully. -> {val}')
-            except ValueError:
-                format_exc = f'{traceback.format_exc()}'
-                self.set_job_logger_info(f'Failed to execute the command \'compute_likelihood_of_tree\' -> '
-                                         f'{format_exc}')
-                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'compute_likelihood_of_tree\'',
-                                                      format_exc))
+            self.execute_action(self.ACTIONS.compute_likelihood_of_tree, 'compute_likelihood_of_tree',
+                                file_path=self.OUT_DIR, create_new_file=True, form_data=self.get_form_data(),
+                                newick_tree=self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
-            try:
-                func = self.ACTIONS.create_all_file_types
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR, create_new_file=True,
-                           form_data=self.get_form_data())
-                self.set_job_logger_info(f'Command \'create_all_file_types\' executed successfully. -> {val}')
-            except ValueError:
-                format_exc = f'{traceback.format_exc()}'
-                self.set_job_logger_info(f'Failed to execute the command \'create_all_file_types\' -> {format_exc}')
-                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'create_all_file_types\'',
-                                                      format_exc))
+            self.execute_action(self.ACTIONS.create_all_file_types, 'compute_likelihood_of_tree',
+                                file_path=self.OUT_DIR, create_new_file=True, form_data=self.get_form_data(),
+                                newick_tree=self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
-            try:
-                func = self.ACTIONS.execute_all_actions
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR, create_new_file=True,
-                           form_data=self.get_form_data())
-                self.set_job_logger_info(f'Command \'execute_all_actions\' executed successfully. -> {val}')
-            except ValueError:
-                format_exc = f'{traceback.format_exc()}'
-                self.set_job_logger_info(f'Failed to execute the command \'execute_all_actions\' -> {format_exc}')
-                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'execute_all_actions\'',
-                                                      format_exc))
+            self.execute_action(self.ACTIONS.execute_all_actions, 'execute_all_actions',
+                                file_path=self.OUT_DIR, create_new_file=True, form_data=self.get_form_data(),
+                                newick_tree=self.CALCULATED_ARGS.newick_tree)
 
     def check_arguments_for_errors(self) -> bool:
         if path.isfile(self.TREE_FILE):
@@ -219,33 +191,6 @@ class Config:
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'MSA error',
                                                       f'Wrong MSA format. Please provide MSA in FASTA format.'))
-        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('msa_dict', False):
-        #     try:
-        #         self.CALCULATED_ARGS.msa_dict = self.ACTIONS.msa_dict(self.CALCULATED_ARGS.newick_tree,
-        #                                                               self.CALCULATED_ARGS.msa)
-        #     except ValueError:
-        #         self.CALCULATED_ARGS.err_list.append((f'MSA error',
-        #                                               f'Wrong MSA format. Please provide MSA in FASTA format.'))
-        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('alphabet', False):
-        #     try:
-        #         self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.msa_dict)
-        #     except ValueError:
-        #         self.CALCULATED_ARGS.err_list.append((f'MSA error',
-        #                                               f'Wrong MSA format. Please provide MSA in FASTA format.'))
-        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rate_vector', False):
-        #     try:
-        #         self.CALCULATED_ARGS.rate_vector = self.ACTIONS.rate_vector(self.CALCULATED_ARGS.newick_tree,
-        #                                                                     self.CURRENT_ARGS.categories_quantity,
-        #                                                                     self.CURRENT_ARGS.alpha)
-        #     except ValueError:
-        #         self.CALCULATED_ARGS.err_list.append((f'MSA error',
-        #                                               f'Wrong MSA format. Please provide MSA in FASTA format.'))
-        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rename_nodes', False):
-        #     try:
-        #         self.ACTIONS.rename_nodes(self.CALCULATED_ARGS.newick_tree)
-        #     except ValueError:
-        #         self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'rename_nodes\'',
-        #                                               traceback.format_exc()))
 
         if self.CALCULATED_ARGS.err_list:
             self.set_job_logger_info(f'Error list: {self.CALCULATED_ARGS.err_list}')
@@ -264,9 +209,10 @@ class Config:
                             f'filepath (required).')
         parser.add_argument('--process_id', dest='process_id', type=str, required=False, default=self.PROCESS_ID,
                             help=f'Process id (optional). Default is {self.PROCESS_ID}.')
-        parser.add_argument('--mode', dest='mode', required=False, action="extend", nargs="+", type=str, help=f'Execution '
-                            f'mode style (optional). Possible options: ("draw_tree", "compute_likelihood_of_tree", '
-                            f'"create_all_file_types", "execute_all_actions"). Default is {self.MODE[3:]}.')
+        parser.add_argument('--mode', dest='mode', required=False, action="extend", nargs="+", type=str,
+                            help=f'Execution mode style (optional). Possible options: ("draw_tree", '
+                            f'"compute_likelihood_of_tree", "create_all_file_types", "execute_all_actions"). '
+                            f'Default is {self.MODE[3:]}.')
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=bool, required=False,
                             default=self.CURRENT_ARGS.with_internal_nodes, help=f'Specify the Newick file type '
                             f'(optional). Default is {self.CURRENT_ARGS.with_internal_nodes}.')
