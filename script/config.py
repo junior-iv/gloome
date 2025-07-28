@@ -82,9 +82,9 @@ class Config:
         self.check_dir(self.OUT_DIR)
         self.IN_DIR = path.join(self.IN_DIR, self.PROCESS_ID)
 
-        self.MSA_FILE = self.MSA_FILE if self.MSA_FILE else path.join(self.IN_DIR, self.MSA_FILE_NAME)
-        self.TREE_FILE = self.TREE_FILE if self.TREE_FILE else path.join(self.IN_DIR, self.TREE_FILE_NAME)
-
+        # self.MSA_FILE = self.MSA_FILE if self.MSA_FILE else path.join(self.IN_DIR, self.MSA_FILE_NAME)
+        # self.TREE_FILE = self.TREE_FILE if self.TREE_FILE else path.join(self.IN_DIR, self.TREE_FILE_NAME)
+        #
         self.CALCULATED_ARGS.file_path = self.OUT_DIR
 
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
