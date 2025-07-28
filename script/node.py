@@ -144,15 +144,24 @@ class Node:
                     return newick_node
         return None
 
+    def get_qmatrix(self, alphabet_size: int, rate: Union[float, np.ndarray] = 1.0, pi_0: Optional[float] = None,
+                    pi_1: Optional[float] = None):
+        if any((pi_0, pi_1)):
+            return self.get_one_parameter_qmatrix(rate, pi_0, pi_1)
+        else:
+            return self.get_jukes_cantor_qmatrix(alphabet_size, rate)
+
     def calculate_marginal(self, alphabet: Union[Tuple[str, ...], str],
-                           rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None
+                           rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
+                           pi_0: Optional[float] = None, pi_1: Optional[float] = None
                            ) -> Tuple[Union[Union[List[List[np.ndarray]], List[List[float]]], float],
                                       Union[np.ndarray, float]]:
         alphabet_size = len(alphabet)
         rate_vector = rate_vector if rate_vector else (1.0,)
         rate_vector_size = len(rate_vector)
         self.marginal_vector = []
-        qmatrix = tuple([self.get_jukes_cantor_qmatrix(alphabet_size, r) for r in rate_vector])
+        # qmatrix = tuple([self.get_jukes_cantor_qmatrix(alphabet_size, r) for r in rate_vector])
+        qmatrix = tuple([self.get_qmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector])
 
         for r in range(rate_vector_size):
             current_marginal_vector = []
@@ -176,7 +185,8 @@ class Node:
         return self.marginal_vector, likelihood
 
     def calculate_up(self, nodes_dict: Dict[str, Tuple[int, ...]], alphabet: Union[Tuple[str, ...], str],
-                     rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None
+                     rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
+                     pi_0: Optional[float] = None, pi_1: Optional[float] = None
                      ) -> Union[Union[List[List[np.ndarray]], List[List[float]]], float]:
         alphabet_size = len(alphabet)
         rate_vector = rate_vector if rate_vector else (1.0, )
@@ -196,8 +206,10 @@ class Node:
 
         dict_children = {}
         for child in self.children:
-            dict_children.update({child.name: (tuple([child.get_jukes_cantor_qmatrix(alphabet_size, r) for r in
-                                  rate_vector]), child.calculate_up(nodes_dict, alphabet, rate_vector))})
+            # dict_children.update({child.name: (tuple([child.get_jukes_cantor_qmatrix(alphabet_size, r) for r in
+            #                       rate_vector]), child.calculate_up(nodes_dict, alphabet, rate_vector, pi_1))})
+            dict_children.update({child.name: (tuple([child.get_qmatrix(alphabet_size, r, pi_0, pi_1) for r in
+                                  rate_vector]), child.calculate_up(nodes_dict, alphabet, rate_vector, pi_0, pi_1))})
 
         for r in range(rate_vector_size):
             current_up_vector = []
@@ -218,7 +230,8 @@ class Node:
             return self.likelihood
 
     def calculate_down(self, tree_info: pd.Series, alphabet_size: int,
-                       rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None) -> None:
+                       rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
+                       pi_0: Optional[float] = None, pi_1: Optional[float] = None) -> None:
         rate_vector = rate_vector if rate_vector else (1.0,)
         rate_vector_size = len(rate_vector)
         self.down_vector = []
@@ -229,11 +242,11 @@ class Node:
             brothers = tuple(set(tree_info.get(father.name).get('children')) - {self.name})
             brothers = [father.get_node_by_name(i) for i in brothers]
             for brother in brothers:
-                dict_brothers.update({brother.name: (tuple([brother.get_jukes_cantor_qmatrix(alphabet_size, r) for r in
+                dict_brothers.update({brother.name: (tuple([brother.get_qmatrix(alphabet_size, r, pi_0, pi_1) for r in
                                                             rate_vector]), brother.up_vector)})
 
             f_vector = father.down_vector
-            f_qmatrix = tuple([father.get_jukes_cantor_qmatrix(alphabet_size, r) for r in rate_vector])
+            f_qmatrix = tuple([father.get_qmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector])
             for r in range(rate_vector_size):
                 current_down_vector = []
                 for j in range(alphabet_size):
@@ -251,14 +264,15 @@ class Node:
                 self.down_vector.append(current_down_vector)
 
             for child in self.children:
-                child.calculate_down(tree_info, alphabet_size, rate_vector)
+                child.calculate_down(tree_info, alphabet_size, rate_vector, pi_0, pi_1)
         else:
             self.down_vector = [[1] * alphabet_size for _ in range(rate_vector_size)]
             for child in self.children:
-                child.calculate_down(tree_info, alphabet_size, rate_vector)
+                child.calculate_down(tree_info, alphabet_size, rate_vector, pi_0, pi_1)
 
     def calculate_likelihood(self, msa_dict: Dict[str, str], alphabet: Union[Tuple[str, ...], str],
-                             rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None
+                             rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
+                             pi_0: Optional[float] = None, pi_1: Optional[float] = None
                              ) -> Tuple[List[float], float, float]:
 
         leaves_info = self.get_list_nodes_info(True, 'pre-order', {'node_type': ['leaf']})
@@ -272,7 +286,7 @@ class Node:
                 character = msa_dict.get(node_name)[i_char]
                 nodes_dict.update({node_name: tuple([int(j == character) for j in alphabet])})
 
-            char_likelihood = self.calculate_up(nodes_dict, alphabet, rate_vector)
+            char_likelihood = self.calculate_up(nodes_dict, alphabet, rate_vector, pi_0, pi_1)
             likelihood *= char_likelihood
             log_likelihood += log(char_likelihood)
             log_likelihood_list.append(log(char_likelihood))
@@ -280,14 +294,14 @@ class Node:
         return log_likelihood_list, log_likelihood, likelihood
 
     def get_one_parameter_qmatrix(self, rate: Union[float, np.ndarray] = 1,
-                                  p0: Optional[float] = None, p1: Optional[float] = None) -> np.ndarray:
+                                  pi_0: Optional[float] = None, pi_1: Optional[float] = None) -> np.ndarray:
         qmatrix = np.zeros((2, 2), dtype='float32')
-        p1 = p1 if p1 else 1 - (p0 if p0 else 0.5)
+        pi_1 = pi_1 if pi_1 else 1 - (pi_0 if pi_0 else 0.5)
 
-        qmatrix[0, 0] = - 1 / (2 * (1 - p1))
-        qmatrix[0, 1] = 1 / (2 * (1 - p1))
-        qmatrix[1, 0] = 1 / (2 * p1)
-        qmatrix[1, 1] = - 1 / (2 * p1)
+        qmatrix[0, 0] = - 1 / (2 * (1 - pi_1))
+        qmatrix[0, 1] = 1 / (2 * (1 - pi_1))
+        qmatrix[1, 0] = 1 / (2 * pi_1)
+        qmatrix[1, 1] = - 1 / (2 * pi_1)
 
         return expm(qmatrix * (self.distance_to_father * rate))
 

@@ -85,8 +85,8 @@ class Config:
         self.check_dir(self.OUT_DIR)
         self.IN_DIR = path.join(self.IN_DIR, self.PROCESS_ID)
 
-        self.MSA_FILE = path.join(self.IN_DIR, self.MSA_FILE_NAME)
-        self.TREE_FILE = path.join(self.IN_DIR, self.TREE_FILE_NAME)
+        self.MSA_FILE = self.MSA_FILE if self.MSA_FILE else path.join(self.IN_DIR, self.MSA_FILE_NAME)
+        self.TREE_FILE = self.TREE_FILE if self.TREE_FILE else path.join(self.IN_DIR, self.TREE_FILE_NAME)
 
         self.CALCULATED_ARGS.file_path = self.OUT_DIR
 
@@ -132,10 +132,7 @@ class Config:
     def execute_calculation(self):
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_tree_for_fasta', False):
             try:
-                self.ACTIONS.calculate_tree_for_fasta(self.CALCULATED_ARGS.newick_tree,
-                                                      self.CALCULATED_ARGS.msa_dict,
-                                                      self.CALCULATED_ARGS.alphabet,
-                                                      self.CALCULATED_ARGS.rate_vector)
+                self.ACTIONS.calculate_tree_for_fasta(self.CALCULATED_ARGS.newick_tree)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'calculate_tree_for_fasta\'',
                                                       traceback.format_exc()))
@@ -158,9 +155,8 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('compute_likelihood_of_tree', False):
             try:
                 func = self.ACTIONS.compute_likelihood_of_tree
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa_dict,
-                           file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector, create_new_file=True,
-                           alphabet= self.CALCULATED_ARGS.alphabet, form_data=self.get_form_data())
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR, create_new_file=True,
+                           form_data=self.get_form_data())
                 self.set_job_logger_info(f'Command \'compute_likelihood_of_tree\' executed successfully. -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
@@ -171,9 +167,8 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
             try:
                 func = self.ACTIONS.create_all_file_types
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa_dict,
-                           file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector,
-                           alphabet=self.CALCULATED_ARGS.alphabet, create_new_file=True, form_data=self.get_form_data())
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR, create_new_file=True,
+                           form_data=self.get_form_data())
                 self.set_job_logger_info(f'Command \'create_all_file_types\' executed successfully. -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
@@ -183,9 +178,8 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
             try:
                 func = self.ACTIONS.execute_all_actions
-                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa_dict,
-                           file_path=self.OUT_DIR, rate_vector=self.CALCULATED_ARGS.rate_vector,
-                           alphabet=self.CALCULATED_ARGS.alphabet, create_new_file=True, form_data=self.get_form_data())
+                val = func(newick_tree=self.CALCULATED_ARGS.newick_tree, file_path=self.OUT_DIR, create_new_file=True,
+                           form_data=self.get_form_data())
                 self.set_job_logger_info(f'Command \'execute_all_actions\' executed successfully. -> {val}')
             except ValueError:
                 format_exc = f'{traceback.format_exc()}'
@@ -209,33 +203,49 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_data', False):
             self.CALCULATED_ARGS.err_list += self.ACTIONS.check_data(self.CALCULATED_ARGS.newick_text,
                                                                      self.CALCULATED_ARGS.msa,
-                                                                     self.CURRENT_ARGS.get('categories_quantity', 4),
-                                                                     self.CURRENT_ARGS.get('alpha', 0.5),
-                                                                     self.CURRENT_ARGS.get('pi_1', 0.5))
+                                                                     self.CURRENT_ARGS.categories_quantity,
+                                                                     self.CURRENT_ARGS.alpha,
+                                                                     self.CURRENT_ARGS.pi_1)
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
             try:
                 self.CALCULATED_ARGS.newick_tree = self.ACTIONS.check_tree(self.CALCULATED_ARGS.newick_text)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'TREE error', f'Wrong Phylogenetic tree format.'))
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('msa_dict', False):
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('set_tree_data', False):
             try:
-                self.CALCULATED_ARGS.msa_dict = self.ACTIONS.msa_dict(self.CALCULATED_ARGS.newick_tree,
-                                                                      self.CALCULATED_ARGS.msa)
+                self.ACTIONS.set_tree_data(self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa,
+                                           categories_quantity=self.CURRENT_ARGS.categories_quantity,
+                                           alpha=self.CURRENT_ARGS.alpha, pi_1=self.CURRENT_ARGS.pi_1)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'MSA error',
                                                       f'Wrong MSA format. Please provide MSA in FASTA format.'))
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('alphabet', False):
-            try:
-                self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.msa_dict)
-            except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'MSA error',
-                                                      f'Wrong MSA format. Please provide MSA in FASTA format.'))
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rename_nodes', False):
-            try:
-                self.ACTIONS.rename_nodes(self.CALCULATED_ARGS.newick_tree)
-            except ValueError:
-                self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'rename_nodes\'',
-                                                      traceback.format_exc()))
+        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('msa_dict', False):
+        #     try:
+        #         self.CALCULATED_ARGS.msa_dict = self.ACTIONS.msa_dict(self.CALCULATED_ARGS.newick_tree,
+        #                                                               self.CALCULATED_ARGS.msa)
+        #     except ValueError:
+        #         self.CALCULATED_ARGS.err_list.append((f'MSA error',
+        #                                               f'Wrong MSA format. Please provide MSA in FASTA format.'))
+        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('alphabet', False):
+        #     try:
+        #         self.CALCULATED_ARGS.alphabet = self.ACTIONS.alphabet(self.CALCULATED_ARGS.msa_dict)
+        #     except ValueError:
+        #         self.CALCULATED_ARGS.err_list.append((f'MSA error',
+        #                                               f'Wrong MSA format. Please provide MSA in FASTA format.'))
+        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rate_vector', False):
+        #     try:
+        #         self.CALCULATED_ARGS.rate_vector = self.ACTIONS.rate_vector(self.CALCULATED_ARGS.newick_tree,
+        #                                                                     self.CURRENT_ARGS.categories_quantity,
+        #                                                                     self.CURRENT_ARGS.alpha)
+        #     except ValueError:
+        #         self.CALCULATED_ARGS.err_list.append((f'MSA error',
+        #                                               f'Wrong MSA format. Please provide MSA in FASTA format.'))
+        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('rename_nodes', False):
+        #     try:
+        #         self.ACTIONS.rename_nodes(self.CALCULATED_ARGS.newick_tree)
+        #     except ValueError:
+        #         self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'rename_nodes\'',
+        #                                               traceback.format_exc()))
 
         if self.CALCULATED_ARGS.err_list:
             self.set_job_logger_info(f'Error list: {self.CALCULATED_ARGS.err_list}')
@@ -248,30 +258,29 @@ class Config:
         """parse arguments and fill out the relevant Variable Class properties"""
         parser = argparse.ArgumentParser(prog=self.WEBSERVER_NAME_CAPITAL, description='GLOOME',
                                          usage='%(prog)s [options]')
-        parser.add_argument('--msa_file', dest='MSA_FILE', type=str, required=True, help='Specify the msa file '
-                            '(required).')
-        parser.add_argument('--tree_file', dest='TREE_FILE', type=str, required=True, help='Specify the newick file '
-                            '(required).')
+        parser.add_argument('--msa_file', dest='MSA_FILE', type=str, required=True, help=f'Specify the msa filepath '
+                            f'(required).')
+        parser.add_argument('--tree_file', dest='TREE_FILE', type=str, required=True, help=f'Specify the newick '
+                            f'filepath (required).')
         parser.add_argument('--process_id', dest='process_id', type=str, required=False, default=self.PROCESS_ID,
                             help=f'Process id (optional). Default is {self.PROCESS_ID}.')
-        parser.add_argument('--mode', dest='mode', required=False, action="extend", nargs="+", type=str,
-                            help=f'Execution mode style (optional). Possible options: ("draw_tree", '
-                            f'"compute_likelihood_of_tree", "create_all_file_types", "execute_all_actions"). Default '
-                            f'is {self.MODE[3:]}.')
+        parser.add_argument('--', dest='mode', required=False, action="extend", nargs="+", type=str, help=f'Execution '
+                            f'mode style (optional). Possible options: ("draw_tree", "compute_likelihood_of_tree", '
+                            f'"create_all_file_types", "execute_all_actions"). Default is {self.MODE[3:]}.')
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=bool, required=False,
-                            default=self.CURRENT_ARGS.get('with_internal_nodes', True), help=f'Specify the Newick file '
-                            f'style (optional). Default is {self.CURRENT_ARGS.get("with_internal_nodes", True)}.')
+                            default=self.CURRENT_ARGS.with_internal_nodes, help=f'Specify the Newick file type '
+                            f'(optional). Default is {self.CURRENT_ARGS.with_internal_nodes}.')
         parser.add_argument('--sort_values_by', dest='sort_values_by', required=False, action="extend", nargs="+",
-                            type=str, help=f'Specify the columns by which you want to sort the values in the csv file. '
-                            f'Possible options: ("Name", "Parent", "Distance to father", "child"). Default is '
-                            f'{self.CURRENT_ARGS.get("sort_values_by", ("child", "Name"))}.')
+                            type=str, default=self.CURRENT_ARGS.sort_values_by, help=f'Specify the columns by which '
+                            f'you want to sort the values in the csv file (optional). Possible options: ("Name", '
+                            f'"Parent", "Distance to father", "child"). Default is {self.CURRENT_ARGS.sort_values_by}.')
         parser.add_argument('--categories_quantity', dest='categories_quantity', type=int, required=False,
-                            default=self.CURRENT_ARGS.get('categories_quantity', 4), help=f'Specify categories '
-                            f'quantity. Default is {self.CURRENT_ARGS.get("categories_quantity", 4)}.')
-        parser.add_argument('--alpha', dest='alpha', type=float, required=False, default=self.CURRENT_ARGS.get('alpha',
-                            0.5), help=f'Specify alpha. Default is {self.CURRENT_ARGS.get("alpha", 0.5)}.')
-        parser.add_argument('--pi_1', dest='pi_1', type=float, required=False, default=self.CURRENT_ARGS.get('pi_1',
-                            0.5), help=f'Specify pi_1. Default is {self.CURRENT_ARGS.get("pi_1", 0.5)}.')
+                            default=self.CURRENT_ARGS.categories_quantity, help=f'Specify categories quantity '
+                            f'(optional). Default is {self.CURRENT_ARGS.categories_quantity}.')
+        parser.add_argument('--alpha', dest='alpha', type=float, required=False, default=self.CURRENT_ARGS.alpha,
+                            help=f'Specify alpha (optional). Default is {self.CURRENT_ARGS.alpha}.')
+        parser.add_argument('--pi_1', dest='pi_1', type=float, required=False, default=self.CURRENT_ARGS.pi_1,
+                            help=f'Specify pi_1 (optional). Default is {self.CURRENT_ARGS.pi_1}.')
         args = parser.parse_args()
 
         for arg_name, arg_value in vars(args).items():

@@ -111,6 +111,7 @@ class WebConfig:
                                  f'\tSERVERS_LOGS_DIR: {self.SERVERS_LOGS_DIR}\n'
                                  f'\tMSA_FILE: {self.MSA_FILE}\n'
                                  f'\tTREE_FILE: {self.TREE_FILE}\n'
+                                 f'\tOUTPUT_FILE: {self.OUTPUT_FILE}\n'
                                  f'\tJOB_LOGGER: {self.JOB_LOGGER}\n'
                                  f'\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}\n'
                                  f'\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
@@ -134,7 +135,9 @@ class WebConfig:
         self.CALCULATED_ARGS.newick_text = arguments.get('newickText')
         self.CALCULATED_ARGS.msa = arguments.get('msaText')
         self.set_job_logger_info(f'MODE: {self.MODE}\n'
-                                 f'\tOUTPUT_FILE: {self.OUTPUT_FILE}\n'
+                                 f'\tcategories_quantity: {self.CURRENT_ARGS.categories_quantity}\n'
+                                 f'\talpha: {self.CURRENT_ARGS.alpha}\n'
+                                 f'\tpi_1: {self.CURRENT_ARGS.pi_1}\n'
                                  f'\tnewick_text: {self.CALCULATED_ARGS.newick_text}\n'
                                  f'\tmsa: {self.CALCULATED_ARGS.msa}\n')
 

@@ -119,7 +119,7 @@ COMMAND_LINE = argv
 
 DEFAULT_ARGUMENTS = DefaultArgs(**{
     'with_internal_nodes': True,
-    'sort_values_by': ('child', 'Name'),
+    'sort_values_by': ['child', 'Name'],
     'sep': '\t'
     })
 
@@ -131,11 +131,12 @@ DEFAULT_FORM_ARGUMENTS = {
 
 ACTIONS = Actions(**{
                      'check_data': check_data,
-                     'check_tree': Tree.check_tree,
-                     'rename_nodes': Tree.rename_nodes,
-                     'rate_vector': Tree.get_gamma_distribution_categories_vector,
-                     'msa_dict': Tree.get_msa_dict,
-                     'alphabet': Tree.get_alphabet_from_dict,
+                     # 'check_tree': Tree.check_tree,
+                     'check_tree': Tree.rename_nodes,
+                     'set_tree_data': Tree.set_tree_data,
+                     # 'rate_vector': Tree.get_gamma_distribution_categories_vector,
+                     # 'msa_dict': Tree.get_msa_dict,
+                     # 'alphabet': Tree.get_alphabet_from_dict,
                      'compute_likelihood_of_tree': compute_likelihood_of_tree,
                      'calculate_tree_for_fasta': Tree.calculate_tree_for_fasta,
                      'calculate_ancestral_sequence': Tree.calculate_ancestral_sequence,
@@ -150,10 +151,11 @@ VALIDATION_ACTIONS = {
     }
 
 DEFAULT_ACTIONS = {
-    'rename_nodes': True,
-    'rate_vector': True,
-    'msa_dict': True,
-    'alphabet': True,
+    # 'rename_nodes': True,
+    # 'rate_vector': True,
+    # 'msa_dict': True,
+    # 'alphabet': True,
+    'set_tree_data': True,
     'compute_likelihood_of_tree': False,
     'calculate_tree_for_fasta': False,
     'calculate_ancestral_sequence': False,
@@ -165,23 +167,35 @@ DEFAULT_ACTIONS = {
 
 CALCULATED_ARGS = CalculatedArgs(**{
                                     'file_path': None,
-                                    'rate_vector': None,
+                                    # 'rate_vector': None,
                                     'newick_text': None,
                                     'msa': None,
-                                    'newick_tree': None,
-                                    'msa_dict': None,
-                                    'alphabet': None
+                                    'newick_tree': None
+                                    # 'msa_dict': None,
+                                    # 'alphabet': None
                                     })
 
 USAGE = ''' 
             Required parameters:
-                    --msa_file <msa filepath>
-                    --tree_file <newick filepath>
+                    --msa_file <type=str>
+                        Specify the msa filepath.
+                    --tree_file <type=str>
+                        Specify the tree filepath.
             Optional parameters:
-                    --with_internal_nodes <type=bool> default=True
-                    --sort_values_by <type=tuple> default=('child', 'Name')
-                    --categories_quantity <type=int> default=4
-                    --alpha <type=float> default=0.5
+                    --mode <type=str>
+                        Execution mode style. Possible options: ('draw_tree', 'compute_likelihood_of_tree', 
+                        'create_all_file_types', 'execute_all_actions'). Default is 'execute_all_actions'.
+                    --with_internal_nodes <type=bool> 
+                        Specify the Newick file type. Default is True.
+                    --sort_values_by <type=str> 
+                        Specify the columns by which you want to sort the values in the csv file. 
+                        Possible options: ('Name', 'Parent', 'Distance to father', 'child'). Default is 'child' 'Name'.
+                    --categories_quantity <type=int>
+                        Specify categories quantity. Default is 4.
+                    --alpha <type=float>
+                        Specify alpha. Default is 0.5.
+                    --pi_1 <type=float> 
+                        Specify pi_1. Default is 0.5.
         '''
 
 MENU = ({'name': 'HOME', 'url': 'index',

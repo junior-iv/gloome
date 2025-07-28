@@ -116,35 +116,26 @@ def check_tree_data(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], st
     return newick_tree, msa, alphabet
 
 
-def execute_all_actions(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str], file_path: str,
-                        rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
-                        alphabet: Optional[Tuple[str, ...]] = None, create_new_file: bool = False,
+def execute_all_actions(newick_tree: Union[str, Tree], file_path: str, create_new_file: bool = False,
                         form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
                         ) -> Union[Dict[str, str], str]:
-    newick_tree, msa, alphabet = check_tree_data(newick_tree, msa, alphabet)
 
     result_data = {'draw_tree': draw_tree(newick_tree, file_path)}
-    result_data.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree, msa, rate_vector,
-                                                                                 file_path, alphabet=alphabet)})
-    result_data.update({'create_all_file_types': create_all_file_types(newick_tree, msa, file_path, rate_vector,
-                                                                       alphabet)})
+    result_data.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree, file_path)})
+    result_data.update({'create_all_file_types': create_all_file_types(newick_tree, file_path)})
     if create_new_file:
         return create_file(file_path, get_result_data(result_data, 'execute_all_actions', form_data), 'result.json')
 
     return result_data
 
 
-def compute_likelihood_of_tree(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str], rate_vector:
-                               Optional[Tuple[Union[float, ndarray], ...]] = None, file_path: Optional[str] = None,
-                               create_new_file: bool = False, alphabet: Optional[Tuple[str, ...]] = None,
-                               form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
+def compute_likelihood_of_tree(newick_tree: Union[str, Tree], file_path: Optional[str] = None,
+                               form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
+                               create_new_file: bool = False
                                ) -> Union[Dict[str, Union[float, ndarray, List[Union[float, ndarray]]]], str]:
-    newick_tree, msa, alphabet = check_tree_data(newick_tree, msa, alphabet)
 
-    # newick_tree.calculate_likelihood(msa, rate_vector=rate_vector)
-    # if not newick_tree.likelihood or not newick_tree.log_likelihood or not newick_tree.log_likelihood_vector:
     if not all((newick_tree.likelihood, newick_tree.log_likelihood, newick_tree.log_likelihood_vector)):
-        newick_tree.calculate_likelihood(msa=msa, alphabet=alphabet, rate_vector=rate_vector)
+        newick_tree.calculate_likelihood()
 
     result = {'likelihood_of_the_tree': newick_tree.likelihood}
     result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
@@ -156,27 +147,18 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], msa: Union[Dict[st
     return result
 
 
-def create_all_file_types(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], str], file_path: str,
-                          rate_vector: Optional[Tuple[Union[float, ndarray], ...]] = None,
-                          alphabet: Optional[Tuple[str, ...]] = None, create_new_file: bool = False,
+def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_new_file: bool = False,
                           form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
                           ) -> Union[Dict[str, str], str]:
-    newick_tree, msa, alphabet = check_tree_data(newick_tree, msa, alphabet)
 
-    result = {'Interactive tree (html)': Tree.tree_to_interactive_html(newick_tree, msa, alphabet,
-              file_name=f'{file_path}/interactive_tree.html', rate_vector=rate_vector)}
-    result.update(Tree.tree_to_graph(newick_tree, file_name=f'{file_path}/graph.txt',
-                  file_extensions=('dot', 'png', 'svg')))
-    result.update(Tree.tree_to_visual_format(newick_tree, file_name=f'{file_path}/visual_tree.svg',
-                  file_extensions=('txt', 'png', 'svg'), with_internal_nodes=True))
-    result.update({'Newick text (tree)': Tree.tree_to_newick_file(newick_tree,
-                  file_name=f'{file_path}/newick_tree.tree', with_internal_nodes=True)})
-    result.update({'Table of nodes (csv)': Tree.tree_to_csv(newick_tree, file_name=f'{file_path}/tree.csv',
-                  sep='\t', sort_values_by=('child', 'Name'), decimal_length=8)})
-    result.update({'Fasta (fasta)': Tree.tree_to_fasta(newick_tree, msa, alphabet,
-                  file_name=f'{file_path}/fasta_file.fasta', rate_vector=rate_vector)})
-    result.update({'log-Likelihood (csv)': Tree.likelihood_to_csv(newick_tree, msa, alphabet=alphabet,
-                  file_name=f'{file_path}/log-likelihood.csv', sep='\t', rate_vector=rate_vector)})
+    result = {'Interactive tree (html)': newick_tree.tree_to_interactive_html(f'{file_path}/interactive_tree.html')}
+    result.update(newick_tree.tree_to_graph(f'{file_path}/graph.txt', ('dot', 'png', 'svg')))
+    result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', True, ('txt', 'png', 'svg')))
+    result.update({'Newick text (tree)': newick_tree.tree_to_newick_file(f'{file_path}/newick_tree.tree', True)})
+    result.update({'Table of nodes (csv)': newick_tree.tree_to_csv(f'{file_path}/tree.csv', '\t', ('child', 'Name'),
+                                                                   8)})
+    result.update({'Fasta (fasta)': newick_tree.tree_to_fasta(f'{file_path}/fasta_file.fasta')})
+    result.update({'log-Likelihood (csv)': newick_tree.likelihood_to_csv(f'{file_path}/log-likelihood.csv''\t')})
 
     archive_path = path.join(path.dirname(file_path), path.basename(file_path))
     archive_name = make_archive(archive_path, 'zip', file_path, '.')
