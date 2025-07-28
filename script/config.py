@@ -264,7 +264,7 @@ class Config:
                             f'filepath (required).')
         parser.add_argument('--process_id', dest='process_id', type=str, required=False, default=self.PROCESS_ID,
                             help=f'Process id (optional). Default is {self.PROCESS_ID}.')
-        parser.add_argument('--', dest='mode', required=False, action="extend", nargs="+", type=str, help=f'Execution '
+        parser.add_argument('--mode', dest='mode', required=False, action="extend", nargs="+", type=str, help=f'Execution '
                             f'mode style (optional). Possible options: ("draw_tree", "compute_likelihood_of_tree", '
                             f'"create_all_file_types", "execute_all_actions"). Default is {self.MODE[3:]}.')
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=bool, required=False,
