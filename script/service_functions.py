@@ -209,8 +209,8 @@ def check_data(*args) -> List[Tuple[str, str]]:
     if not isinstance(alpha, float) or not 0.1 <= alpha <= 20:
         err_list.append((f'Alpha value error [ {alpha} ]', f'The value must be between 0.1 and 20.'))
 
-    if not isinstance(pi_1, float) or not 0.01 <= pi_1 <= 0.9999999999:
-        err_list.append((f'π1 value error [ {pi_1} ]', f'The value must be between 0.01 and 0.9999999999.'))
+    if not isinstance(pi_1, float) or not 0.001 <= pi_1 <= 0.999:
+        err_list.append((f'π1 value error [ {pi_1} ]', f'The value must be between 0.001 and 0.999.'))
 
     if not msa:
         err_list.append(('MSA error', 'No MSA was provided.'))
