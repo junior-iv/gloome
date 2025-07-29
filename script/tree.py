@@ -407,7 +407,7 @@ class Tree:
 
         if self.msa and self.alphabet and not self.calculated_likelihood:
             self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
-                self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector))
+                self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1))
             self.calculated_likelihood = True
 
     def get_fasta_text(self, columns: Optional[Dict[str, str]] = None) -> str:
