@@ -21,9 +21,9 @@ class Tree:
     rate_vector: Tuple[Union[float, np.ndarray, int], ...] = (1, )
     pi_0: Optional[Union[float, np.ndarray, int]] = None
     pi_1: Optional[Union[float, np.ndarray, int]] = None
-    log_likelihood_vector: List[Union[float, np.ndarray]] = []
-    log_likelihood: Union[float, np.ndarray] = 0.0
-    likelihood: Union[float, np.ndarray] = 0.0
+    log_likelihood_vector: Optional[List[Union[float, np.ndarray]]] = None
+    log_likelihood: Optional[Union[float, np.ndarray]] = None
+    likelihood: Optional[Union[float, np.ndarray]] = None
     calculated_ancestor_sequence: bool = False
     calculated_tree_for_fasta: bool = False
     calculated_likelihood: bool = False
@@ -303,8 +303,7 @@ class Tree:
         return tree_table.sort_values(by=list(sort_values_by)) if sort_values_by else tree_table
 
     def calculate_ancestral_sequence(self, newick_node: Optional[Union[Node, str]] = None) -> None:
-        self.calculated_ancestor_sequence = bool(self.alphabet)
-        if self.calculated_ancestor_sequence:
+        if self.alphabet and not self.calculated_ancestor_sequence:
             node_list = []
             if not newick_node:
                 node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
@@ -326,6 +325,7 @@ class Tree:
                             current_node.ancestral_sequence += ancestral_alphabet[2]
                         elif current_node.sequence[i] == current_node.father.sequence[i] == self.alphabet[1]:
                             current_node.ancestral_sequence += ancestral_alphabet[3]
+            self.calculated_ancestor_sequence = True
 
     def calculate_marginal(self, newick_node: Optional[Union[Node, str]], msa: Optional[str] = None
                            ) -> Tuple[Union[Union[List[List[np.ndarray]], List[List[float]]], float],
@@ -385,11 +385,10 @@ class Tree:
         return msa_dict
 
     def calculate_tree_for_fasta(self) -> str:
-        for current_node in self.root.get_list_nodes_info(only_node_list=True):
-            current_node.sequence = ''
+        if self.msa and not self.calculated_tree_for_fasta:
+            for current_node in self.root.get_list_nodes_info(only_node_list=True):
+                current_node.sequence = ''
 
-        self.calculated_tree_for_fasta = bool(self.msa)
-        if self.calculated_tree_for_fasta:
             leaves_info = self.get_list_nodes_info(True, None, {'node_type': ['leaf']})
             len_seq = len(min(list(self.msa.values())))
             for i_char in range(len_seq):
@@ -400,14 +399,16 @@ class Tree:
                 self.calculate_up(current_msa)
                 self.calculate_down()
                 self.calculate_marginal(None, current_msa)
+            self.calculated_tree_for_fasta = True
 
         return self.get_fasta_text()
 
     def calculate_likelihood(self) -> None:
 
-        self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
-            self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector))
-        self.calculated_likelihood = True
+        if self.msa and self.alphabet and not self.calculated_likelihood:
+            self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
+                self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector))
+            self.calculated_likelihood = True
 
     def get_fasta_text(self, columns: Optional[Dict[str, str]] = None) -> str:
         columns = columns if columns else {'node': 'Name', 'sequence': 'Sequence', 'ancestral_sequence':
@@ -483,8 +484,7 @@ class Tree:
 
     def tree_to_fasta(self, file_name: str = 'file.fasta') -> str:
 
-        if not self.calculated_tree_for_fasta:
-            self.calculate_tree_for_fasta()
+        self.calculate_tree_for_fasta()
         Tree.make_dir(file_name)
         fasta_text = self.get_fasta_text()
         with open(file_name, 'w') as f:
@@ -495,8 +495,7 @@ class Tree:
     def likelihood_to_csv(self, file_name: str = 'file.csv', sep: str = '\t') -> str:
 
         Tree.make_dir(file_name)
-        if not self.calculated_likelihood:
-            self.calculate_likelihood()
+        self.calculate_likelihood()
         tree_table = pd.DataFrame({'POS': range(len(self.log_likelihood_vector)),
                                    'log-likelihood': self.log_likelihood_vector})
         tree_table.to_csv(file_name, sep=sep, index=False)
@@ -560,10 +559,8 @@ class Tree:
 
     def tree_to_interactive_html(self, file_name: str = 'interactive_tree.svg') -> str:
 
-        if not self.calculated_tree_for_fasta:
-            self.calculate_tree_for_fasta()
-        if not self.calculated_ancestor_sequence:
-            self.calculate_ancestral_sequence()
+        self.calculate_tree_for_fasta()
+        self.calculate_ancestral_sequence()
         size_factor = min(1 + self.get_node_count({'node_type': ['leaf']}) // 7, 3)
 
         df = self.tree_to_table(columns={'node': 'target', 'father_name': 'source', 'distance': 'weight', 'sequence':

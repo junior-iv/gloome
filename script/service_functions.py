@@ -134,9 +134,7 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], file_path: Optiona
                                create_new_file: bool = False
                                ) -> Union[Dict[str, Union[float, ndarray, List[Union[float, ndarray]]]], str]:
 
-    if not all((newick_tree.likelihood, newick_tree.log_likelihood, newick_tree.log_likelihood_vector)):
-        newick_tree.calculate_likelihood()
-
+    newick_tree.calculate_likelihood()
     result = {'likelihood_of_the_tree': newick_tree.likelihood}
     result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
     result.update({'log-likelihood_list': newick_tree.log_likelihood_vector})
@@ -211,8 +209,8 @@ def check_data(*args) -> List[Tuple[str, str]]:
     if not isinstance(alpha, float) or not 0.1 <= alpha <= 20:
         err_list.append((f'Alpha value error [ {alpha} ]', f'The value must be between 0.1 and 20.'))
 
-    if not isinstance(pi_1, float) or not 0.01 <= pi_1 <= 1:
-        err_list.append((f'π1 value error [ {pi_1} ]', f'The value must be between 0.01 and 1.'))
+    if not isinstance(pi_1, float) or not 0.01 <= pi_1 <= 0.9999999999:
+        err_list.append((f'π1 value error [ {pi_1} ]', f'The value must be between 0.01 and 0.9999999999.'))
 
     if not msa:
         err_list.append(('MSA error', 'No MSA was provided.'))
