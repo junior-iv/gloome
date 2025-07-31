@@ -18,7 +18,7 @@ class Tree:
     root: Optional[Node] = None
     alphabet: Optional[Tuple[str, ...]] = None
     msa: Optional[Dict[str, str]] = None
-    rate_vector: Tuple[Union[float, np.ndarray, int], ...] = (1, )
+    rate_vector: Tuple[Union[float, np.ndarray, int], ...] = (1.0, )
     pi_0: Optional[Union[float, np.ndarray, int]] = None
     pi_1: Optional[Union[float, np.ndarray, int]] = None
     log_likelihood_vector: Optional[List[Union[float, np.ndarray]]] = None
@@ -28,7 +28,23 @@ class Tree:
     calculated_tree_for_fasta: bool = False
     calculated_likelihood: bool = False
 
-    def __init__(self, data: Union[str, Node, None] = None, node_name: Optional[str] = None) -> None:
+    def __init__(self, data: Optional[Union[str, Node]] = None, node_name: Optional[str] = None, **kwargs) -> None:
+        """
+        Parameters
+        ----------
+            data: Optional[Union[str, Node]] = None
+            node_name: Optional[str] = None
+            msa: Optional[Union[Dict[str, str], str]] = None
+            categories_quantity: Optional[float] = None
+            alpha: Optional[float] = None
+            beta: Optional[float] = None
+            pi_0: Optional[Union[float, np.ndarray, int]] = None
+            pi_1: Optional[Union[float, np.ndarray, int]] = None
+        """
+        available_parameters = {'data', 'node_name', 'msa', 'categories_quantity', 'alpha', 'beta', 'pi_0', 'pi_1'}
+        invalid_parameters = set(kwargs.keys()) - available_parameters
+        for key in invalid_parameters:
+            del kwargs[key]
 
         if isinstance(data, str):
             self.newick_to_tree(data)
@@ -38,6 +54,17 @@ class Tree:
             self.root = data
         else:
             self.root = Node('root')
+
+        self.msa, self.alphabet = None, None
+        self.rate_vector = (1.0,)
+        self.pi_0, self.pi_1 = None, None
+        self.log_likelihood_vector, self.log_likelihood, self.likelihood = None, None, None
+        self.calculated_ancestor_sequence = self.calculated_tree_for_fasta = self.calculated_likelihood = False
+
+        if any(kwargs.values()):
+            self.set_tree_data(**kwargs)
+        elif invalid_parameters:
+            print(f'There are invalid parameters: {", ".join(invalid_parameters)}')
 
     def __str__(self) -> str:
         return self.get_newick()
@@ -452,8 +479,8 @@ class Tree:
                                                  alpha: Optional[float] = None, beta: Optional[float] = None
                                                  ) -> Tuple[float, ...]:
         categories_quantity = 1 if categories_quantity is None else categories_quantity
-        alpha = 0.5 if alpha is None else alpha
-        beta = alpha if beta is None else beta
+        alpha = alpha if alpha else (beta if beta else 0.5)
+        beta = beta if beta else alpha
         categories_vector = []
         gamma_percent_point = Tree.get_gamma_distribution_percent_point(categories_quantity, alpha, beta)
         for i in range(categories_quantity):
@@ -466,7 +493,8 @@ class Tree:
 
         return self.rate_vector
 
-    def set_tree_data(self, msa: Union[Dict[str, str], str], categories_quantity: Optional[float] = None,
+    def set_tree_data(self, msa: Optional[Union[Dict[str, str], str]] = None,
+                      categories_quantity: Optional[int] = None,
                       alpha: Optional[float] = None, beta: Optional[float] = None,
                       pi_0: Optional[Union[float, np.ndarray, int]] = None,
                       pi_1: Optional[Union[float, np.ndarray, int]] = None) -> None:
