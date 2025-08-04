@@ -151,7 +151,7 @@ class Config:
                                 file_path=self.OUT_DIR, create_new_file=True, form_data=self.get_form_data(),
                                 newick_tree=self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
-            self.execute_action(self.ACTIONS.create_all_file_types, 'compute_likelihood_of_tree',
+            self.execute_action(self.ACTIONS.create_all_file_types, 'create_all_file_types',
                                 file_path=self.OUT_DIR, create_new_file=True, form_data=self.get_form_data(),
                                 newick_tree=self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
