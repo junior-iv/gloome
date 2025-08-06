@@ -155,7 +155,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_
     result.update({'Newick text (tree)': newick_tree.tree_to_newick_file(f'{file_path}/newick_tree.tree', True)})
     result.update({'Table of nodes (csv)': newick_tree.tree_to_csv(f'{file_path}/tree.csv', '\t', ('child', 'Name'),
                                                                    8)})
-    result.update({'Fasta (fasta)': newick_tree.tree_to_fasta(f'{file_path}/fasta_file.fasta')})
+    result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
     result.update({'log-Likelihood (csv)': newick_tree.likelihood_to_csv(f'{file_path}/log-likelihood.csv''\t')})
 
     archive_path = path.join(path.dirname(file_path), path.basename(file_path))
