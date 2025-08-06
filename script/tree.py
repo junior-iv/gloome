@@ -140,7 +140,7 @@ class Tree:
 
         return self.root.get_node_by_name(name)
 
-    def get_newick(self, with_internal_nodes: bool = False) -> str:
+    def get_newick(self, with_internal_nodes: bool = False, decimal_length: int = 0) -> str:
 
         """
         Convert the current tree structure to a Newick formatted string.
@@ -150,11 +150,12 @@ class Tree:
 
         Args:
             with_internal_nodes (bool, optional):
+            decimal_length (int, optional):
 
         Returns:
             str: A Newick formatted string representing the tree structure.
         """
-        return f'{self.root.subtree_to_newick(with_internal_nodes)};'
+        return f'{self.root.subtree_to_newick(with_internal_nodes, decimal_length)};'
 
     def find_node_by_name(self, name: str) -> bool:
         """
@@ -437,15 +438,10 @@ class Tree:
                 self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1))
             self.calculated_likelihood = True
 
-    def get_fasta_text(self, columns: Optional[Dict[str, str]] = None) -> str:
-        columns = columns if columns else {'node': 'Name', 'sequence': 'Sequence', 'ancestral_sequence':
-                                           'Ancestral Comparison', 'children': 'child', 'lavel': 'Lavel', 'node_type':
-                                           'Node Type'}
-        table = self.tree_to_table(('Node Type', 'Name'), columns=columns)
+    def get_fasta_text(self) -> str:
         fasta_text = ''
-        dict_table = table.to_dict()
-        for i in table.T:
-            fasta_text += f'>{dict_table.get("Name").get(i)}\n{dict_table.get("Sequence").get(i)}\n'
+        for k, v in self.msa.items():
+            fasta_text += f'>{k}\n{v}\n'
 
         return fasta_text[:-1]
 
@@ -470,10 +466,6 @@ class Tree:
             dict_json = self.root.node_to_json()
 
         return loads(str(dict_json).replace(f'\'', r'"'))
-
-    def tree_to_newick_text(self, with_internal_nodes: bool = False, decimal_length: int = 0) -> str:
-
-        return f'{self.root.subtree_to_newick(with_internal_nodes, decimal_length)};'
 
     def get_gamma_distribution_categories_vector(self, categories_quantity: Optional[int] = None,
                                                  alpha: Optional[float] = None, beta: Optional[float] = None
@@ -510,15 +502,11 @@ class Tree:
             self.pi_1 = pi_1
         self.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
 
-    def tree_to_fasta(self, file_name: str = 'file.fasta') -> str:
+    def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
 
-        self.calculate_tree_for_fasta()
-        Tree.make_dir(file_name)
         fasta_text = self.get_fasta_text()
-        with open(file_name, 'w') as f:
-            f.write(fasta_text)
 
-        return file_name
+        return self.write_file(file_name, fasta_text)
 
     def likelihood_to_csv(self, file_name: str = 'file.csv', sep: str = '\t') -> str:
 
@@ -545,13 +533,9 @@ class Tree:
     def tree_to_newick_file(self, file_name: str = 'tree_file.tree', with_internal_nodes: bool = False,
                             decimal_length: int = 0) -> str:
 
-        newick_text = self.tree_to_newick_text(with_internal_nodes, decimal_length)
+        newick_text = self.get_newick(with_internal_nodes, decimal_length)
 
-        Tree.make_dir(file_name)
-        with open(file_name, 'w') as f:
-            f.write(newick_text)
-
-        return file_name
+        return self.write_file(file_name, newick_text)
 
     def tree_to_visual_format(self, file_name: str = 'tree_file.svg', with_internal_nodes: bool = False,
                               file_extensions: Optional[Union[str, Tuple[str, ...]]] = None, show_axes: bool = False
@@ -682,6 +666,18 @@ class Tree:
 
         return file_names
 
+    @staticmethod
+    def write_file(file_name: str, file_text: str) -> str:
+
+        try:
+            Tree.make_dir(file_name)
+            with open(file_name, 'w') as f:
+                f.write(file_text)
+        except Exception as e:
+            print(f'An error occurred while saving the file: {e}')
+            file_name = ''
+
+        return file_name
     @staticmethod
     def get_alphabet_from_dict(msa_dict: Dict[str, str]) -> Tuple[str, ...]:
         character_list = []
