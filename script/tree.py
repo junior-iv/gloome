@@ -526,7 +526,8 @@ class Tree:
         columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to father',
                                            'children': 'child', 'sequence': 'Sequence',
                                            'probabilities_sequence_characters': 'Probability coefficient',
-                                           'ancestral_sequence': 'Ancestral Comparison'}
+                                           'ancestral_sequence': 'Ancestral comparison', 'likelihood': 'Likelihood',
+                                           'up_vector': 'Up', 'down_vector': 'Down', 'marginal_vector': 'Marginal'}
         table = self.tree_to_table(sort_values_by, decimal_length, columns, filters, list_type=list)
         table.to_csv(file_name, index=False, sep=sep)
 
