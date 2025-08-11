@@ -116,6 +116,22 @@ def check_tree_data(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], st
     return newick_tree, msa, alphabet
 
 
+    # def calculate_likelihood(parameter: float = 0.5) -> float:
+    #     n_tree = Tree(newick_text, msa=msa, categories_quantity=1, alpha=0.5)
+    #     log_likelihood_vector, log_likelihood, likelihood = n_tree.root.calculate_likelihood(n_tree.msa,
+    #                                                                                          n_tree.alphabet,
+    #                                                                                          n_tree.rate_vector,
+    #                                                                                          n_tree.pi_0,
+    #                                                                                          pi_1=parameter)
+    #
+    # def get_optimaze(self) -> Tuple[float, float]:
+    #     values = np.linspace(0.001, 0.999, 100)
+    #     scores = [calculate_likelihood([v]) for v in values]
+    #     min_index = np.argmin(scores)
+    #     min_value = values[min_index]
+    #     min_score = scores[min_index]
+    #
+    #
 def execute_all_actions(newick_tree: Union[str, Tree], file_path: str, create_new_file: bool = False,
                         form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
                         ) -> Union[Dict[str, str], str]:

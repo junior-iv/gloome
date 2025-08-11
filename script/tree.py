@@ -524,8 +524,10 @@ class Tree:
 
         Tree.make_dir(file_name)
         columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to father',
-                                           'children': 'child'}
-        table = self.tree_to_table(sort_values_by, decimal_length, columns, filters)
+                                           'children': 'child', 'sequence': 'Sequence',
+                                           'probabilities_sequence_characters': 'Probability coefficient',
+                                           'ancestral_sequence': 'Ancestral Comparison'}
+        table = self.tree_to_table(sort_values_by, decimal_length, columns, filters, list_type=list)
         table.to_csv(file_name, index=False, sep=sep)
 
         return file_name
@@ -730,7 +732,7 @@ class Tree:
     @staticmethod
     def make_dir(file_path: str, **kwargs) -> None:
         dir_path = path.dirname(file_path)
-        if not path.exists(dir_path):
+        if not path.exists(dir_path) and dir_path:
             makedirs(dir_path, **kwargs)
 
     @staticmethod

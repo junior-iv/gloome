@@ -21,6 +21,25 @@ function showAlert(message, duration = 3000) {
     }, duration);
 }
 
+function optimizePi1()  {
+    let msaText = document.getElementById('msaText');
+    let newickText = document.getElementById('newickText');
+    hideAll();
+
+    fetch(`/get_ptimize `, {
+        method: 'GET',
+    })
+        .then(response => response.json())
+        .then(data => {
+            msaText.value = data.message[0];
+            newickText.value = data.message[1];
+        })
+        .catch(error => {
+            console.error(`Error:`, error);
+            showMessage(error.message);
+        });
+}
+
 function validateInput(id, defaultValue){
     let currentElement = document.getElementById(id);
     let currentValue = Number(currentElement.value);
