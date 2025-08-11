@@ -169,8 +169,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_
     result.update(newick_tree.tree_to_graph(f'{file_path}/graph.txt', ('dot', 'png', 'svg')))
     result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', True, ('txt', 'png', 'svg')))
     result.update({'Newick text (tree)': newick_tree.tree_to_newick_file(f'{file_path}/newick_tree.tree', True)})
-    result.update({'Table of nodes (csv)': newick_tree.tree_to_csv(f'{file_path}/tree.csv', '\t', ('child', 'Name'),
-                                                                   8)})
+    result.update({'Table of nodes (csv)': newick_tree.tree_to_csv(f'{file_path}/tree.csv')})
     result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
     result.update({'log-Likelihood (csv)': newick_tree.likelihood_to_csv(f'{file_path}/log-likelihood.csv''\t')})
 
