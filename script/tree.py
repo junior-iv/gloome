@@ -7,7 +7,7 @@ from shutil import rmtree
 from json import loads
 from os import path, makedirs
 from d3blocks import D3Blocks
-from .node import Node
+from node import Node
 from typing import Optional, List, Union, Dict, Tuple, Set
 from Bio import Phylo
 from scipy.stats import gamma
@@ -292,8 +292,8 @@ class Tree:
                       None, distance_type: type = str, list_type: type = str, lists: Optional[Tuple[str, ...]] = None,
                       change_content_type: bool = False) -> pd.DataFrame:
         nodes_info = self.get_list_nodes_info(True, None, filters)
-        columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to father',
-                                           'children': 'child', 'lavel': 'Lavel', 'node_type': 'Node type',
+        columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to parent',
+                                           'children': 'Children', 'lavel': 'Lavel', 'node_type': 'Node type',
                                            'full_distance': 'Full distance', 'up_vector': 'Up', 'down_vector': 'Down',
                                            'likelihood': 'Likelihood', 'marginal_vector': 'Marginal vector',
                                            'probability_vector': 'Probability vector', 'probable_character':
@@ -508,7 +508,7 @@ class Tree:
 
         return self.write_file(file_name, fasta_text)
 
-    def likelihood_to_csv(self, file_name: str = 'file.csv', sep: str = '\t') -> str:
+    def likelihood_to_csv(self, file_name: str = 'file.tsv', sep: str = '\t') -> str:
 
         Tree.make_dir(file_name)
         self.calculate_likelihood()
@@ -518,13 +518,13 @@ class Tree:
 
         return file_name
 
-    def tree_to_csv(self, file_name: str = 'file.csv', sep: str = '\t', sort_values_by:
+    def tree_to_csv(self, file_name: str = 'file.tsv', sep: str = '\t', sort_values_by:
                     Optional[Tuple[str, ...]] = None, decimal_length: int = 0, columns: Optional[Dict[str, str]] = None,
                     filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None) -> str:
 
         Tree.make_dir(file_name)
-        columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to father',
-                                           'children': 'child', 'sequence': 'Sequence',
+        columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to parent',
+                                           'children': 'Children', 'sequence': 'Sequence',
                                            'probabilities_sequence_characters': 'Probability coefficient',
                                            'ancestral_sequence': 'Ancestral comparison', 'likelihood': 'Likelihood',
                                            'up_vector': 'Up', 'down_vector': 'Down', 'marginal_vector': 'Marginal'}
