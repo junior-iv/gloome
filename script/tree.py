@@ -318,7 +318,7 @@ class Tree:
                     node_info.update({'distance': distance_type(node_info.get('distance'))})
             for i in lists:
                 if columns.get(i):
-                    if isinstance(list_type, (list, tuple, set)):
+                    if list_type in (list, tuple, set):
                         info = list_type(map(lambda x: f'{x:.3f}' if (isinstance(x, (int, float)) and
                                                                       change_content_type) else x, node_info.get(i)))
                     else:
@@ -688,6 +688,7 @@ class Tree:
             file_name = ''
 
         return file_name
+
     @staticmethod
     def get_alphabet_from_dict(msa_dict: Dict[str, str]) -> Tuple[str, ...]:
         character_list = []
