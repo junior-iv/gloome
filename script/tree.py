@@ -296,13 +296,15 @@ class Tree:
         columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to parent',
                                            'children': 'Children', 'lavel': 'Lavel', 'node_type': 'Node type',
                                            'full_distance': 'Full distance', 'up_vector': 'Up', 'down_vector': 'Down',
-                                           'likelihood': 'Likelihood', 'marginal_vector': 'Marginal vector',
+                                           'likelihood': 'Likelihood', 'sequence_likelihood': 'Likelihood of sequence',
+                                           'log_likelihood': 'Log-likelihood', 'log_likelihood_vector':
+                                           'Vector of log-likelihood', 'marginal_vector': 'Marginal vector',
                                            'probability_vector': 'Probability vector', 'probable_character':
                                            'Probable character', 'sequence': 'Sequence', 'ancestral_sequence':
                                            'Ancestral Comparison', 'probabilities_sequence_characters':
                                            'Probabilities sequence characters'}
         lists = lists if lists else ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector',
-                                     'probability_vector', 'probabilities_sequence_characters')
+                                     'probability_vector', 'probabilities_sequence_characters', 'log_likelihood_vector')
 
         for node_info in nodes_info:
             for i in set(node_info.keys()) - set(columns.keys()):
@@ -533,7 +535,9 @@ class Tree:
         columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to parent',
                                            'children': 'Children', 'sequence': 'Sequence',
                                            'probabilities_sequence_characters': 'Probability coefficient',
-                                           'ancestral_sequence': 'Ancestral comparison', 'likelihood': 'Likelihood'}
+                                           'ancestral_sequence': 'Ancestral comparison', 'sequence_likelihood':
+                                           'Likelihood of sequence', 'log_likelihood': 'Log-likelihood',
+                                           'log_likelihood_vector': 'Vector of log-likelihood'}
         table = self.tree_to_table(sort_values_by, decimal_length, columns, filters, list_type=list)
         table.to_csv(file_name, index=False, sep=sep)
 

@@ -11,6 +11,9 @@ class Node:
     children: List['Node']
     name: str
     distance_to_father: Union[float, np.ndarray]
+    log_likelihood_vector: List[Union[float, np.ndarray]]
+    log_likelihood: Union[float, np.ndarray]
+    sequence_likelihood: Union[float, np.ndarray]
     likelihood: Union[float, np.ndarray]
     up_vector: List[List[Union[float, np.ndarray]]]
     down_vector: List[List[Union[float, np.ndarray]]]
@@ -26,6 +29,9 @@ class Node:
         self.children = []
         self.name = name
         self.distance_to_father = 0.0
+        self.log_likelihood_vector = []
+        self.log_likelihood = 0.0
+        self.sequence_likelihood = 1.0
         self.likelihood = 0.0
         self.up_vector = []
         self.down_vector = []
@@ -129,10 +135,12 @@ class Node:
 
         return {'node': self.name, 'distance': full_distance[0], 'lavel': lavel, 'node_type': node_type, 'father_name':
                 father_name, 'full_distance': full_distance, 'children': [i.name for i in self.children], 'up_vector':
-                self.up_vector, 'down_vector': self.down_vector, 'likelihood': self.likelihood, 'marginal_vector':
-                self.marginal_vector, 'probability_vector': self.probability_vector, 'probable_character':
-                self.probable_character, 'sequence': self.sequence, 'probabilities_sequence_characters':
-                self.probabilities_sequence_characters, 'ancestral_sequence': self.ancestral_sequence}
+                self.up_vector, 'down_vector': self.down_vector, 'likelihood': self.likelihood, 'sequence_likelihood':
+                self.sequence_likelihood, 'log_likelihood': self.log_likelihood, 'log_likelihood_vector':
+                self.log_likelihood_vector, 'marginal_vector': self.marginal_vector, 'probability_vector':
+                self.probability_vector, 'probable_character': self.probable_character, 'sequence': self.sequence,
+                'probabilities_sequence_characters': self.probabilities_sequence_characters, 'ancestral_sequence':
+                self.ancestral_sequence}
 
     def get_node_by_name(self, node_name: str) -> Optional['Node']:
         if node_name == self.name:
@@ -150,6 +158,11 @@ class Node:
             return self.get_one_parameter_qmatrix(rate, pi_0, pi_1)
         else:
             return self.get_jukes_cantor_qmatrix(alphabet_size, rate)
+
+    def calculate_sequence_likelihood(self) -> None:
+        self.sequence_likelihood *= self.likelihood
+        self.log_likelihood += log(self.likelihood)
+        self.log_likelihood_vector.append(log(self.likelihood))
 
     def calculate_marginal(self, alphabet: Union[Tuple[str, ...], str],
                            rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
@@ -201,6 +214,8 @@ class Node:
             self.probabilities_sequence_characters += [max(up_vector)]
             self.up_vector = [up_vector for _ in range(rate_vector_size)]
 
+            self.calculate_sequence_likelihood()
+
             return self.up_vector
 
         dict_children = {}
@@ -220,6 +235,8 @@ class Node:
                 current_up_vector.append(prod(probabilities.values()))
             self.up_vector.append(current_up_vector)
             self.likelihood += np.sum([1 / alphabet_size * 1 / rate_vector_size * i for i in current_up_vector])
+
+        self.calculate_sequence_likelihood()
 
         if self.father:
             return self.up_vector
