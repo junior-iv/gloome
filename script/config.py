@@ -216,10 +216,11 @@ class Config:
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=bool, required=False,
                             default=self.CURRENT_ARGS.with_internal_nodes, help=f'Specify the Newick file type '
                             f'(optional). Default is {self.CURRENT_ARGS.with_internal_nodes}.')
-        parser.add_argument('--sort_values_by', dest='sort_values_by', required=False, action="extend", nargs="+",
-                            type=str, default=self.CURRENT_ARGS.sort_values_by, help=f'Specify the columns by which '
-                            f'you want to sort the values in the csv file (optional). Possible options: ("Name", '
-                            f'"Parent", "Distance to father", "child"). Default is {self.CURRENT_ARGS.sort_values_by}.')
+        # parser.add_argument('--sort_values_by', dest='sort_values_by', required=False, action="extend", nargs="+",
+        #                     type=str, default=self.CURRENT_ARGS.sort_values_by, help=f'Specify the columns by which '
+        #                     f'you want to sort the values in the csv file (optional). Possible options: ("Name", '
+        #                     f'"Parent", "Distance to parent", "child"). Default is '
+        #                     f'{self.CURRENT_ARGS.sort_values_by}.')
         parser.add_argument('--categories_quantity', dest='categories_quantity', type=int, required=False,
                             default=self.CURRENT_ARGS.categories_quantity, help=f'Specify categories quantity '
                             f'(optional). Default is {self.CURRENT_ARGS.categories_quantity}.')
@@ -240,10 +241,11 @@ class Config:
                     if hasattr(self, arg_name.upper()):
                         setattr(self, arg_name.upper(), arg_value)
                     if hasattr(self.CURRENT_ARGS, arg_name):
-                        if arg_name == 'sort_values_by':
-                            setattr(self.CURRENT_ARGS, arg_name, tuple(arg_value))
-                        else:
-                            setattr(self.CURRENT_ARGS, arg_name, arg_value)
+                        setattr(self.CURRENT_ARGS, arg_name, arg_value)
+                        # if arg_name == 'sort_values_by':
+                        #     setattr(self.CURRENT_ARGS, arg_name, tuple(arg_value))
+                        # else:
+                        #     setattr(self.CURRENT_ARGS, arg_name, arg_value)
 
         self.DEFAULT_ACTIONS.update({'compute_likelihood_of_tree': False,
                                      'calculate_tree_for_fasta': False,

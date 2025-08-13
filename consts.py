@@ -114,7 +114,7 @@ COMMAND_LINE = argv
 
 DEFAULT_ARGUMENTS = DefaultArgs(**{
     'with_internal_nodes': True,
-    'sort_values_by': ['child', 'Name'],
+    # 'sort_values_by': ['child', 'Name'],
     'sep': '\t'
     })
 
@@ -143,8 +143,8 @@ VALIDATION_ACTIONS = {
 
 DEFAULT_ACTIONS = {
     'set_tree_data': True,
-    'compute_likelihood_of_tree': False,
     'calculate_tree_for_fasta': False,
+    'compute_likelihood_of_tree': False,
     'calculate_ancestral_sequence': False,
     'draw_tree': False,
     'create_all_file_types': False,
@@ -171,9 +171,6 @@ USAGE = '''
                         'create_all_file_types', 'execute_all_actions'). Default is 'execute_all_actions'.
                     --with_internal_nodes <type=bool> 
                         Specify the Newick file type. Default is True.
-                    --sort_values_by <type=str> 
-                        Specify the columns by which you want to sort the values in the csv file. 
-                        Possible options: ('Name', 'Parent', 'Distance to father', 'child'). Default is 'child' 'Name'.
                     --categories_quantity <type=int>
                         Specify categories quantity. Default is 4.
                     --alpha <type=float>
@@ -181,6 +178,9 @@ USAGE = '''
                     --pi_1 <type=float> 
                         Specify pi_1. Default is 0.5.
         '''
+# --sort_values_by <type=str>
+#     Specify the columns by which you want to sort the values in the csv file.
+#     Possible options: ('Name', 'Parent', 'Distance to parent', 'Children'). Default is 'child' 'Name'.
 
 MENU = ({'name': 'HOME', 'url': 'index',
          'submenu': ()

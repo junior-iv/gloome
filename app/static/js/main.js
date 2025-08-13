@@ -385,7 +385,7 @@ function showMessage(message = null, variant = 1) {
     }
 }
 
-function clearForm() {
+function cleanForm() {
     let elementNames = {'value': [`newickText`, `msaText`], 'innerHTML': [`tree`, `nodeInfo`, `logLikelihood`, `fileList`]};
     for (let i = 0; i < elementNames.value.length; i++) {
         document.getElementById(elementNames.value[i]).value = '';

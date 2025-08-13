@@ -267,6 +267,27 @@ class Node:
             for child in self.children:
                 child.calculate_down(tree_info, alphabet_size, rate_vector, pi_0, pi_1)
 
+    def clean_all(self):
+        for current_node in self.get_list_nodes_info(only_node_list=True):
+            current_node.likelihood = 0.0
+            current_node.up_vector = []
+            current_node.down_vector = []
+            current_node.marginal_vector = []
+            current_node.probability_vector = []
+            current_node.probable_character = ''
+            current_node.sequence = ''
+            current_node.probabilities_sequence_characters = []
+            current_node.ancestral_sequence = ''
+
+    def clean_up(self):
+        for current_node in self.get_list_nodes_info(only_node_list=True):
+            current_node.likelihood = 0
+            current_node.probable_character = ''
+            current_node.sequence = ''
+            current_node.probabilities_sequence_characters = []
+            current_node.up_vector = []
+            current_node.likelihood = 0.0
+
     def calculate_likelihood(self, msa_dict: Dict[str, str], alphabet: Union[Tuple[str, ...], str],
                              rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
                              pi_0: Optional[float] = None, pi_1: Optional[float] = None

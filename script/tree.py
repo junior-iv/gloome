@@ -7,11 +7,12 @@ from shutil import rmtree
 from json import loads
 from os import path, makedirs
 from d3blocks import D3Blocks
-from .node import Node
+from node import Node
 from typing import Optional, List, Union, Dict, Tuple, Set
 from Bio import Phylo
 from scipy.stats import gamma
 from scipy.special import gammainc
+from math import log
 
 
 class Tree:
@@ -317,7 +318,7 @@ class Tree:
                     node_info.update({'distance': distance_type(node_info.get('distance'))})
             for i in lists:
                 if columns.get(i):
-                    if list_type in (list, tuple, set):
+                    if isinstance(list_type, (list, tuple, set)):
                         info = list_type(map(lambda x: f'{x:.3f}' if (isinstance(x, (int, float)) and
                                                                       change_content_type) else x, node_info.get(i)))
                     else:
@@ -327,6 +328,9 @@ class Tree:
         tree_table = pd.DataFrame([i for i in nodes_info], index=None)
         tree_table = tree_table.rename(columns=columns)
         tree_table = tree_table.reindex(columns=columns.values())
+        if isinstance(list_type, (list, tuple, set)):
+            lists_names = [v for k, v in columns.items() if k in lists]
+            sort_values_by = tuple([i for i in sort_values_by if i not in lists_names])
 
         return tree_table.sort_values(by=list(sort_values_by)) if sort_values_by else tree_table
 
@@ -414,8 +418,8 @@ class Tree:
 
     def calculate_tree_for_fasta(self) -> str:
         if self.msa and not self.calculated_tree_for_fasta:
-            for current_node in self.root.get_list_nodes_info(only_node_list=True):
-                current_node.sequence = ''
+            self.root.clean_all()
+            self.likelihood, self.log_likelihood, self.log_likelihood_vector = 1, 0, []
 
             leaves_info = self.get_list_nodes_info(True, None, {'node_type': ['leaf']})
             len_seq = len(min(list(self.msa.values())))
@@ -424,15 +428,18 @@ class Tree:
                 for i in range(len(leaves_info)):
                     node_name = leaves_info[i].get('node')
                     current_msa += self.msa.get(node_name)[i_char]
-                self.calculate_up(current_msa)
+                char_likelihood = self.calculate_up(current_msa)
+                self.likelihood *= char_likelihood
+                self.log_likelihood += log(char_likelihood)
+                self.log_likelihood_vector.append(log(char_likelihood))
                 self.calculate_down()
                 self.calculate_marginal(None, current_msa)
             self.calculated_tree_for_fasta = True
+            self.calculated_likelihood = True
 
         return self.get_fasta_text()
 
     def calculate_likelihood(self) -> None:
-
         if self.msa and self.alphabet and not self.calculated_likelihood:
             self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
                 self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1))
@@ -449,7 +456,7 @@ class Tree:
                            ) -> Dict[str, Union[List[str], str]]:
         if return_table:
             columns = columns if columns else {'node': 'Name', 'node_type': 'Node type', 'distance':
-                                               'Distance to father', 'sequence': 'Sequence',
+                                               'Distance to parent', 'sequence': 'Sequence',
                                                'probabilities_sequence_characters': 'Probability coefficient',
                                                'ancestral_sequence': 'Ancestral Comparison'}
             lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
@@ -508,7 +515,7 @@ class Tree:
 
         return self.write_file(file_name, fasta_text)
 
-    def likelihood_to_csv(self, file_name: str = 'file.tsv', sep: str = '\t') -> str:
+    def likelihood_to_csv(self, file_name: str = 'log_likelihood.tsv', sep: str = '\t') -> str:
 
         Tree.make_dir(file_name)
         self.calculate_likelihood()
@@ -518,7 +525,7 @@ class Tree:
 
         return file_name
 
-    def tree_to_csv(self, file_name: str = 'file.tsv', sep: str = '\t', sort_values_by:
+    def tree_to_csv(self, file_name: str = 'node_results.tsv', sep: str = '\t', sort_values_by:
                     Optional[Tuple[str, ...]] = None, decimal_length: int = 0, columns: Optional[Dict[str, str]] = None,
                     filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None) -> str:
 
@@ -647,7 +654,7 @@ class Tree:
 
         size_factor = min(1 + self.get_node_count({'node_type': ['leaf']}) // 7, 3)
         Tree.make_dir(file_name)
-        columns = {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to father'}
+        columns = {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to parent'}
         table = self.tree_to_table(None, 0, columns)
         table = table.drop(0)
         j = file_name[::-1].find('.')
@@ -691,7 +698,7 @@ class Tree:
 
     @staticmethod
     def get_columns_list_for_sorting() -> Dict[str, List[str]]:
-        result = {'List for sorting': ['Name', 'Node type', 'Distance to father', 'Sequence', 'Probability coefficient',
+        result = {'List for sorting': ['Name', 'Node type', 'Distance to parent', 'Sequence', 'Probability coefficient',
                                        'Ancestral Comparison']}
 
         return loads(str(result).replace(f'\'', r'"'))
