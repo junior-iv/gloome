@@ -78,7 +78,7 @@ def get_file():
         if mode == 'view':
             j = file_path[::-1].find('.')
             file_extension = file_path[-j:]
-            if file_extension in ('txt', 'csv', 'tree', 'dot', 'fasta'):
+            if file_extension in ('txt', 'csv', 'tsv', 'tree', 'dot', 'fasta'):
                 return send_file(file_path, as_attachment=as_attachment, mimetype='text/plain;charset=UTF-8')
 
         return send_file(file_path, as_attachment=as_attachment)
