@@ -182,22 +182,22 @@ USAGE = '''
 #     Specify the columns by which you want to sort the values in the csv file.
 #     Possible options: ('Name', 'Parent', 'Distance to parent', 'Children'). Default is 'child' 'Name'.
 
-MENU = ({'name': 'HOME', 'url': 'index',
+MENU = ({'name': 'Home', 'url': 'index',
          'submenu': ()
          },
-        {'name': 'OVERVIEW', 'url': 'overview',
+        {'name': 'Overview', 'url': 'overview',
          'submenu': ()
          },
-        {'name': 'FAQ', 'url': 'faq',
+        {'name': 'Faq', 'url': 'faq',
          'submenu': ()
          },
-        {'name': 'GALLERY', 'url': 'gallery',
+        {'name': 'Gallery', 'url': 'gallery',
          'submenu': ()
          },
-        {'name': 'SOURCE CODE', 'url': 'source_code',
+        {'name': 'Source code', 'url': 'source_code',
          'submenu': ()
          },
-        {'name': 'CITING & CREDITS', 'url': 'citing_and_credits',
+        {'name': 'Citing & credits', 'url': 'citing_and_credits',
          'submenu': ()
          }
         )

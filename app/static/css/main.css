@@ -8,6 +8,70 @@
 /*}*/
     /*background-image: url("images/bg_atgc_137_137.png");*/
     /*display: block;*/
+/*.summary-outline-success {*/
+/*    color: #198754;*/
+/*}*/
+
+/*.summary-outline-success details[open] > summary::after {*/
+/*    color: #fff;*/
+/*}*/
+.default-cursor {
+    cursor: text;
+}
+.fixed-center {
+    position: fixed;
+    top: 25%;
+    left: 40%;
+    /*transform: translate(-55%, -60%);*/
+    z-index: 1050
+}
+
+.container-checkbox {
+  margin-top: 30px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  line-height: 1.8;
+  cursor: pointer;
+}
+
+.container-checkbox-input {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.container-checkbox-icon {
+  width: 24px;
+  height: 24px;
+  border: 1px solid dimgray;
+  position: relative;
+  margin-right: 16px;
+}
+
+.container-checkbox-icon::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 13px;
+  height: 9px;
+  border: 1px solid dimgray;
+  border-top: none;
+  border-right: none;
+  margin-top: -8px;
+  margin-left: -7px;
+  transform: rotate(-45deg) scale(0);
+  transform-origin: 50% 50%;
+  transition: transform 0.25s ease 0s;
+}
+
+.container-checkbox-input:checked ~ .container-checkbox-icon::after{
+  transform: rotate(-45deg) scale(1);
+}
+
 .text-color-salmon {
     color: salmon !important;
 }
@@ -4786,18 +4850,18 @@ textarea.form-control-lg {
 
 .navbar {
     --bs-navbar-padding-x: 0;
-    --bs-navbar-padding-y: 0.5rem;
+    /*--bs-navbar-padding-y: 0.5rem;*/
     --bs-navbar-color: rgba(var(--bs-emphasis-color-rgb), 0.65);
     --bs-navbar-hover-color: rgba(var(--bs-emphasis-color-rgb), 0.8);
     --bs-navbar-disabled-color: rgba(var(--bs-emphasis-color-rgb), 0.3);
     --bs-navbar-active-color: rgba(var(--bs-emphasis-color-rgb), 1);
-    --bs-navbar-brand-padding-y: 0.3125rem;
+    /*--bs-navbar-brand-padding-y: 0.3125rem;*/
     --bs-navbar-brand-margin-end: 1rem;
     --bs-navbar-brand-font-size: 1.25rem;
     --bs-navbar-brand-color: rgba(var(--bs-emphasis-color-rgb), 1);
     --bs-navbar-brand-hover-color: rgba(var(--bs-emphasis-color-rgb), 1);
     --bs-navbar-nav-link-padding-x: 0.5rem;
-    --bs-navbar-toggler-padding-y: 0.25rem;
+    /*--bs-navbar-toggler-padding-y: 0.25rem;*/
     --bs-navbar-toggler-padding-x: 0.75rem;
     --bs-navbar-toggler-font-size: 1.25rem;
     --bs-navbar-toggler-icon-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2833, 37, 41, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");

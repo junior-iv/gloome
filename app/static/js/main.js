@@ -6,11 +6,23 @@ function getInteger(data) {
 }
 
 function setLoader(loaderOn = true) {
+    let loader = document.getElementById('loader')
+    let result = document.getElementById('result')
+    let classList = [`fixed-center`, `h-20`, `w-20`];
     if (loaderOn) {
-        document.getElementById('loader').innerHTML =
+        result.classList.add(`visually-hidden`);
+        classList.forEach(currentClass => {
+            loader.classList.add(currentClass);
+        })
+        loader.innerHTML =
             `<div id="loaderCube" class="loaderCube m-9 d-flex gap-2">${'<span></span>'.repeat(4)}</div>`
     } else {
-        document.getElementById('loader').innerHTML = ''
+        classList.forEach(currentClass => {
+            loader.classList.remove(currentClass);
+        })
+        loader.innerHTML = ``
+        result.classList.remove(`visually-hidden`);
+
     }
 }
 
@@ -21,24 +33,29 @@ function showAlert(message, duration = 3000) {
     }, duration);
 }
 
-function optimizePi1()  {
-    let msaText = document.getElementById('msaText');
-    let newickText = document.getElementById('newickText');
-    hideAll();
-
-    fetch(`/get_ptimize `, {
-        method: 'GET',
-    })
-        .then(response => response.json())
-        .then(data => {
-            msaText.value = data.message[0];
-            newickText.value = data.message[1];
-        })
-        .catch(error => {
-            console.error(`Error:`, error);
-            showMessage(error.message);
-        });
+function checkOptimize() {
+    let pi1 = document.getElementById('pi1');
+    pi1.disabled = !pi1.disabled;
 }
+
+// function optimizePi1()  {
+//     let msaText = document.getElementById('msaText');
+//     let newickText = document.getElementById('newickText');
+//     hideAll();
+//
+//     fetch(`/get_ptimize `, {
+//         method: 'GET',
+//     })
+//         .then(response => response.json())
+//         .then(data => {
+//             msaText.value = data.message[0];
+//             newickText.value = data.message[1];
+//         })
+//         .catch(error => {
+//             console.error(`Error:`, error);
+//             showMessage(error.message);
+//         });
+// }
 
 function validateInput(id, defaultValue){
     let currentElement = document.getElementById(id);
@@ -95,7 +112,7 @@ function reDrawPhylogeneticTree() {
     if (jsonTreeData !== null){
         setLoader(false)
         hideAll();
-        document.getElementById('tree').innerText = '';
+        document.getElementById('tree').innerText = ``;
         drawPhylogeneticTree(jsonTreeData);
     }
 }
@@ -243,16 +260,20 @@ function convertJSONToTable(jsonData, jsonSort) {
     return table;
 }
 
-function convertJSONToTableFoLogLikelihood(jsonData) {
-    let table = `<details class="m-2 p-1 w-95 h-100 h6" open><summary>Log-likelihood information</summary>
-                        <table class="m-2 w-97 p-4 h6 table-light text-center">`;
-    Object.entries(jsonData).forEach(([key, value]) => {
-        table += `<tr><th class="p-1 w-auto text-danger-emphasis tborder-2 toast-body">${key}</th><th class="p-1"></th>`;
-        table += `<th class="p-1 w-auto tborder-1 bg-light text-info-emphasis toast-body">${value}</th></tr>`;
-    });
-    table += `</table></details>`;
-    document.getElementById('logLikelihood').innerHTML = table;
-    return table;
+function convertJSONToLogLikelihood(jsonData) {
+    return `<div id="logLikelihood"
+        class="py-1 w-100 form-control btn btn-outline-success bg-success-subtle text-success text-start border-0 rounded-pill default-cursor">
+        Tree Log-Likelihood: ${jsonData[0]}
+    </div>`;
+    // let table = `<details class="m-2 p-1 w-95 h-100 h6" open><summary>Log-likelihood information</summary>
+    //                     <table class="m-2 w-97 p-4 h6 table-light text-center">`;
+    // Object.entries(jsonData).forEach(([key, value]) => {
+    //     table += `<tr><th class="p-1 w-auto text-danger-emphasis tborder-2 toast-body">${key}</th><th class="p-1"></th>`;
+    //     table += `<th class="p-1 w-auto tborder-1 bg-light text-info-emphasis toast-body">${value}</th></tr>`;
+    // });
+    // table += `</table></details>`;
+    // document.getElementById('logLikelihood').innerHTML = table;
+    // return table;
 }
 
 function convertJSONToTableFoFileList(jsonData) {
@@ -276,7 +297,7 @@ function convertJSONToTableFoFileList(jsonData) {
 
 function showResponse(jsonData, mode = 0) {
     const actions = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types']
-    const dictActions = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToTableFoLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
+    const dictActions = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
 
     document.getElementById('title').innerHTML = jsonData['title'];
     Object.entries(jsonData['form_data']).forEach(([id, value]) => {
@@ -308,25 +329,25 @@ function makeTree(mode = 0) {
 
     setVisibilityLoader(true);
     setAccessibility();
-    let absolutePath = ['/execute_all_actions', `/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
-
-    fetch(absolutePath, {
-        method: `POST`,
-        body: formData
-    })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {response.json()
-                .then(data => {throw new Error(data.message)})
-                .catch(error => {processError(error)})}
-        })
-        .then(data => {
-            setVisibilityLoader(false);
-            setAccessibility();
-            typeof data.message === "object" ? showResponse(data.message, mode) : showMessage(data.message, 1);
-        })
-        .catch(error => {processError(error)});
+    // let absolutePath = ['/execute_all_actions', `/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
+    //
+    // fetch(absolutePath, {
+    //     method: `POST`,
+    //     body: formData
+    // })
+    //     .then(response => {
+    //         if (response.ok) {
+    //             return response.json();
+    //         } else {response.json()
+    //             .then(data => {throw new Error(data.message)})
+    //             .catch(error => {processError(error)})}
+    //     })
+    //     .then(data => {
+    //         setVisibilityLoader(false);
+    //         setAccessibility();
+    //         typeof data.message === "object" ? showResponse(data.message, mode) : showMessage(data.message, 1);
+    //     })
+    //     .catch(error => {processError(error)});
 }
 
 function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`) {
@@ -346,23 +367,33 @@ function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`
 
 function setVisibilityLoader(visible = true) {
     setLoader(visible)
-    document.getElementById('tree').innerText = '';
-    document.getElementById('nodeInfo').innerText = '';
-    document.getElementById('logLikelihood').innerText = '';
-    document.getElementById('fileList').innerText = '';
+    document.getElementById('tree').innerText = ``;
+    document.getElementById('nodeInfo').innerText = ``;
+    document.getElementById('logLikelihood').innerText = ``;
+    document.getElementById('fileList').innerText = ``;
     hideAll();
 }
 
-function setAccessibility() {
-    let elementNames = [`theButton`, `theСleaningButton`, `theExampleButton`, `theExample2Button`, `msaText`,
-        `msaTextFile`, `newickText`, `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`];
-    elementNames.forEach(elementId => {
+// function getRandomLogo(maxValue = 4) {
+//     let randomValue = Math.floor(Math.random() * maxValue) + 1;
+//     document.getElementById(`logo`).innerText = `{{nwt.logo(${randomValue})}}`;
+// }
+//
+function gedIdentifiers(id = ``) {
+    if (!!id) {
+        return [id];
+    } else {
+        return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`,
+            `newickText`, `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `isOptimizePi1`];
+    }
+}
+
+function setAccessibility(id = ``) {
+    let elementIdentifiers = gedIdentifiers(id);
+    elementIdentifiers.forEach(elementId => {
         let element = document.getElementById(elementId)
-        if (element.classList.contains('disabled')) {
-            element.classList.remove('disabled');
-        } else {
-            element.classList.add('disabled');
-        }
+        console.log(`id ${elementId}`)
+        element.disabled = !element.disabled;
     })
 }
 
@@ -388,10 +419,10 @@ function showMessage(message = null, variant = 1) {
 function cleanForm() {
     let elementNames = {'value': [`newickText`, `msaText`], 'innerHTML': [`tree`, `nodeInfo`, `logLikelihood`, `fileList`]};
     for (let i = 0; i < elementNames.value.length; i++) {
-        document.getElementById(elementNames.value[i]).value = '';
+        document.getElementById(elementNames.value[i]).value = ``;
     }
     for (let i = 0; i < elementNames.innerHTML.length; i++) {
-        document.getElementById(elementNames.innerHTML[i]).innerHTML = '';
+        document.getElementById(elementNames.innerHTML[i]).innerHTML = ``;
     }
     hideAll();
 }
@@ -401,7 +432,7 @@ function test(testData) {
     formData.append(`svgData`, testData);
 
     hideAll();
-    // document.getElementById('tree').innerText = ''
+    // document.getElementById('tree').innerText = ``
     setVisibilityLoader(true);
 
     fetch(`/test`, {

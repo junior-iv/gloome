@@ -148,12 +148,14 @@ def execute_all_actions(newick_tree: Union[str, Tree], file_path: str, create_ne
 def compute_likelihood_of_tree(newick_tree: Union[str, Tree], file_path: Optional[str] = None,
                                form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
                                create_new_file: bool = False
-                               ) -> Union[Dict[str, Union[float, ndarray, List[Union[float, ndarray]]]], str]:
+                               ) -> Union[List[Union[float, ndarray]], str]:
+                               # ) -> Union[Dict[str, Union[float, ndarray, List[Union[float, ndarray]]]], str]:
 
     newick_tree.calculate_likelihood()
-    result = {'likelihood_of_the_tree': newick_tree.likelihood}
-    result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
-    result.update({'log-likelihood_list': newick_tree.log_likelihood_vector})
+    # result = {'likelihood_of_the_tree': newick_tree.likelihood}
+    # result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
+    # result.update({'log-likelihood_list': newick_tree.log_likelihood_vector})
+    result = [newick_tree.log_likelihood]
 
     if create_new_file:
         return create_file(file_path, get_result_data(result, 'compute_likelihood_of_tree', form_data), 'result.json')

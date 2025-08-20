@@ -18,148 +18,200 @@
 
 {% block content %}
 {{ super() }}
-<div class="gap-2 d-flex flex-column justify-content-start h-100 w-100 text-center">
-    <div class="gap-2 d-flex flex-row justify-content-start h-50 w-100 text-center">
-        <div class="d-flex gap-2 flex-row text-start w-35 justify-content-start mx-3 mt-4">
-            <script src="https://d3js.org/d3.v7.js"></script>
+<script src="https://d3js.org/d3.v7.js"></script>
 {#            <script src="https://d3js.org/d3.v4.js"></script>#}
-            <div id="result" class="container gap-2 d-flex w-100">
-                {{nwt.alerts(30)}}
+<div class="gap-2 d-flex flex-column justify-content-center h-100 w-100">
+    <div class="gap-2 d-flex flex-row justify-content-between h-80 w-100">
+        <div class="d-flex gap-2 flex-column w-50 h-auto bg-light rounded-3 p-3 ms-3 me-1 my-3">
+            <div class="container gap-2 flex-column d-flex h-70 w-95 bg-white align-content-center rounded-2">
+                {{nwt.alerts(45)}}
                 <div id="loader"></div>
-                <div id="tree" class="m-0 p-0 h-50 w-auto"></div>
+                <div id="tree" class="m-0 p-0 h-auto w-auto"></div>
                 <div id="tooltip" class="text-justify font-verdana"></div>
             </div>
+            <div class="d-flex gap-2 flex-row text-success h7">
+                <div class="d-flex gap-2 w-60 flex-column">
+                    <div class="text-center m-2 h5">Interactive Tree</div>
+                    <ul class="zoomable-element">
+                        <li>Hover over a node to view basic info</li>
+                        <li>Click on a node to open a detailed table</li>
+                        <li>Pinch with two fingers on a trackpad to zoom in/out</li>
+                        <li>Drag with your mouse to move the tree</li>
+                    </ul>
+                </div>
+                <div class="d-flex gap-2 w-40 flex-column">
+                    <div class="text-center m-2 h5">Ancestral Comparison</div>
+                    <ul class="zoomable-element">
+                        <li>P = maintained presence;</li>
+                        <li>A = maintained absence</li>
+                        <li>L = loss</li>
+                        <li>G = gain</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="d-flex gap-2 flex-row text-success h7">
+                <div class="d-flex gap-2 w-60 flex-column">
+                    <div class="gap-2 d-flex flex-row p-2 m-2 rounded-3 btn btn-outline-success bg-success-subtle">
+                        <label for="showDistanceToParent" class="h5 container-checkbox">
+                            <input value="1" id="showDistanceToParent" name="showDistanceToParent" onchange="reDrawPhylogeneticTree()"
+                                   type="checkbox" class="container-checkbox-input"/>
+                            <span class="container-checkbox-icon"></span>
+                            <span class="container-checkbox-text">show distance to parent</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 w-40 flex-column">
+                    <div class="gap-2 d-flex flex-row p-2 m-2 rounded-3 btn btn-outline-success bg-success-subtle">
+                        <label for="isRadialTree" class="h5 container-checkbox">
+                            <input value="1" id="isRadialTree" name="isRadialTree" onchange="reDrawPhylogeneticTree()"
+                                   type="checkbox" class="container-checkbox-input"/>
+                            <span class="container-checkbox-icon"></span>
+                            <span class="container-checkbox-text">show radial tree</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="d-flex gap-2 flex-column text-end w-15 justify-content-end m-3 p-2">
-            <div id="treeHelp" class="d-flex gap-2 flex-column border-info-subtle border-1 bg-light-subtle text-success text-start rounded-3 h7 p-2 zoomable-element">
-                <div class="text-center mt-2 mb-1">Interactive Tree</div>
-                <ul>
-                    <li>Hover over a node to view basic info</li>
-                    <li>Click on a node to open a detailed table</li>
-                    <li>Pinch with two fingers on a trackpad to zoom in/out</li>
-                    <li>Drag with your mouse to move the tree</li>
-                </ul>
-                <div class="text-center mt-0 mb-1">Ancestral Comparison</div>
-                <ul>
-                    <li>P = maintained presence;</li>
-                    <li>A = maintained absence</li>
-                    <li>L = loss</li>
-                    <li>G = gain</li>
-                </ul>
+        <div  class="d-flex gap-2 flex-column w-50 h-auto bg-light rounded-3 p-3 me-3 ms-1 my-3">
+            <div class="container gap-2 flex-column d-flex h-70 w-95 bg-white align-content-center rounded-2 p-3">
+                <div class="text-center">
+                    <label for="msaText" class="h6 text-success-emphasis align-content-center">Add a phyletic pattern MSA in FASTA format via text input or file upload
+                        (<a href="https://en.wikipedia.org/wiki/FASTA_format" target="_blank">FASTA format</a>)<sup>&quest;</sup>
+                    </label>
+                </div>
+                <div class="d-flex gap-2 flex-row justify-content-end">
+                    <input id="msaTextFile" name="msaTextFile" type="file" accept="*.*"
+                          class="form-control rounded-pill" onchange="uploadFile('msaText', 'msaTextFile')"/>
+                </div>
+                <textarea spellcheck="false" id="msaText" name="msaText" autocomplete="on" rows="auto" class="form-control btn-light font-verdana"
+                          placeholder="please provide a phyletic MSA here"></textarea>
+                <div class="text-center mt-1">
+                    <label for="newickText" class="h6 text-success-emphasis align-content-center">Add a phylogenetic tree in Newick format via text input or file upload
+                        (<a href="https://en.wikipedia.org/wiki/Newick_format" target="_blank">Newick format</a>)<sup>&quest;</sup>
+                    </label>
+                </div>
+                <div class="d-flex gap-2 flex-row justify-content-end">
+                    <input id="newickTextFile" name="newickTextFile" type="file" accept="*.*"
+                           class="form-control rounded-pill" onchange="uploadFile('newickText', 'newickTextFile')"/>
+                </div>
+                <textarea spellcheck="false" id="newickText" name="newickText" autocomplete="on" rows="auto" class="form-control btn-light font-verdana"
+                          placeholder="please provide a phylogenetic tree here"></textarea>
             </div>
-            <div id="treeHelp" class="d-flex gap-2 flex-column border-danger-subtle border-1 bg-light-subtle text-center rounded-3 h7 p-2 zoomable-element text-color-salmon">
-                For JC with a constant rate please use <br> <span class="h6">π1 = 0.5, alpha = 0.5, <br> category = 1</span>
-            </div>
-            <div class="container gap-2 d-flex flex-row h-auto w-100 m-1">
-                <input value="1" id="isRadialTree" name="isRadialTree" onchange="reDrawPhylogeneticTree()"
-                       type="checkbox" class="form-check-input rounded-1"/>
-                <label for="isRadialTree" class="fw-medium h6 text-start text-danger-emphasis ms-3 mt-0">show radial tree</label>
-            </div>
-            <div class="container gap-2 d-flex flex-row h-auto w-100 m-1">
-                <input value="1" id="showDistanceToParent" name="showDistanceToParent" onchange="reDrawPhylogeneticTree()"
-                       type="checkbox" class="form-check-input rounded-1"/>
-                <label for="showDistanceToParent" class="fw-medium h6 text-start text-danger-emphasis ms-3 mt-0">show distance to parent</label>
-            </div>
-
-{#            <input value="{{alpha}}" id="alpha" name="alpha" type="number"#}
-{#                   min="0.01" max="100000" step="0.01" class="form-control rounded-pill"/>#}
-{#            <label for="alpha" class="h6 text-start text-success-emphasis ms-3 mt-1 mb-2">alpha, beta</label>#}
-{#            <input value="{{categories_quantity}}" id="categoriesQuantity" name="categoriesQuantity"#}
-{#                   type="number" min="1" max="1000" step="1" class="form-control rounded-pill"/>#}
-{#            <label for="categoriesQuantity" class="h6 text-start text-success-emphasis ms-3 mt-1 mb-2">number of rate categories</label>#}
-
-{#            <div class="container gap-2 d-flex flex-row h-auto w-100 m-2">#}
-{#                <div class="container gap-2 d-flex flex-column h-auto w-50 m-1">#}
-{#                    <input value="1" id="isRadialTree" name="isRadialTree" onchange="reDrawPhylogeneticTree()"#}
-{#                           type="checkbox" class="form-check-input rounded-1"/>#}
-{#                    <label for="isRadialTree" class="fw-medium h6 text-start text-danger-emphasis ms-3 mt-0">show radial tree</label>#}
-{#                </div>#}
-{#                <div class="container gap-2 d-flex flex-column h-auto w-50 m-1">#}
-{#                    <input value="1" id="showDistanceToParent" name="showDistanceToParent" onchange="reDrawPhylogeneticTree()"#}
-{#                           type="checkbox" class="form-check-input rounded-1"/>#}
-{#                    <label for="showDistanceToParent" class="fw-medium h6 text-start text-danger-emphasis ms-3 mt-0">show distance to parent</label>#}
-{#                </div>#}
-{#            </div>#}
-        </div>
-        <div class="container gap-2 d-flex flex-column h-75 w-50 m-3">
-            <label for="msaText" class="h6 text-success-emphasis my-2">Add a phyletic pattern MSA in FASTA format via text input or file upload
-                (<a href="https://en.wikipedia.org/wiki/FASTA_format" target="_blank">FASTA format</a>)<sup>&quest;</sup>
-            </label>
-            <div class="d-flex gap-2 flex-row justify-content-end my-1">
-                <input id="msaTextFile" name="msaTextFile" type="file" accept="*.*"
-                      class="form-control rounded-pill" onchange="uploadFile('msaText', 'msaTextFile')"/>
-            </div>
-            <textarea spellcheck="false" id="msaText" name="msaText" autocomplete="on" rows="4" class="form-control btn-light font-verdana"
-                      placeholder="please provide a phyletic MSA here"></textarea>
-            <label for="newickText" class="h6 text-success-emphasis my-2">Add a phylogenetic tree in Newick format via text input or file upload
-                (<a href="https://en.wikipedia.org/wiki/Newick_format" target="_blank">Newick format</a>)<sup>&quest;</sup>
-            </label>
-            <div class="d-flex gap-2 flex-row justify-content-end my-1">
-                <input id="newickTextFile" name="newickTextFile" type="file" accept="*.*"
-                       class="form-control rounded-pill" onchange="uploadFile('newickText', 'newickTextFile')"/>
-            </div>
-            <textarea spellcheck="false" id="newickText" name="newickText" autocomplete="on" rows="3" class="form-control btn-light font-verdana"
-                      placeholder="please provide a phylogenetic tree here"></textarea>
             <div class="d-flex gap-2 flex-row text-center w-100 justify-content-center">
-                <div class="gap-2 d-flex w-50 flex-column mx-3 m-2">
-                    <div class=" gap-2 row navbar">
-                        <input id="theButton" name="theButton" type="button" class="w-100 mw-100 form-control btn btn-outline-success rounded-pill"
-                              value="submit" onclick="makeTree(0)"/>
-{#                        <input id="theDrawTreeButton" name="theDrawTreeButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"#}
-{#                              value="draw tree" onclick="makeTree(1)"/>#}
-{#                        <input id="thLikelihoodButton" name="thLikelihoodButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"#}
-{#                              value="calculate log-likelihood" onclick="makeTree(2)"/>#}
-{#                        <input id="theAllFileTypesButton" name="theDrawTreeButton" type="button" class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"#}
-{#                              value="download results" onclick="makeTree(3)"/>#}
-                    </div>
+                <div class="gap-2 d-flex w-50 flex-column m-2">
+                    <input id="theExampleButton" name="theExampleButton" type="button" class="w-100 form-control btn btn-outline-success bg-success-subtle rounded-pill"
+                           value="Load an example" onclick="loadExample(0)"/>
                 </div>
-                <div class="gap-2 d-flex w-50 flex-column mx-3 m-2">
-                    <div class="gap-2 justify-content row navbar align-content-stretch">
-                        <input id="theСleaningButton" name="theСleaningButton" type="button" onclick="cleanForm()"
-                               class="w-auto mw-100 form-control btn btn-outline-success rounded-pill" value="clear"/>
-                        <input id="theExampleButton" name="theExampleButton" type="button" onclick="loadExample(0)"
-                               class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
-                               value="load an example"/>
-                        <input id="theExample2Button" name="theExample2Button" type="button" onclick="loadExample(1)"
-                               class="w-auto mw-100 form-control btn btn-outline-success rounded-pill"
-                               value="load an example #2"/>
-                    </div>
+                <div class="gap-2 d-flex w-50 flex-column m-2">
+                    <input id="theСleaningButton" name="theСleaningButton" type="button" class="w-100 form-control btn btn-outline-success bg-success-subtle rounded-pill"
+                           value="Clear" onclick="cleanForm()"/>
                 </div>
             </div>
-            <div class="d-flex gap-2 flex-row align-content-stretch h-auto w-100 mt-1 mb-2">
-                <div class="d-flex gap-2 flex-row h-auto w-20 mx-2 align-content-stretch">
-                    <input value="{{pi_1}}" id="pi1" name="pi1" type="number" min="0.001" max="0.999" step="0.001"
-                           title="The value must be between 0.001 and 0.999" onchange="validateInput('pi1', {{pi_1}})"
-                           class="form-control rounded-pill"/>
-                    <label for="pi1" class="h6 text-start text-success-emphasis ms-3">π1</label>
+            <div class="d-flex gap-2 flex-row text-center w-100 justify-content-center px-2">
+                <div class="gap-2 d-flex w-100 flex-column">
+                    <details>
+                        <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
+    {#                    <sub>{{nwt.arrow(1, 'gray')}}</sub>#}
+    {#                    <sub>{{nwt.arrow(2, '#198754')}}</sub>#}
+    {#                    <sub>{{nwt.arrow(3, 'gray')}}</sub>#}
+    {#                    <sub>{{nwt.arrow(4, 'gray')}}</sub>#}
+    {#                    <sub>{{nwt.arrow(5, 'gray')}}</sub>#}
+    {#                    <sub>{{nwt.arrow(6, 'gray')}}</sub>#}
+    {#                    <sub>{{nwt.arrow(7, 'gray')}}</sub>#}
+    {#                    <sub>{{nwt.arrow(8, '#198754')}}</sub>#}
+                            <div class="gap-2 d-flex w-100 flex-row">
+                                <div class="w-3 text-start"><sub>{{nwt.arrow(4, '#198754')}}</sub></div>
+                                <div class="w-97">Advanced Options</div>
+                            </div>
+                        </summary>
+                        <div class="d-flex gap-2 flex-row h-auto w-100 m-2">
+                            <div class="w-48 text-start">
+                                <label for="pi1" class="h6 text-success-emphasis ms-3">π1</label>
+                            </div>
+                            <div class="w-48 text-start">
+                                <input value="{{pi_1}}" id="pi1" name="pi1" type="number" min="0.001" max="0.999" step="0.001"
+                                       title="The value must be between 0.001 and 0.999" onchange="validateInput('pi1', {{pi_1}})"
+                                       class="form-control rounded-pill"/>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 flex-row h-auto w-100 m-2">
+                            <div class="w-48 text-start">
+                                <label for="isOptimizePi1" class="h6 text-start text-success-emphasis ms-3">optimize π1</label>
+                            </div>
+                            <div class="w-48 text-start">
+                                <input value="1" id="isOptimizePi1" name="isOptimizePi1" onchange="setAccessibility('pi1')"
+                                       type="checkbox" class="form-check-input rounded-1"/>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 flex-row h-auto w-100 m-2">
+                            <div class="w-48 text-start">
+                                <label for="alpha" class="h6 text-start text-success-emphasis ms-3">alpha, beta</label>
+                            </div>
+                            <div class="w-48 text-start">
+                                <input value="{{alpha}}" id="alpha" name="alpha" type="number" min="0.1" max="20" step="0.1"
+                                       title="The value must be between 0.1 and 20" onchange="validateInput('alpha', {{alpha}})"
+                                       class="form-control rounded-pill"/>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 flex-row h-auto w-100 m-2">
+                            <div class="w-48 text-start">
+                                <label for="categoriesQuantity" class="h6 text-start text-success-emphasis ms-3">number of rate categories</label>
+                            </div>
+                            <div class="w-48 text-start">
+                                <input value="{{categories_quantity}}" id="categoriesQuantity" name="categoriesQuantity"
+                                       title="The value must be between 1 and 16" type="number" min="1" max="16" step="1"
+                                       onchange="validateInput('categoriesQuantity', {{categories_quantity}})"
+                                       class="form-control rounded-pill"/>
+                            </div>
+                        </div>
+                    </details>
                 </div>
-{#                <div class="d-flex gap-2 flex-row h-auto w-10 mx-2 align-content-stretch">#}
-{#                    <input id="theOptimizeButton" name="theOptimizeButton" type="button" onclick="optimizePi1()"#}
-{#                           class="w-auto mw-100 form-control btn btn-outline-success rounded-pill" value="optimize π1"/>#}
-{#                </div>#}
-{#                <div class="d-flex gap-2 flex-row h-auto w-20 mx-2 align-content-stretch">#}
-                <div class="d-flex gap-2 flex-row h-auto w-40 mx-2 align-content-stretch">
-                    <input value="{{alpha}}" id="alpha" name="alpha" type="number" min="0.1" max="20" step="0.1"
-                           title="The value must be between 0.1 and 20" onchange="validateInput('alpha', {{alpha}})"
-                           class="form-control rounded-pill"/>
-                    <label for="alpha" class="h6 text-start text-success-emphasis ms-3">alpha, beta</label>
-                </div>
-{#                <div class="d-flex gap-2 flex-row h-auto w-50 mx-2 align-content-stretch">#}
-                <div class="d-flex gap-2 flex-row h-auto w-40 mx-2 align-content-stretch">
-                    <input value="{{categories_quantity}}" id="categoriesQuantity" name="categoriesQuantity"
-                           title="The value must be between 1 and 16" type="number" min="1" max="16" step="1"
-                           onchange="validateInput('categoriesQuantity', {{categories_quantity}})"
-                           class="form-control rounded-pill"/>
-                    <label for="categoriesQuantity" class="h6 text-start text-success-emphasis">number of rate categories</label>
+            </div>
+            <div class="d-flex gap-2 flex-row text-center w-100 justify-content-center mb-2">
+                <div class="gap-2 d-flex w-100 flex-column m-2">
+                    <input id="theButton" name="theButton" type="button" class="w-100 form-control btn btn-outline-success bg-success-subtle rounded-3"
+                          value="SUBMIT" onclick="makeTree(0)"/>
                 </div>
             </div>
         </div>
     </div>
-    <div id="nodeInfo" class="gap-2 d-flex justify-content-center h-auto w-100 text-center">
-    </div>
-    <div id="logLikelihood" class="gap-2 d-flex justify-content-center h-50 w-100 text-center">
-    </div>
-    <div id="fileList" class="gap-2 d-flex justify-content-center h-50 w-100 text-center">
+    <div class="gap-2 d-flex flex-row justify-content-between w-100">
+        <div id="result" class="d-flex gap-2 flex-column w-100 h-auto bg-light rounded-3 p-3 m-3 visually-hidden">
+            <div id="logLikelihood" class="py-1 w-100 form-control btn btn-outline-success bg-success-subtle text-success text-start border-0 rounded-pill default-cursor">
+                Tree Log-Likelihood: -4590.2456
+            </div>
+            <div id="fileList">
+                <details>
+                    <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
+        {#                    q#}
+                    <div class="gap-2 d-flex w-100 flex-row">
+                        <div class="w-3 text-start"><sub>{{nwt.arrow(2, '#198754')}}</sub></div>
+                        <div class="w-97 text-center">View/Download Results</div>
+                    </div>
+                    </summary>
+                    <div class="d-flex gap-2 flex-row h-auto w-100 m-2">
+                        <div class="w-100 text-start">
+                            qwerty
+                        </div>
+                    </div>
+                </details>
+            </div>
+            <div id="nodeInfo">
+                <details><summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
+        {#                    q#}
+                    <div class="gap-2 d-flex w-100 flex-row">
+                        <div class="w-3 text-start"><sub>{{nwt.arrow(6, '#198754')}}</sub></div>
+                        <div class="w-97 text-center">Node details</div>
+                    </div>
+                    </summary>
+                    <div class="d-flex gap-2 flex-row h-auto w-100 m-2">
+                        <div class="w-100 text-start">
+                            qwerty
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

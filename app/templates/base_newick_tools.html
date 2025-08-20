@@ -1,49 +1,121 @@
 {%- macro svg() -%}
-<svg height="53" width="90">
-    <defs>
-        <linearGradient gradientTransform="rotate(90)" id="gradient">
-            <stop offset="5%" stop-color="white">
-                <animate id="animation5" begin="0s; animation8.end" attributeName="stop-color" from="#fff" to="#dff" dur="5"/>
-                <animate id="animation6" begin="animation5.end" attributeName="stop-color" from="#dff" to="#fff" dur="5"/>
-                <animate id="animation7" begin="animation6.end" attributeName="stop-color" from="#fff" to="#f99" dur="5"/>
-                <animate id="animation8" begin="animation7.end" attributeName="stop-color" from="#f99" to="#fff" dur="5"/>
-            </stop>
-            <stop offset="30%" stop-color="#fd0">
-                <animate id="animation9" begin="0s; animation12.end" attributeName="stop-color" from="#fd0" to="#FFD700" dur="10"/>
-                <animate id="animation10" begin="animation9.end" attributeName="stop-color" from="#FFD700" to="#fd0" dur="10"/>
-                <animate id="animation11" begin="animation10.end" attributeName="stop-color" from="#fd0" to="#dff" dur="10"/>
-                <animate id="animation12" begin="animation11.end" attributeName="stop-color" from="#dff" to="#fd0" dur="10"/>
-            </stop>
-            <stop offset="50%" stop-color="#fff">
-                <animate id="animation1" begin="0s; animation4.end" attributeName="stop-color" from="#fff" to="#dff" dur="15"/>
-                <animate id="animation2" begin="animation1.end" attributeName="stop-color" from="#dff" to="#fff" dur="15"/>
-                <animate id="animation3" begin="animation2.end" attributeName="stop-color" from="#fff" to="#f99" dur="15"/>
-                <animate id="animation4" begin="animation3.end" attributeName="stop-color" from="#f99" to="#fff" dur="15"/>
-            </stop>
-            <stop offset="60%" stop-color="#dff">
-                <animate id="animation13" begin="0s; animation16.end" attributeName="stop-color" from="#dff" to="MediumSpringGreen" dur="15"/>
-                <animate id="animation14" begin="animation13.end" attributeName="stop-color" from="MediumSpringGreen" to="#DarkCyan" dur="15"/>
-                <animate id="animation15" begin="animation14.end" attributeName="stop-color" from="#DarkCyan" to="#ffd" dur="15"/>
-                <animate id="animation16" begin="animation15.end" attributeName="stop-color" from="#ffd" to="#dff" dur="15"/>
-            </stop>
-            <stop offset="80%" stop-color="navy">
-                <animate id="animation21" begin="0s; animation24.end" attributeName="stop-color" from="navy" to="#dff" dur="10"/>
-                <animate id="animation22" begin="animation21.end" attributeName="stop-color" from="#dff" to="FFD700" dur="15"/>
-                <animate id="animation23" begin="animation22.end" attributeName="stop-color" from="FFD700" to="#f99" dur="20"/>
-                <animate id="animation24" begin="animation23.end" attributeName="stop-color" from="#f99" to="navy" dur="10"/>
-            </stop>
-            <stop offset="100%" stop-color="black">
-                <animate id="animation17" begin="0s; animation20.end" attributeName="stop-color" from="Indigo" to="#dff" dur="20"/>
-                <animate id="animation18" begin="animation17.end" attributeName="stop-color" from="#dff" to="#aff" dur="20"/>
-                <animate id="animation19" begin="animation18.end" attributeName="stop-color" from="#aff" to="#FFD700" dur="20"/>
-                <animate id="animation20" begin="animation19.end" attributeName="stop-color" from="#FFD700" to="Indigo" dur="20"/>
-            </stop>
-        </linearGradient>
-    </defs>
-    <ellipse cx="38" cy="27" rx="34" ry="23" fill="url(#gradient)"/>
-    <text fill="#fff" font-size="13" font-weight="bold" font-family="Verdana" x="11" y="25">gloome</text>
-    Sorry, your browser does not support inline SVG.
-</svg>
+    <svg height="53" width="90">
+        <defs>
+            <linearGradient gradientTransform="rotate(90)" id="gradient">
+                <stop offset="5%" stop-color="white">
+                    <animate id="animation5" begin="0s; animation8.end" attributeName="stop-color" from="#fff" to="#dff" dur="5"/>
+                    <animate id="animation6" begin="animation5.end" attributeName="stop-color" from="#dff" to="#fff" dur="5"/>
+                    <animate id="animation7" begin="animation6.end" attributeName="stop-color" from="#fff" to="#f99" dur="5"/>
+                    <animate id="animation8" begin="animation7.end" attributeName="stop-color" from="#f99" to="#fff" dur="5"/>
+                </stop>
+                <stop offset="30%" stop-color="#fd0">
+                    <animate id="animation9" begin="0s; animation12.end" attributeName="stop-color" from="#fd0" to="#FFD700" dur="10"/>
+                    <animate id="animation10" begin="animation9.end" attributeName="stop-color" from="#FFD700" to="#fd0" dur="10"/>
+                    <animate id="animation11" begin="animation10.end" attributeName="stop-color" from="#fd0" to="#dff" dur="10"/>
+                    <animate id="animation12" begin="animation11.end" attributeName="stop-color" from="#dff" to="#fd0" dur="10"/>
+                </stop>
+                <stop offset="50%" stop-color="#fff">
+                    <animate id="animation1" begin="0s; animation4.end" attributeName="stop-color" from="#fff" to="#dff" dur="15"/>
+                    <animate id="animation2" begin="animation1.end" attributeName="stop-color" from="#dff" to="#fff" dur="15"/>
+                    <animate id="animation3" begin="animation2.end" attributeName="stop-color" from="#fff" to="#f99" dur="15"/>
+                    <animate id="animation4" begin="animation3.end" attributeName="stop-color" from="#f99" to="#fff" dur="15"/>
+                </stop>
+                <stop offset="60%" stop-color="#dff">
+                    <animate id="animation13" begin="0s; animation16.end" attributeName="stop-color" from="#dff" to="MediumSpringGreen" dur="15"/>
+                    <animate id="animation14" begin="animation13.end" attributeName="stop-color" from="MediumSpringGreen" to="#DarkCyan" dur="15"/>
+                    <animate id="animation15" begin="animation14.end" attributeName="stop-color" from="#DarkCyan" to="#ffd" dur="15"/>
+                    <animate id="animation16" begin="animation15.end" attributeName="stop-color" from="#ffd" to="#dff" dur="15"/>
+                </stop>
+                <stop offset="80%" stop-color="navy">
+                    <animate id="animation21" begin="0s; animation24.end" attributeName="stop-color" from="navy" to="#dff" dur="10"/>
+                    <animate id="animation22" begin="animation21.end" attributeName="stop-color" from="#dff" to="FFD700" dur="15"/>
+                    <animate id="animation23" begin="animation22.end" attributeName="stop-color" from="FFD700" to="#f99" dur="20"/>
+                    <animate id="animation24" begin="animation23.end" attributeName="stop-color" from="#f99" to="navy" dur="10"/>
+                </stop>
+                <stop offset="100%" stop-color="black">
+                    <animate id="animation17" begin="0s; animation20.end" attributeName="stop-color" from="Indigo" to="#dff" dur="20"/>
+                    <animate id="animation18" begin="animation17.end" attributeName="stop-color" from="#dff" to="#aff" dur="20"/>
+                    <animate id="animation19" begin="animation18.end" attributeName="stop-color" from="#aff" to="#FFD700" dur="20"/>
+                    <animate id="animation20" begin="animation19.end" attributeName="stop-color" from="#FFD700" to="Indigo" dur="20"/>
+                </stop>
+            </linearGradient>
+        </defs>
+        <ellipse cx="38" cy="27" rx="34" ry="23" fill="url(#gradient)"/>
+        <text fill="#fff" font-size="13" font-weight="bold" font-family="Verdana" x="11" y="25">gloome</text>
+        Sorry, your browser does not support inline SVG.
+    </svg>
+{%- endmacro -%}
+
+{%- macro logo(mode=1, color='gray') -%}
+    {%- if mode == 1 -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="M280-80q-50 0-85-35t-35-85q0-39 22.5-70t57.5-43v-334q-35-12-57.5-43T160-760q0-50 35-85t85-35q50 0 85 35t35 85q0 39-22.5 70T320-647v7q0 50 35 85t85 35h80q83 0 141.5 58.5T720-320v7q35 12 57.5 43t22.5 70q0 50-35 85t-85 35q-50 0-85-35t-35-85q0-39 22.5-70t57.5-43v-7q0-50-35-85t-85-35h-80q-34 0-64.5-10.5T320-480v167q35 12 57.5 43t22.5 70q0 50-35 85t-85 35Zm0-80q17 0 28.5-11.5T320-200q0-17-11.5-28.5T280-240q-17 0-28.5 11.5T240-200q0 17 11.5 28.5T280-160Zm400 0q17 0 28.5-11.5T720-200q0-17-11.5-28.5T680-240q-17 0-28.5 11.5T640-200q0 17 11.5 28.5T680-160ZM280-720q17 0 28.5-11.5T320-760q0-17-11.5-28.5T280-800q-17 0-28.5 11.5T240-760q0 17 11.5 28.5T280-720Z"/>
+        </svg>
+    {%- elif mode == 2 -%}
+        <svg xmlns='http://www.w3.org/2000/svg' height='24px' viewBox='0 -960 960 960' width='24px' fill='{{- color -}}'>
+            <path d='M200-80q-50 0-85-35t-35-85q0-39 22.5-70t57.5-43v-87q0-50 35-85t85-35h160v-127q-35-12-57.5-43T360-760q0-50 35-85t85-35q50 0 85 35t35 85q0 39-22.5 70T520-647v127h160q50 0 85 35t35 85v87q35 12 57.5 43t22.5 70q0 50-35 85t-85 35q-50 0-85-35t-35-85q0-39 22.5-70t57.5-43v-87q0-17-11.5-28.5T680-440H520v127q35 12 57.5 43t22.5 70q0 50-35 85t-85 35q-50 0-85-35t-35-85q0-39 22.5-70t57.5-43v-127H280q-17 0-28.5 11.5T240-400v87q35 12 57.5 43t22.5 70q0 50-35 85t-85 35Zm0-80q17 0 28.5-11.5T240-200q0-17-11.5-28.5T200-240q-17 0-28.5 11.5T160-200q0 17 11.5 28.5T200-160Zm280 0q17 0 28.5-11.5T520-200q0-17-11.5-28.5T480-240q-17 0-28.5 11.5T440-200q0 17 11.5 28.5T480-160Zm280 0q17 0 28.5-11.5T800-200q0-17-11.5-28.5T760-240q-17 0-28.5 11.5T720-200q0 17 11.5 28.5T760-160ZM480-720q17 0 28.5-11.5T520-760q0-17-11.5-28.5T480-800q-17 0-28.5 11.5T440-760q0 17 11.5 28.5T480-720Z'/>
+        </svg>
+    {%- elif mode == 3 -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="M480-80q-50 0-85-35t-35-85q0-5 .5-11t1.5-11l-83-47q-16 14-36 21.5t-43 7.5q-50 0-85-35t-35-85q0-50 35-85t85-35q24 0 45 9t38 25l119-60q-3-23 2.5-45t19.5-41l-34-52q-7 2-14.5 3t-15.5 1q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 20-6.5 38.5T456-688l35 52q8-2 15-3t15-1q17 0 32 4t29 12l66-54q-4-10-6-20.5t-2-21.5q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35q-17 0-32-4.5T699-617l-66 55q4 10 6 20.5t2 21.5q0 50-35 85t-85 35q-24 0-45.5-9T437-434l-118 59q2 9 1.5 18t-2.5 18l84 48q16-14 35.5-21.5T480-320q50 0 85 35t35 85q0 50-35 85t-85 35ZM200-320q17 0 28.5-11.5T240-360q0-17-11.5-28.5T200-400q-17 0-28.5 11.5T160-360q0 17 11.5 28.5T200-320Zm160-400q17 0 28.5-11.5T400-760q0-17-11.5-28.5T360-800q-17 0-28.5 11.5T320-760q0 17 11.5 28.5T360-720Zm120 560q17 0 28.5-11.5T520-200q0-17-11.5-28.5T480-240q-17 0-28.5 11.5T440-200q0 17 11.5 28.5T480-160Zm40-320q17 0 28.5-11.5T560-520q0-17-11.5-28.5T520-560q-17 0-28.5 11.5T480-520q0 17 11.5 28.5T520-480Zm240-200q17 0 28.5-11.5T800-720q0-17-11.5-28.5T760-760q-17 0-28.5 11.5T720-720q0 17 11.5 28.5T760-680Z"/>
+        </svg>
+    {%- elif mode == 4 -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="M482-80q-50 0-85-35t-35-85q0-38 22-68.5t56-43.5v-256L303-402q8 14 12.5 29.5T320-340q0 50-35 85t-85 35q-50 0-85-35t-35-85q0-50 35-85t85-35q11 0 21 1.5t20 5.5l172-208q-24-17-38.5-42.5T360-760q0-50 35-85t85-35q50 0 85 35t35 85q0 31-14.5 56.5T547-661l172 208q10-4 20-5.5t21-1.5q50 0 85 35t35 85q0 50-35 85t-85 35q-50 0-85-35t-35-85q0-17 4.5-32.5T657-402L520-568v254q36 12 59 43t23 71q0 50-35 85t-85 35Zm0-80q17 0 28.5-11.5T522-200q0-17-11.5-28.5T482-240q-17 0-28.5 11.5T442-200q0 17 11.5 28.5T482-160ZM200-300q17 0 28.5-11.5T240-340q0-17-11.5-28.5T200-380q-17 0-28.5 11.5T160-340q0 17 11.5 28.5T200-300Zm560 0q17 0 28.5-11.5T800-340q0-17-11.5-28.5T760-380q-17 0-28.5 11.5T720-340q0 17 11.5 28.5T760-300ZM480-720q17 0 28.5-11.5T520-760q0-17-11.5-28.5T480-800q-17 0-28.5 11.5T440-760q0 17 11.5 28.5T480-720Z"/>
+        </svg>
+    {%- elif mode == 5 -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="M760-60q-15 0-28-7t-21-19q-121-22-213.5-108T368-406q-96 45-152 132.5T160-80H80q0-134 73.5-244T350-486q-21-115-3.5-207.5T420-843q2-24 19-40.5t41-16.5q25 0 42.5 17.5T540-840q0 25-17.5 42.5T480-780h-4q-2 0-5-1-22 25-35 61.5T419-638q20-20 46.5-34.5T524-695q30-8 64.5-10.5t72.5.5q8-8 18-11.5t21-3.5q25 0 42.5 17.5T760-660q0 25-17.5 42.5T700-600q-14 0-27.5-6.5T651-625q-33-2-63.5.5T533-614q-39 13-61.5 38T443-512q28-5 47.5-6.5T576-520q8-10 19.5-15t24.5-5q25 0 42.5 17.5T680-480q0 25-17.5 42.5T620-420q-13 0-24.5-5T576-440q-63 0-83 1.5t-45 6.5q13 34 51 52t99 20q29 2 62.5-1t67.5-9q8-14 22-22t30-8q25 0 42.5 17.5T840-340q0 25-17.5 42.5T780-280q-10 0-18.5-3t-16.5-9q-34 6-66.5 9.5T617-279q-29 0-55-3t-49-9q38 49 92.5 82.5T720-164q8-8 18.5-12t21.5-4q25 0 42.5 17.5T820-120q0 25-17.5 42.5T760-60Z"/>
+        </svg>
+    {%- elif mode == 6 -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="M200-80v-80h240v-160h-80q-83 0-141.5-58.5T160-520q0-60 33-110.5t89-73.5q9-75 65.5-125.5T480-880q76 0 132.5 50.5T678-704q56 23 89 73.5T800-520q0 83-58.5 141.5T600-320h-80v160h240v80H200Zm160-320h240q50 0 85-35t35-85q0-36-20.5-66T646-630l-42-18-6-46q-6-45-39.5-75.5T480-800q-45 0-78.5 30.5T362-694l-6 46-42 18q-33 14-53.5 44T240-520q0 50 35 85t85 35Zm120-200Z"/>
+        </svg>
+    {%- endif -%}
+{%- endmacro -%}
+
+{%- macro arrow(mode=1, color='gray') -%}
+    {%- if mode == 1 -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="M640-200 200-480l440-280v560Zm-80-280Zm0 134v-268L350-480l210 134Z"/>
+        </svg>
+    {%- elif mode == 2 -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="m480-360 160-160H320l160 160Zm0 280q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/>
+        </svg>
+    {%- elif mode == 3 -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="M400-280v-400l200 200-200 200Z"/>
+        </svg>
+    {%- elif mode == 4 -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="m480-320 160-160-56-56-64 64v-168h-80v168l-64-64-56 56 160 160Zm0 240q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/>
+        </svg>
+    {%- elif mode == 5 -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="M480-240 240-480l56-56 144 144v-368h80v368l144-144 56 56-240 240Z"/>
+        </svg>
+    {%- elif mode == 6 -%}
+        {#arrow_drop_down#}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="M480-360 280-560h400L480-360Z"/>
+        </svg>
+    {%- elif mode == 7 -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="M320-200v-560l440 280-440 280Zm80-280Zm0 134 210-134-210-134v268Z"/>
+        </svg>
+    {%- elif mode == 8 -%}
+        {#arrow_drop_up#}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="m280-400 200-200 200 200H280Z"/>
+        </svg>
+    {%- elif mode == 9 -%}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="{{- color -}}">
+            <path d="m560-200 160-160-56-56-64 62v-166h-80v166l-64-62-56 56 160 160ZM360-440h80v-166l64 62 56-56-160-160-160 160 56 56 64-62v166ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/>
+        </svg>
+{#    {%- elif mode == 10 -%}#}
+{#    {%- elif mode == 11 -%}#}
+    {%- endif -%}
 {%- endmacro -%}
 
 {%- macro tree_html() -%}
