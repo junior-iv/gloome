@@ -329,25 +329,25 @@ function makeTree(mode = 0) {
 
     setVisibilityLoader(true);
     setAccessibility();
-    // let absolutePath = ['/execute_all_actions', `/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
-    //
-    // fetch(absolutePath, {
-    //     method: `POST`,
-    //     body: formData
-    // })
-    //     .then(response => {
-    //         if (response.ok) {
-    //             return response.json();
-    //         } else {response.json()
-    //             .then(data => {throw new Error(data.message)})
-    //             .catch(error => {processError(error)})}
-    //     })
-    //     .then(data => {
-    //         setVisibilityLoader(false);
-    //         setAccessibility();
-    //         typeof data.message === "object" ? showResponse(data.message, mode) : showMessage(data.message, 1);
-    //     })
-    //     .catch(error => {processError(error)});
+    let absolutePath = ['/execute_all_actions', `/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
+
+    fetch(absolutePath, {
+        method: `POST`,
+        body: formData
+    })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {response.json()
+                .then(data => {throw new Error(data.message)})
+                .catch(error => {processError(error)})}
+        })
+        .then(data => {
+            setVisibilityLoader(false);
+            setAccessibility();
+            typeof data.message === "object" ? showResponse(data.message, mode) : showMessage(data.message, 1);
+        })
+        .catch(error => {processError(error)});
 }
 
 function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`) {
