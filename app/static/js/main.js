@@ -10,7 +10,7 @@ function setLoader(loaderOn = true) {
     let result = document.getElementById('result')
     let classList = [`fixed-center`, `h-20`, `w-20`];
     if (loaderOn) {
-        result.classList.add(`visually-hidden`);
+        result.style.visibility = `hidden`;
         classList.forEach(currentClass => {
             loader.classList.add(currentClass);
         })
@@ -21,7 +21,7 @@ function setLoader(loaderOn = true) {
             loader.classList.remove(currentClass);
         })
         loader.innerHTML = ``
-        result.classList.remove(`visually-hidden`);
+        result.style.visibility = `visually`;
 
     }
 }
@@ -261,10 +261,7 @@ function convertJSONToTable(jsonData, jsonSort) {
 }
 
 function convertJSONToLogLikelihood(jsonData) {
-    return `<div id="logLikelihood"
-        class="py-1 w-100 form-control btn btn-outline-success bg-success-subtle text-success text-start border-0 rounded-pill default-cursor">
-        Tree Log-Likelihood: ${jsonData[0]}
-    </div>`;
+    return `Tree Log-Likelihood: ${jsonData[0]}`;
     // let table = `<details class="m-2 p-1 w-95 h-100 h6" open><summary>Log-likelihood information</summary>
     //                     <table class="m-2 w-97 p-4 h6 table-light text-center">`;
     // Object.entries(jsonData).forEach(([key, value]) => {
