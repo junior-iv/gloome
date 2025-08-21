@@ -10,7 +10,7 @@ function setLoader(loaderOn = true) {
     let result = document.getElementById('result')
     let classList = [`fixed-center`, `h-20`, `w-20`];
     if (loaderOn) {
-        result.style.visibility = `hidden`;
+        result.classList.add(`visually-hidden`);
         classList.forEach(currentClass => {
             loader.classList.add(currentClass);
         })
@@ -21,7 +21,7 @@ function setLoader(loaderOn = true) {
             loader.classList.remove(currentClass);
         })
         loader.innerHTML = ``
-        result.style.visibility = `visually`;
+        result.classList.remove(`visually-hidden`);
 
     }
 }

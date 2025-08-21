@@ -100,7 +100,7 @@
             <div class="d-flex gap-2 flex-row text-center w-100 justify-content-center">
                 <div class="gap-2 d-flex w-50 flex-column m-2">
                     <input id="theExampleButton" name="theExampleButton" type="button" class="w-100 form-control btn btn-outline-success bg-success-subtle rounded-pill"
-                           value="Load an example" onclick="loadExample(1)"/>
+                           value="Load an example" onclick="loadExample(0)"/>
                 </div>
                 <div class="gap-2 d-flex w-50 flex-column m-2">
                     <input id="theСleaningButton" name="theСleaningButton" type="button" class="w-100 form-control btn btn-outline-success bg-success-subtle rounded-pill"
@@ -176,7 +176,7 @@
         </div>
     </div>
     <div class="gap-2 d-flex flex-row justify-content-between w-100">
-        <div id="result" class="d-flex gap-2 flex-column w-100 h-auto bg-light rounded-3 p-3 m-3">
+        <div id="result" class="d-flex gap-2 flex-column w-100 h-auto bg-light rounded-3 p-3 m-3 visually-hidden">
             <div id="logLikelihood" class="py-1 w-100 form-control btn btn-outline-success bg-success-subtle text-success text-start border-0 rounded-pill default-cursor">
                 Tree Log-Likelihood: -4590.2456
             </div>
