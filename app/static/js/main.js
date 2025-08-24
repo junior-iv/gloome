@@ -239,24 +239,24 @@ function convertJSONToTable(jsonData, jsonSort) {
     let table = `<details>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
         Node information</summary>
-        <table class="w-97 p-4 h6 tborder table-light text-center">`;
+        <table class="w-97 p-4 tborder table-danger">`;
 
     sortingList.forEach(header => {
         let value = ``;
         let jsonValue = jsonData[header];
-        table += `<tr><th class="p-1 w-auto text-danger-emphasis tborder-2 toast-body">${header}</th>`;
+        table += `<tr><th class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;
         if (typeof jsonValue === "object" && header !== "Ancestral Comparison")
             {Object.values(jsonValue).forEach(i => {
-                value += `<td style="color: ${colors[getInteger(i)]}" class="p-1 h7 w-auto tborder-1 bg-light">${i}</td>`;
+                value += `<td style="color: ${colors[getInteger(i)]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
                 })
             }
         else if (typeof jsonValue === "object" && header === "Ancestral Comparison")
             {Object.values(jsonValue).forEach(i => {
-                value += `<td style="color: ${colorsAS[i]}" class="p-1 h7 w-auto tborder-1 bg-light">${i}</td>`;
+                value += `<td style="color: ${colorsAS[i]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
         }
             )}
-        else {value = `<td class="p-1 w-auto">${jsonValue}</td>`}
-        table += `<th class="p-1">${value}</th></tr>`;
+        else {value = `<td class="h7 w-auto text-center tborder-1 table-danger bg-light">${jsonValue}</td>`}
+        table += `<th class="p-2 h7 w-auto tborder-2 table-danger">${value}</th></tr>`;
     });
 
     table += `</table></details>`;
