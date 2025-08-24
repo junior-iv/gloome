@@ -503,18 +503,24 @@ class Tree:
                       categories_quantity: Optional[int] = None,
                       alpha: Optional[float] = None, beta: Optional[float] = None,
                       pi_0: Optional[Union[float, np.ndarray, int]] = None,
-                      pi_1: Optional[Union[float, np.ndarray, int]] = None) -> None:
+                      pi_1: Optional[Union[float, np.ndarray, int]] = None,
+                      is_optimize_pi: Optional[bool] = None
+                      ) -> None:
         if isinstance(msa, str):
             self.msa = self.get_msa_dict(msa)
         elif isinstance(msa, dict):
             self.msa = msa
         if isinstance(self.msa, dict) and self.msa:
             self.alphabet = Tree.get_alphabet_from_dict(self.msa)
+        self.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
         if isinstance(pi_0, (float, np.ndarray, int)) and pi_0:
             self.pi_0 = pi_0
+            self.pi_0 = self.optimize(bracket=(pi_0,), bounds=(0.001, 0.999), mode=0, result_fild='x') if (
+                is_optimize_pi) else pi_0
         if isinstance(pi_1, (float, np.ndarray, int)) and pi_1:
-            self.pi_1 = pi_1
-        self.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
+            self.pi_1 = self.optimize(bracket=(pi_1, ), bounds=(0.001, 0.999), mode=1, result_fild='x') if (
+                is_optimize_pi) else pi_1
+
 
     def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
 

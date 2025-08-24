@@ -21,9 +21,7 @@ def get_digit(data: str) -> Union[int, float, str]:
 
 
 def get_variables(request_form: Dict[str, str]) -> Tuple[Union[str, int, float], ...]:
-    result = []
-    for key in request_form.keys():
-        result.append(get_digit(request_form[key]))
+    result = [get_digit(value) for value in request_form.values()]
 
     return tuple(result)
 
@@ -219,6 +217,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
     categories_quantity = int(args[2])
     alpha = float(args[3])
     pi_1 = float(args[4])
+    is_optimize_pi = bool(args[5])
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -229,6 +228,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not isinstance(pi_1, float) or not 0.001 <= pi_1 <= 0.999:
         err_list.append((f'π1 value error [ {pi_1} ]', f'The value must be between 0.001 and 0.999.'))
+
+    if not isinstance(is_optimize_pi, bool):
+        err_list.append((f'π1 value error [ {is_optimize_pi} ]', f'The value must be boolean type.'))
 
     if not msa:
         err_list.append(('MSA error', 'No MSA was provided.'))

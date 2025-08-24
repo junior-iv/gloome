@@ -121,7 +121,8 @@ DEFAULT_ARGUMENTS = DefaultArgs(**{
 DEFAULT_FORM_ARGUMENTS = {
     'categories_quantity': 4,
     'alpha': 0.5,
-    'pi_1': 0.5
+    'pi_1': 0.5,
+    'is_optimize_pi': False
     }
 
 ACTIONS = Actions(**{
@@ -177,6 +178,8 @@ USAGE = '''
                         Specify alpha. Default is 0.5.
                     --pi_1 <type=float> 
                         Specify pi_1. Default is 0.5.
+                    --is_optimize_pi <type=bool> 
+                        Specify is_optimize_pi. Default is False.
         '''
 # --sort_values_by <type=str>
 #     Specify the columns by which you want to sort the values in the csv file.

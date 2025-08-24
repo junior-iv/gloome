@@ -244,7 +244,7 @@ function convertJSONToTable(jsonData, jsonSort) {
     sortingList.forEach(header => {
         let value = ``;
         let jsonValue = jsonData[header];
-        table += `<tr><th class="p-2 h7 w-auto tborder-2 table-danger">${header}</th>`;
+        table += `<tr><th class="p-2 h7 w-auto table-danger">${header}</th>`;
         if (typeof jsonValue === "object" && header !== "Ancestral Comparison")
             {Object.values(jsonValue).forEach(i => {
                 value += `<td style="color: ${colors[getInteger(i)]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
@@ -256,7 +256,7 @@ function convertJSONToTable(jsonData, jsonSort) {
         }
             )}
         else {value = `<td class="h7 w-auto text-center tborder-1 table-danger bg-light">${jsonValue}</td>`}
-        table += `<th class="p-2 h7 w-auto tborder-2 table-danger">${value}</th></tr>`;
+        table += `<th class="p-2 h7 w-auto table-danger">${value}</th></tr>`;
     });
 
     table += `</table></details>`;
@@ -323,14 +323,14 @@ function makeTree(mode = 0) {
     const categoriesQuantity = document.getElementById(`categoriesQuantity`);
     const alpha = document.getElementById(`alpha`);
     const pi1 = document.getElementById(`pi1`);
-    const isOptimizePi1 = document.getElementById('isOptimizePi1')
+    const isOptimizePi = document.getElementById('isOptimizePi')
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`msaText`, msaText.value.trim());
     formData.append(`categoriesQuantity`, categoriesQuantity.value.trim());
     formData.append(`alpha`, alpha.value.trim());
     formData.append(`pi1`, pi1.value.trim());
-    formData.append(`isOptimizePi1`, +isOptimizePi1.checked);
+    formData.append(`isOptimizePi`, +isOptimizePi.checked);
 
     jsonTreeData = null
 
@@ -391,7 +391,7 @@ function gedIdentifiers(id = ``) {
         return [id];
     } else {
         return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`,
-            `newickText`, `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `isOptimizePi1`];
+            `newickText`, `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `isOptimizePi`];
     }
 }
 

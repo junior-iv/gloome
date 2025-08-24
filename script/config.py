@@ -121,6 +121,7 @@ class Config:
     def get_form_data(self) -> Dict[str, Union[str, int]]:
         form_data = {'msaText': self.CALCULATED_ARGS.msa,
                      'newickText': self.CALCULATED_ARGS.newick_text,
+                     'isOptimizePi': self.CURRENT_ARGS.is_optimize_pi,
                      'pi1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
                      'categoriesQuantity': self.CURRENT_ARGS.categories_quantity}
@@ -166,31 +167,44 @@ class Config:
         else:
             self.CALCULATED_ARGS.err_list.append((f'The File does not exist',
                                                   f'File "{self.TREE_FILE}" does not exist '))
+
         if path.isfile(self.MSA_FILE):
             with open(self.MSA_FILE, 'r') as f:
                 self.CALCULATED_ARGS.msa = f.read()
         else:
             self.CALCULATED_ARGS.err_list.append((f'The File does not exist',
                                                   f'File "{self.MSA_FILE}" does not exist '))
+
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_data', False):
             self.CALCULATED_ARGS.err_list += self.ACTIONS.check_data(self.CALCULATED_ARGS.newick_text,
                                                                      self.CALCULATED_ARGS.msa,
                                                                      self.CURRENT_ARGS.categories_quantity,
                                                                      self.CURRENT_ARGS.alpha,
-                                                                     self.CURRENT_ARGS.pi_1)
+                                                                     self.CURRENT_ARGS.pi_1,
+                                                                     self.CURRENT_ARGS.is_optimize_pi)
+
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
             try:
                 self.CALCULATED_ARGS.newick_tree = self.ACTIONS.check_tree(self.CALCULATED_ARGS.newick_text)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'TREE error', f'Wrong Phylogenetic tree format.'))
+
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('set_tree_data', False):
             try:
                 self.ACTIONS.set_tree_data(self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa,
                                            categories_quantity=self.CURRENT_ARGS.categories_quantity,
-                                           alpha=self.CURRENT_ARGS.alpha, pi_1=self.CURRENT_ARGS.pi_1)
+                                           alpha=self.CURRENT_ARGS.alpha, pi_1=self.CURRENT_ARGS.pi_1,
+                                           is_optimize_pi=self.CURRENT_ARGS.is_optimize_pi)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'MSA error',
                                                       f'Wrong MSA format. Please provide MSA in FASTA format.'))
+
+        if not self.CALCULATED_ARGS.err_list and self.CURRENT_ARGS.is_optimize_pi:
+            try:
+                self.CURRENT_ARGS.pi_1 = self.CALCULATED_ARGS.newick_tree.pi_1
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append((f'Strange error',
+                                                      f'Strange error.'))
 
         if self.CALCULATED_ARGS.err_list:
             self.set_job_logger_info(f'Error list: {self.CALCULATED_ARGS.err_list}')
@@ -228,6 +242,10 @@ class Config:
                             help=f'Specify alpha (optional). Default is {self.CURRENT_ARGS.alpha}.')
         parser.add_argument('--pi_1', dest='pi_1', type=float, required=False, default=self.CURRENT_ARGS.pi_1,
                             help=f'Specify pi_1 (optional). Default is {self.CURRENT_ARGS.pi_1}.')
+        parser.add_argument('--is_optimize_pi', dest='is_optimize_pi', type=bool, required=False,
+                            help=f'Specify is_optimize_pi (optional). Default is {self.CURRENT_ARGS.is_optimize_pi}.',
+                            default=self.CURRENT_ARGS.ƒ)
+
         args = parser.parse_args()
 
         for arg_name, arg_value in vars(args).items():
