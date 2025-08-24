@@ -12,6 +12,7 @@ from typing import Optional, List, Union, Dict, Tuple, Set
 from Bio import Phylo
 from scipy.stats import gamma
 from scipy.special import gammainc
+from scipy.optimize import minimize_scalar
 from math import log
 
 
@@ -100,8 +101,8 @@ class Tree:
 
         Args:
             with_additional_details (bool, optional): `False` (default)
-            mode (Optional[str]): `None` (default), 'pre-order', 'in-order', 'post-order', 'level-order'.
-            filters (Dict, optional):
+            mode (str, optional): `None` (default), 'pre-order', 'in-order', 'post-order', 'level-order'.
+            filters (Dict, optional): `None` (default)
         Returns:
             None: This function does not return any value; it only prints the nodes to the standard output.
         """
@@ -418,10 +419,13 @@ class Tree:
 
         return msa_dict
 
+    def clean_all(self):
+        self.root.clean_all()
+        self.likelihood, self.log_likelihood, self.log_likelihood_vector = 1, 0, []
+
     def calculate_tree_for_fasta(self) -> str:
         if self.msa and not self.calculated_tree_for_fasta:
-            self.root.clean_all()
-            self.likelihood, self.log_likelihood, self.log_likelihood_vector = 1, 0, []
+            self.clean_all()
 
             leaves_info = self.get_list_nodes_info(True, None, {'node_type': ['leaf']})
             len_seq = len(min(list(self.msa.values())))
@@ -443,6 +447,7 @@ class Tree:
 
     def calculate_likelihood(self) -> None:
         if self.msa and self.alphabet and not self.calculated_likelihood:
+            self.clean_all()
             self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
                 self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1))
             self.calculated_likelihood = True
@@ -678,6 +683,27 @@ class Tree:
                 nx.drawing.nx_pydot.write_dot(graph, file_name)
 
         return file_names
+
+    # self.clean_all()
+
+    def optimize_pi_0(self, pi_0: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, pi_0=pi_0, pi_1=1 - pi_0)[1]
+
+    def optimize_pi_1(self, pi_1: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, pi_0=1 - pi_1, pi_1=pi_1)[1]
+
+    def optimize(self, bracket: Tuple[Union[float, np.ndarray], ...] = (0.5,),
+                 bounds: Tuple[Union[float, np.ndarray], ...] = (0.001, 0.999),
+                 mode=0, result_fild: Optional[str] = None):
+        """
+            result_fild: `str` (default), message, success, status, fun, x, nit, nfev
+        """
+        self.clean_all()
+        if result_fild:
+            return minimize_scalar((self.optimize_pi_0, self.optimize_pi_1)[mode], bracket=bracket,
+                                   bounds=bounds)[result_fild]
+        else:
+            return minimize_scalar((self.optimize_pi_0, self.optimize_pi_1)[mode], bracket=bracket, bounds=bounds)
 
     @staticmethod
     def write_file(file_name: str, file_text: str) -> str:

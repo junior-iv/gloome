@@ -236,7 +236,10 @@ function convertJSONToTable(jsonData, jsonSort) {
     const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
         "dodgerblue", "slateblue", "darkviolet"];
     const colorsAS = {"A": "crimson", "L": "darkorange", "G": "forestgreen", "P": "slateblue"}
-    let table = `<details class="m-2 p-2 w-95 h-100 h6" open><summary>Node information</summary><table class="w-97 p-4 h6 tborder table-light text-center">`;
+    let table = `<details>
+        <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
+        Node information</summary>
+        <table class="w-97 p-4 h6 tborder table-light text-center">`;
 
     sortingList.forEach(header => {
         let value = ``;
@@ -261,7 +264,9 @@ function convertJSONToTable(jsonData, jsonSort) {
 }
 
 function convertJSONToLogLikelihood(jsonData) {
-    return `Tree Log-Likelihood: ${jsonData[0]}`;
+    let result =`Tree Log-Likelihood: ${jsonData[0]}`;
+    document.getElementById('logLikelihood').innerHTML = result;
+    return result;
     // let table = `<details class="m-2 p-1 w-95 h-100 h6" open><summary>Log-likelihood information</summary>
     //                     <table class="m-2 w-97 p-4 h6 table-light text-center">`;
     // Object.entries(jsonData).forEach(([key, value]) => {
@@ -282,12 +287,15 @@ function convertJSONToTableFoFileList(jsonData) {
         firstRow += `<th class="p-1 w-auto tborder-1 bg-light">${value[0]}</th>`;
         secondRow += `<th class="p-1 w-auto tborder-1 bg-light">${value[1]}</th>`;
     });
-    let table = `<details class="m-2 p-1 w-95 h-100 h6" open><summary>File list</summary>
-             <table class="m-2 w-97 p-4 table-light h6 text-center">
-             <tr>${secondRow}</tr>
-             <tr>${firstRow}</tr>
-             <tr>${headersRow}</tr>
-             </table></details>`;
+    let table = `<details>
+        <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
+        View/Download Results</summary>
+        <table class="m-2 w-97 p-4 table-light h6 text-center">
+        <tr>${secondRow}</tr>
+        <tr>${firstRow}</tr>
+        <tr>${headersRow}</tr>
+        </table></details>`;
+
     document.getElementById('fileList').innerHTML = table;
     return table;
 }
@@ -315,12 +323,14 @@ function makeTree(mode = 0) {
     const categoriesQuantity = document.getElementById(`categoriesQuantity`);
     const alpha = document.getElementById(`alpha`);
     const pi1 = document.getElementById(`pi1`);
+    const isOptimizePi1 = document.getElementById('isOptimizePi1')
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`msaText`, msaText.value.trim());
     formData.append(`categoriesQuantity`, categoriesQuantity.value.trim());
     formData.append(`alpha`, alpha.value.trim());
     formData.append(`pi1`, pi1.value.trim());
+    formData.append(`isOptimizePi1`, +isOptimizePi1.checked);
 
     jsonTreeData = null
 
@@ -389,7 +399,6 @@ function setAccessibility(id = ``) {
     let elementIdentifiers = gedIdentifiers(id);
     elementIdentifiers.forEach(elementId => {
         let element = document.getElementById(elementId)
-        console.log(`id ${elementId}`)
         element.disabled = !element.disabled;
     })
 }

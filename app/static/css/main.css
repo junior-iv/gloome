@@ -15,6 +15,13 @@
 /*.summary-outline-success details[open] > summary::after {*/
 /*    color: #fff;*/
 /*}*/
+.box {
+  display: flex; !important
+  flex-wrap: wrap; !important
+  /*height: 400px;*/
+  align-content: space-between; !important
+}
+
 .default-cursor {
     cursor: text;
 }
