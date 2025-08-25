@@ -21,7 +21,13 @@ def get_digit(data: str) -> Union[int, float, str]:
 
 
 def get_variables(request_form: Dict[str, str]) -> Tuple[Union[str, int, float], ...]:
-    result = [get_digit(value) for value in request_form.values()]
+    result = [bool(int(v)) if k[:2] == 'is' else get_digit(v) for k, v in request_form.items()]
+
+    return tuple(result)
+
+
+def get_dict(request_form: Dict[str, str]) -> Tuple[Union[str, int, float], ...]:
+    result = {k: bool(int(v)) if k[:2] == 'is' else get_digit(v) for k, v in request_form.items()}
 
     return tuple(result)
 
