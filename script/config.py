@@ -244,7 +244,7 @@ class Config:
                             help=f'Specify pi_1 (optional). Default is {self.CURRENT_ARGS.pi_1}.')
         parser.add_argument('--is_optimize_pi', dest='is_optimize_pi', type=bool, required=False,
                             help=f'Specify is_optimize_pi (optional). Default is {self.CURRENT_ARGS.is_optimize_pi}.',
-                            default=self.CURRENT_ARGS.ƒ)
+                            default=self.CURRENT_ARGS.is_optimize_pi)
 
         args = parser.parse_args()
 
