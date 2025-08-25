@@ -517,7 +517,7 @@ class Tree:
             self.pi_0 = pi_0
             self.pi_0 = self.optimize(bracket=(pi_0,), bounds=(0.001, 0.999), mode=0, result_fild='x') if (
                 is_optimize_pi) else pi_0
-        if isinstance(pi_1, (float, np.ndarray, int)) and pi_1:
+        elif isinstance(pi_1, (float, np.ndarray, int)) and pi_1:
             self.pi_1 = self.optimize(bracket=(pi_1, ), bounds=(0.001, 0.999), mode=1, result_fild='x') if (
                 is_optimize_pi) else pi_1
 
