@@ -227,7 +227,7 @@ class Config:
                             help=f'Execution mode style (optional). Possible options: ("draw_tree", '
                             f'"compute_likelihood_of_tree", "create_all_file_types", "execute_all_actions"). '
                             f'Default is {self.MODE[3:]}.')
-        parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=bool, required=False,
+        parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=int, required=False,
                             default=self.CURRENT_ARGS.with_internal_nodes, help=f'Specify the Newick file type '
                             f'(optional). Default is {self.CURRENT_ARGS.with_internal_nodes}.')
         # parser.add_argument('--sort_values_by', dest='sort_values_by', required=False, action="extend", nargs="+",
@@ -242,7 +242,7 @@ class Config:
                             help=f'Specify alpha (optional). Default is {self.CURRENT_ARGS.alpha}.')
         parser.add_argument('--pi_1', dest='pi_1', type=float, required=False, default=self.CURRENT_ARGS.pi_1,
                             help=f'Specify pi_1 (optional). Default is {self.CURRENT_ARGS.pi_1}.')
-        parser.add_argument('--is_optimize_pi', dest='is_optimize_pi', type=bool, required=False,
+        parser.add_argument('--is_optimize_pi', dest='is_optimize_pi', type=int, required=False,
                             help=f'Specify is_optimize_pi (optional). Default is {self.CURRENT_ARGS.is_optimize_pi}.',
                             default=self.CURRENT_ARGS.is_optimize_pi)
 
@@ -255,6 +255,9 @@ class Config:
                         self.change_process_id(arg_value)
                 elif arg_name == 'mode':
                     setattr(self, arg_name.upper(), tuple(arg_value))
+                elif arg_name in ('with_internal_nodes', 'is_optimize_pi'):
+                    if hasattr(self.CURRENT_ARGS, arg_name):
+                        setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))
                 else:
                     if hasattr(self, arg_name.upper()):
                         setattr(self, arg_name.upper(), arg_value)
