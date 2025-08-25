@@ -236,7 +236,7 @@ function convertJSONToTable(jsonData, jsonSort) {
     const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
         "dodgerblue", "slateblue", "darkviolet"];
     const colorsAS = {"A": "crimson", "L": "darkorange", "G": "forestgreen", "P": "slateblue"}
-    let table = `<details>
+    let table = `<details open>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
         Node information</summary>
         <table class="w-97 m-3 p-4 h7">`;
@@ -278,7 +278,7 @@ function convertJSONToTableFoFileList(jsonData) {
         firstRow += `<th class="p-1 w-auto">${value[0]}</th>`;
         secondRow += `<th class="p-1 w-auto">${value[1]}</th>`;
     });
-    let table = `<details>
+    let table = `<details open>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
         View/Download Results</summary>
         <table class="w-97 m-3 p-4 h7">
