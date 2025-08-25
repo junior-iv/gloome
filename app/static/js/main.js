@@ -239,24 +239,24 @@ function convertJSONToTable(jsonData, jsonSort) {
     let table = `<details>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
         Node information</summary>
-        <table class="w-97 p-4 tborder table-danger">`;
+        <table class="w-97 p-4 tooltip">`;
 
     sortingList.forEach(header => {
         let value = ``;
         let jsonValue = jsonData[header];
-        table += `<tr><th class="p-2 h7 w-auto table-danger">${header}</th>`;
+        table += `<tr><th class="p-2 h7 w-auto">${header}</th>`;
         if (typeof jsonValue === "object" && header !== "Ancestral Comparison")
             {Object.values(jsonValue).forEach(i => {
-                value += `<td style="color: ${colors[getInteger(i)]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+                value += `<td style="color: ${colors[getInteger(i)]}" class="h7 w-auto text-center">${i}</td>`;
                 })
             }
         else if (typeof jsonValue === "object" && header === "Ancestral Comparison")
             {Object.values(jsonValue).forEach(i => {
-                value += `<td style="color: ${colorsAS[i]}" class="h7 w-auto text-center tborder-1 table-danger bg-light">${i}</td>`;
+                value += `<td style="color: ${colorsAS[i]}" class="h7 w-auto text-center">${i}</td>`;
         }
             )}
-        else {value = `<td class="h7 w-auto text-center tborder-1 table-danger bg-light">${jsonValue}</td>`}
-        table += `<th class="p-2 h7 w-auto table-danger">${value}</th></tr>`;
+        else {value = `<td class="h7 w-auto text-center">${jsonValue}</td>`}
+        table += `<th class="p-2 h7 w-auto">${value}</th></tr>`;
     });
 
     table += `</table></details>`;
@@ -283,14 +283,14 @@ function convertJSONToTableFoFileList(jsonData) {
     let firstRow = ``;
     let secondRow = ``;
     Object.entries(jsonData).forEach(([key, value]) => {
-        headersRow += `<th class="p-1 w-auto text-danger-emphasis tborder-2 toast-body">${key}</th>`;
-        firstRow += `<th class="p-1 w-auto tborder-1 bg-light">${value[0]}</th>`;
-        secondRow += `<th class="p-1 w-auto tborder-1 bg-light">${value[1]}</th>`;
+        headersRow += `<th class="p-1 w-auto ">${key}</th>`;
+        firstRow += `<th class="p-1 w-auto ">${value[0]}</th>`;
+        secondRow += `<th class="p-1 w-auto ">${value[1]}</th>`;
     });
     let table = `<details>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
         View/Download Results</summary>
-        <table class="m-2 w-97 p-4 table-light h6 text-center">
+        <table class="m-2 w-97 p-4 h6 text-center tooltip">
         <tr>${secondRow}</tr>
         <tr>${firstRow}</tr>
         <tr>${headersRow}</tr>

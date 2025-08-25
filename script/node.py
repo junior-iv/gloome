@@ -428,17 +428,17 @@ class Node:
     @staticmethod
     def draw_html_table(data: str) -> str:
 
-        return f'<table class="w-97 p-4 tborder table-danger">{data}</table>'
+        return f'<table class="w-97 p-4 tooltip">{data}</table>'
 
     @staticmethod
     def draw_row_html_table(name: str, data: str) -> str:
 
-        return f'<tr><th class="p-2 h7 w-auto tborder-2 table-danger">{name}:</th><th>{data}</td></th></tr>'
+        return f'<tr><th class="p-2 h7 ">{name}:</th><th>{data}</td></th></tr>'
 
     @staticmethod
     def draw_cell_html_table(color: str, data: str) -> str:
 
-        return f'<td style="color: {color}" class="h7 w-auto text-center tborder-1 table-danger bg-light">{data}</td>'
+        return f'<td style="color: {color}" class="h7 w-auto text-center">{data}</td>'
 
     @staticmethod
     def check_filter_compliance(filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]], info: Dict[str,
