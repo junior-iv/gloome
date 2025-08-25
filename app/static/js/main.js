@@ -239,7 +239,7 @@ function convertJSONToTable(jsonData, jsonSort) {
     let table = `<details>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
         Node information</summary>
-        <table class="w-97 p-4 h7">`;
+        <table class="w-97 m-3 p-4 h7">`;
 
     sortingList.forEach(header => {
         let value = ``;
@@ -281,10 +281,10 @@ function convertJSONToTableFoFileList(jsonData) {
     let table = `<details>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
         View/Download Results</summary>
-        <table class="m-2 w-97 p-4 h7">
+        <table class="w-97 m-3 p-4 h7">
+        <tr>${headersRow}</tr>
         <tr>${secondRow}</tr>
         <tr>${firstRow}</tr>
-        <tr>${headersRow}</tr>
         </table></details>`;
 
     document.getElementById('fileList').innerHTML = table;
