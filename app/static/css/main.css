@@ -112,7 +112,7 @@
     border-radius: 0.3em;
 }
 
-#tooltip, .tooltip {
+#tooltip {
     position: absolute;
     padding: 8px;
     background-color: rgba(0, 0, 0, 0.7);
@@ -120,6 +120,18 @@
     border-radius: 0.1em;
     pointer-events: none;
     opacity: 0;
+}
+
+.tooltip-1 {
+    /*position: absolute;*/
+    padding: 8px;
+    background-color: white;
+    color: maroon;
+    border: 0.5em;
+    border-radius: 1em;
+    border-color: black;
+    pointer-events: none;
+    opacity: 1;
 }
 
 .horizontal-gradient {
