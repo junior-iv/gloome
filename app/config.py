@@ -1,5 +1,4 @@
 import requests
-import json
 
 from time import sleep
 from utils import *
@@ -170,7 +169,7 @@ class WebConfig:
             f'python {path.join(".", "script/main.py")} --process_id {self.PROCESS_ID} --msa_file {self.MSA_FILE} '
             f'--tree_file {self.TREE_FILE} --categories_quantity {self.CURRENT_ARGS.categories_quantity} --alpha '
             f'{self.CURRENT_ARGS.alpha} --pi_1 {self.CURRENT_ARGS.pi_1} --is_optimize_pi '
-            f'{json.dumps(self.CURRENT_ARGS.is_optimize_pi)} --mode {self.MODE}')
+            f'{int(self.CURRENT_ARGS.is_optimize_pi)} --mode {self.MODE}')
         self.set_job_logger_info(f'COMMAND_LINE: {self.COMMAND_LINE}')
 
     def get_request_body(self):
