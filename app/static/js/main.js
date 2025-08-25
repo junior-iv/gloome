@@ -267,15 +267,6 @@ function convertJSONToLogLikelihood(jsonData) {
     let result =`Tree Log-Likelihood: ${jsonData[0]}`;
     document.getElementById('logLikelihood').innerHTML = result;
     return result;
-    // let table = `<details class="m-2 p-1 w-95 h-100 h6" open><summary>Log-likelihood information</summary>
-    //                     <table class="m-2 w-97 p-4 h6 table-light text-center">`;
-    // Object.entries(jsonData).forEach(([key, value]) => {
-    //     table += `<tr><th class="p-1 w-auto text-danger-emphasis tborder-2 toast-body">${key}</th><th class="p-1"></th>`;
-    //     table += `<th class="p-1 w-auto tborder-1 bg-light text-info-emphasis toast-body">${value}</th></tr>`;
-    // });
-    // table += `</table></details>`;
-    // document.getElementById('logLikelihood').innerHTML = table;
-    // return table;
 }
 
 function convertJSONToTableFoFileList(jsonData) {
