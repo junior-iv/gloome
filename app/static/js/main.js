@@ -118,9 +118,9 @@ function reDrawPhylogeneticTree() {
 }
 
 function drawPhylogeneticTree(jsonData) {
-    const margin = { top: 0, right: 0, bottom: 0, left: 0 };
-    const width = '100%';
-    const height = '100%';
+    const margin = { top: 20, right: 40, bottom: 20, left: 40 };
+    const width = 600 - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
     const cx = width * 0.5;
     const cy = height * 0.5;
     const radius = Math.min(cx, cy);
@@ -145,10 +145,10 @@ function drawPhylogeneticTree(jsonData) {
 
     const svg =  d3.select("#tree")
         .append("svg")
-        .attr("width", width)
-        .attr("height", height)
+        .attr("width", '100%')
+        .attr("height", '100%')
         .attr("viewBox", isRadialTree ? [-cx, -cy, width, height] : [0, 0, width, height])
-        .attr("style", `width: 100%; height: 100%;`)
+        .attr("style", `width: 100%; height: auto;`)
         .call(d3.zoom().on("zoom", function (event) {
             svg.attr("transform", event.transform);
         }))

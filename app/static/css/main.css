@@ -15,6 +15,11 @@
 /*.summary-outline-success details[open] > summary::after {*/
 /*    color: #fff;*/
 /*}*/
+.align-self-stretch {
+    align-self: stretch;
+}
+
+
 .box {
   display: flex; !important
   flex-wrap: wrap; !important
