@@ -148,7 +148,7 @@ function drawPhylogeneticTree(jsonData) {
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .attr("viewBox", isRadialTree ? [-cx, -cy, width, height] : [0, 0, width, height])
-        .attr("style", `width: 100%; height: auto;`)
+        .attr("style", `width: 100%; height: 100%;`)
         .call(d3.zoom().on("zoom", function (event) {
             svg.attr("transform", event.transform);
         }))
