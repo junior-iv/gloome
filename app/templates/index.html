@@ -23,11 +23,9 @@
 <div class="gap-2 d-flex flex-column justify-content-center h-100 w-100">
     <div class="box gap-2 flex-row h-80 w-100">
         <div class="box gap-2 flex-column w-50 h-auto bg-light rounded-3 p-3 ms-3 me-1 my-3">
-            <div class="box gap-2 flex-column d-flex h-70 w-95 bg-white align-content-around rounded-2">
+            <div class="box gap-2 flex-column d-flex h-70 w-100 bg-white align-content-around rounded-2">
                 {{nwt.alerts('auto')}}
-                <div id="loader"></div>
-                <div id="tree" class="m-0 p-0 h-auto w-auto"></div>
-                <div id="tooltip" class="text-justify font-verdana"></div>
+                <div id="tree" class="h-100 w-100"></div>
             </div>
             <div class="box gap-2 flex-row text-success h7">
                 <div class="d-flex gap-2 w-60 flex-column">
@@ -51,7 +49,7 @@
             </div>
             <div class="box gap-2 flex-row text-success h7">
                 <div class="d-flex gap-2 w-60 flex-column">
-                    <div class="gap-2 d-flex flex-row p-2 m-2 rounded-3 btn btn-outline-success bg-success-subtle">
+                    <div class="gap-2 d-flex flex-row rounded-3 btn btn-outline-success bg-success-subtle">
                         <label for="showDistanceToParent" class="h6 container-checkbox">
                             <input value="1" id="showDistanceToParent" name="showDistanceToParent" onchange="reDrawPhylogeneticTree()"
                                    type="checkbox" class="container-checkbox-input"/>
@@ -61,7 +59,7 @@
                     </div>
                 </div>
                 <div class="d-flex gap-2 w-40 flex-column">
-                    <div class="gap-2 d-flex flex-row p-2 m-2 rounded-3 btn btn-outline-success bg-success-subtle">
+                    <div class="gap-2 d-flex flex-row rounded-3 btn btn-outline-success bg-success-subtle">
                         <label for="isRadialTree" class="h6 container-checkbox">
                             <input value="1" id="isRadialTree" name="isRadialTree" onchange="reDrawPhylogeneticTree()"
                                    type="checkbox" class="container-checkbox-input"/>
@@ -73,7 +71,7 @@
             </div>
         </div>
         <div  class="box gap-2 flex-column w-50 h-auto bg-light rounded-3 p-3 me-3 ms-1 my-3">
-            <div class="box gap-2 flex-column d-flex h-70 w-95 bg-white align-content-center rounded-2 p-3">
+            <div class="box gap-2 flex-column d-flex h-70 w-100 bg-white align-content-center rounded-2 p-3">
                 <div class="text-center">
                     <label for="msaText" class="h6 text-success-emphasis align-content-center">Add a phyletic pattern MSA in FASTA format via text input or file upload
                         (<a href="https://en.wikipedia.org/wiki/FASTA_format" target="_blank">FASTA format</a>)<sup>&quest;</sup>
@@ -81,7 +79,7 @@
                 </div>
                 <div class="d-flex gap-2 flex-row justify-content-end">
                     <input id="msaTextFile" name="msaTextFile" type="file" accept="*.*"
-                          class="form-control rounded-pill" onchange="uploadFile('msaText', 'msaTextFile')"/>
+                          class="form-control rounded-pill" onchange="uploadFile('msaText', this.id)"/>
                 </div>
                 <textarea spellcheck="false" id="msaText" name="msaText" autocomplete="on" rows="auto" class="form-control btn-light font-verdana"
                           placeholder="please provide a phyletic MSA here"></textarea>
@@ -92,7 +90,7 @@
                 </div>
                 <div class="d-flex gap-2 flex-row justify-content-end">
                     <input id="newickTextFile" name="newickTextFile" type="file" accept="*.*"
-                           class="form-control rounded-pill" onchange="uploadFile('newickText', 'newickTextFile')"/>
+                           class="form-control rounded-pill" onchange="uploadFile('newickText', this.id)"/>
                 </div>
                 <textarea spellcheck="false" id="newickText" name="newickText" autocomplete="on" rows="auto" class="form-control btn-light font-verdana"
                           placeholder="please provide a phylogenetic tree here"></textarea>
@@ -119,7 +117,7 @@
                             </div>
                             <div class="w-48 text-start">
                                 <input value="{{pi_1}}" id="pi1" name="pi1" type="number" min="0.001" max="0.999" step="0.001"
-                                       title="The value must be between 0.001 and 0.999" onchange="validateInput('pi1', {{pi_1}})"
+                                       title="The value must be between 0.001 and 0.999" onchange="validateInput(this.id, {{pi_1}})"
                                        class="form-control rounded-pill"/>
                             </div>
                         </div>
@@ -138,7 +136,7 @@
                             </div>
                             <div class="w-48 text-start">
                                 <input value="{{alpha}}" id="alpha" name="alpha" type="number" min="0.1" max="20" step="0.1"
-                                       title="The value must be between 0.1 and 20" onchange="validateInput('alpha', {{alpha}})"
+                                       title="The value must be between 0.1 and 20" onchange="validateInput(this.id, {{alpha}})"
                                        class="form-control rounded-pill"/>
                             </div>
                         </div>
@@ -149,38 +147,60 @@
                             <div class="w-48 text-start">
                                 <input value="{{categories_quantity}}" id="categoriesQuantity" name="categoriesQuantity"
                                        title="The value must be between 1 and 16" type="number" min="1" max="16" step="1"
-                                       onchange="validateInput('categoriesQuantity', {{categories_quantity}})"
+                                       onchange="validateInput(this.id, {{categories_quantity}})"
                                        class="form-control rounded-pill"/>
                             </div>
                         </div>
                     </div>
                 </details>
             </div>
-            <div class="d-flex gap-2 flex-row text-center w-100 justify-content-center mb-4 m-2">
+            <div class="d-flex gap-2 flex-column text-center w-100 px-2 mt-2">
                 <input id="theButton" name="theButton" type="button" class="w-100 form-control btn btn-outline-success bg-success-subtle rounded-3"
                       value="SUBMIT" onclick="makeTree(0)"/>
             </div>
         </div>
     </div>
-    <div>
-        <div id="result" class="d-flex gap-2 flex-column w-auto h-auto bg-light rounded-3 p-3 mx-3 visually-hidden">
-    {#            {{nwt.arrow(9)}}#}
-    {##}
-{#            <div class="w-100 form-control box gap-2 flex-row text-center bg-warning-subtle bg-opacity-75 text-success h2">#}
-{#                {{nwt.arrow(2, 'maroon', 48, 48)}}#}
+{#    <div id="result" class="d-flex gap-2 flex-column w-auto h-auto bg-light rounded-3 p-3 mx-3">#}
+{#        <div id="logLikelihood" class="d-flex gap-2 text-start w-100 px-2">#}
+{#            <div class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" onclick="copyValue('logLikelihoodValue')">#}
+{#                Tree Log-Likelihood: <span id="logLikelihoodValue" onclick="copyValue(this.id)">-192.82252052877115</span>#}
 {#            </div>#}
-            <div id="logLikelihood" class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
-
+{#        </div>#}
+{#        <div id="nodeInfo" class="d-flex gap-2 flex-column text-start w-100 px-2"><details open="">#}
+{#            <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">#}
+{#            Node information</summary>#}
+{#            <table class="w-97 m-3 p-4 h7"><tbody><tr><th class="p-2 w-auto tborder-2">Name</th><th class="p-2 w-auto"></th><td class="w-auto text-center">N4</td></tr><tr><th class="p-2 w-auto tborder-2">Node type</th><th class="p-2 w-auto"></th><td class="w-auto text-center">node</td></tr><tr><th class="p-2 w-auto tborder-2">Distance to parent</th><th class="p-2 w-auto"></th><td class="w-auto text-center">0.2</td></tr><tr><th class="p-2 w-auto tborder-2">Sequence</th><th class="p-2 w-auto"></th><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td></tr><tr><th class="p-2 w-auto tborder-2">Probability coefficient</th><th class="p-2 w-auto"></th><td style="color: forestgreen" class="w-auto text-center">0.523</td><td style="color: slateblue" class="w-auto text-center">0.846</td><td style="color: slateblue" class="w-auto text-center">0.852</td><td style="color: slateblue" class="w-auto text-center">0.853</td><td style="color: slateblue" class="w-auto text-center">0.809</td><td style="color: darkviolet" class="w-auto text-center">0.957</td><td style="color: slateblue" class="w-auto text-center">0.870</td><td style="color: slateblue" class="w-auto text-center">0.812</td><td style="color: mediumturquoise" class="w-auto text-center">0.626</td><td style="color: forestgreen" class="w-auto text-center">0.574</td><td style="color: forestgreen" class="w-auto text-center">0.528</td><td style="color: mediumturquoise" class="w-auto text-center">0.683</td><td style="color: forestgreen" class="w-auto text-center">0.510</td><td style="color: mediumturquoise" class="w-auto text-center">0.610</td><td style="color: darkviolet" class="w-auto text-center">0.962</td><td style="color: mediumturquoise" class="w-auto text-center">0.638</td><td style="color: slateblue" class="w-auto text-center">0.831</td><td style="color: slateblue" class="w-auto text-center">0.867</td><td style="color: mediumturquoise" class="w-auto text-center">0.626</td><td style="color: dodgerblue" class="w-auto text-center">0.772</td><td style="color: dodgerblue" class="w-auto text-center">0.783</td><td style="color: dodgerblue" class="w-auto text-center">0.772</td><td style="color: slateblue" class="w-auto text-center">0.840</td><td style="color: slateblue" class="w-auto text-center">0.837</td><td style="color: dodgerblue" class="w-auto text-center">0.734</td><td style="color: mediumturquoise" class="w-auto text-center">0.692</td><td style="color: dodgerblue" class="w-auto text-center">0.739</td><td style="color: mediumturquoise" class="w-auto text-center">0.692</td><td style="color: darkviolet" class="w-auto text-center">0.997</td></tr><tr><th class="p-2 w-auto tborder-2">Ancestral Comparison</th><th class="p-2 w-auto"></th><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: forestgreen" class="w-auto text-center">G</td><td style="color: forestgreen" class="w-auto text-center">G</td><td style="color: forestgreen" class="w-auto text-center">G</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: darkorange" class="w-auto text-center">L</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: darkorange" class="w-auto text-center">L</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: darkorange" class="w-auto text-center">L</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: darkorange" class="w-auto text-center">L</td><td style="color: slateblue" class="w-auto text-center">P</td></tr></tbody></table></details>#}
+{#        </div>#}
+{#        <div id="fileList" class="d-flex gap-2 flex-column text-start w-100 px-2"><details open="">#}
+{#            <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">#}
+{#            View/Download Results</summary>#}
+{#            <table class="w-97 m-3 p-4 h7">#}
+{#            <tbody><tr><th class="p-1 w-auto">Archive (zip):	</th><th class="p-1 w-auto">Interactive tree (html):	</th><th class="p-1 w-auto">Newick tree (png):	</th><th class="p-1 w-auto">Table of nodes (tsv):	</th><th class="p-1 w-auto">log-Likelihood (tsv):	</th></tr>#}
+{#            <tr><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2F17561985063212.zip&amp;mode=view" target="_blank">view</a></th><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2Finteractive_tree.html&amp;mode=view" target="_blank">view</a></th><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2Fvisual_tree.png&amp;mode=view" target="_blank">view</a></th><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2Fnode_results.tsv&amp;mode=view" target="_blank">view</a></th><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2Flog_likelihood.tsv&amp;mode=view" target="_blank">view</a></th></tr>#}
+{#            <tr><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2F17561985063212.zip&amp;mode=download" target="_blank">download</a></th><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2Finteractive_tree.html&amp;mode=download" target="_blank">download</a></th><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2Fvisual_tree.png&amp;mode=download" target="_blank">download</a></th><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2Fnode_results.tsv&amp;mode=download" target="_blank">download</a></th><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2Flog_likelihood.tsv&amp;mode=download" target="_blank">download</a></th></tr>#}
+{#            </tbody></table></details>#}
+{#        </div>#}
+{#    </div>#}
+{#            {{nwt.arrow(9)}}#}
+{#        <div class="w-100 form-control box gap-2 flex-row text-center bg-warning-subtle bg-opacity-75 text-success h2">#}
+{#            {{nwt.arrow(2, 'maroon', 48, 48)}}#}
+{#        </div>#}
+    <div id="result" class="d-flex gap-2 flex-column w-auto h-auto bg-light rounded-3 p-3 mx-3 visually-hidden">
+        <div id="logLikelihood" class="d-flex gap-2 text-start w-100 px-2">
+            <div class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" onclick="copyValue('logLikelihoodValue')">
+                Tree Log-Likelihood: <span id="logLikelihoodValue" onclick="copyValue(this.id)"></span>
             </div>
-            <div id="fileList" class="d-flex gap-2 flex-column text-start w-100 px-2">
+        </div>
+        <div id="nodeInfo" class="d-flex gap-2 flex-column text-start w-100 px-2">
 
-            </div>
-            <div id="nodeInfo" class="d-flex gap-2 flex-column text-start w-100 px-2">
+        </div>
+        <div id="fileList" class="d-flex gap-2 flex-column text-start w-100 px-2">
 
-            </div>
         </div>
     </div>
 </div>
+<div id="loader"></div>
+<div id="tooltip" class="text-justify font-verdana"></div>
 {% endblock %}
 {% block messages %}
 {{ super() }}

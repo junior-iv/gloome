@@ -26,8 +26,8 @@ function setLoader(loaderOn = true) {
     }
 }
 
-function showAlert(message, duration = 3000) {
-    showMessage(message, 2)
+function showAlert(message, duration = 3000, variant = 2) {
+    showMessage(message, variant)
     setTimeout(() => {
         hideAll();
     }, duration);
@@ -118,9 +118,9 @@ function reDrawPhylogeneticTree() {
 }
 
 function drawPhylogeneticTree(jsonData) {
-    const margin = { top: 20, right: 40, bottom: 20, left: 40 };
-    const width = 600 - margin.left - margin.right;
-    const height = 400 - margin.top - margin.bottom;
+    const margin = { top: 0, right: 0, bottom: 0, left: 0 };
+    const width = '100%';
+    const height = '100%';
     const cx = width * 0.5;
     const cy = height * 0.5;
     const radius = Math.min(cx, cy);
@@ -145,10 +145,10 @@ function drawPhylogeneticTree(jsonData) {
 
     const svg =  d3.select("#tree")
         .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
+        .attr("width", width)
+        .attr("height", height)
         .attr("viewBox", isRadialTree ? [-cx, -cy, width, height] : [0, 0, width, height])
-        .attr("style", `width: 100%; height: auto;`)
+        .attr("style", `width: 100%; height: 100%;`)
         .call(d3.zoom().on("zoom", function (event) {
             svg.attr("transform", event.transform);
         }))
@@ -264,9 +264,21 @@ function convertJSONToTable(jsonData, jsonSort) {
 }
 
 function convertJSONToLogLikelihood(jsonData) {
-    let result =`Tree Log-Likelihood: ${jsonData[0]}`;
-    document.getElementById('logLikelihood').innerHTML = result;
+
+    // let result = `<div class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0
+    //                     rounded-pill">Tree Log-Likelihood: ${jsonData[0]}</div>`;
+    let result = jsonData[0];
+    document.getElementById('logLikelihoodValue').innerHTML = result;
     return result;
+}
+
+function copyValue(id) {
+    console.log(id)
+    navigator.clipboard.writeText(document.getElementById(id).textContent).then(function() {
+            showAlert('Tree log-likelihood successfully copied to clipboard', 3000, 0);
+        }, function(err) {
+            showAlert(`An error occurred while copying tree log-likelihood: ${err}`, 3000, 2);
+        });
 }
 
 function convertJSONToTableFoFileList(jsonData) {
