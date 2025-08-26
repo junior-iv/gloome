@@ -89,7 +89,7 @@ function loadExample(mode = 0) {
         })
         .catch(error => {
             console.error(`Error:`, error);
-            showMessage(error.message);
+            showAlert(error.message, 5000, 1);
         });
 }
 
@@ -228,7 +228,7 @@ function drawPhylogeneticTree(jsonData) {
 function processError(error) {
     setVisibilityLoader(false);
     console.error(`Error:`, error);
-    showMessage(error.message);
+    showAlert(error.message, 5000, 1);
 }
 
 function convertJSONToTable(jsonData, jsonSort, summary = true) {
@@ -356,7 +356,7 @@ function makeTree(mode = 0) {
         .then(data => {
             setVisibilityLoader(false);
             setAccessibility();
-            typeof data.message === "object" ? showResponse(data.message, mode) : showMessage(data.message, 1);
+            typeof data.message === "object" ? showResponse(data.message, mode) : showAlert(data.message, 5000, 1);
         })
         .catch(error => {processError(error)});
 }
@@ -458,6 +458,6 @@ function test(testData) {
         .catch(error => {
             setVisibilityLoader(false);
             console.error(`Error:`, error);
-            showMessage(error.message);
+            showAlert(error.message, 5000, 1);
         });
 }
