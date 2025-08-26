@@ -268,6 +268,7 @@ function convertJSONToLogLikelihood(jsonData) {
     // let result = `<div class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0
     //                     rounded-pill">Tree Log-Likelihood: ${jsonData[0]}</div>`;
     let result = jsonData[0];
+    console.log(result)
     document.getElementById('logLikelihoodValue').innerHTML = result;
     return result;
 }
