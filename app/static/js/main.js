@@ -184,7 +184,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("left", `${event.pageX + 10}px`)
                 .style("top", `${event.pageY - 20}px`)
                 .style("opacity", 1)
-                .html(convertJSONToTable(jsonData[1][d.data.name], jsonData[2]));
+                .html(convertJSONToTable(jsonData[1][d.data.name], jsonData[2], false));
         })
         .on("mouseout", function(event, d) {
             d3.select(this)
@@ -231,15 +231,13 @@ function processError(error) {
     showMessage(error.message);
 }
 
-function convertJSONToTable(jsonData, jsonSort) {
+function convertJSONToTable(jsonData, jsonSort, summary = true) {
     const sortingList = jsonSort["List for sorting"];
     const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
         "dodgerblue", "slateblue", "darkviolet"];
     const colorsAS = {"A": "crimson", "L": "darkorange", "G": "forestgreen", "P": "slateblue"}
-    let table = `<details open>
-        <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
-        Node information</summary>
-        <table class="w-97 m-3 p-4 h7">`;
+    let table = `<table class="w-97 m-3 p-4 h7">`;
+    let result = '';
 
     sortingList.forEach(header => {
         let value = ``;
@@ -259,8 +257,15 @@ function convertJSONToTable(jsonData, jsonSort) {
         table += `<th class="p-2 w-auto">${value}</th></tr>`;
     });
 
-    table += `</table></details>`;
-    return table;
+    table += `</table>`;
+    if (summary) {
+        result = `<details open>
+        <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
+        Node information</summary>${table}</details>`
+    } else {
+        result = table;
+    }
+    return result;
 }
 
 function convertJSONToLogLikelihood(jsonData) {

@@ -137,9 +137,9 @@
 #tooltip {
     position: absolute;
     padding: 8px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    border-radius: 0.1em;
+    background-color: white;
+    color: black;
+    border-radius: var(--bs-border-radius-lg);
     pointer-events: none;
     opacity: 0;
 }
