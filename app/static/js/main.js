@@ -375,7 +375,7 @@ function setVisibilityLoader(visible = true) {
     setLoader(visible)
     document.getElementById('tree').innerText = ``;
     document.getElementById('nodeInfo').innerText = ``;
-    document.getElementById('logLikelihood').innerText = ``;
+    document.getElementById('logLikelihoodValue').innerText = ``;
     document.getElementById('fileList').innerText = ``;
     hideAll();
 }
