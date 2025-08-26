@@ -24,7 +24,6 @@
     <div class="box flex-row h-80 w-100">
         <div class="box flex-column w-50 h-auto bg-light rounded-3 p-3 ms-3 me-1 my-3">
             <div class="box flex-column d-flex h-100 w-100 bg-white align-content-around rounded-2">
-                {{nwt.alerts('auto')}}
                 <div id="tree" class="h-100 w-100"></div>
             </div>
             <div class="box flex-row text-success h7 m-0">
@@ -185,7 +184,7 @@
 {#        <div class="w-100 form-control box flex-row text-center bg-warning-subtle bg-opacity-75 text-success h2">#}
 {#            {{nwt.arrow(2, 'maroon', 48, 48)}}#}
 {#        </div>#}
-    <div id="result" class="d-flex gap-2 flex-column w-auto h-auto bg-light rounded-3 p-3 mx-3 visually-hidden">
+    <div id="result" class="d-flex gap-2 flex-column w-auto h-auto bg-light rounded-3 p-3 mx-3">
         <div id="logLikelihood" class="d-flex gap-2 text-start w-100 px-2">
             <div class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" onclick="copyValue('logLikelihoodValue')">
                 Tree Log-Likelihood: <span id="logLikelihoodValue" onclick="copyValue(this.id)"></span>
@@ -211,6 +210,7 @@
         </div>
     </div>
 </div>
+{{nwt.alerts()}}
 <div id="loader"></div>
 <div id="tooltip" class="text-justify font-verdana"></div>
 {% endblock %}

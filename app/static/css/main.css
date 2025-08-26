@@ -8491,6 +8491,10 @@ textarea.form-control-lg {
     opacity: .75 !important
 }
 
+.opacity-85 {
+    opacity: .85 !important
+}
+
 .opacity-100 {
     opacity: 1 !important
 }

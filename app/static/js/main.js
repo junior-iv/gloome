@@ -184,7 +184,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("left", `${event.pageX + 10}px`)
                 .style("top", `${event.pageY - 20}px`)
                 .style("opacity", 1)
-                .html(d.data.info);
+                .html(convertJSONToTable(jsonData[1][d.data.name], jsonData[2]));
         })
         .on("mouseout", function(event, d) {
             d3.select(this)
@@ -410,14 +410,16 @@ function hideAll() {
 }
 
 function showMessage(message = null, variant = 1) {
+
     let elementNames = [`divInfo`, `divDanger`, `divWarning`, `divSuccess`, `divSecondary`];
     for (let i = 0; i < elementNames.length; i++) {
+        let element = document.getElementById(elementNames[i])
         if (variant === i) {
-            document.getElementById(elementNames[i]).style.visibility = `visible`;
+            element.style.visibility = `visible`;
         } else {
-            document.getElementById(elementNames[i]).style.visibility = `hidden`;
+            element.style.visibility = `hidden`;
         }
-        document.getElementById(elementNames[i]).innerHTML = message;
+        element.innerHTML = message;
     }
 }
 
