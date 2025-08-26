@@ -264,11 +264,8 @@ function convertJSONToTable(jsonData, jsonSort) {
 }
 
 function convertJSONToLogLikelihood(jsonData) {
-    let result = `<span>${jsonData[0]}</span>`;
-
-    console.log(result)
-    document.getElementById('logLikelihoodValue').innerHTML = result;
-    return result;
+    document.getElementById('logLikelihoodValue').innerHTML = jsonData[0];
+    return jsonData[0];
 }
 
 function copyValue(id) {
