@@ -23,7 +23,7 @@
 <div class="d-flex flex-column justify-content-center h-100 w-100">
     <div class="box flex-row h-80 w-100">
         <div class="box flex-column w-50 h-auto bg-light rounded-3 p-3 ms-3 me-1 my-3">
-            <div class="box flex-column d-flex h-70 w-100 bg-white align-content-around rounded-2">
+            <div class="box flex-column d-flex h-100 w-100 bg-white align-content-around rounded-2">
                 {{nwt.alerts('auto')}}
                 <div id="tree" class="h-100 w-100"></div>
             </div>
@@ -154,8 +154,8 @@
                     </div>
                 </details>
             </div>
-            <div class="d-flex flex-column text-center w-100 px-2 mt-2">
-                <input id="theButton" name="theButton" type="button" class="w-100 form-control btn btn-outline-success bg-success-subtle rounded-3"
+            <div class="d-flex h-100 flex-column text-center w-100 px-2 mt-2">
+                <input id="theButton" name="theButton" type="button" class="d-flex h-100 w-100 form-control btn btn-outline-success bg-success-subtle rounded-3"
                       value="SUBMIT" onclick="makeTree(0)"/>
             </div>
         </div>
