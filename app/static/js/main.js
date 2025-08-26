@@ -5,12 +5,22 @@ function getInteger(data) {
     return result === 10 ? 9 : result
 }
 
+function setVisibilityResult(resultOn = true) {
+    let result = document.getElementById('result')
+    if (resultOn) {
+        result.classList.remove(`visually-hidden`);
+    } else {
+        result.classList.add(`visually-hidden`);
+    }
+
+}
+
 function setLoader(loaderOn = true) {
     let loader = document.getElementById('loader')
-    let result = document.getElementById('result')
     let classList = [`fixed-center`, `h-20`, `w-20`];
+    setVisibilityResult(!loaderOn)
+
     if (loaderOn) {
-        result.classList.add(`visually-hidden`);
         classList.forEach(currentClass => {
             loader.classList.add(currentClass);
         })
@@ -21,8 +31,6 @@ function setLoader(loaderOn = true) {
             loader.classList.remove(currentClass);
         })
         loader.innerHTML = ``
-        result.classList.remove(`visually-hidden`);
-
     }
 }
 
@@ -269,8 +277,9 @@ function convertJSONToTable(jsonData, jsonSort, summary = true) {
 }
 
 function convertJSONToLogLikelihood(jsonData) {
-    document.getElementById('logLikelihoodValue').innerHTML = jsonData[0];
-    return jsonData[0];
+    let result = jsonData[0]
+    document.getElementById('logLikelihoodValue').innerHTML = result;
+    return result;
 }
 
 function copyValue(id) {
