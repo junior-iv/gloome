@@ -23,15 +23,17 @@ function setLoader(loaderOn = true) {
     if (loaderOn) {
         loader.innerHTML =
             `<div id="loaderCube" class="loaderCube m-9 d-flex gap-2">${'<span></span>'.repeat(4)}</div>`
+        loader.classList.add("fixed-center")
     } else {
         loader.innerHTML = ``
+        loader.classList.remove("fixed-center")
     }
 }
 
 function showAlert(message, duration = 3000, variant = 2) {
     showMessage(message, variant)
     setTimeout(() => {
-        hideAll();
+        showMessage(``, -1);
     }, duration);
 }
 
@@ -43,7 +45,7 @@ function checkOptimize() {
 // function optimizePi1()  {
 //     let msaText = document.getElementById('msaText');
 //     let newickText = document.getElementById('newickText');
-//     hideAll();
+//     showMessage(``, -1);
 //
 //     fetch(`/get_ptimize `, {
 //         method: 'GET',
@@ -79,7 +81,7 @@ function validateInput(id, defaultValue){
 function loadExample(mode = 0) {
     let newickText = document.getElementById('newickText');
     let msaText = document.getElementById('msaText');
-    hideAll();
+    showMessage(``, -1);
 
     fetch(`/get_exemple?mode=${mode}`, {
         method: 'GET',
@@ -113,7 +115,7 @@ function getNodeStyle(d, nodeType, mode = 0, sizeFactor = 1){
 function reDrawPhylogeneticTree() {
     if (jsonTreeData !== null){
         setLoader(false)
-        hideAll();
+        showMessage(``, -1);
         document.getElementById('tree').innerText = ``;
         drawPhylogeneticTree(jsonTreeData);
     }
@@ -388,7 +390,7 @@ function setVisibilityLoader(visible = true) {
     document.getElementById('nodeInfo').innerText = ``;
     document.getElementById('logLikelihood').innerText = ``;
     document.getElementById('fileList').innerText = ``;
-    hideAll();
+    showMessage(``, -1);
 }
 
 // function getRandomLogo(maxValue = 4) {
@@ -416,16 +418,30 @@ function setAccessibility(id = ``) {
 function hideAll() {
     let elementNames = [`divInfo`, `divDanger`, `divWarning`, `divSuccess`, `divSecondary`];
     for (let i = 0; i < elementNames.length; i++) {
-        document.getElementById(elementNames[i]).style.visibility = `hidden`;
+        let element = setVisibility(elementNames[i], false);
+        element.classList.remove(`fixed-center`);
     }
 }
 
 function showMessage(message = null, variant = 1) {
 
     let elementNames = [`divInfo`, `divDanger`, `divWarning`, `divSuccess`, `divSecondary`];
+    let classes = [`fixed-center`, `h-30`, `w-30`]
     for (let i = 0; i < elementNames.length; i++) {
-        let element = setVisibility(elementNames[i], variant === i)
-        element.innerHTML = message;
+        let visible = variant === i
+        let element = setVisibility(elementNames[i], visible);
+        if (visible) {
+            setVisibility(`result`, !visible);
+            classes.forEach(currentClass => {
+                element.classList.add(currentClass);
+            })
+            element.innerHTML = message
+        } else {
+            classes.forEach(currentClass => {
+                element.classList.remove(currentClass);
+            })
+            element.innerHTML = ``
+        }
     }
 }
 
@@ -437,14 +453,14 @@ function cleanForm() {
     for (let i = 0; i < elementNames.innerHTML.length; i++) {
         document.getElementById(elementNames.innerHTML[i]).innerHTML = ``;
     }
-    hideAll();
+    showMessage(``, -1);
 }
 
 function test(testData) {
     const formData = new FormData();
     formData.append(`svgData`, testData);
 
-    hideAll();
+    showMessage(``, -1);
     // document.getElementById('tree').innerText = ``
     setVisibilityLoader(true);
 
