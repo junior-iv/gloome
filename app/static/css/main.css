@@ -144,8 +144,8 @@
     border-radius: var(--bs-border-radius-xxl) !important;
     pointer-events: none;
     opacity: 0;
-    transition: transform 0.3s ease;
-    transform: scale(0.5);
+    /*transition: transform 0.3s ease;*/
+    /*transform: scale(0.8);*/
 
 }
 

@@ -240,13 +240,13 @@ function convertJSONToTable(jsonData, jsonSort, summary = true) {
     const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
         "dodgerblue", "slateblue", "darkviolet"];
     const colorsAS = {"A": "crimson", "L": "darkorange", "G": "forestgreen", "P": "slateblue"}
-    let table = `<table class="w-97 m-3 p-4 h7">`;
+    let table = '';
     let result = '';
 
     sortingList.forEach(header => {
         let value = ``;
         let jsonValue = jsonData[header];
-        table += `<tr><th class="p-2 w-auto tborder-2">${header}</th>`;
+        result += `<tr><th class="p-2 w-auto tborder-2">${header}</th>`;
         if (typeof jsonValue === "object" && header !== "Ancestral Comparison")
             {Object.values(jsonValue).forEach(i => {
                 value += `<td style="color: ${colors[getInteger(i)]}" class="w-auto text-center">${i}</td>`;
@@ -258,18 +258,17 @@ function convertJSONToTable(jsonData, jsonSort, summary = true) {
         }
             )}
         else {value = `<td class="w-auto text-center">${jsonValue}</td>`}
-        table += `<th class="p-2 w-auto">${value}</th></tr>`;
+        result += `<th class="p-2 w-auto">${value}</th></tr>`;
     });
 
-    table += `</table>`;
     if (summary) {
-        result = `<details open>
+        table = `<details open>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
-        Node information</summary>${table}</details>`
+        Node information</summary><table class="w-97 m-3 p-4 h7">${result}</table></details>`
     } else {
-        result = table;
+        table = `<table class="w-60 h8">${result}</table>`;
     }
-    return result;
+    return table;
 }
 
 function convertJSONToLogLikelihood(jsonData) {
