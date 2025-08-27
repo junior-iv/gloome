@@ -139,7 +139,9 @@
     padding: 8px;
     background-color: white;
     color: black;
-    border-radius: var(--bs-border-radius-lg);
+    border: 2px solid black;
+    border-collapse: inherit;
+    border-radius: var(--bs-border-radius-xxl) !important;
     pointer-events: none;
     opacity: 0;
 }

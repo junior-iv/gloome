@@ -5,31 +5,25 @@ function getInteger(data) {
     return result === 10 ? 9 : result
 }
 
-function setVisibilityResult(resultOn = true) {
-    let result = document.getElementById('result')
-    if (resultOn) {
-        result.classList.remove(`visually-hidden`);
+function setVisibility(id = 'result', visible = true) {
+    let element = document.getElementById(id)
+    if (visible) {
+        element.style.visibility = `visible`;
     } else {
-        result.classList.add(`visually-hidden`);
+        element.style.visibility = `hidden`;
     }
 
+    return element
 }
 
 function setLoader(loaderOn = true) {
     let loader = document.getElementById('loader')
-    let classList = [`fixed-center`, `h-20`, `w-20`];
-    setVisibilityResult(!loaderOn)
+    setVisibility(`result`, !loaderOn)
 
     if (loaderOn) {
-        classList.forEach(currentClass => {
-            loader.classList.add(currentClass);
-        })
         loader.innerHTML =
             `<div id="loaderCube" class="loaderCube m-9 d-flex gap-2">${'<span></span>'.repeat(4)}</div>`
     } else {
-        classList.forEach(currentClass => {
-            loader.classList.remove(currentClass);
-        })
         loader.innerHTML = ``
     }
 }
@@ -129,10 +123,10 @@ function drawPhylogeneticTree(jsonData) {
     const margin = { top: 20, right: 40, bottom: 20, left: 40 };
     const width = 600 - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
-    const cx = width * 0.5;
-    const cy = height * 0.5;
+    const cx = width * .5;
+    const cy = height * .5;
     const radius = Math.min(cx, cy);
-    let scale = 0.9;
+    let scale = .9;
     const sizeFactor = jsonData[3]["Size factor"]
     const isRadial = document.getElementById(`isRadialTree`);
     const showDistance = document.getElementById(`showDistanceToParent`);
@@ -191,7 +185,7 @@ function drawPhylogeneticTree(jsonData) {
             d3.select("#tooltip")
                 .style("left", `${event.pageX + 10}px`)
                 .style("top", `${event.pageY - 20}px`)
-                .style("opacity", 1)
+                .style("opacity", .8)
                 .html(convertJSONToTable(jsonData[1][d.data.name], jsonData[2], false));
         })
         .on("mouseout", function(event, d) {
@@ -244,7 +238,7 @@ function convertJSONToTable(jsonData, jsonSort, summary = true) {
     const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
         "dodgerblue", "slateblue", "darkviolet"];
     const colorsAS = {"A": "crimson", "L": "darkorange", "G": "forestgreen", "P": "slateblue"}
-    let table = `<table class="w-97 m-3 p-4 h7">`;
+    let table = `<table id="tooltip" class="w-97 m-3 p-4 h7 border-1">`;
     let result = '';
 
     sortingList.forEach(header => {
@@ -277,8 +271,10 @@ function convertJSONToTable(jsonData, jsonSort, summary = true) {
 }
 
 function convertJSONToLogLikelihood(jsonData) {
-    let result = jsonData[0]
-    document.getElementById('logLikelihoodValue').innerHTML = result;
+    let result = `<div class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" onclick="copyValue('logLikelihoodValue')">
+                Tree Log-Likelihood: <span id="logLikelihoodValue" onclick="copyValue(this.id)">${jsonData[0]}</span>
+            </div>`
+    document.getElementById('logLikelihood').innerHTML = result;
     return result;
 }
 
@@ -389,7 +385,7 @@ function setVisibilityLoader(visible = true) {
     setLoader(visible)
     document.getElementById('tree').innerText = ``;
     document.getElementById('nodeInfo').innerText = ``;
-    document.getElementById('logLikelihoodValue').innerText = ``;
+    document.getElementById('logLikelihood').innerText = ``;
     document.getElementById('fileList').innerText = ``;
     hideAll();
 }
@@ -427,12 +423,7 @@ function showMessage(message = null, variant = 1) {
 
     let elementNames = [`divInfo`, `divDanger`, `divWarning`, `divSuccess`, `divSecondary`];
     for (let i = 0; i < elementNames.length; i++) {
-        let element = document.getElementById(elementNames[i])
-        if (variant === i) {
-            element.style.visibility = `visible`;
-        } else {
-            element.style.visibility = `hidden`;
-        }
+        let element = setVisibility(elementNames[i], variant === i)
         element.innerHTML = message;
     }
 }
