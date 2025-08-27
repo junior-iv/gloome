@@ -186,6 +186,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("left", `${event.pageX + 10}px`)
                 .style("top", `${event.pageY - 20}px`)
                 .style("opacity", .8)
+                .style("visibility",  "visible")
                 .html(convertJSONToTable(jsonData[1][d.data.name], jsonData[2], false));
         })
         .on("mouseout", function(event, d) {
@@ -193,7 +194,8 @@ function drawPhylogeneticTree(jsonData) {
                 .style("fill", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 0, sizeFactor))
                 .attr("r", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 2, sizeFactor))
             d3.select("#tooltip")
-                .style("opacity", 0);
+                .style("opacity", 0)
+                .style("visibility",  "hidden");
         })
         .on("click", function(event, d) {
             document.getElementById('nodeInfo').innerHTML = convertJSONToTable(jsonData[1][d.data.name], jsonData[2]);
