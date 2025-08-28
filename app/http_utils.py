@@ -10,11 +10,10 @@ def get_response(process_id: int) -> Any:
     conf = WebConfig(PROCESS_ID=process_id)
     conf.texts_filling()
     try:
-        with open(f'/var/www/vhosts/gloome.tau.ac.il/httpdocs/tmp/results_{conf.PROCESS_ID}_'
-                  f'route_debug.log', 'a') as f:
-            f.write(f'{conf.read_response()}')
-            f.write(traceback.format_exc())
         result = conf.read_response()
+        with open(f'/var/www/vhosts/gloome.tau.ac.il/httpdocs/tmp/get_response_{conf.PROCESS_ID}_'
+                  f'route_debug.log', 'a') as f:
+            f.write(f'{result}')
     except Exception:
         conf.set_job_logger_info(traceback.format_exc())
         with open(f'/var/www/vhosts/gloome.tau.ac.il/httpdocs/tmp/results_{conf.PROCESS_ID}_'
@@ -41,6 +40,9 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
             conf.create_tmp_data_files()
             try:
                 result = conf.get_response()
+                with open(f'/var/www/vhosts/gloome.tau.ac.il/httpdocs/tmp/execute_request_{conf.PROCESS_ID}_'
+                          f'route_debug.log', 'a') as f:
+                    f.write(f'{result}')
             except Exception:
                 conf.set_job_logger_info(traceback.format_exc())
                 with open(f'/var/www/vhosts/gloome.tau.ac.il/httpdocs/tmp/{conf.CURRENT_JOB}_{conf.PROCESS_ID}_'
