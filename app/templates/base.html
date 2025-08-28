@@ -20,11 +20,13 @@
     {%- endblock -%}
 </head>
 {%- if data -%}
-    <script>
-        showResponse({{ data }}, 0);
-    </script>
+    <body onload=showResponse({{ data | tojson }},0)>
+{#    <script>#}
+{#        showResponse({{ data }}, 0);#}
+{#    </script>#}
+{%- else -%}
+    <body>
 {% endif -%}
-<body>
 {%- block menu -%}
 <header class="sticky-top bg-white">
 <div class="navbar navbar-expand-lg horizontal-gradient">
