@@ -10,6 +10,10 @@ def get_response(process_id: int) -> Any:
     conf = WebConfig(PROCESS_ID=process_id)
     conf.texts_filling()
     try:
+        with open(f'/var/www/vhosts/gloome.tau.ac.il/httpdocs/tmp/results_{conf.PROCESS_ID}_'
+                  f'route_debug.log', 'a') as f:
+            f.write(f'{conf.read_response()}')
+            f.write(traceback.format_exc())
         result = conf.read_response()
     except Exception:
         conf.set_job_logger_info(traceback.format_exc())
