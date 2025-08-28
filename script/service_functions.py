@@ -153,12 +153,8 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], file_path: Optiona
                                form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
                                create_new_file: bool = False
                                ) -> Union[List[Union[float, ndarray]], str]:
-                               # ) -> Union[Dict[str, Union[float, ndarray, List[Union[float, ndarray]]]], str]:
 
     newick_tree.calculate_likelihood()
-    # result = {'likelihood_of_the_tree': newick_tree.likelihood}
-    # result.update({'log-likelihood_of_the_tree': newick_tree.log_likelihood})
-    # result.update({'log-likelihood_list': newick_tree.log_likelihood_vector})
     result = [newick_tree.log_likelihood]
 
     if create_new_file:

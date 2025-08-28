@@ -30,36 +30,12 @@ function setLoader(loaderOn = true) {
     }
 }
 
-function showAlert(message, duration = 3000, variant = 2) {
+function showAlert(message, duration = 6000, variant = 1) {
     showMessage(message, variant)
     setTimeout(() => {
         showMessage(``, -1);
     }, duration);
 }
-
-function checkOptimize() {
-    let pi1 = document.getElementById('pi1');
-    pi1.disabled = !pi1.disabled;
-}
-
-// function optimizePi1()  {
-//     let msaText = document.getElementById('msaText');
-//     let newickText = document.getElementById('newickText');
-//     showMessage(``, -1);
-//
-//     fetch(`/get_ptimize `, {
-//         method: 'GET',
-//     })
-//         .then(response => response.json())
-//         .then(data => {
-//             msaText.value = data.message[0];
-//             newickText.value = data.message[1];
-//         })
-//         .catch(error => {
-//             console.error(`Error:`, error);
-//             showMessage(error.message);
-//         });
-// }
 
 function validateInput(id, defaultValue){
     let currentElement = document.getElementById(id);
@@ -93,7 +69,7 @@ function loadExample(mode = 0) {
         })
         .catch(error => {
             console.error(`Error:`, error);
-            showAlert(error.message, 5000, 1);
+            showAlert(error.message, 8000, 2);
         });
 }
 
@@ -188,7 +164,7 @@ function drawPhylogeneticTree(jsonData) {
             d3.select("#tooltip")
                 .style("left", `${event.pageX + 10}px`)
                 .style("top", `${event.pageY - 20}px`)
-                .style("opacity", .8)
+                .style("opacity", .9)
                 .style("visibility",  "visible")
                 .html(convertJSONToTable(jsonData[1][d.data.name], jsonData[2], false));
         })
@@ -235,7 +211,7 @@ function drawPhylogeneticTree(jsonData) {
 function processError(error) {
     setVisibilityLoader(false);
     console.error(`Error:`, error);
-    showAlert(error.message, 5000, 1);
+    showAlert(error.message, 8000, 2);
 }
 
 function convertJSONToTable(jsonData, jsonSort, summary = true) {
@@ -284,9 +260,9 @@ function convertJSONToLogLikelihood(jsonData) {
 
 function copyValue(id) {
     navigator.clipboard.writeText(document.getElementById(id).textContent).then(function() {
-            showAlert('Tree log-likelihood successfully copied to clipboard', 3000, 0);
+            showAlert('Tree log-likelihood successfully copied to clipboard', 5000, 0);
         }, function(err) {
-            showAlert(`An error occurred while copying tree log-likelihood: ${err}`, 3000, 2);
+            showAlert(`An error occurred while copying tree log-likelihood: ${err}`, 5000, 1);
         });
 }
 
@@ -375,7 +351,7 @@ function makeTree(mode = 0) {
             setVisibilityLoader(false);
             setAccessibility();
 
-            typeof data.message === "object" ? showResponse(data.message, mode) : showAlert(data.message, 5000, 1);
+            typeof data.message === "object" ? showResponse(data.message, mode) : showAlert(data.message, 8000, 2);
         })
         .catch(error => {processError(error)});
 }
@@ -428,14 +404,6 @@ function setAccessibility(id = ``, value = null) {
             element.disabled = value;
         }
     })
-}
-
-function hideAll() {
-    let elementNames = [`divInfo`, `divDanger`, `divWarning`, `divSuccess`, `divSecondary`];
-    for (let i = 0; i < elementNames.length; i++) {
-        let element = setVisibility(elementNames[i], false);
-        element.classList.remove(`fixed-center`);
-    }
 }
 
 function showMessage(message = null, variant = 1) {

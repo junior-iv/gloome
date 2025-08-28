@@ -521,7 +521,6 @@ class Tree:
             self.pi_1 = self.optimize(bracket=(pi_1, ), bounds=(0.001, 0.999), mode=1, result_fild='x') if (
                 is_optimize_pi) else pi_1
 
-
     def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
 
         fasta_text = self.get_fasta_text()
