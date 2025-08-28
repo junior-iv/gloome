@@ -321,8 +321,14 @@ function showResponse(jsonData, mode = 0) {
 
     document.getElementById('title').innerHTML = jsonData['title'];
     Object.entries(jsonData['form_data']).forEach(([id, value]) => {
-        console.log(jsonData['form_data'][id])
-        document.getElementById(id).value = value;
+        let element = document.getElementById(id);
+        console.log(jsonData['form_data'][id]);
+        if (id === `isOptimizePi`) {
+            element.checked = value;
+            setAccessibility('pi1');
+        } else {
+            element.value = value;
+        }
     });
 
     if (mode === 0) {

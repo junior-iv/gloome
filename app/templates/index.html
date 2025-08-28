@@ -125,8 +125,11 @@
                                 <label for="isOptimizePi" class="h6 text-start text-success-emphasis ms-3">optimize π1</label>
                             </div>
                             <div class="w-48 text-start">
-                                <input value="1" id="isOptimizePi" name="isOptimizePi" onchange="setAccessibility('pi1')"
-                                       type="checkbox" class="form-check-input rounded-1"/>
+                                <input id="isOptimizePi" name="isOptimizePi" onchange="setAccessibility('pi1')"
+                                       type="checkbox" class="form-check-input rounded-1"
+                                       {%- if is_optimize_pi -%}
+                                           checked
+                                        {% endif -%} />
                             </div>
                         </div>
                         <div class="box flex-row h-auto w-100 m-2">
