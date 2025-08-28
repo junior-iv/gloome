@@ -316,6 +316,7 @@ function convertJSONToTableFoFileList(jsonData) {
 function showResponse(jsonData, mode = 0) {
     const actions = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types']
     const dictActions = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
+    console.log(mode)
     console.log(jsonData['title'])
 
     document.getElementById('title').innerHTML = jsonData['title'];
