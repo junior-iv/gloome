@@ -236,15 +236,15 @@ class Config:
         #                     f'"Parent", "Distance to parent", "child"). Default is '
         #                     f'{self.CURRENT_ARGS.sort_values_by}.')
         parser.add_argument('--categories_quantity', dest='categories_quantity', type=int, required=False,
-                            default=self.CURRENT_ARGS.categories_quantity, help=f'Specify categories quantity '
-                            f'(optional). Default is {self.CURRENT_ARGS.categories_quantity}.')
+                            default=int(self.CURRENT_ARGS.categories_quantity), help=f'Specify categories quantity '
+                            f'(optional). Default is {int(self.CURRENT_ARGS.categories_quantity)}.')
         parser.add_argument('--alpha', dest='alpha', type=float, required=False, default=self.CURRENT_ARGS.alpha,
                             help=f'Specify alpha (optional). Default is {self.CURRENT_ARGS.alpha}.')
         parser.add_argument('--pi_1', dest='pi_1', type=float, required=False, default=self.CURRENT_ARGS.pi_1,
                             help=f'Specify pi_1 (optional). Default is {self.CURRENT_ARGS.pi_1}.')
         parser.add_argument('--is_optimize_pi', dest='is_optimize_pi', type=int, required=False,
-                            help=f'Specify is_optimize_pi (optional). Default is {self.CURRENT_ARGS.is_optimize_pi}.',
-                            default=self.CURRENT_ARGS.is_optimize_pi)
+                            help=f'Specify is_optimize_pi (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.is_optimize_pi)}.', default=int(self.CURRENT_ARGS.is_optimize_pi))
 
         args = parser.parse_args()
 
