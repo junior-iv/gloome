@@ -21,7 +21,7 @@
 </head>
 {%- if data -%}
     <script>
-        showResponse({{ data | tojson }});
+        showResponse({{ data }}, 0);
     </script>
 {% endif -%}
 <body>
