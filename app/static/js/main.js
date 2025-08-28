@@ -283,7 +283,6 @@ function convertJSONToLogLikelihood(jsonData) {
 }
 
 function copyValue(id) {
-    console.log(id)
     navigator.clipboard.writeText(document.getElementById(id).textContent).then(function() {
             showAlert('Tree log-likelihood successfully copied to clipboard', 3000, 0);
         }, function(err) {
@@ -316,6 +315,7 @@ function convertJSONToTableFoFileList(jsonData) {
 function showResponse(jsonData, mode = 0) {
     const actions = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types']
     const dictActions = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
+    console.log(jsonData)
     console.log(mode)
     console.log(jsonData['title'])
 
@@ -325,7 +325,7 @@ function showResponse(jsonData, mode = 0) {
         console.log(jsonData['form_data'][id]);
         if (id === `isOptimizePi`) {
             element.checked = value;
-            setAccessibility('pi1');
+            // setAccessibility('pi1');
         } else {
             element.value = value;
         }
