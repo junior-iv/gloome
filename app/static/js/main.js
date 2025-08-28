@@ -114,6 +114,7 @@ function getNodeStyle(d, nodeType, mode = 0, sizeFactor = 1){
 
 function reDrawPhylogeneticTree() {
     if (jsonTreeData !== null){
+        setVisibility(`result`, true);
         setLoader(false)
         showMessage(``, -1);
         document.getElementById('tree').innerText = ``;
@@ -315,9 +316,11 @@ function convertJSONToTableFoFileList(jsonData) {
 function showResponse(jsonData, mode = 0) {
     const actions = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types']
     const dictActions = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
+    console.log(jsonData['title'])
 
     document.getElementById('title').innerHTML = jsonData['title'];
     Object.entries(jsonData['form_data']).forEach(([id, value]) => {
+        console.log(jsonData['form_data'][id])
         document.getElementById(id).value = value;
     });
 
@@ -348,6 +351,8 @@ function makeTree(mode = 0) {
 
     setVisibilityLoader(true);
     setAccessibility();
+    setVisibility(`result`, false);
+
     let absolutePath = ['/execute_all_actions', `/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
 
     fetch(absolutePath, {
@@ -364,6 +369,8 @@ function makeTree(mode = 0) {
         .then(data => {
             setVisibilityLoader(false);
             setAccessibility();
+            setVisibility(`result`, true);
+
             typeof data.message === "object" ? showResponse(data.message, mode) : showAlert(data.message, 5000, 1);
         })
         .catch(error => {processError(error)});
@@ -431,7 +438,6 @@ function showMessage(message = null, variant = 1) {
         let visible = variant === i
         let element = setVisibility(elementNames[i], visible);
         if (visible) {
-            setVisibility(`result`, !visible);
             classes.forEach(currentClass => {
                 element.classList.add(currentClass);
             })
