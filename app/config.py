@@ -1,3 +1,5 @@
+import json
+
 import requests
 
 from time import sleep
@@ -252,7 +254,7 @@ class WebConfig:
         data.update({'title': self.PROCESS_ID})
         data.update({'form_data': json_object.get('form_data')})
 
-        return data
+        return json.dumps(data)
 
     def get_response(self) -> Optional[Any]:
         self.create_command_line()
