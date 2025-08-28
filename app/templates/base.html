@@ -20,7 +20,7 @@
     {%- endblock -%}
 </head>
 {%- if data -%}
-    <body onload="showResponse({{data}})">
+    <body onload="showResponse({{data|safe}})">
 {% else -%}
     <body>
 {% endif -%}
