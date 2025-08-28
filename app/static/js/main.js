@@ -315,17 +315,13 @@ function convertJSONToTableFoFileList(jsonData) {
 function showResponse(jsonData, mode = 0) {
     const actions = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types']
     const dictActions = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
-    console.log(jsonData)
-    console.log(mode)
-    console.log(jsonData['title'])
 
     document.getElementById('title').innerHTML = jsonData['title'];
     Object.entries(jsonData['form_data']).forEach(([id, value]) => {
         let element = document.getElementById(id);
-        console.log(jsonData['form_data'][id]);
         if (id === `isOptimizePi`) {
-            element.checked = value;
-            // setAccessibility('pi1');
+            element.checked = Boolean(value);
+            setAccessibility('pi1', element.checked);
         } else {
             element.value = value;
         }
@@ -336,6 +332,8 @@ function showResponse(jsonData, mode = 0) {
     } else {
         dictActions[actions[mode-1]](jsonData[actions[mode-1]]);
     }
+
+    setVisibility(`result`, true);
 }
 
 
@@ -376,7 +374,6 @@ function makeTree(mode = 0) {
         .then(data => {
             setVisibilityLoader(false);
             setAccessibility();
-            setVisibility(`result`, true);
 
             typeof data.message === "object" ? showResponse(data.message, mode) : showAlert(data.message, 5000, 1);
         })
@@ -421,11 +418,15 @@ function gedIdentifiers(id = ``) {
     }
 }
 
-function setAccessibility(id = ``) {
+function setAccessibility(id = ``, value = null) {
     let elementIdentifiers = gedIdentifiers(id);
     elementIdentifiers.forEach(elementId => {
-        let element = document.getElementById(elementId)
-        element.disabled = !element.disabled;
+        let element = document.getElementById(elementId);
+        if (value === null) {
+            element.disabled = !element.disabled;
+        } else {
+            element.disabled = value;
+        }
     })
 }
 

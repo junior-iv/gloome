@@ -121,7 +121,7 @@ class Config:
     def get_form_data(self) -> Dict[str, Union[str, int]]:
         form_data = {'msaText': self.CALCULATED_ARGS.msa,
                      'newickText': self.CALCULATED_ARGS.newick_text,
-                     # 'isOptimizePi': self.CURRENT_ARGS.is_optimize_pi,
+                     'isOptimizePi': int(self.CURRENT_ARGS.is_optimize_pi),
                      'pi1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
                      'categoriesQuantity': self.CURRENT_ARGS.categories_quantity}
