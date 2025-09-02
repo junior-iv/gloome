@@ -254,16 +254,21 @@ function convertJSONToTable(jsonData, jsonSort, summary = true) {
 
 function convertJSONToLogLikelihood(jsonData) {
     let result = `<div class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" onclick="copyValue('logLikelihoodValue')">
-                Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id)">${jsonData[0]}</span>
+                Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id, Number(document.getElementById('categoriesQuantity').value))">${jsonData[0]}</span>
+                <input value="5" id="alertsNumber" name="alertsNumber"
+                       title="The value must be between 0 and 7" type="number" min="0" max="7" step="1"
+                       onchange="validateInput(this.id, 5)"
+                       class="form-control rounded-pill"/>
+                
             </div>`
     document.getElementById('logLikelihood').innerHTML = result;
     return result;
 }
 
-function copyValue(id) {
+function copyValue(id, variant = 5) {
     let logLikelihood = document.getElementById(id).textContent
     navigator.clipboard.writeText(logLikelihood).then(function() {
-            showAlert(`Tree log-likelihood successfully copied to clipboard<br><br>${logLikelihood}`, 7000, 3);
+            showAlert(`Tree log-likelihood successfully copied to clipboard<br><br>${logLikelihood}`, 7000, variant);
         }, function(err) {
             showAlert(`An error occurred while copying tree log-likelihood: ${err}`);
         });
@@ -430,7 +435,7 @@ function setAccessibility(id = ``, value = null) {
 
 function showMessage(message = null, variant = 1) {
 
-    let elementNames = [`divInfo`, `divDanger`, `divWarning`, `divSuccess`, `divSecondary`];
+    let elementNames = [`divInfo`, `divDanger`, `divWarning`, `divSuccess`, `divSecondary`, `divLight`, `divDark`, `divPrimary`];
     let classes = [`fixed-center`, `h-30`, `w-30`]
     for (let i = 0; i < elementNames.length; i++) {
         let visible = variant === i
