@@ -220,6 +220,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
     alpha = float(args[3])
     pi_1 = float(args[4])
     is_optimize_pi = bool(args[5])
+    is_optimize_pi_average = bool(args[6])
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -232,7 +233,10 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'π1 value error [ {pi_1} ]', f'The value must be between 0.001 and 0.999.'))
 
     if not isinstance(is_optimize_pi, bool):
-        err_list.append((f'π1 value error [ {is_optimize_pi} ]', f'The value must be boolean type.'))
+        err_list.append((f'optimize π1 value error [ {is_optimize_pi} ]', f'The value must be boolean type.'))
+
+    if not isinstance(is_optimize_pi_average, bool):
+        err_list.append((f'optimize π1 value error [ {is_optimize_pi_average} ]', f'The value must be boolean type.'))
 
     if not msa:
         err_list.append(('MSA error', 'No MSA was provided.'))

@@ -15,6 +15,33 @@
 /*.summary-outline-success details[open] > summary::after {*/
 /*    color: #fff;*/
 /*}*/
+
+details > summary {
+  list-style: none;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.subarrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+details[open] .arrow {
+    transform: rotate(180deg);
+}
+
+.subdetails[open] .subarrow {
+    transform: rotate(180deg);
+}
+
 .align-self-stretch {
     align-self: stretch;
 }

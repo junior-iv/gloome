@@ -243,7 +243,9 @@ function convertJSONToTable(jsonData, jsonSort, summary = true) {
     if (summary) {
         table = `<details open>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
-        Node information</summary><table class="w-97 m-3 p-4 h7">${result}</table></details>`
+        <span class="arrow">▼</span>
+        Node information
+        </summary><table class="w-97 m-3 p-4 h7">${result}</table></details>`
     } else {
         table = `<table class="w-60 h8">${result}</table>`;
     }
@@ -252,7 +254,7 @@ function convertJSONToTable(jsonData, jsonSort, summary = true) {
 
 function convertJSONToLogLikelihood(jsonData) {
     let result = `<div class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" onclick="copyValue('logLikelihoodValue')">
-                Tree Log-Likelihood: <span id="logLikelihoodValue" onclick="copyValue(this.id)">${jsonData[0]}</span>
+                Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id)">${jsonData[0]}</span>
             </div>`
     document.getElementById('logLikelihood').innerHTML = result;
     return result;
@@ -277,7 +279,9 @@ function convertJSONToTableFoFileList(jsonData) {
     });
     let table = `<details open>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
-        View/Download Results</summary>
+        <span class="arrow">▼</span>
+        View/Download Results
+        </summary>
         <table class="w-97 m-3 p-4 h7">
         <tr>${headersRow}</tr>
         <tr>${secondRow}</tr>
@@ -294,13 +298,7 @@ function showResponse(jsonData, mode = 0) {
 
     document.getElementById('title').innerHTML = jsonData['title'];
     Object.entries(jsonData['form_data']).forEach(([id, value]) => {
-        let element = document.getElementById(id);
-        if (id === `isOptimizePi`) {
-            element.checked = Boolean(value);
-            setAccessibility('pi1', element.checked);
-        } else {
-            element.value = value;
-        }
+        formFilling(id, value)
     });
 
     if (mode === 0) {
@@ -319,7 +317,8 @@ function makeTree(mode = 0) {
     const categoriesQuantity = document.getElementById(`categoriesQuantity`);
     const alpha = document.getElementById(`alpha`);
     const pi1 = document.getElementById(`pi1`);
-    const isOptimizePi = document.getElementById('isOptimizePi')
+    const isOptimizePi = document.getElementById(`isOptimizePi`)
+    const isOptimizePiAverage = document.getElementById(`isOptimizePiAverage`)
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`msaText`, msaText.value.trim());
@@ -327,6 +326,7 @@ function makeTree(mode = 0) {
     formData.append(`alpha`, alpha.value.trim());
     formData.append(`pi1`, pi1.value.trim());
     formData.append(`isOptimizePi`, +isOptimizePi.checked);
+    formData.append(`isOptimizePiAverage`, +isOptimizePiAverage.checked);
 
     jsonTreeData = null
 
@@ -389,8 +389,29 @@ function gedIdentifiers(id = ``) {
     if (!!id) {
         return [id];
     } else {
-        return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`,
-            `newickText`, `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `isOptimizePi`];
+        return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`, `newickText`,
+            `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `isOptimizePi`, `isOptimizePiAverage`];
+    }
+}
+
+function formFilling(id, value) {
+    let element = document.getElementById(id);
+    let objectsDependence = {'pi1': ['isOptimizePi', 'isOptimizePiAverage']};
+    let checkboxes = ['isOptimizePi', 'isOptimizePiAverage'];
+    if (checkboxes.includes(id)) {
+        element.checked = Boolean(value);
+        Object.entries(objectsDependence).forEach(([key, valueList]) => {
+            if (valueList.includes(id)) {
+                valueList.forEach(elementId => {
+                    if (id !== elementId) {
+                        document.getElementById(elementId).checked = false;
+                    }
+                });
+            setAccessibility(key, element.checked);
+            }
+        });
+    } else {
+        element.value = value;
     }
 }
 

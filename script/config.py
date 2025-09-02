@@ -122,6 +122,7 @@ class Config:
         form_data = {'msaText': self.CALCULATED_ARGS.msa,
                      'newickText': self.CALCULATED_ARGS.newick_text,
                      'isOptimizePi': int(self.CURRENT_ARGS.is_optimize_pi),
+                     'isOptimizePiAverage': int(self.CURRENT_ARGS.is_optimize_pi_average),
                      'pi1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
                      'categoriesQuantity': self.CURRENT_ARGS.categories_quantity}
@@ -181,7 +182,8 @@ class Config:
                                                                      self.CURRENT_ARGS.categories_quantity,
                                                                      self.CURRENT_ARGS.alpha,
                                                                      self.CURRENT_ARGS.pi_1,
-                                                                     self.CURRENT_ARGS.is_optimize_pi)
+                                                                     self.CURRENT_ARGS.is_optimize_pi,
+                                                                     self.CURRENT_ARGS.is_optimize_pi_average)
 
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
             try:
@@ -194,12 +196,14 @@ class Config:
                 self.ACTIONS.set_tree_data(self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa,
                                            categories_quantity=self.CURRENT_ARGS.categories_quantity,
                                            alpha=self.CURRENT_ARGS.alpha, pi_1=self.CURRENT_ARGS.pi_1,
-                                           is_optimize_pi=self.CURRENT_ARGS.is_optimize_pi)
+                                           is_optimize_pi=self.CURRENT_ARGS.is_optimize_pi,
+                                           is_optimize_pi_average=self.CURRENT_ARGS.is_optimize_pi_average)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'MSA error',
                                                       f'Wrong MSA format. Please provide MSA in FASTA format.'))
 
-        if not self.CALCULATED_ARGS.err_list and self.CURRENT_ARGS.is_optimize_pi:
+        if not self.CALCULATED_ARGS.err_list and (self.CURRENT_ARGS.is_optimize_pi_average or
+                                                  self.CURRENT_ARGS.is_optimize_pi):
             try:
                 self.CURRENT_ARGS.pi_1 = self.CALCULATED_ARGS.newick_tree.pi_1
             except ValueError:
@@ -245,6 +249,10 @@ class Config:
         parser.add_argument('--is_optimize_pi', dest='is_optimize_pi', type=int, required=False,
                             help=f'Specify is_optimize_pi (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_optimize_pi)}.', default=int(self.CURRENT_ARGS.is_optimize_pi))
+        parser.add_argument('--is_optimize_pi_average', dest='is_optimize_pi_average', type=int,
+                            required=False, help=f'Specify is_optimize_pi_average (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.is_optimize_pi_average)}.',
+                            default=int(self.CURRENT_ARGS.is_optimize_pi_average))
 
         args = parser.parse_args()
 
@@ -255,7 +263,7 @@ class Config:
                         self.change_process_id(arg_value)
                 elif arg_name == 'mode':
                     setattr(self, arg_name.upper(), tuple(arg_value))
-                elif arg_name in ('with_internal_nodes', 'is_optimize_pi'):
+                elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))
                 else:
