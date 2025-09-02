@@ -234,11 +234,6 @@ class Config:
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=int, required=False,
                             default=self.CURRENT_ARGS.with_internal_nodes, help=f'Specify the Newick file type '
                             f'(optional). Default is {self.CURRENT_ARGS.with_internal_nodes}.')
-        # parser.add_argument('--sort_values_by', dest='sort_values_by', required=False, action="extend", nargs="+",
-        #                     type=str, default=self.CURRENT_ARGS.sort_values_by, help=f'Specify the columns by which '
-        #                     f'you want to sort the values in the csv file (optional). Possible options: ("Name", '
-        #                     f'"Parent", "Distance to parent", "child"). Default is '
-        #                     f'{self.CURRENT_ARGS.sort_values_by}.')
         parser.add_argument('--categories_quantity', dest='categories_quantity', type=int, required=False,
                             default=int(self.CURRENT_ARGS.categories_quantity), help=f'Specify categories quantity '
                             f'(optional). Default is {int(self.CURRENT_ARGS.categories_quantity)}.')

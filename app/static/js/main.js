@@ -69,7 +69,7 @@ function loadExample(mode = 0) {
         })
         .catch(error => {
             console.error(`Error:`, error);
-            showAlert(error.message, 8000, 2);
+            showAlert(error.message, 8000);
         });
 }
 
@@ -211,7 +211,7 @@ function drawPhylogeneticTree(jsonData) {
 function processError(error) {
     setVisibilityLoader(false);
     console.error(`Error:`, error);
-    showAlert(error.message, 8000, 2);
+    showAlert(error.message, 8000);
 }
 
 function convertJSONToTable(jsonData, jsonSort, summary = true) {
@@ -261,10 +261,11 @@ function convertJSONToLogLikelihood(jsonData) {
 }
 
 function copyValue(id) {
-    navigator.clipboard.writeText(document.getElementById(id).textContent).then(function() {
-            showAlert('Tree log-likelihood successfully copied to clipboard', 5000, 0);
+    let logLikelihood = document.getElementById(id).textContent
+    navigator.clipboard.writeText(logLikelihood).then(function() {
+            showAlert(`Tree log-likelihood successfully copied to clipboard<br><br>${logLikelihood}`, 7000, 3);
         }, function(err) {
-            showAlert(`An error occurred while copying tree log-likelihood: ${err}`, 5000, 1);
+            showAlert(`An error occurred while copying tree log-likelihood: ${err}`);
         });
 }
 
@@ -351,7 +352,7 @@ function makeTree(mode = 0) {
             setVisibilityLoader(false);
             setAccessibility();
 
-            typeof data.message === "object" ? showResponse(data.message, mode) : showAlert(data.message, 8000, 2);
+            typeof data.message === "object" ? showResponse(data.message, mode) : showAlert(data.message, 8000);
         })
         .catch(error => {processError(error)});
 }
@@ -464,7 +465,6 @@ function test(testData) {
     formData.append(`svgData`, testData);
 
     showMessage(``, -1);
-    // document.getElementById('tree').innerText = ``
     setVisibilityLoader(true);
 
     fetch(`/test`, {
@@ -478,6 +478,6 @@ function test(testData) {
         .catch(error => {
             setVisibilityLoader(false);
             console.error(`Error:`, error);
-            showAlert(error.message, 5000, 1);
+            showAlert(error.message, 8000);
         });
 }
