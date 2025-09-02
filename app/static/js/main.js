@@ -253,7 +253,7 @@ function convertJSONToTable(jsonData, jsonSort, summary = true) {
 }
 
 function convertJSONToLogLikelihood(jsonData) {
-    let result = `<div class="w-100 flex-row form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" onclick="copyValue('logLikelihoodValue')">
+    let result = `<div class="w-100 flex-row form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" onclick="copyValue(this.id, Number(document.getElementById('alertsNumber').value))">
                 Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id, Number(document.getElementById('alertsNumber').value))">${jsonData[0]}</span>
                 <input value="5" id="alertsNumber" name="alertsNumber"
                        title="The value must be between 0 and 7" type="number" min="0" max="7" step="1"
