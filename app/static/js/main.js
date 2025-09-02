@@ -253,8 +253,8 @@ function convertJSONToTable(jsonData, jsonSort, summary = true) {
 }
 
 function convertJSONToLogLikelihood(jsonData) {
-    let result = `<div class="w-100 flex-row form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" onclick="copyValue(this.id, 4)">
-                Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id, 4)">${jsonData[0]}</span>
+    let result = `<div class="w-100 flex-row form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" onclick="copyValue(this.id, 7)">
+                Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id, 7)">${jsonData[0]}</span>
             </div>`
     document.getElementById('logLikelihood').innerHTML = result;
     return result;
