@@ -320,6 +320,7 @@ function makeTree(mode = 0) {
     const pi1 = document.getElementById(`pi1`);
     const isOptimizePi = document.getElementById(`isOptimizePi`)
     const isOptimizePiAverage = document.getElementById(`isOptimizePiAverage`)
+    const isOptimizeAlpha = document.getElementById(`isOptimizeAlpha`)
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`msaText`, msaText.value.trim());
@@ -328,6 +329,7 @@ function makeTree(mode = 0) {
     formData.append(`pi1`, pi1.value.trim());
     formData.append(`isOptimizePi`, +isOptimizePi.checked);
     formData.append(`isOptimizePiAverage`, +isOptimizePiAverage.checked);
+    formData.append(`isOptimizeAlpha`, +isOptimizeAlpha.checked);
 
     jsonTreeData = null
 
@@ -391,14 +393,15 @@ function gedIdentifiers(id = ``) {
         return [id];
     } else {
         return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`, `newickText`,
-            `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `isOptimizePi`, `isOptimizePiAverage`];
+            `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `isOptimizePi`, `isOptimizePiAverage`,
+            `isOptimizeAlpha`];
     }
 }
 
 function formFilling(id, value) {
     let element = document.getElementById(id);
-    let objectsDependence = {'pi1': ['isOptimizePi', 'isOptimizePiAverage']};
-    let checkboxes = ['isOptimizePi', 'isOptimizePiAverage'];
+    let objectsDependence = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha']};
+    let checkboxes = ['isOptimizePi', 'isOptimizePiAverage', 'isOptimizeAlpha'];
     if (checkboxes.includes(id)) {
         element.checked = Boolean(value);
         Object.entries(objectsDependence).forEach(([key, valueList]) => {

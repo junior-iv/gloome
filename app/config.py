@@ -117,9 +117,10 @@ class WebConfig:
                                  f'\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
 
     def arguments_filling(self, **arguments):
-        dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'isOptimizePi', 'isOptimizePiAverage'),
-                  ('categories_quantity', 'alpha', 'pi_1', 'is_optimize_pi', 'is_optimize_pi_average'),
-                  ((int, ), (float, ), (float, ), (int, bool), (int, bool)))
+        dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'isOptimizePi', 'isOptimizePiAverage', 'isOptimizeAlpha'),
+                  ('categories_quantity', 'alpha', 'pi_1', 'is_optimize_pi', 'is_optimize_pi_average',
+                   'is_optimize_alpha'),
+                  ((int, ), (float, ), (float, ), (int, bool), (int, bool), (int, bool)))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -137,6 +138,7 @@ class WebConfig:
                                  f'\tpi_1: {self.CURRENT_ARGS.pi_1}\n'
                                  f'\tis_optimize_pi: {self.CURRENT_ARGS.is_optimize_pi}\n'
                                  f'\tis_optimize_pi_average: {self.CURRENT_ARGS.is_optimize_pi_average}\n'
+                                 f'\tis_optimize_alpha: {self.CURRENT_ARGS.is_optimize_alpha}\n'
                                  f'\tnewick_text: {self.CALCULATED_ARGS.newick_text}\n'
                                  f'\tmsa: {self.CALCULATED_ARGS.msa}\n')
 
@@ -171,7 +173,8 @@ class WebConfig:
             f'--tree_file {self.TREE_FILE} --categories_quantity {self.CURRENT_ARGS.categories_quantity} --alpha '
             f'{self.CURRENT_ARGS.alpha} --pi_1 {self.CURRENT_ARGS.pi_1} --is_optimize_pi '
             f'{int(self.CURRENT_ARGS.is_optimize_pi)} --is_optimize_pi_average '
-            f'{int(self.CURRENT_ARGS.is_optimize_pi_average)} --mode {self.MODE}')
+            f'{int(self.CURRENT_ARGS.is_optimize_pi_average)} --is_optimize_alpha '
+            f'{int(self.CURRENT_ARGS.is_optimize_alpha)} --mode {self.MODE}')
         self.set_job_logger_info(f'COMMAND_LINE: {self.COMMAND_LINE}')
 
     def get_request_body(self):

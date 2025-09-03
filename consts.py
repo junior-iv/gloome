@@ -123,7 +123,8 @@ DEFAULT_FORM_ARGUMENTS = {
     'alpha': 0.5,
     'pi_1': 0.5,
     'is_optimize_pi': False,
-    'is_optimize_pi_average': False
+    'is_optimize_pi_average': False,
+    'is_optimize_alpha': False
     }
 
 ACTIONS = Actions(**{

@@ -8,7 +8,7 @@ from json import loads
 from os import path, makedirs
 from d3blocks import D3Blocks
 from .node import Node
-from typing import Optional, List, Union, Dict, Tuple, Set
+from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
 from scipy.stats import gamma
 from scipy.special import gammainc
@@ -44,9 +44,10 @@ class Tree:
             pi_1: Optional[Union[float, np.ndarray, int]] = None
             is_optimize_pi: Optional[bool] = None,
             is_optimize_pi_average: Optional[bool] = None
+            is_optimize_alpha: Optional[bool] = None
     """
         available_parameters = {'data', 'node_name', 'msa', 'categories_quantity', 'alpha', 'beta', 'pi_0', 'pi_1',
-                                'is_optimize_pi', 'is_optimize_pi_average'}
+                                'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_alpha'}
         invalid_parameters = set(kwargs.keys()) - available_parameters
         for key in invalid_parameters:
             del kwargs[key]
@@ -502,13 +503,25 @@ class Tree:
 
         return self.rate_vector
 
+    def parameters_optimization(self, pi_0: Optional[Union[float, np.ndarray, int]] = None,
+                                pi_1: Optional[Union[float, np.ndarray, int]] = None,
+                                is_optimize_pi: Optional[bool] = None, is_optimize_pi_average: Optional[bool] = None
+                                ) -> None:
+        if isinstance(pi_0, (float, np.ndarray, int)) and pi_0:
+            self.pi_0 = self.optimize_pi(pi=pi_0, mode=0, is_optimize_pi=is_optimize_pi,
+                                         is_optimize_pi_average=is_optimize_pi_average)
+        elif isinstance(pi_1, (float, np.ndarray, int)) and pi_1:
+            self.pi_1 = self.optimize_pi(pi=pi_1, mode=1, is_optimize_pi=is_optimize_pi,
+                                         is_optimize_pi_average=is_optimize_pi_average)
+
     def set_tree_data(self, msa: Optional[Union[Dict[str, str], str]] = None,
                       categories_quantity: Optional[int] = None,
                       alpha: Optional[float] = None, beta: Optional[float] = None,
                       pi_0: Optional[Union[float, np.ndarray, int]] = None,
                       pi_1: Optional[Union[float, np.ndarray, int]] = None,
                       is_optimize_pi: Optional[bool] = None,
-                      is_optimize_pi_average: Optional[bool] = None
+                      is_optimize_pi_average: Optional[bool] = None,
+                      is_optimize_alpha: Optional[bool] = None
                       ) -> None:
         if isinstance(msa, str):
             self.msa = self.get_msa_dict(msa)
@@ -516,13 +529,15 @@ class Tree:
             self.msa = msa
         if isinstance(self.msa, dict) and self.msa:
             self.alphabet = Tree.get_alphabet_from_dict(self.msa)
+
         self.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
-        if isinstance(pi_0, (float, np.ndarray, int)) and pi_0:
-            self.pi_0 = self.optimize_pi(pi=pi_0, mode=0, is_optimize_pi=is_optimize_pi,
-                                         is_optimize_pi_average=is_optimize_pi_average)
-        elif isinstance(pi_1, (float, np.ndarray, int)) and pi_1:
-            self.pi_1 = self.optimize_pi(pi=pi_1, mode=1, is_optimize_pi=is_optimize_pi,
-                                         is_optimize_pi_average=is_optimize_pi_average)
+        self.parameters_optimization(pi_0, pi_1, is_optimize_pi, is_optimize_pi_average)
+
+        alpha = self.optimize_alpha(alpha, categories_quantity, is_optimize_alpha)
+        self.rate_vector = self.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
+
+        if is_optimize_alpha and is_optimize_pi:
+            self.parameters_optimization(self.pi_0, self.pi_1, is_optimize_pi, is_optimize_pi_average)
 
     def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
 
@@ -692,26 +707,27 @@ class Tree:
 
         return file_names
 
-    # self.clean_all()
-
-    def optimize_pi_0(self, pi_0: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
-        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, pi_0=pi_0, pi_1=1 - pi_0)[1]
-
-    def optimize_pi_1(self, pi_1: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
-        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, pi_0=1 - pi_1, pi_1=pi_1)[1]
-
-    def optimize(self, bracket: Tuple[Union[float, np.ndarray], ...] = (0.5,),
+    def optimize(self, func: Union[Callable, str], bracket: Tuple[Union[float, np.ndarray], ...] = (0.5,),
                  bounds: Tuple[Union[float, np.ndarray], ...] = (0.001, 0.999),
-                 mode=0, result_fild: Optional[str] = None):
+                 args: Tuple[Any, ...] = (0, ), result_fild: Optional[str] = None):
         """
             result_fild: `str` (default), message, success, status, fun, x, nit, nfev
         """
         self.clean_all()
+        func = self.__getattribute__(func) if isinstance(func, str) else func
         if result_fild:
-            return minimize_scalar((self.optimize_pi_0, self.optimize_pi_1)[mode], bracket=bracket,
-                                   bounds=bounds)[result_fild]
+            return minimize_scalar(func, args=args, bracket=bracket, bounds=bounds)[result_fild]
         else:
-            return minimize_scalar((self.optimize_pi_0, self.optimize_pi_1)[mode], bracket=bracket, bounds=bounds)
+            return minimize_scalar(func, args=args, bracket=bracket, bounds=bounds)
+
+    def pi_optimization(self, pi: Union[float, np.ndarray], mode: int = 0) -> Union[float, np.ndarray]:
+        current_pi = (pi, None)
+        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, pi_0=current_pi[mode],
+                                               pi_1=current_pi[::-1][mode])[1]
+
+    def alpha_optimization(self, alpha: Union[int, float, np.ndarray], categories_quantity: int = 4) -> Union[float, np.ndarray]:
+        self.get_gamma_distribution_categories_vector(categories_quantity, alpha)
+        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1)[1]
 
     def optimize_pi_average(self, mode: int = 0, msa: Optional[str] = None) -> float:
         all_lines = ''
@@ -724,11 +740,20 @@ class Tree:
 
         return all_lines.count(self.alphabet[mode]) / len(all_lines)
 
-    def optimize_pi(self, pi: Union[float, np.ndarray, int], mode: int = 0, is_optimize_pi: Optional[bool] = None,
+    def optimize_alpha(self, alpha: Union[int, float, np.ndarray], categories_quantity: int = 1,
+                       is_optimize_alpha: Optional[bool] = None) -> Union[float, np.ndarray, int]:
+        if is_optimize_alpha:
+            return self.optimize(func=self.alpha_optimization, bracket=(alpha, ), bounds=(0.1, 20),
+                                 args=(categories_quantity, ), result_fild='x')
+
+        return alpha
+
+    def optimize_pi(self, pi: Union[int, float, np.ndarray], mode: int = 0, is_optimize_pi: Optional[bool] = None,
                     is_optimize_pi_average: Optional[bool] = None, msa: Optional[str] = None
                     ) -> Union[float, np.ndarray, int]:
         if is_optimize_pi:
-            return self.optimize(bracket=(pi,), bounds=(0.001, 0.999), mode=mode, result_fild='x')
+            return self.optimize(func=self.pi_optimization, bracket=(pi, ), bounds=(0.001, 0.999), args=(mode, ),
+                                 result_fild='x')
         elif is_optimize_pi_average:
             return self.optimize_pi_average(mode=mode, msa=msa)
 

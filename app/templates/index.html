@@ -171,6 +171,18 @@
                                 </div>
                                 <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
+                                        <label for="isOptimizeAlpha" class="h6 text-start text-success-emphasis ms-3">optimize α value</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="isOptimizeAlpha" name="isOptimizeAlpha" onchange="formFilling(this.id, this.checked)"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if is_optimize_pi -%}
+                                                   checked
+                                                {% endif -%} />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
                                         <label for="categoriesQuantity" class="h6 text-start text-success-emphasis ms-3">Number of rate categories</label>
                                     </div>
                                     <div class="w-48 text-start">
