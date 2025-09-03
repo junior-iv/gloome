@@ -24,14 +24,6 @@
 {% else -%}
     <body>
 {% endif -%}
-{#    {%- if data -%}#}
-{#        <body onload=showResponse({{ data | tojson }},0)>#}
-{#        <script>#}
-{#            showResponse({{ data | tojson }}, 0);#}
-{#        </script>#}
-{#    {%- else -%}#}
-{#        <body>#}
-{#    {% endif -%}#}
 {%- block menu -%}
 <header class="sticky-top bg-white">
 <div class="navbar navbar-expand-lg horizontal-gradient">
@@ -39,35 +31,13 @@
     <div class="m-2">{{nwt.logo(2, 'gray')}}</div>
     <div class="m-2">{{nwt.logo(5, 'gray')}}</div>
     <div class="m-2">{{nwt.logo(6, 'gray')}}</div>
-{#    <div class="ms-4 m-2" style="color: dimgray">{{nwt.logo(3)}}</div>#}
-{#    <div class="ms-4 m-2" style="color: dimgray">{{nwt.logo(4)}}</div>#}
-{#    {{nwt.svg()}}#}
-{#    <span class="material-symbols-outlined" style="color: rgb(15, 5, 56)">graph_1</span>#}
-{#    <span class="material-symbols-outlined ms-4 m-2" style="color: dimgray">graph_2</span>#}
-{#    <span class="material-symbols-outlined" style="color: rgb(15, 5, 56)">graph_3</span>#}
-{#    <span class="material-symbols-outlined" style="color: rgb(15, 5, 56)">graph_4</span>#}
     <a class="navbar-brand m-2" href="/" style="color: gray">Gloome 2.0</a>
-{#    <div class="d-flex gap-2 flex-row flex-grow-1 justify-content-start">#}
-{#    <div class="m-2 d-flex gap-2">#}
         {%- for m in menu -%}
             {%- if m.submenu -%}
-{#            <div class="dropdown">#}
-{#                <button type="button" class="w-auto h-auto form-control btn btn-outline-success rounded-2 btn-secondary dropbtn">{{m.name}}</button>#}
-{#                <div class="dropdown-content">#}
-{#                    {%- for submenu in m.submenu -%}#}
-{#                        <a class="w-auto float-star form-control btn btn-outline-success rounded-2" href="{{url_for(submenu.url)}}">{{submenu.name}}</a>#}
-{#                    {% endfor -%}#}
-{#                </div>#}
-{#            </div>#}
             {% else -%}
                 <a class="w-auto h-100 m-0 border-0 btn btn-outline-success rounded-2" href="{{url_for(m.url)}}">{{m.name}}</a>
             {% endif -%}
         {% endfor -%}
-{#        <label for="jobId" class="w-auto float-star form-control btn btn-outline-success rounded-2">READ JOB BY ID</label>#}
-{#        <input id="jobId" name="jobId" type="number" title="please provide job id here" onchange="validateInput('jobId', )"#}
-{#               min="1" max="999999999999999" step="0.1" class="w-auto float-star form-control btn btn-outline-success rounded-2"/>#}
-{#    </div>#}
-{#    </div>#}
 </div>
 {%- endblock -%}
 {%- block header -%}
