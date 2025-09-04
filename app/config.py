@@ -183,7 +183,7 @@ class WebConfig:
             f'--is_optimize_pi {int(self.CURRENT_ARGS.is_optimize_pi)} '
             f'--is_optimize_pi_average {int(self.CURRENT_ARGS.is_optimize_pi_average)} '
             f'--is_optimize_alpha {int(self.CURRENT_ARGS.is_optimize_alpha)} '
-            f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)}'
+            f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
             f'--mode {self.MODE}')
         self.set_job_logger_info(f'COMMAND_LINE: {self.COMMAND_LINE}')
 
