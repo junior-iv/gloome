@@ -122,9 +122,11 @@ DEFAULT_FORM_ARGUMENTS = {
     'categories_quantity': 4,
     'alpha': 0.5,
     'pi_1': 0.5,
-    'is_optimize_pi': False,
+    'coefficient_bl': 1,
+    'is_optimize_pi': True,
     'is_optimize_pi_average': False,
-    'is_optimize_alpha': False
+    'is_optimize_alpha': True,
+    'is_optimize_bl': True
     }
 
 ACTIONS = Actions(**{

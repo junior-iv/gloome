@@ -219,9 +219,11 @@ def check_data(*args) -> List[Tuple[str, str]]:
     categories_quantity = int(args[2])
     alpha = float(args[3])
     pi_1 = float(args[4])
-    is_optimize_pi = bool(args[5])
-    is_optimize_pi_average = bool(args[6])
-    is_optimize_alpha = bool(args[7])
+    coefficient_bl = float(args[5])
+    is_optimize_pi = bool(args[6])
+    is_optimize_pi_average = bool(args[7])
+    is_optimize_alpha = bool(args[8])
+    is_optimize_bl = bool(args[9])
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -233,14 +235,24 @@ def check_data(*args) -> List[Tuple[str, str]]:
     if not isinstance(pi_1, float) or not 0.001 <= pi_1 <= 0.999:
         err_list.append((f'π1 value error [ {pi_1} ]', f'The value must be between 0.001 and 0.999.'))
 
+    if not isinstance(coefficient_bl, float) or not 0.1 <= coefficient_bl <= 10:
+        err_list.append((f'Branch lengths (BL) coefficient value error [ {coefficient_bl} ]',
+                         f'The value must be between 0.1 and 10.'))
+
     if not isinstance(is_optimize_pi, bool):
-        err_list.append((f'optimize π1 value error [ {is_optimize_pi} ]', f'The value must be boolean type.'))
+        err_list.append((f'optimize π1 value (algorithmic) error [ {is_optimize_pi} ]',
+                         f'The value must be boolean type.'))
 
     if not isinstance(is_optimize_pi_average, bool):
-        err_list.append((f'optimize π1 value error [ {is_optimize_pi_average} ]', f'The value must be boolean type.'))
+        err_list.append((f'optimize π1 value (empirical) error [ {is_optimize_pi_average} ]',
+                         f'The value must be boolean type.'))
 
     if not isinstance(is_optimize_alpha, bool):
         err_list.append((f'optimize α value error [ {is_optimize_alpha} ]', f'The value must be boolean type.'))
+
+    if not isinstance(is_optimize_bl, bool):
+        err_list.append((f'optimize branch lengths coefficient value error [ {is_optimize_bl} ]',
+                         f'The value must be boolean type.'))
 
     if not msa:
         err_list.append(('MSA error', 'No MSA was provided.'))

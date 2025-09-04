@@ -124,6 +124,8 @@ class Config:
                      'isOptimizePi': int(self.CURRENT_ARGS.is_optimize_pi),
                      'isOptimizePiAverage': int(self.CURRENT_ARGS.is_optimize_pi_average),
                      'isOptimizeAlpha': int(self.CURRENT_ARGS.is_optimize_alpha),
+                     'isOptimizeBL': int(self.CURRENT_ARGS.is_optimize_bl),
+                     'coefficientBL': int(self.CURRENT_ARGS.coefficient_bl),
                      'pi1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
                      'categoriesQuantity': self.CURRENT_ARGS.categories_quantity}
@@ -183,9 +185,11 @@ class Config:
                                                                      self.CURRENT_ARGS.categories_quantity,
                                                                      self.CURRENT_ARGS.alpha,
                                                                      self.CURRENT_ARGS.pi_1,
+                                                                     self.CURRENT_ARGS.coefficient_bl,
                                                                      self.CURRENT_ARGS.is_optimize_pi,
                                                                      self.CURRENT_ARGS.is_optimize_pi_average,
-                                                                     self.CURRENT_ARGS.is_optimize_alpha)
+                                                                     self.CURRENT_ARGS.is_optimize_alpha,
+                                                                     self.CURRENT_ARGS.is_optimize_bl)
 
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
             try:
@@ -198,9 +202,11 @@ class Config:
                 self.ACTIONS.set_tree_data(self.CALCULATED_ARGS.newick_tree, msa=self.CALCULATED_ARGS.msa,
                                            categories_quantity=self.CURRENT_ARGS.categories_quantity,
                                            alpha=self.CURRENT_ARGS.alpha, pi_1=self.CURRENT_ARGS.pi_1,
+                                           coefficient_bl=self.CURRENT_ARGS.coefficient_bl,
                                            is_optimize_pi=self.CURRENT_ARGS.is_optimize_pi,
                                            is_optimize_pi_average=self.CURRENT_ARGS.is_optimize_pi_average,
-                                           is_optimize_alpha=self.CURRENT_ARGS.is_optimize_alpha)
+                                           is_optimize_alpha=self.CURRENT_ARGS.is_optimize_alpha,
+                                           is_optimize_bl=self.CURRENT_ARGS.is_optimize_bl)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'MSA error',
                                                       f'Wrong MSA format. Please provide MSA in FASTA format.'))
@@ -209,6 +215,20 @@ class Config:
                                                   self.CURRENT_ARGS.is_optimize_pi):
             try:
                 self.CURRENT_ARGS.pi_1 = self.CALCULATED_ARGS.newick_tree.pi_1
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append((f'Strange error',
+                                                      f'Strange error.'))
+
+        if not self.CALCULATED_ARGS.err_list and self.CURRENT_ARGS.is_optimize_alpha:
+            try:
+                self.CURRENT_ARGS.alpha = self.CALCULATED_ARGS.newick_tree.alpha
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append((f'Strange error',
+                                                      f'Strange error.'))
+
+        if not self.CALCULATED_ARGS.err_list and self.CURRENT_ARGS.is_optimize_bl:
+            try:
+                self.CURRENT_ARGS.coefficient_bl = self.CALCULATED_ARGS.newick_tree.coefficient_bl
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Strange error',
                                                       f'Strange error.'))
@@ -244,6 +264,9 @@ class Config:
                             help=f'Specify alpha (optional). Default is {self.CURRENT_ARGS.alpha}.')
         parser.add_argument('--pi_1', dest='pi_1', type=float, required=False, default=self.CURRENT_ARGS.pi_1,
                             help=f'Specify pi_1 (optional). Default is {self.CURRENT_ARGS.pi_1}.')
+        parser.add_argument('--coefficient_bl', dest='coefficient_bl', type=float, required=False,
+                            help=f'Specify coefficient_bl (optional). Default is {self.CURRENT_ARGS.coefficient_bl}.',
+                            default=self.CURRENT_ARGS.coefficient_bl)
         parser.add_argument('--is_optimize_pi', dest='is_optimize_pi', type=int, required=False,
                             help=f'Specify is_optimize_pi (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_optimize_pi)}.', default=int(self.CURRENT_ARGS.is_optimize_pi))
@@ -251,10 +274,13 @@ class Config:
                             required=False, help=f'Specify is_optimize_pi_average (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_optimize_pi_average)}.',
                             default=int(self.CURRENT_ARGS.is_optimize_pi_average))
-        parser.add_argument('--is_optimize_alpha', dest='is_optimize_alpha', type=int,
-                            required=False, help=f'Specify is_optimize_alpha (optional). Default is '
+        parser.add_argument('--is_optimize_alpha', dest='is_optimize_alpha', type=int, required=False,
+                            help=f'Specify is_optimize_alpha (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_optimize_alpha)}.',
                             default=int(self.CURRENT_ARGS.is_optimize_alpha))
+        parser.add_argument('--is_optimize_bl', dest='is_optimize_bl', type=int, required=False,
+                            help=f'Specify is_optimize_bl (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.is_optimize_bl)}.', default=int(self.CURRENT_ARGS.is_optimize_bl))
 
         args = parser.parse_args()
 
@@ -266,7 +292,7 @@ class Config:
                 elif arg_name == 'mode':
                     setattr(self, arg_name.upper(), tuple(arg_value))
                 elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
-                                  'is_optimize_alpha'):
+                                  'is_optimize_alpha', 'is_optimize_bl'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))
                 else:

@@ -21,8 +21,11 @@ class Tree:
     alphabet: Optional[Tuple[str, ...]] = None
     msa: Optional[Dict[str, str]] = None
     rate_vector: Tuple[Union[float, np.ndarray, int], ...] = (1.0, )
+    alpha: Optional[Union[float, np.ndarray, int]] = None
+    categories_quantity: Optional[int] = None
     pi_0: Optional[Union[float, np.ndarray, int]] = None
     pi_1: Optional[Union[float, np.ndarray, int]] = None
+    coefficient_bl: Optional[Union[float, np.ndarray, int]] = 1,
     log_likelihood_vector: Optional[List[Union[float, np.ndarray]]] = None
     log_likelihood: Optional[Union[float, np.ndarray]] = None
     likelihood: Optional[Union[float, np.ndarray]] = None
@@ -42,12 +45,15 @@ class Tree:
             beta: Optional[float] = None
             pi_0: Optional[Union[float, np.ndarray, int]] = None
             pi_1: Optional[Union[float, np.ndarray, int]] = None
+            coefficient_bl: Optional[Union[float, np.ndarray, int]] = None
             is_optimize_pi: Optional[bool] = None,
             is_optimize_pi_average: Optional[bool] = None
             is_optimize_alpha: Optional[bool] = None
+            is_optimize_bl: Optional[bool] = None
     """
         available_parameters = {'data', 'node_name', 'msa', 'categories_quantity', 'alpha', 'beta', 'pi_0', 'pi_1',
-                                'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_alpha'}
+                                'coefficient_bl', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_alpha',
+                                'is_optimize_bl'}
         invalid_parameters = set(kwargs.keys()) - available_parameters
         for key in invalid_parameters:
             del kwargs[key]
@@ -516,12 +522,15 @@ class Tree:
 
     def set_tree_data(self, msa: Optional[Union[Dict[str, str], str]] = None,
                       categories_quantity: Optional[int] = None,
-                      alpha: Optional[float] = None, beta: Optional[float] = None,
+                      alpha: Optional[float] = None,
+                      beta: Optional[float] = None,
                       pi_0: Optional[Union[float, np.ndarray, int]] = None,
                       pi_1: Optional[Union[float, np.ndarray, int]] = None,
+                      coefficient_bl: Optional[Union[float, np.ndarray, int]] = 1,
                       is_optimize_pi: Optional[bool] = None,
                       is_optimize_pi_average: Optional[bool] = None,
-                      is_optimize_alpha: Optional[bool] = None
+                      is_optimize_alpha: Optional[bool] = None,
+                      is_optimize_bl: Optional[bool] = None
                       ) -> None:
         if isinstance(msa, str):
             self.msa = self.get_msa_dict(msa)
@@ -530,14 +539,23 @@ class Tree:
         if isinstance(self.msa, dict) and self.msa:
             self.alphabet = Tree.get_alphabet_from_dict(self.msa)
 
-        self.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
-        self.parameters_optimization(pi_0, pi_1, is_optimize_pi, is_optimize_pi_average)
+        if isinstance(alpha, (float, np.ndarray, int)):
+            self.alpha = alpha
+        if isinstance(categories_quantity, int):
+            self.categories_quantity = categories_quantity
 
+        self.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
+
+        self.coefficient_bl = self.optimize_coefficient_bl(coefficient_bl, is_optimize_bl)
+        self.set_coefficient_bl(self.coefficient_bl)
+
+        self.parameters_optimization(pi_0, pi_1, is_optimize_pi, is_optimize_pi_average)
         alpha = self.optimize_alpha(alpha, categories_quantity, is_optimize_alpha)
         self.rate_vector = self.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
 
-        if is_optimize_alpha and is_optimize_pi:
-            self.parameters_optimization(self.pi_0, self.pi_1, is_optimize_pi, is_optimize_pi_average)
+        if (is_optimize_alpha or is_optimize_pi) and is_optimize_bl:
+            self.coefficient_bl = self.optimize_coefficient_bl(coefficient_bl, is_optimize_bl)
+            self.set_coefficient_bl(self.coefficient_bl)
 
     def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
 
@@ -725,8 +743,19 @@ class Tree:
         return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, pi_0=current_pi[mode],
                                                pi_1=current_pi[::-1][mode])[1]
 
-    def alpha_optimization(self, alpha: Union[int, float, np.ndarray], categories_quantity: int = 4) -> Union[float, np.ndarray]:
+    def alpha_optimization(self, alpha: Union[int, float, np.ndarray], categories_quantity: int = 4
+                           ) -> Union[float, np.ndarray]:
         self.get_gamma_distribution_categories_vector(categories_quantity, alpha)
+        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1)[1]
+
+    def set_coefficient_bl(self, coefficient_bl: Union[int, float, np.ndarray]) -> None:
+        node_list = self.root.get_list_nodes_info(only_node_list=True)
+        for current_node in node_list:
+            current_node.coefficient_bl = coefficient_bl
+
+    def coefficient_bl_optimization(self, coefficient_bl: Union[int, float, np.ndarray]) -> Union[float, np.ndarray]:
+        self.set_coefficient_bl(coefficient_bl)
+
         return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1)[1]
 
     def optimize_pi_average(self, mode: int = 0, msa: Optional[str] = None) -> float:
@@ -739,6 +768,14 @@ class Tree:
             all_lines = ''.join(self.msa.values())
 
         return all_lines.count(self.alphabet[mode]) / len(all_lines)
+
+    def optimize_coefficient_bl(self, coefficient_bl: Union[int, float, np.ndarray],
+                                is_optimize_bl: Optional[bool] = None) -> Union[float, np.ndarray, int]:
+        if is_optimize_bl:
+            return self.optimize(func=self.coefficient_bl_optimization, bracket=(coefficient_bl, ), bounds=(0.1, 10),
+                                 result_fild='x')
+
+        return coefficient_bl
 
     def optimize_alpha(self, alpha: Union[int, float, np.ndarray], categories_quantity: int = 1,
                        is_optimize_alpha: Optional[bool] = None) -> Union[float, np.ndarray, int]:

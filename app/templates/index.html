@@ -124,31 +124,37 @@
                                     <div class="w-48 text-start">
                                         <input value="{{pi_1}}" id="pi1" name="pi1" type="number" min="0.001" max="0.999" step="0.001"
                                                title="The value must be between 0.001 and 0.999" onchange="validateInput(this.id, {{pi_1}})"
-                                               class="form-control rounded-pill"/>
+                                               class="form-control rounded-pill"
+                                            {%- if is_optimize_pi or is_optimize_pi_average -%}
+                                                disabled
+                                            {% endif -%}
+                                        />
                                     </div>
                                 </div>
                                 <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
-                                        <label for="isOptimizePi" class="h6 text-start text-success-emphasis ms-3">optimize π1 (empirical optimization)</label>
+                                        <label for="isOptimizePi" class="h6 text-start text-success-emphasis ms-3">optimize π1 value (algorithmic)</label>
                                     </div>
                                     <div class="w-48 text-start">
                                         <input id="isOptimizePi" name="isOptimizePi" onchange="formFilling(this.id, this.checked)"
                                                type="checkbox" class="form-check-input rounded-1"
-                                               {%- if is_optimize_pi -%}
-                                                   checked
-                                                {% endif -%} />
+                                            {%- if is_optimize_pi -%}
+                                               checked
+                                            {% endif -%}
+                                        />
                                     </div>
                                 </div>
                                 <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
-                                        <label for="isOptimizePiAverage" class="h6 text-start text-success-emphasis ms-3">optimize π1 (statistical optimization)</label>
+                                        <label for="isOptimizePiAverage" class="h6 text-start text-success-emphasis ms-3">optimize π1 value (empirical)</label>
                                     </div>
                                     <div class="w-48 text-start">
                                         <input id="isOptimizePiAverage" name="isOptimizePiAverage" onchange="formFilling(this.id, this.checked)"
                                                type="checkbox" class="form-check-input rounded-1"
-                                               {%- if is_optimize_pi_average -%}
-                                                   checked
-                                                {% endif -%} />
+                                            {%- if is_optimize_pi_average -%}
+                                                checked
+                                            {% endif -%}
+                                        />
                                     </div>
                                 </div>
                             </details>
@@ -166,7 +172,11 @@
                                     <div class="w-48 text-start">
                                         <input value="{{alpha}}" id="alpha" name="alpha" type="number" min="0.1" max="20" step="0.1"
                                                title="The value must be between 0.1 and 20" onchange="validateInput(this.id, {{alpha}})"
-                                               class="form-control rounded-pill"/>
+                                               class="form-control rounded-pill"
+                                            {%- if is_optimize_alpha -%}
+                                                disabled
+                                            {% endif -%}
+                                        />
                                     </div>
                                 </div>
                                 <div class="box flex-row h-auto w-100 m-2">
@@ -176,20 +186,56 @@
                                     <div class="w-48 text-start">
                                         <input id="isOptimizeAlpha" name="isOptimizeAlpha" onchange="formFilling(this.id, this.checked)"
                                                type="checkbox" class="form-check-input rounded-1"
-                                               {%- if is_optimize_pi -%}
-                                                   checked
-                                                {% endif -%} />
+                                            {%- if is_optimize_alpha -%}
+                                                checked
+                                            {% endif -%}
+                                        />
                                     </div>
                                 </div>
                                 <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
-                                        <label for="categoriesQuantity" class="h6 text-start text-success-emphasis ms-3">Number of rate categories</label>
+                                        <label for="categoriesQuantity" class="h6 text-start text-success-emphasis ms-3">number of rate categories</label>
                                     </div>
                                     <div class="w-48 text-start">
                                         <input value="{{categories_quantity}}" id="categoriesQuantity" name="categoriesQuantity"
                                                title="The value must be between 1 and 16" type="number" min="1" max="16" step="1"
                                                onchange="validateInput(this.id, {{categories_quantity}})"
                                                class="form-control rounded-pill"/>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                        <div class="box flex-column h-auto w-100 p-2">
+                            <details class="subdetails" open>
+                                <summary class="text-start w-100 form-control btn btn-outline-secondary bg-secondary-subtle border-1 rounded-5">
+                                <span class="subarrow">▽</span>
+                                    Branch lengths (BL) optimization
+                                </summary>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="coefficientBL" class="h6 text-start text-success-emphasis ms-3">branch lengths coefficient</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input value="{{coefficient_bl}}" id="coefficientBL" name="coefficientBL"
+                                               title="The value must be between 0.1 and 10" type="number" min="0.1" max="10" step="0.1"
+                                               onchange="validateInput(this.id, {{coefficient_bl}})"
+                                               class="form-control rounded-pill"
+                                            {%- if is_optimize_bl -%}
+                                                disabled
+                                            {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="isOptimizeBL" class="h6 text-start text-success-emphasis ms-3">optimize branch lengths coefficient</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="isOptimizeBL" name="isOptimizeBL" onchange="formFilling(this.id, this.checked)"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if is_optimize_bl -%}
+                                                   checked
+                                                {% endif -%} />
                                     </div>
                                 </div>
                             </details>

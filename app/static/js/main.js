@@ -318,18 +318,22 @@ function makeTree(mode = 0) {
     const categoriesQuantity = document.getElementById(`categoriesQuantity`);
     const alpha = document.getElementById(`alpha`);
     const pi1 = document.getElementById(`pi1`);
+    const coefficientBL = document.getElementById(`coefficientBL`);
     const isOptimizePi = document.getElementById(`isOptimizePi`)
     const isOptimizePiAverage = document.getElementById(`isOptimizePiAverage`)
     const isOptimizeAlpha = document.getElementById(`isOptimizeAlpha`)
+    const isOptimizeBL = document.getElementById(`isOptimizeBL`)
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`msaText`, msaText.value.trim());
     formData.append(`categoriesQuantity`, categoriesQuantity.value.trim());
     formData.append(`alpha`, alpha.value.trim());
     formData.append(`pi1`, pi1.value.trim());
+    formData.append(`coefficientBL`, coefficientBL.value.trim());
     formData.append(`isOptimizePi`, +isOptimizePi.checked);
     formData.append(`isOptimizePiAverage`, +isOptimizePiAverage.checked);
     formData.append(`isOptimizeAlpha`, +isOptimizeAlpha.checked);
+    formData.append(`isOptimizeBL`, +isOptimizeBL.checked);
 
     jsonTreeData = null
 
@@ -400,8 +404,8 @@ function gedIdentifiers(id = ``) {
 
 function formFilling(id, value) {
     let element = document.getElementById(id);
-    let objectsDependence = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha']};
-    let checkboxes = ['isOptimizePi', 'isOptimizePiAverage', 'isOptimizeAlpha'];
+    let objectsDependence = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha'], 'coefficientBL': ['isOptimizeBL']};
+    let checkboxes = ['isOptimizePi', 'isOptimizePiAverage', 'isOptimizeAlpha', 'isOptimizeBL'];
     if (checkboxes.includes(id)) {
         element.checked = Boolean(value);
         Object.entries(objectsDependence).forEach(([key, valueList]) => {

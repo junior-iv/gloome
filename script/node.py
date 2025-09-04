@@ -23,6 +23,7 @@ class Node:
     sequence: str
     probabilities_sequence_characters: List[Union[float, np.ndarray]]
     ancestral_sequence: str
+    coefficient_bl: Optional[Union[float, np.ndarray, int]]
 
     def __init__(self, name: Optional[str]) -> None:
         self.father = None
@@ -41,6 +42,7 @@ class Node:
         self.sequence = ''
         self.probabilities_sequence_characters = []
         self.ancestral_sequence = ''
+        self.coefficient_bl = 1
 
     def __str__(self) -> str:
         return self.get_name(True)
@@ -338,14 +340,14 @@ class Node:
         qmatrix[1, 0] = 1 / (2 * pi_1)
         qmatrix[1, 1] = - 1 / (2 * pi_1)
 
-        return expm(qmatrix * (self.distance_to_father * rate))
+        return expm(qmatrix * (self.distance_to_father * self.coefficient_bl * rate))
 
     def get_jukes_cantor_qmatrix(self, alphabet_size: int, rate: Union[float, np.ndarray] = 1) -> np.ndarray:
         qmatrix = np.ones((alphabet_size, alphabet_size))
         np.fill_diagonal(qmatrix, 1 - alphabet_size)
         qmatrix = qmatrix * 1 / (alphabet_size - 1)
 
-        return expm(qmatrix * (self.distance_to_father * rate))
+        return expm(qmatrix * (self.distance_to_father * self.coefficient_bl * rate))
 
     def node_to_json(self) -> Dict[str, Union[str, List[Any], float, np.ndarray]]:
         dict_json = dict()

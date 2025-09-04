@@ -117,10 +117,11 @@ class WebConfig:
                                  f'\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
 
     def arguments_filling(self, **arguments):
-        dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'isOptimizePi', 'isOptimizePiAverage', 'isOptimizeAlpha'),
-                  ('categories_quantity', 'alpha', 'pi_1', 'is_optimize_pi', 'is_optimize_pi_average',
-                   'is_optimize_alpha'),
-                  ((int, ), (float, ), (float, ), (int, bool), (int, bool), (int, bool)))
+        dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'isOptimizePi', 'isOptimizePiAverage',
+                   'isOptimizeBL', 'isOptimizeAlpha'),
+                  ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'is_optimize_pi', 'is_optimize_pi_average',
+                   'is_optimize_bl', 'is_optimize_alpha'),
+                  ((int, ), (float, ), (float, ), (float, ), (int, bool), (int, bool), (int, bool), (int, bool)))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -136,9 +137,11 @@ class WebConfig:
                                  f'\tcategories_quantity: {self.CURRENT_ARGS.categories_quantity}\n'
                                  f'\talpha: {self.CURRENT_ARGS.alpha}\n'
                                  f'\tpi_1: {self.CURRENT_ARGS.pi_1}\n'
+                                 f'\tcoefficient_bl: {self.CURRENT_ARGS.coefficient_bl}\n'
                                  f'\tis_optimize_pi: {self.CURRENT_ARGS.is_optimize_pi}\n'
                                  f'\tis_optimize_pi_average: {self.CURRENT_ARGS.is_optimize_pi_average}\n'
                                  f'\tis_optimize_alpha: {self.CURRENT_ARGS.is_optimize_alpha}\n'
+                                 f'\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}\n'
                                  f'\tnewick_text: {self.CALCULATED_ARGS.newick_text}\n'
                                  f'\tmsa: {self.CALCULATED_ARGS.msa}\n')
 
@@ -169,12 +172,19 @@ class WebConfig:
 
     def create_command_line(self) -> None:
         self.COMMAND_LINE = (
-            f'python {path.join(".", "script/main.py")} --process_id {self.PROCESS_ID} --msa_file {self.MSA_FILE} '
-            f'--tree_file {self.TREE_FILE} --categories_quantity {self.CURRENT_ARGS.categories_quantity} --alpha '
-            f'{self.CURRENT_ARGS.alpha} --pi_1 {self.CURRENT_ARGS.pi_1} --is_optimize_pi '
-            f'{int(self.CURRENT_ARGS.is_optimize_pi)} --is_optimize_pi_average '
-            f'{int(self.CURRENT_ARGS.is_optimize_pi_average)} --is_optimize_alpha '
-            f'{int(self.CURRENT_ARGS.is_optimize_alpha)} --mode {self.MODE}')
+            f'python {path.join(".", "script/main.py")} '
+            f'--process_id {self.PROCESS_ID} '
+            f'--msa_file {self.MSA_FILE} '
+            f'--tree_file {self.TREE_FILE} '
+            f'--categories_quantity {self.CURRENT_ARGS.categories_quantity} '
+            f'--alpha {self.CURRENT_ARGS.alpha} '
+            f'--pi_1 {self.CURRENT_ARGS.pi_1} '
+            f'--coefficient_bl {self.CURRENT_ARGS.coefficient_bl} '
+            f'--is_optimize_pi {int(self.CURRENT_ARGS.is_optimize_pi)} '
+            f'--is_optimize_pi_average {int(self.CURRENT_ARGS.is_optimize_pi_average)} '
+            f'--is_optimize_alpha {int(self.CURRENT_ARGS.is_optimize_alpha)} '
+            f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)}'
+            f'--mode {self.MODE}')
         self.set_job_logger_info(f'COMMAND_LINE: {self.COMMAND_LINE}')
 
     def get_request_body(self):
