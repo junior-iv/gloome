@@ -125,7 +125,7 @@ class Config:
                      'isOptimizePiAverage': int(self.CURRENT_ARGS.is_optimize_pi_average),
                      'isOptimizeAlpha': int(self.CURRENT_ARGS.is_optimize_alpha),
                      'isOptimizeBL': int(self.CURRENT_ARGS.is_optimize_bl),
-                     'coefficientBL': int(self.CURRENT_ARGS.coefficient_bl),
+                     'coefficientBL': self.CURRENT_ARGS.coefficient_bl,
                      'pi1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
                      'categoriesQuantity': self.CURRENT_ARGS.categories_quantity}
