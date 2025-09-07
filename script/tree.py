@@ -727,7 +727,7 @@ class Tree:
 
     def optimize(self, func: Union[Callable, str], bracket: Tuple[Union[float, np.ndarray], ...] = (0.5,),
                  bounds: Tuple[Union[float, np.ndarray], ...] = (0.001, 0.999),
-                 args: Tuple[Any, ...] = (0, ), result_fild: Optional[str] = None):
+                 args: Optional[Tuple[Any, ...]] = None, result_fild: Optional[str] = None):
         """
             result_fild: `str` (default), message, success, status, fun, x, nit, nfev
         """
