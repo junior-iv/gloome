@@ -397,8 +397,8 @@ function gedIdentifiers(id = ``) {
         return [id];
     } else {
         return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`, `newickText`,
-            `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `isOptimizePi`, `isOptimizePiAverage`,
-            `isOptimizeAlpha`];
+            `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `isOptimizePi`, `isOptimizePiAverage`,
+            `isOptimizeAlpha`, `isOptimizeBL`];
     }
 }
 
