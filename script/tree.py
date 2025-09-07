@@ -550,8 +550,8 @@ class Tree:
         self.set_coefficient_bl(self.coefficient_bl)
 
         self.parameters_optimization(pi_0, pi_1, is_optimize_pi, is_optimize_pi_average)
-        alpha = self.optimize_alpha(alpha, categories_quantity, is_optimize_alpha)
-        self.rate_vector = self.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
+        self.alpha = self.optimize_alpha(alpha, categories_quantity, is_optimize_alpha)
+        self.rate_vector = self.get_gamma_distribution_categories_vector(categories_quantity, self.alpha, self.alpha)
 
         if (is_optimize_alpha or is_optimize_pi) and is_optimize_bl:
             self.coefficient_bl = self.optimize_coefficient_bl(coefficient_bl, is_optimize_bl)

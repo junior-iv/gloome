@@ -10,7 +10,7 @@ from typing import Dict
 class Config:
     def __init__(self, **attributes):
         self.MODE = MODE
-        self.DEFAULT_FORM_ARGUMENTS = DEFAULT_FORM_ARGUMENTS
+        # self.DEFAULT_FORM_ARGUMENTS = DEFAULT_FORM_ARGUMENTS
         self.COMMAND_LINE = COMMAND_LINE
 
         self.BIN_DIR = BIN_DIR

@@ -114,7 +114,6 @@ COMMAND_LINE = argv
 
 DEFAULT_ARGUMENTS = DefaultArgs(**{
     'with_internal_nodes': True,
-    # 'sort_values_by': ['child', 'Name'],
     'sep': '\t'
     })
 
