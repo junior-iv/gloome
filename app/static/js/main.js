@@ -299,7 +299,7 @@ function showResponse(jsonData, mode = 0) {
 
     document.getElementById('title').innerHTML = jsonData['title'];
     Object.entries(jsonData['form_data']).forEach(([id, value]) => {
-        formFilling(id, value)
+        formFilling(id, value, false)
     });
 
     if (mode === 0) {
@@ -402,7 +402,7 @@ function gedIdentifiers(id = ``) {
     }
 }
 
-function formFilling(id, value) {
+function formFilling(id, value, useGroupFilling = true) {
     let element = document.getElementById(id);
     let objectsDependence = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha'], 'coefficientBL': ['isOptimizeBL']};
     let checkboxes = ['isOptimizePi', 'isOptimizePiAverage', 'isOptimizeAlpha', 'isOptimizeBL'];
@@ -411,7 +411,7 @@ function formFilling(id, value) {
         Object.entries(objectsDependence).forEach(([key, valueList]) => {
             if (valueList.includes(id)) {
                 valueList.forEach(elementId => {
-                    if (id !== elementId) {
+                    if (id !== elementId && useGroupFilling) {
                         document.getElementById(elementId).checked = false;
                     }
                 });
