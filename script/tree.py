@@ -733,10 +733,10 @@ class Tree:
         """
         self.clean_all()
         func = self.__getattribute__(func) if isinstance(func, str) else func
-        if result_fild:
-            return minimize_scalar(func, args=args, bracket=bracket, bounds=bounds)[result_fild]
-        else:
-            return minimize_scalar(func, args=args, bracket=bracket, bounds=bounds)
+        min_scalar = minimize_scalar(func, bracket=bracket, bounds=bounds) if args is None else (
+            minimize_scalar(func, args=args, bracket=bracket, bounds=bounds))
+
+        return min_scalar[result_fild] if result_fild else min_scalar
 
     def pi_optimization(self, pi: Union[float, np.ndarray], mode: int = 0) -> Union[float, np.ndarray]:
         current_pi = (pi, None)
