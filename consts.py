@@ -122,7 +122,7 @@ DEFAULT_FORM_ARGUMENTS = {
     'categories_quantity': 4,
     'alpha': 0.5,
     'pi_1': 0.5,
-    'coefficient_bl': 1,
+    'coefficient_bl': 1.0,
     'is_optimize_pi': True,
     'is_optimize_pi_average': False,
     'is_optimize_alpha': True,
