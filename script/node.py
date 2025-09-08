@@ -23,7 +23,7 @@ class Node:
     sequence: str
     probabilities_sequence_characters: List[Union[float, np.ndarray]]
     ancestral_sequence: str
-    coefficient_bl: Optional[Union[float, np.ndarray, int]]
+    coefficient_bl: Union[float, np.ndarray, int]
 
     def __init__(self, name: Optional[str]) -> None:
         self.father = None
