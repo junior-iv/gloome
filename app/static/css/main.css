@@ -15,6 +15,14 @@
 /*.summary-outline-success details[open] > summary::after {*/
 /*    color: #fff;*/
 /*}*/
+placeholder-text{
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    color: grey;
+    font-style: italic;
+    pointer-events: none;
+}
 
 details > summary {
   list-style: none;

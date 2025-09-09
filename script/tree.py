@@ -7,7 +7,7 @@ from shutil import rmtree
 from json import loads
 from os import path, makedirs
 from d3blocks import D3Blocks
-from node import Node
+from .node import Node
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
 from scipy.stats import gamma
@@ -544,17 +544,24 @@ class Tree:
         # if isinstance(categories_quantity, int):
         #     self.categories_quantity = categories_quantity
 
-        self.optimize_alpha(alpha, categories_quantity, is_optimize_alpha)
-
-        self.get_gamma_distribution_categories_vector(categories_quantity, alpha, beta)
-        self.optimize_coefficient_bl(coefficient_bl, is_optimize_bl)
-
-        self.parameters_optimization(pi_0, pi_1, is_optimize_pi, is_optimize_pi_average)
         # self.optimize_alpha(alpha, categories_quantity, is_optimize_alpha)
-        self.get_gamma_distribution_categories_vector(categories_quantity, self.alpha, self.alpha)
+        # self.get_gamma_distribution_categories_vector(categories_quantity, self.alpha, self.alpha)
+
+        self.optimize_coefficient_bl(coefficient_bl, is_optimize_bl)
+        print('optimize_coefficient_bl', self.alphabet, self.alpha, self.pi_0, self.pi_1, self.coefficient_bl,
+              self.log_likelihood, self.rate_vector)
+        self.parameters_optimization(pi_0, pi_1, is_optimize_pi, is_optimize_pi_average)
+        print('optimize_pi', self.alphabet, self.alpha, self.pi_0, self.pi_1, self.coefficient_bl,
+              self.log_likelihood, self.rate_vector)
+
+        self.optimize_alpha(alpha, categories_quantity, is_optimize_alpha)
+        print('optimize_alpha', self.alphabet, self.alpha, self.pi_0, self.pi_1, self.coefficient_bl,
+              self.log_likelihood, self.rate_vector)
 
         if (is_optimize_alpha or is_optimize_pi) and is_optimize_bl:
             self.optimize_coefficient_bl(self.coefficient_bl, is_optimize_bl)
+            print('optimize_coefficient_bl', self.alphabet, self.alpha, self.pi_0, self.pi_1, self.coefficient_bl,
+                  self.log_likelihood, self.rate_vector)
 
     def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
 
@@ -742,7 +749,7 @@ class Tree:
         return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, pi_0=current_pi[mode],
                                                pi_1=current_pi[::-1][mode])[1]
 
-    def alpha_optimization(self, alpha: Union[int, float, np.ndarray], categories_quantity: int = 4
+    def alpha_optimization(self, alpha: Union[int, float, np.ndarray], categories_quantity: int = 1
                            ) -> Union[float, np.ndarray]:
         self.get_gamma_distribution_categories_vector(categories_quantity, alpha)
         return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1)[1]
@@ -786,6 +793,7 @@ class Tree:
             alpha = self.optimize(func=self.alpha_optimization, bracket=(0.5, ), bounds=(0.1, 20),
                                   args=(categories_quantity, ), result_fild='x')
         self.alpha = alpha
+        self.get_gamma_distribution_categories_vector(categories_quantity, self.alpha, self.alpha)
         print(f'alpha: {alpha}', sep='\n')
 
         return alpha
