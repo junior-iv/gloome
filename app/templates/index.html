@@ -171,7 +171,8 @@
                                     </div>
                                     <div class="w-48 text-start">
                                         <input value="{{alpha}}" id="alpha" name="alpha" type="number" min="0.1" max="20" step="0.1"
-                                               title="The value must be between 0.1 and 20" onchange="onChangingCheckbox(this.id, {{alpha}})"
+                                               title="The value must be between 0.1 and 20"
+                                               onchange="validateInput(this.id, {{alpha}})"
                                                class="form-control rounded-pill"
                                             {%- if is_optimize_alpha -%}
                                                 disabled
@@ -231,11 +232,12 @@
                                         <label for="isOptimizeBL" class="h6 text-start text-success-emphasis ms-3">optimize BL coefficient</label>
                                     </div>
                                     <div class="w-48 text-start">
-                                        <input id="isOptimizeBL" name="isOptimizeBL" onchange="formFilling(this.id, this.checked)"
+                                        <input id="isOptimizeBL" name="isOptimizeBL" onchange="onChangingCheckbox(this.id, this.checked)"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if is_optimize_bl -%}
                                                    checked
-                                                {% endif -%} />
+                                                {% endif -%}
+                                        />
                                     </div>
                                 </div>
                             </details>

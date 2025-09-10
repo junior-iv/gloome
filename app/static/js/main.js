@@ -434,18 +434,33 @@ function completeFormFilling(formData) {
 
 function onChangingCheckbox(id, value) {
     let element = document.getElementById(id);
+    let checkboxesGroups = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha'], 'coefficientBL': ['isOptimizeBL']};
     if (checkboxes.includes(id)) {
-        Object.entries(objectsDependence).forEach(([key, value]) => {
-            let valueList = value['dependence']
+        Object.entries(checkboxesGroups).forEach(([key, valueList]) => {
             if (valueList.includes(id)) {
-                valueList.forEach(elementId => id !== elementId ? element.checked = Boolean(value) : document.getElementById(elementId).checked = false)
+                valueList.forEach(elementId => id !== elementId ? document.getElementById(elementId).checked = false : element.checked = Boolean(value));
+                setAccessibility(key, element.checked);
             }
-        setAccessibility(key, element.checked);
+
         });
     } else {
         element.value = value;
     }
 }
+// function onChangingCheckbox(id, value) {
+//     let element = document.getElementById(id);
+//     let objectsD = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha'], 'coefficientBL': ['isOptimizeBL']};
+//     if (checkboxes.includes(id)) {
+//         Object.entries(objectsD).forEach(([key, valueList]) => {
+//             if (valueList.includes(id)) {
+//                 valueList.forEach(elementId => id !== elementId ? element.checked = Boolean(value) : document.getElementById(elementId).checked = false)
+//             }
+//             // setAccessibility(key, element.checked);
+//         });
+//     } else {
+//         element.value = value;
+//     }
+// }
 
 function setAccessibility(id = ``, value = null) {
     let elementIdentifiers = gedIdentifiers(id);
