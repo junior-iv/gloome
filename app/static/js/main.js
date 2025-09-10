@@ -440,8 +440,8 @@ function onChangingCheckbox(id, value) {
             if (valueList.includes(id)) {
                 valueList.forEach(elementId => id !== elementId ? element.checked = Boolean(value) : document.getElementById(elementId).checked = false)
             }
-        });
         setAccessibility(key, element.checked);
+        });
     } else {
         element.value = value;
     }
@@ -480,13 +480,17 @@ function showMessage(message = null, variant = 1) {
     }
 }
 
-function cleanForm() {
-    let elementNames = {'value': [`newickText`, `msaText`], 'innerHTML': [`tree`, `nodeInfo`, `logLikelihood`, `fileList`]};
+function formCleaning(args) {
+    let elementNames = {'value': [`newickText`, `msaText`], 'innerHTML': [`tree`, `nodeInfo`, `logLikelihood`, `fileList`],
+        'setDefault': [`pi1`, `alpha`, `categoriesQuantity`, `coefficientBL`]};
     for (let i = 0; i < elementNames.value.length; i++) {
         document.getElementById(elementNames.value[i]).value = ``;
     }
     for (let i = 0; i < elementNames.innerHTML.length; i++) {
         document.getElementById(elementNames.innerHTML[i]).innerHTML = ``;
+    }
+    for (let i = 0; i < elementNames.setDefault.length; i++) {
+        document.getElementById(elementNames.setDefault[i]).value = args[i];
     }
     showMessage(``, -1);
 }
