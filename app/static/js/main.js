@@ -1,5 +1,18 @@
 let jsonTreeData = null
 let checkboxes = ['isOptimizePi', 'isOptimizePiAverage', 'isOptimizeAlpha', 'isOptimizeBL'];
+let objectsDependence = {
+    'msaText': {'dependence': '', 'value': ''},
+    'newickText': {'dependence': '', 'value': ''},
+    'pi1': {'dependence': ['isOptimizePi', 'isOptimizePiAverage'], 'value': ''},
+    'alpha': {'dependence': ['isOptimizeAlpha'], 'value': ''},
+    'categoriesQuantity': {'dependence': '', 'value': ''},
+    'coefficientBL': {'dependence': ['isOptimizeBL'], 'value': ''},
+    'isOptimizePi': {'dependence': '', 'value': ''},
+    'isOptimizePiAverage': {'dependence': '', 'value': ''},
+    'isOptimizeAlpha': {'dependence': '', 'value': ''},
+    'isOptimizeBL': {'dependence': '', 'value': ''}
+};
+
 
 function getInteger(data) {
     let result = Math.trunc(Number(data) * 10)
@@ -404,18 +417,6 @@ function gedIdentifiers(id = ``) {
 }
 
 function completeFormFilling(formData) {
-    let objectsDependence = {
-            'msaText': {'dependence': '', 'value': ''},
-            'newickText': {'dependence': '', 'value': ''},
-            'pi1': {'dependence': ['isOptimizePi', 'isOptimizePiAverage'], 'value': ''},
-            'alpha': {'dependence': ['isOptimizeAlpha'], 'value': ''},
-            'categoriesQuantity': {'dependence': '', 'value': ''},
-            'coefficientBL': {'dependence': ['isOptimizeBL'], 'value': ''},
-            'isOptimizePi': {'dependence': '', 'value': ''},
-            'isOptimizePiAverage': {'dependence': '', 'value': ''},
-            'isOptimizeAlpha': {'dependence': '', 'value': ''},
-            'isOptimizeBL': {'dependence': '', 'value': ''}
-            };
     Object.entries(objectsDependence).forEach(([id, info]) => {
         let element = document.getElementById(id);
         console.log(id);
@@ -433,19 +434,14 @@ function completeFormFilling(formData) {
 
 function onChangingCheckbox(id, value) {
     let element = document.getElementById(id);
-    let objectsDependence = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha'], 'coefficientBL': ['isOptimizeBL']};
     if (checkboxes.includes(id)) {
-        element.checked = Boolean(value);
-        Object.entries(objectsDependence).forEach(([key, valueList]) => {
+        Object.entries(objectsDependence).forEach(([key, value]) => {
+            let valueList = value['dependence']
             if (valueList.includes(id)) {
-                setAccessibility(key, element.checked);
-                valueList.forEach(elementId => {
-                    if (id !== elementId) {
-                        document.getElementById(elementId).checked = false;
-                    }
-                });
+                valueList.forEach(elementId => id !== elementId ? element.checked = Boolean(value) : document.getElementById(elementId).checked = false)
             }
         });
+        setAccessibility(key, element.checked);
     } else {
         element.value = value;
     }
