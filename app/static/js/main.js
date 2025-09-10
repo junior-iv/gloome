@@ -1,4 +1,5 @@
 let jsonTreeData = null
+let checkboxes = ['isOptimizePi', 'isOptimizePiAverage', 'isOptimizeAlpha', 'isOptimizeBL'];
 
 function getInteger(data) {
     let result = Math.trunc(Number(data) * 10)
@@ -299,9 +300,8 @@ function showResponse(jsonData, mode = 0) {
     const dictActions = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
 
     document.getElementById('title').innerHTML = jsonData['title'];
-    Object.entries(jsonData['form_data']).forEach(([id, value]) => {
-        formFilling(id, value, false)
-    });
+    completeFormFilling(jsonData['form_data']);
+
 
     if (mode === 0) {
         Object.entries(dictActions).forEach(([key, func]) => func(jsonData[key]));
@@ -403,20 +403,47 @@ function gedIdentifiers(id = ``) {
     }
 }
 
-function formFilling(id, value, useGroupFilling = true) {
+function completeFormFilling(formData) {
+    let objectsDependence = {
+            'msaText': {'dependence': '', 'value': ''},
+            'newickText': {'dependence': '', 'value': ''},
+            'pi1': {'dependence': ['isOptimizePi', 'isOptimizePiAverage'], 'value': ''},
+            'alpha': {'dependence': ['isOptimizeAlpha'], 'value': ''},
+            'categoriesQuantity': {'dependence': '', 'value': ''},
+            'coefficientBL': {'dependence': ['isOptimizeBL'], 'value': ''},
+            'isOptimizePi': {'dependence': '', 'value': ''},
+            'isOptimizePiAverage': {'dependence': '', 'value': ''},
+            'isOptimizeAlpha': {'dependence': '', 'value': ''},
+            'isOptimizeBL': {'dependence': '', 'value': ''}
+            };
+    Object.entries(objectsDependence).forEach(([id, info]) => {
+        let element = document.getElementById(id);
+        console.log(id);
+        if (checkboxes.includes(id)) {
+            element.checked = Boolean(formData[id]);
+        } else {
+            element.value = formData[id];
+        }
+        let disabled = 0
+        Object.entries(info['dependence']).forEach((checkboxId) => formData[checkboxId[1]] ? disabled += 1 : disabled += 0);
+        console.log(Boolean(disabled));
+        element.disabled = Boolean(disabled)
+    });
+}
+
+function onChangingCheckbox(id, value) {
     let element = document.getElementById(id);
     let objectsDependence = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha'], 'coefficientBL': ['isOptimizeBL']};
-    let checkboxes = ['isOptimizePi', 'isOptimizePiAverage', 'isOptimizeAlpha', 'isOptimizeBL'];
     if (checkboxes.includes(id)) {
         element.checked = Boolean(value);
         Object.entries(objectsDependence).forEach(([key, valueList]) => {
             if (valueList.includes(id)) {
+                setAccessibility(key, element.checked);
                 valueList.forEach(elementId => {
-                    if (id !== elementId && useGroupFilling) {
+                    if (id !== elementId) {
                         document.getElementById(elementId).checked = false;
                     }
                 });
-            setAccessibility(key, element.checked);
             }
         });
     } else {

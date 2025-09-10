@@ -372,10 +372,8 @@ class Tree:
                             current_node.ancestral_sequence += ancestral_alphabet[3]
             self.calculated_ancestor_sequence = True
 
-    def calculate_marginal(self, newick_node: Optional[Union[Node, str]], msa: Optional[str] = None
-                           ) -> Tuple[Union[Union[List[List[np.ndarray]], List[List[float]]], float],
-                                      Union[np.ndarray, float]]:
-        node_list, result = [], None
+    def calculate_marginal(self, newick_node: Optional[Union[Node, str]], msa: Optional[str] = None) -> None:
+        node_list = []
         if not newick_node:
             node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'root']}, only_node_list=True)
             if node_list:
@@ -390,10 +388,8 @@ class Tree:
             self.calculate_down()
 
         for current_node in node_list:
-            result = current_node.calculate_marginal(alphabet=self.alphabet, rate_vector=self.rate_vector,
-                                                     pi_0=self.pi_0, pi_1=self.pi_1)
-
-        return result
+            current_node.calculate_marginal(alphabet=self.alphabet, rate_vector=self.rate_vector, pi_0=self.pi_0,
+                                            pi_1=self.pi_1)
 
     def calculate_up(self, msa: str) -> Union[Tuple[Union[List[np.ndarray], List[float]], float], float]:
 
@@ -491,12 +487,18 @@ class Tree:
 
         return loads(str(dict_json).replace(f'\'', r'"'))
 
+    @staticmethod
+    def get_alpha_beta(alpha: Optional[float] = None, beta: Optional[float] = None) -> Tuple[float, ...]:
+        alpha = alpha if alpha else (beta if beta else 0.5)
+        beta = beta if beta else alpha
+
+        return alpha, beta
+
     def get_gamma_distribution_categories_vector(self, categories_quantity: Optional[int] = None,
                                                  alpha: Optional[float] = None, beta: Optional[float] = None
                                                  ) -> Tuple[float, ...]:
         categories_quantity = 1 if categories_quantity is None else categories_quantity
-        alpha = alpha if alpha else (beta if beta else 0.5)
-        beta = beta if beta else alpha
+        alpha, beta = self.get_alpha_beta(alpha, beta)
         categories_vector = []
         gamma_percent_point = Tree.get_gamma_distribution_percent_point(categories_quantity, alpha, beta)
         for i in range(categories_quantity):
@@ -539,29 +541,15 @@ class Tree:
         if isinstance(self.msa, dict) and self.msa:
             self.alphabet = Tree.get_alphabet_from_dict(self.msa)
 
-        # if isinstance(alpha, (float, np.ndarray, int)):
-        #     self.alpha = alpha
-        # if isinstance(categories_quantity, int):
-        #     self.categories_quantity = categories_quantity
-
-        # self.optimize_alpha(alpha, categories_quantity, is_optimize_alpha)
-        # self.get_gamma_distribution_categories_vector(categories_quantity, self.alpha, self.alpha)
+        alpha, beta = self.get_alpha_beta(alpha, beta)
 
         self.optimize_coefficient_bl(coefficient_bl, is_optimize_bl)
-        print('optimize_coefficient_bl', self.alphabet, self.alpha, self.pi_0, self.pi_1, self.coefficient_bl,
-              self.log_likelihood, self.rate_vector)
         self.parameters_optimization(pi_0, pi_1, is_optimize_pi, is_optimize_pi_average)
-        print('optimize_pi', self.alphabet, self.alpha, self.pi_0, self.pi_1, self.coefficient_bl,
-              self.log_likelihood, self.rate_vector)
 
         self.optimize_alpha(alpha, categories_quantity, is_optimize_alpha)
-        print('optimize_alpha', self.alphabet, self.alpha, self.pi_0, self.pi_1, self.coefficient_bl,
-              self.log_likelihood, self.rate_vector)
 
         if (is_optimize_alpha or is_optimize_pi) and is_optimize_bl:
             self.optimize_coefficient_bl(self.coefficient_bl, is_optimize_bl)
-            print('optimize_coefficient_bl', self.alphabet, self.alpha, self.pi_0, self.pi_1, self.coefficient_bl,
-                  self.log_likelihood, self.rate_vector)
 
     def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
 
@@ -783,7 +771,6 @@ class Tree:
 
         self.set_coefficient_bl(coefficient_bl)
         self.coefficient_bl = coefficient_bl
-        print(f'coefficient_bl: {coefficient_bl}', sep='\n')
 
         return coefficient_bl
 
@@ -794,7 +781,6 @@ class Tree:
                                   args=(categories_quantity, ), result_fild='x')
         self.alpha = alpha
         self.get_gamma_distribution_categories_vector(categories_quantity, self.alpha, self.alpha)
-        print(f'alpha: {alpha}', sep='\n')
 
         return alpha
 
@@ -806,8 +792,6 @@ class Tree:
                                result_fild='x')
         elif is_optimize_pi_average:
             pi = self.optimize_pi_average(mode=mode, msa=msa)
-
-        print(f'π({mode}): {pi}', sep='\n')
 
         return pi
 

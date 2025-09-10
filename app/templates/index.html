@@ -136,7 +136,7 @@
                                         <label for="isOptimizePi" class="h6 text-start text-success-emphasis ms-3">optimize π1 value (algorithmic)</label>
                                     </div>
                                     <div class="w-48 text-start">
-                                        <input id="isOptimizePi" name="isOptimizePi" onchange="formFilling(this.id, this.checked)"
+                                        <input id="isOptimizePi" name="isOptimizePi" onchange="onChangingCheckbox(this.id, this.checked)"
                                                type="checkbox" class="form-check-input rounded-1"
                                             {%- if is_optimize_pi -%}
                                                checked
@@ -149,7 +149,7 @@
                                         <label for="isOptimizePiAverage" class="h6 text-start text-success-emphasis ms-3">optimize π1 value (empirical)</label>
                                     </div>
                                     <div class="w-48 text-start">
-                                        <input id="isOptimizePiAverage" name="isOptimizePiAverage" onchange="formFilling(this.id, this.checked)"
+                                        <input id="isOptimizePiAverage" name="isOptimizePiAverage" onchange="onChangingCheckbox(this.id, this.checked)"
                                                type="checkbox" class="form-check-input rounded-1"
                                             {%- if is_optimize_pi_average -%}
                                                 checked
@@ -171,7 +171,7 @@
                                     </div>
                                     <div class="w-48 text-start">
                                         <input value="{{alpha}}" id="alpha" name="alpha" type="number" min="0.1" max="20" step="0.1"
-                                               title="The value must be between 0.1 and 20" onchange="validateInput(this.id, {{alpha}})"
+                                               title="The value must be between 0.1 and 20" onchange="onChangingCheckbox(this.id, {{alpha}})"
                                                class="form-control rounded-pill"
                                             {%- if is_optimize_alpha -%}
                                                 disabled
@@ -184,7 +184,7 @@
                                         <label for="isOptimizeAlpha" class="h6 text-start text-success-emphasis ms-3">optimize α value</label>
                                     </div>
                                     <div class="w-48 text-start">
-                                        <input id="isOptimizeAlpha" name="isOptimizeAlpha" onchange="formFilling(this.id, this.checked)"
+                                        <input id="isOptimizeAlpha" name="isOptimizeAlpha" onchange="onChangingCheckbox(this.id, this.checked)"
                                                type="checkbox" class="form-check-input rounded-1"
                                             {%- if is_optimize_alpha -%}
                                                 checked
