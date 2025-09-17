@@ -372,7 +372,7 @@ class Tree:
                             current_node.ancestral_sequence += ancestral_alphabet[3]
             self.calculated_ancestor_sequence = True
 
-    def calculate_marginal(self, newick_node: Optional[Union[Node, str]], msa: Optional[str] = None) -> None:
+    def calculate_marginal(self, newick_node: Optional[Union[Node, str]] = None, msa: Optional[str] = None) -> None:
         node_list = []
         if not newick_node:
             node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'root']}, only_node_list=True)
@@ -399,6 +399,13 @@ class Tree:
     def calculate_down(self) -> None:
 
         self.root.calculate_down(self.get_tree_info(), len(self.alphabet), self.rate_vector, self.pi_0, self.pi_1)
+
+    def calculate_gl_probability(self) -> None:
+        node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
+
+        for current_node in node_list:
+            current_node.calculate_gl_probability(alphabet=self.alphabet, rate_vector=self.rate_vector, pi_0=self.pi_0,
+                                                  pi_1=self.pi_1)
 
     def get_msa_dict(self, msa: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None, only_leaves: bool = True
                      ) -> Dict[str, Union[Tuple[int, ...], str]]:
@@ -433,21 +440,29 @@ class Tree:
         if self.msa and not self.calculated_tree_for_fasta:
             self.clean_all()
 
-            leaves_info = self.get_list_nodes_info(True, None, {'node_type': ['leaf']})
+            leaves = self.root.get_list_nodes_info(filters={'node_type': ['leaf']}, only_node_list=True)
             len_seq = len(min(list(self.msa.values())))
-            for i_char in range(len_seq):
+            for i in range(len_seq):
                 current_msa = ''
-                for i in range(len(leaves_info)):
-                    node_name = leaves_info[i].get('node')
-                    current_msa += self.msa.get(node_name)[i_char]
-                char_likelihood = self.calculate_up(current_msa)
-                self.likelihood *= char_likelihood
-                self.log_likelihood += log(char_likelihood)
-                self.log_likelihood_vector.append(log(char_likelihood))
+                for leaf in leaves:
+                    current_msa += self.msa.get(leaf.name)[i]
+                self.likelihood *= self.calculate_up(msa=current_msa)
                 self.calculate_down()
-                self.calculate_marginal(None, current_msa)
+                self.calculate_marginal()
+                self.calculate_gl_probability()
+            self.log_likelihood, self.log_likelihood_vector = self.root.log_likelihood, self.root.log_likelihood_vector
             self.calculated_tree_for_fasta = True
             self.calculated_likelihood = True
+            # print(self.likelihood)
+            # print(self.log_likelihood)
+            # print(self.log_likelihood_vector)
+            # self.calculate_down()
+            # for i_char in range(len_seq):
+            #     current_msa = ''
+            #     for i in range(len(leaves_info)):
+            #         node_name = leaves_info[i].get('node')
+            #         current_msa += self.msa.get(node_name)[i_char]
+            #     self.calculate_marginal(msa=current_msa)
 
         return self.get_fasta_text()
 
@@ -465,14 +480,19 @@ class Tree:
 
         return fasta_text[:-1]
 
-    def get_json_structure(self, return_table: bool = False, columns: Optional[Dict[str, str]] = None
-                           ) -> Dict[str, Union[List[str], str]]:
+    def get_json_structure(self, return_table: bool = False, columns: Optional[Dict[str, str]] = None,
+                           mode: str = 'node') -> Dict[str, Union[List[str], str]]:
+        """
+        Args:
+            return_table (bool, optional): `False` (default).
+            columns (dict, optional): `None` (default).
+            mode (str, optional): 'node' (default), 'branch'.
+
+        Returns:
+            Dict: An dictionary representing the tree structure.
+        """
         if return_table:
-            columns = columns if columns else {'node': 'Name', 'node_type': 'Node type', 'distance':
-                                               'Distance to parent', 'sequence': 'Sequence',
-                                               'probabilities_sequence_characters': 'Probability coefficient',
-                                               'ancestral_sequence': 'Ancestral Comparison'}
-            lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
+            columns, lists = self.get_columns(mode, columns)
 
             table = self.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float,
                                        change_content_type=True)
@@ -486,6 +506,21 @@ class Tree:
             dict_json = self.root.node_to_json()
 
         return loads(str(dict_json).replace(f'\'', r'"'))
+
+    @staticmethod
+    def get_columns(mode: str = 'node', columns: Optional[Dict[str, str]] = None
+                    ) -> Tuple[Dict[str, str], Tuple[str, ...]]:
+        lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
+        if mode == 'node' and columns is None:
+            columns = {'node': 'Name', 'node_type': 'Node type', 'distance': 'Distance to parent', 'sequence':
+                       'Sequence', 'probabilities_sequence_characters': 'Probability coefficient', 'ancestral_sequence':
+                       'Ancestral Comparison'}
+            lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
+        elif mode == 'branch' and columns is None:
+            columns = {'node': 'Name', 'distance': 'Distance', 'probability_vector_bl': 'probability_vector_bl'}
+            lists = ('probability_vector_bl', )
+
+        return columns, lists
 
     @staticmethod
     def get_alpha_beta(alpha: Optional[float] = None, beta: Optional[float] = None) -> Tuple[float, ...]:
@@ -656,7 +691,8 @@ class Tree:
                   'dodgerblue', 'slateblue', 'darkviolet']
         colors_as = {'A': 'crimson', 'L': 'darkorange', 'G': 'forestgreen', 'P': 'slateblue'}
         for i in df_copy.T:
-            probability_mark = probability_coefficient = ancestral_sequence = ''
+            # probability_mark = probability_coefficient = ancestral_sequence = ''
+            probability_coefficient = ancestral_sequence = ''
             sequence = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], j)
                                 for j in df_copy['sequence'][i]])
             sequence = Node.draw_row_html_table('Sequence', sequence)
@@ -665,9 +701,9 @@ class Tree:
                                               for j in df_copy['ancestral_sequence'][i]])
                 ancestral_sequence = Node.draw_row_html_table('Ancestral Comparison', ancestral_sequence)
             if df_copy["node_type"][i] != 'leaf':
-                probability_mark = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], "9" if j == 1 else
-                                            int(j * 10)) for j in df_copy['prob_characters'][i]])
-                probability_mark = Node.draw_row_html_table('Probability mark (0-9)', probability_mark)
+                # probability_mark = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], "9" if j == 1 else
+                #                             int(j * 10)) for j in df_copy['prob_characters'][i]])
+                # probability_mark = Node.draw_row_html_table('Probability mark (0-9)', probability_mark)
                 probability_coefficient = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], f'{j:.3f}')
                                                   for j in df_copy['prob_characters'][i]])
                 probability_coefficient = Node.draw_row_html_table('Probability coefficient', probability_coefficient)
@@ -681,8 +717,10 @@ class Tree:
                 d3.node_properties.get(df_copy['target'][i])['color'] = 'forestgreen'
                 d3.node_properties.get(df_copy['target'][i])['size'] = 10 / size_factor
             distance = f'<td class="h7 w-auto text-center">{df_copy["weight"][i]}</td>'
-            info = (f'{Node.draw_row_html_table("Distance", distance)}{sequence}{ancestral_sequence}{probability_mark}'
-                    f'{probability_coefficient}')
+            # info = (f'{Node.draw_row_html_table("Distance", distance)}{sequence}{ancestral_sequence}'
+            #         f'{probability_mark}{probability_coefficient}')
+            info = (f'{Node.draw_row_html_table("Distance", distance)}{sequence}{probability_coefficient}'
+                    f'{ancestral_sequence}')
             d3.node_properties.get(df_copy['target'][i])['tooltip'] = Node.draw_html_table(info)
             d3.font.update({'type': 'Anonymous Pro'})
 

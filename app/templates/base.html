@@ -27,10 +27,11 @@
 {%- block menu -%}
 <header class="sticky-top bg-white">
 <div class="navbar navbar-expand-lg horizontal-gradient">
-    <div class="ms-4 m-2">{{nwt.logo(1, 'gray')}}</div>
-    <div class="m-2">{{nwt.logo(2, 'gray')}}</div>
-    <div class="m-2">{{nwt.logo(5, 'gray')}}</div>
-    <div class="m-2">{{nwt.logo(6, 'gray')}}</div>
+    <div class="ms-4 m-2">{{nwt.logo(2, 'gray')}}</div>
+{#    <div class="ms-4 m-2">{{nwt.logo(1, 'gray')}}</div>#}
+{#    <div class="m-2">{{nwt.logo(2, 'gray')}}</div>#}
+{#    <div class="m-2">{{nwt.logo(5, 'gray')}}</div>#}
+{#    <div class="m-2">{{nwt.logo(6, 'gray')}}</div>#}
     <a class="navbar-brand m-2" href="/" style="color: gray">Gloome 2.0</a>
         {%- for m in menu -%}
             {%- if m.submenu -%}
