@@ -157,8 +157,10 @@ function drawPhylogeneticTree(jsonData) {
         .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
         .style("fill", "none")
         .style("stroke", "silver")
-        .style("stroke-width", 1.5);
-
+        .style("stroke-width", 1.5)
+        .on("click", function(event, d) {
+            document.getElementById('branchInfo').innerHTML = convertJSONToTable(jsonData[4][d.data.name], jsonData[5]);
+        });
     const nodes = svg.selectAll(".node")
         .data(root.descendants())
         .enter().append("g")
@@ -226,6 +228,38 @@ function processError(error) {
     setVisibilityLoader(false);
     console.error(`Error:`, error);
     showAlert(error.message, 8000);
+}
+
+function convertJSONToTable2(jsonData, jsonSort, summary = true) {
+    const sortingList = jsonSort["List for sorting"];
+    const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
+        "dodgerblue", "slateblue", "darkviolet"];
+    let table = '';
+    let result = '';
+
+    sortingList.forEach(header => {
+        let value = ``;
+        let jsonValue = jsonData[header];
+        result += `<tr><th class="p-2 w-auto tborder-2">${header}</th>`;
+        if (typeof jsonValue === "object")
+            {Object.values(jsonValue).forEach(i => {
+                value += `<td style="color: ${colors[getInteger(i)]}" class="w-auto text-center">${i}</td>`;
+                })
+            }
+        else {value = `<td class="w-auto text-center">${jsonValue}</td>`}
+        result += `<th class="p-2 w-auto">${value}</th></tr>`;
+    });
+
+    if (summary) {
+        table = `<details open>
+        <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
+        <span class="arrow">▼</span>
+        Branch information
+        </summary><table class="w-97 m-3 p-4 h7">${result}</table></details>`
+    } else {
+        table = `<table class="w-60 h8">${result}</table>`;
+    }
+    return table;
 }
 
 function convertJSONToTable(jsonData, jsonSort, summary = true) {

@@ -7,13 +7,12 @@ from shutil import rmtree
 from json import loads
 from os import path, makedirs
 from d3blocks import D3Blocks
-from .node import Node
+from node import Node
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
 from scipy.stats import gamma
 from scipy.special import gammainc
 from scipy.optimize import minimize_scalar
-from math import log
 
 
 class Tree:
@@ -129,17 +128,18 @@ class Tree:
 
         return pd.Series([pd.Series(i) for i in nodes_info], index=[i.get('node') for i in nodes_info])
 
-    def get_list_nodes_info(self, with_additional_details: bool = False, mode: Optional[str] =
-                            None, filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None
-                            ) -> List[Union[Dict[str, Union[float, np.ndarray, bool, str, List[float],
-                                      List[np.ndarray]]], 'Node']]:
+    def get_list_nodes_info(self, with_additional_details: bool = False, mode: Optional[str] = None, filters:
+                            Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None, only_node_list:
+                            bool = False) -> List[Union[Dict[str, Union[float, np.ndarray, bool, str, List[float],
+                                                  List[np.ndarray]]], 'Node']]:
         """
         Args:
             with_additional_details (bool, optional): `False` (default).
             mode (Optional[str]): `None` (default), 'pre-order', 'in-order', 'post-order', 'level-order'.
-            filters (Dict, optional):
+            filters (Dict, optional): `None` (default).
+            only_node_list (Dict, optional): `False` (default).
         """
-        return self.root.get_list_nodes_info(with_additional_details, mode, filters)
+        return self.root.get_list_nodes_info(with_additional_details, mode, filters, only_node_list)
 
     def get_node_count(self, filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None) -> int:
         """
@@ -324,7 +324,6 @@ class Tree:
                 node_info.update({'father_name': 'root'})
             if columns.get('distance'):
                 if distance_type is str:
-                    # node_info.update({'distance': ' ' * (decimal_length // 2) if not node_info.get('distance') else
                     node_info.update({'distance': ' ' * decimal_length if not node_info.get('distance') else
                                      f'{node_info.pop("distance"):.10f}'.ljust(decimal_length, "0")})
                 else:
@@ -372,20 +371,37 @@ class Tree:
                             current_node.ancestral_sequence += ancestral_alphabet[3]
             self.calculated_ancestor_sequence = True
 
-    def calculate_marginal(self, newick_node: Optional[Union[Node, str]] = None, msa: Optional[str] = None) -> None:
-        node_list = []
+    # def calculate_marginal(self, newick_node: Optional[Union[Node, str]] = None, msa: Optional[str] = None) -> None:
+    #     node_list = []
+    #     if not newick_node:
+    #         node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'root']}, only_node_list=True)
+    #         if node_list:
+    #             newick_node = np.random.choice(np.array(node_list))
+    #     else:
+    #         if isinstance(newick_node, str):
+    #             newick_node = self.get_node_by_name(newick_node)
+    #         node_list.append(newick_node)
+    #     if not newick_node.up_vector and msa:
+    #         self.calculate_up(msa)
+    #     if not newick_node.down_vector and newick_node.up_vector:
+    #         self.calculate_down()
+
+    def calculate_gl_probability(self) -> None:
+        node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
+
+        for current_node in node_list:
+            current_node.calculate_gl_probability(alphabet=self.alphabet, rate_vector=self.rate_vector, pi_0=self.pi_0,
+                                                  pi_1=self.pi_1)
+
+    def calculate_marginal(self, newick_node: Optional[Union[Node, str]] = None) -> None:
         if not newick_node:
             node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'root']}, only_node_list=True)
-            if node_list:
-                newick_node = np.random.choice(np.array(node_list))
         else:
+            node_list = []
             if isinstance(newick_node, str):
-                newick_node = self.get_node_by_name(newick_node)
-            node_list.append(newick_node)
-        if not newick_node.up_vector and msa:
-            self.calculate_up(msa)
-        if not newick_node.down_vector and newick_node.up_vector:
-            self.calculate_down()
+                node_list.append(self.get_node_by_name(newick_node))
+            elif isinstance(newick_node, Node):
+                node_list.append(newick_node)
 
         for current_node in node_list:
             current_node.calculate_marginal(alphabet=self.alphabet, rate_vector=self.rate_vector, pi_0=self.pi_0,
@@ -399,13 +415,6 @@ class Tree:
     def calculate_down(self) -> None:
 
         self.root.calculate_down(self.get_tree_info(), len(self.alphabet), self.rate_vector, self.pi_0, self.pi_1)
-
-    def calculate_gl_probability(self) -> None:
-        node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
-
-        for current_node in node_list:
-            current_node.calculate_gl_probability(alphabet=self.alphabet, rate_vector=self.rate_vector, pi_0=self.pi_0,
-                                                  pi_1=self.pi_1)
 
     def get_msa_dict(self, msa: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None, only_leaves: bool = True
                      ) -> Dict[str, Union[Tuple[int, ...], str]]:
@@ -440,29 +449,16 @@ class Tree:
         if self.msa and not self.calculated_tree_for_fasta:
             self.clean_all()
 
-            leaves = self.root.get_list_nodes_info(filters={'node_type': ['leaf']}, only_node_list=True)
+            leaves = self.get_list_nodes_info(filters={'node_type': ['leaf']}, only_node_list=True)
             len_seq = len(min(list(self.msa.values())))
             for i in range(len_seq):
-                current_msa = ''
-                for leaf in leaves:
-                    current_msa += self.msa.get(leaf.name)[i]
-                self.likelihood *= self.calculate_up(msa=current_msa)
+                self.likelihood *= self.calculate_up(msa=''.join([self.msa.get(leaf.name)[i] for leaf in leaves]))
                 self.calculate_down()
                 self.calculate_marginal()
                 self.calculate_gl_probability()
             self.log_likelihood, self.log_likelihood_vector = self.root.log_likelihood, self.root.log_likelihood_vector
             self.calculated_tree_for_fasta = True
             self.calculated_likelihood = True
-            # print(self.likelihood)
-            # print(self.log_likelihood)
-            # print(self.log_likelihood_vector)
-            # self.calculate_down()
-            # for i_char in range(len_seq):
-            #     current_msa = ''
-            #     for i in range(len(leaves_info)):
-            #         node_name = leaves_info[i].get('node')
-            #         current_msa += self.msa.get(node_name)[i_char]
-            #     self.calculate_marginal(msa=current_msa)
 
         return self.get_fasta_text()
 
@@ -517,8 +513,9 @@ class Tree:
                        'Ancestral Comparison'}
             lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
         elif mode == 'branch' and columns is None:
-            columns = {'node': 'Name', 'distance': 'Distance', 'probability_vector_bl': 'probability_vector_bl'}
-            lists = ('probability_vector_bl', )
+            columns = {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance',
+                       'probability_vector_gain': 'Gain probability', 'probability_vector_loss': 'Loss probability'}
+            lists = ('probability_vector_gain', 'probability_vector_loss')
 
         return columns, lists
 
@@ -855,9 +852,13 @@ class Tree:
         return Tree.get_alphabet(set(character_list))
 
     @staticmethod
-    def get_columns_list_for_sorting() -> Dict[str, List[str]]:
-        result = {'List for sorting': ['Name', 'Node type', 'Distance to parent', 'Sequence', 'Probability coefficient',
-                                       'Ancestral Comparison']}
+    def get_columns_list_for_sorting(mode: str = 'node') -> Dict[str, List[str]]:
+        if mode == 'node':
+            result = {'List for sorting': ['Name', 'Node type', 'Distance to parent', 'Sequence',
+                                           'Probability coefficient', 'Ancestral Comparison']}
+        else:
+            result = {'List for sorting': ['Name', 'Parent', 'Distance to parent', 'Gain probability',
+                                           'Loss probability']}
 
         return loads(str(result).replace(f'\'', r'"'))
 

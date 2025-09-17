@@ -179,7 +179,9 @@ def draw_tree(newick_tree: Tree, file_path: str, create_new_file: bool = False,
     result = [newick_tree.get_json_structure(),
               newick_tree.get_json_structure(return_table=True),
               newick_tree.get_columns_list_for_sorting(),
-              {'Size factor': size_factor}]
+              {'Size factor': size_factor},
+              newick_tree.get_json_structure(return_table=True, mode='branch'),
+              newick_tree.get_columns_list_for_sorting(mode='branch')]
 
     if create_new_file:
         return create_file(file_path, get_result_data(result, 'draw_tree', form_data), 'result.json')

@@ -19,7 +19,8 @@ class Node:
     down_vector: List[List[Union[float, np.ndarray]]]
     marginal_vector: List[List[Union[float, np.ndarray]]]
     probability_vector: List[Union[float, np.ndarray]]
-    probability_vector_bl: List[Union[float, np.ndarray]]
+    probability_vector_gain: List[Union[float, np.ndarray]]
+    probability_vector_loss: List[Union[float, np.ndarray]]
     probable_character: str
     sequence: str
     probabilities_sequence_characters: List[Union[float, np.ndarray]]
@@ -39,7 +40,8 @@ class Node:
         self.down_vector = []
         self.marginal_vector = []
         self.probability_vector = []
-        self.probability_vector_bl = []
+        self.probability_vector_gain = []
+        self.probability_vector_loss = []
         self.probable_character = ''
         self.sequence = ''
         self.probabilities_sequence_characters = []
@@ -52,7 +54,8 @@ class Node:
     def __dir__(self) -> list:
         return ['children', 'distance_to_father', 'father', 'name', 'up_vector', 'down_vector', 'likelihood',
                 'marginal_vector', 'probability_vector', 'probable_character', 'sequence',
-                'probabilities_sequence_characters', 'ancestral_sequence', 'probability_vector_bl']
+                'probabilities_sequence_characters', 'ancestral_sequence', 'probability_vector_gain',
+                'probability_vector_loss']
 
     def get_list_nodes_info(self, with_additional_details: bool = False, mode: Optional[str] = None, filters:
                             Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None, only_node_list:
@@ -144,7 +147,8 @@ class Node:
                 self.log_likelihood_vector, 'marginal_vector': self.marginal_vector, 'probability_vector':
                 self.probability_vector, 'probable_character': self.probable_character, 'sequence': self.sequence,
                 'probabilities_sequence_characters': self.probabilities_sequence_characters, 'ancestral_sequence':
-                self.ancestral_sequence, 'probability_vector_bl': self.probability_vector_bl}
+                self.ancestral_sequence, 'probability_vector_gain': self.probability_vector_gain,
+                'probability_vector_loss': self.probability_vector_loss}
 
     def get_node_by_name(self, node_name: str) -> Optional['Node']:
         if node_name == self.name:
@@ -188,10 +192,14 @@ class Node:
         likelihood = np.sum([1 / rate_vector_size * np.sum(self.father.marginal_vector[r]) for r in
                              range(rate_vector_size)])
 
-        self.probability_vector_bl = []
+        probability_vector_bl = []
         for i in range(alphabet_size * alphabet_size):
-            self.probability_vector_bl.append(np.sum([marginal_bl_vector[r][i] for r in range(rate_vector_size)]) /
-                                              rate_vector_size / likelihood)
+            probability_vector_bl.append(np.sum([marginal_bl_vector[r][i] for r in range(rate_vector_size)]) /
+                                         rate_vector_size / likelihood)
+        # self.probability_vector_bl.append(probability_vector_bl[1:-1])
+        self.probability_vector_gain.append(probability_vector_bl[1])
+        self.probability_vector_loss.append(probability_vector_bl[2])
+        # print(f'{self.name}: {self.probability_vector_bl}')
         # self.probable_character = alphabet[self.probability_vector.index(max(self.probability_vector))]
         # self.sequence = f'{self.sequence}{self.probable_character}'
         # self.probabilities_sequence_characters += [max(self.probability_vector)]
@@ -222,9 +230,9 @@ class Node:
             self.marginal_vector.append(current_marginal_vector)
 
         likelihood = np.sum([1 / rate_vector_size * np.sum(self.marginal_vector[r]) for r in range(rate_vector_size)])
-        print(f'self.marginal_vector: {self.marginal_vector}')
-        print(f'pi_1: {pi_1}')
-        print(f'likelihood: {likelihood}')
+        # print(f'self.marginal_vector: {self.marginal_vector}')
+        # print(f'pi_1: {pi_1}')
+        # print(f'likelihood: {likelihood}')
 
         self.probability_vector = []
         for i in range(alphabet_size):
