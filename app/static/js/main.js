@@ -152,20 +152,24 @@ function drawPhylogeneticTree(jsonData) {
 
     const links = svg.selectAll(".link")
         .data(root.links())
-        .enter().append("path")
-        .attr("class", "link")
-        .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x));
+        .enter().append("path");
     links
+        .attr("class", "link")
+        .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
         .style("fill", "none")
         .style("stroke", "silver")
         .style("stroke-width", 1.5)
         .on("mouseover", function() {
             d3.select(this)
+                .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
+                .style("fill", "none")
                 .style("fill", "maroon")
-                .attr("stroke-width", 3.5)
+                .attr("stroke-width", 3.0)
         })
         .on("mouseout", function() {
             d3.select(this)
+                .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
+                .style("fill", "none")
                 .style("fill", "silver")
                 .attr("stroke-width", 1.5)
         })

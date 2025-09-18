@@ -513,7 +513,7 @@ class Tree:
                        'Ancestral Comparison'}
             lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
         elif mode == 'branch' and columns is None:
-            columns = {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance',
+            columns = {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to parent',
                        'probability_vector_gain': 'Gain probability', 'probability_vector_loss': 'Loss probability'}
             lists = ('probability_vector_gain', 'probability_vector_loss')
 
