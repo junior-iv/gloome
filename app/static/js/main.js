@@ -152,29 +152,29 @@ function drawPhylogeneticTree(jsonData) {
 
     const links = svg.selectAll(".link")
         .data(root.links())
-        .enter().append("path");
+        .enter().append("path")
+        .attr("class", "link");
     links
-        .attr("class", "link")
         .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
         .style("fill", "none")
         .style("stroke", "silver")
         .style("stroke-width", 1.5)
-        .on("mouseover", function() {
-            d3.select(this)
-                .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
-                .style("fill", "none")
-                .style("fill", "maroon")
-                .attr("stroke-width", 3.0)
-        })
-        .on("mouseout", function() {
-            d3.select(this)
-                .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
-                .style("fill", "none")
-                .style("fill", "silver")
-                .attr("stroke-width", 1.5)
-        })
+        // .on("mouseover", function() {
+        //     d3.select(this)
+        //         .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
+        //         .style("fill", "none")
+        //         .style("fill", "maroon")
+        //         .attr("stroke-width", 3.0)
+        // })
+        // .on("mouseout", function() {
+        //     d3.select(this)
+        //         .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
+        //         .style("fill", "none")
+        //         .style("fill", "silver")
+        //         .attr("stroke-width", 1.5)
+        // })
         .on("click", function(event, d) {
-            document.getElementById('branchInfo').innerHTML = convertJSONToTable2(jsonData[4][d.data.name], jsonData[5]);
+            document.getElementById('branchInfo').innerHTML = convertJSONToTable(jsonData[1][d.data.name], jsonData[2]);
         });
     const nodes = svg.selectAll(".node")
         .data(root.descendants())
