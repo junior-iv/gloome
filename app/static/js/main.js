@@ -150,16 +150,27 @@ function drawPhylogeneticTree(jsonData) {
         .append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top}) scale(${scale})`);
 
-    svg.selectAll(".link")
+    const links = svg.selectAll(".link")
         .data(root.links())
         .enter().append("path")
         .attr("class", "link")
-        .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
+        .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x));
+    links
         .style("fill", "none")
         .style("stroke", "silver")
         .style("stroke-width", 1.5)
+        .on("mouseover", function() {
+            d3.select(this)
+                .style("fill", "maroon")
+                .attr("stroke-width", 3.5)
+        })
+        .on("mouseout", function() {
+            d3.select(this)
+                .style("fill", "silver")
+                .attr("stroke-width", 1.5)
+        })
         .on("click", function(event, d) {
-            document.getElementById('branchInfo').innerHTML = convertJSONToTable(jsonData[4][d.data.name], jsonData[5]);
+            document.getElementById('branchInfo').innerHTML = convertJSONToTable2(jsonData[4][d.data.name], jsonData[5]);
         });
     const nodes = svg.selectAll(".node")
         .data(root.descendants())
