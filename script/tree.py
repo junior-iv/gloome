@@ -492,6 +492,7 @@ class Tree:
         """
         if return_table:
             columns, lists = self.get_columns(mode, columns)
+            column_name = 'Name' if mode == 'node' else 'Child node'
 
             table = self.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float,
                                        change_content_type=True)
@@ -500,7 +501,7 @@ class Tree:
                 dict_row = dict()
                 for key in columns.values():
                     dict_row.update({key: table[key][row]})
-                dict_json.update({table['Name'][row]: dict_row})
+                dict_json.update({table[column_name][row]: dict_row})
         else:
             dict_json = self.root.node_to_json()
 
