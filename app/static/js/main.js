@@ -159,23 +159,26 @@ function drawPhylogeneticTree(jsonData) {
         .style("fill", "none")
         .style("stroke", "silver")
         .style("stroke-width", 1.5)
-        // .on("mouseover", function() {
-        //     d3.select(this)
-        //         .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
-        //         .style("fill", "none")
-        //         .style("fill", "maroon")
-        //         .attr("stroke-width", 3.0)
-        // })
-        // .on("mouseout", function() {
-        //     d3.select(this)
-        //         .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
-        //         .style("fill", "none")
-        //         .style("fill", "silver")
-        //         .attr("stroke-width", 1.5)
-        // })
+        .on("mouseover", function(event, d) {
+            d3.select(this)
+                .style("stroke", "maroon")
+            d3.select("#tooltip")
+                .style("left", `${event.pageX + 10}px`)
+                .style("top", `${event.pageY - 20}px`)
+                .style("opacity", .9)
+                .style("visibility",  "visible")
+                .html(convertJSONToTable2(jsonData[4][d.target.data.name], jsonData[5], false));
+        })
+        .on("mouseout", function() {
+            d3.select(this)
+                .style("stroke", "silver")
+            d3.select("#tooltip")
+                .style("opacity", 0)
+                .style("visibility",  "hidden");
+        })
         .on("click", function(event, d) {
             console.log(d.data)
-            document.getElementById('branchInfo').innerHTML = convertJSONToTable2(jsonData[4][d.source.data.name], jsonData[5]);
+            document.getElementById('branchInfo').innerHTML = convertJSONToTable2(jsonData[4][d.target.data.name], jsonData[5]);
         });
     const nodes = svg.selectAll(".node")
         .data(root.descendants())
