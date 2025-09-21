@@ -183,8 +183,8 @@ class Node:
 
         for r in range(rate_vector_size):
             current_marginal_bl_vector = []
-            for i in range(alphabet_size):
-                for j in range(alphabet_size):
+            for j in range(alphabet_size):
+                for i in range(alphabet_size):
                     current_marginal_bl_vector.append(frequency * self.up_vector[r][i] *
                                                       pmatrix[r][i, j] * self.down_vector[r][j])
             marginal_bl_vector.append(current_marginal_bl_vector)
@@ -196,6 +196,7 @@ class Node:
         for i in range(alphabet_size * alphabet_size):
             probability_vector_bl.append(np.sum([marginal_bl_vector[r][i] for r in range(rate_vector_size)]) /
                                          rate_vector_size / likelihood)
+        # print(f'{round(sum(probability_vector_bl), 4)}  {self.name}: {probability_vector_bl}')
         self.probability_vector_gain.append(probability_vector_bl[1])
         self.probability_vector_loss.append(probability_vector_bl[2])
 
