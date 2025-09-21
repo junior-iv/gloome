@@ -495,7 +495,7 @@ class Tree:
             column_name = 'Name' if mode == 'node' else 'Child node'
 
             table = self.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float,
-                                       change_content_type=True)
+                                       change_content_type=False)
             dict_json = dict()
             for row in table.T:
                 dict_row = dict()
