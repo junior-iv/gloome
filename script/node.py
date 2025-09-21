@@ -196,21 +196,8 @@ class Node:
         for i in range(alphabet_size * alphabet_size):
             probability_vector_bl.append(np.sum([marginal_bl_vector[r][i] for r in range(rate_vector_size)]) /
                                          rate_vector_size / likelihood)
-        # self.probability_vector_bl.append(probability_vector_bl[1:-1])
-        print(f'{round(sum(probability_vector_bl), 4)}  {self.name}: {probability_vector_bl}')
         self.probability_vector_gain.append(probability_vector_bl[1])
         self.probability_vector_loss.append(probability_vector_bl[2])
-        # print(f'{self.name}: {self.probability_vector_bl}')
-        # self.probable_character = alphabet[self.probability_vector.index(max(self.probability_vector))]
-        # self.sequence = f'{self.sequence}{self.probable_character}'
-        # self.probabilities_sequence_characters += [max(self.probability_vector)]
-        # print(self.name)
-        # print(np.sum(self.probability_vector_bl))
-        # print(self.probability_vector_bl)
-        # print(self.probable_character)
-        # print(self.sequence)
-        # print(self.probabilities_sequence_characters)
-        # print('end\n')
 
     def calculate_marginal(self, alphabet: Union[Tuple[str, ...], str],
                            rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,

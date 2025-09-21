@@ -334,8 +334,10 @@ class Tree:
             for i in lists:
                 if columns.get(i):
                     if list_type in (list, tuple, set):
-                        info = list_type(map(lambda x: f'{x:.3f}' if (isinstance(x, (int, float)) and
-                                                                      change_content_type) else x, node_info.get(i)))
+                        # info = list_type(map(lambda x: f'{x:.3f}' if (isinstance(x, (int, float)) and
+                        #                                               change_content_type) else x, node_info.get(i)))
+                        info = list_type(map(lambda x: np.round(x, 4) if (isinstance(x, (int, float))
+                                                                          ) else x, node_info.get(i)))
                     else:
                         info = ' '.join(map(str, node_info.get(i)))
                     node_info.update({i: info})
