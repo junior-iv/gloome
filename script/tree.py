@@ -864,7 +864,7 @@ class Tree:
             result = {'List for sorting': ['Name', 'Node type', 'Distance to parent', 'Sequence',
                                            'Probability coefficient', 'Ancestral Comparison']}
         else:
-            result = {'List for sorting': ['Name', 'Parent', 'Distance to parent', 'Gain probability',
+            result = {'List for sorting': ['Parent node', 'Child node', 'Branch length', 'Gain probability',
                                            'Loss probability']}
 
         return loads(str(result).replace(f'\'', r'"'))

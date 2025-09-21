@@ -177,7 +177,6 @@ function drawPhylogeneticTree(jsonData) {
                 .style("visibility",  "hidden");
         })
         .on("click", function(event, d) {
-            console.log(d.data)
             document.getElementById('branchInfo').innerHTML = convertJSONToTable2(jsonData[4][d.target.data.name], jsonData[5]);
         });
     const nodes = svg.selectAll(".node")
@@ -245,7 +244,7 @@ function drawPhylogeneticTree(jsonData) {
 
 function processError(error) {
     setVisibilityLoader(false);
-    console.error(`Error:`, error);
+    console.log(`Error:`, error);
     showAlert(error.message, 8000);
 }
 
@@ -472,7 +471,6 @@ function gedIdentifiers(id = ``) {
 function completeFormFilling(formData) {
     Object.entries(objectsDependence).forEach(([id, info]) => {
         let element = document.getElementById(id);
-        console.log(id);
         if (checkboxes.includes(id)) {
             element.checked = Boolean(formData[id]);
         } else {
@@ -480,7 +478,6 @@ function completeFormFilling(formData) {
         }
         let disabled = 0
         Object.entries(info['dependence']).forEach((checkboxId) => formData[checkboxId[1]] ? disabled += 1 : disabled += 0);
-        console.log(Boolean(disabled));
         element.disabled = Boolean(disabled)
     });
 }
