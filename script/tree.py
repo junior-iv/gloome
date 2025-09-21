@@ -7,7 +7,7 @@ from shutil import rmtree
 from json import loads
 from os import path, makedirs
 from d3blocks import D3Blocks
-from .node import Node
+from node import Node
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
 from scipy.stats import gamma
@@ -66,9 +66,12 @@ class Tree:
         else:
             self.root = Node('root')
 
-        self.msa, self.alphabet = None, None
+        self.is_optimize_pi, self.is_optimize_pi_average, self.is_optimize_alpha, self.is_optimize_bl = (None, None,
+                                                                                                         None, None)
+        self.msa, self.alphabet, self.categories_quantity, self.alpha = None, None, None, None
         self.rate_vector = (1.0,)
-        self.pi_0, self.pi_1 = None, None
+        self.pi_0, self.pi_1, self.coefficient_bl = None, None, 1
+        # self.likelihood, self.log_likelihood, self.log_likelihood_vector = 1, 0, []
         self.log_likelihood_vector, self.log_likelihood, self.likelihood = None, None, None
         self.calculated_ancestor_sequence = self.calculated_tree_for_fasta = self.calculated_likelihood = False
 
@@ -540,6 +543,7 @@ class Tree:
             categories_vector.append(mean)
 
         self.rate_vector = tuple(categories_vector)
+        self.categories_quantity = categories_quantity
 
         return self.rate_vector
 
@@ -553,6 +557,8 @@ class Tree:
         elif isinstance(pi_1, (float, np.ndarray, int)) and pi_1:
             self.pi_1 = self.optimize_pi(pi=pi_1, mode=1, is_optimize_pi=is_optimize_pi,
                                          is_optimize_pi_average=is_optimize_pi_average)
+        self.is_optimize_pi = False if is_optimize_pi is None else is_optimize_pi
+        self.is_optimize_pi_average = False if is_optimize_pi_average is None else is_optimize_pi_average
 
     def set_tree_data(self, msa: Optional[Union[Dict[str, str], str]] = None,
                       categories_quantity: Optional[int] = None,
@@ -560,7 +566,7 @@ class Tree:
                       beta: Optional[float] = None,
                       pi_0: Optional[Union[float, np.ndarray, int]] = None,
                       pi_1: Optional[Union[float, np.ndarray, int]] = None,
-                      coefficient_bl: Optional[Union[float, np.ndarray, int]] = 1,
+                      coefficient_bl: Optional[Union[float, np.ndarray, int]] = None,
                       is_optimize_pi: Optional[bool] = None,
                       is_optimize_pi_average: Optional[bool] = None,
                       is_optimize_alpha: Optional[bool] = None,
@@ -577,11 +583,10 @@ class Tree:
 
         self.optimize_coefficient_bl(coefficient_bl, is_optimize_bl)
         self.parameters_optimization(pi_0, pi_1, is_optimize_pi, is_optimize_pi_average)
-
         self.optimize_alpha(alpha, categories_quantity, is_optimize_alpha)
 
-        if (is_optimize_alpha or is_optimize_pi) and is_optimize_bl:
-            self.optimize_coefficient_bl(self.coefficient_bl, is_optimize_bl)
+        if (self.is_optimize_alpha or self.is_optimize_pi) and self.is_optimize_bl:
+            self.optimize_coefficient_bl(self.coefficient_bl, self.is_optimize_bl)
 
     def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
 
@@ -798,14 +803,15 @@ class Tree:
 
         return all_lines.count(self.alphabet[mode]) / len(all_lines)
 
-    def optimize_coefficient_bl(self, coefficient_bl: Union[int, float, np.ndarray],
+    def optimize_coefficient_bl(self, coefficient_bl: Optional[Union[int, float, np.ndarray]] = None,
                                 is_optimize_bl: Optional[bool] = None) -> Union[float, np.ndarray, int]:
         if is_optimize_bl:
             coefficient_bl = self.optimize(func=self.coefficient_bl_optimization, bracket=(1, ),
                                            bounds=(0.1, 10), result_fild='x')
 
         self.set_coefficient_bl(coefficient_bl)
-        self.coefficient_bl = coefficient_bl
+        self.is_optimize_bl = False if is_optimize_bl is None else is_optimize_bl
+        self.coefficient_bl = 1.0 if coefficient_bl is None else coefficient_bl
 
         return coefficient_bl
 
@@ -815,6 +821,7 @@ class Tree:
             alpha = self.optimize(func=self.alpha_optimization, bracket=(0.5, ), bounds=(0.1, 20),
                                   args=(categories_quantity, ), result_fild='x')
         self.alpha = alpha
+        self.is_optimize_alpha = False if is_optimize_alpha is None else is_optimize_alpha
         self.get_gamma_distribution_categories_vector(categories_quantity, self.alpha, self.alpha)
 
         return alpha

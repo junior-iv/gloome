@@ -175,7 +175,7 @@ function drawPhylogeneticTree(jsonData) {
         // })
         .on("click", function(event, d) {
             console.log(d.data)
-            document.getElementById('branchInfo').innerHTML = convertJSONToTable(jsonData[4][d.data.name], jsonData[5]);
+            document.getElementById('branchInfo').innerHTML = convertJSONToTable2(jsonData[4][d.source.data.name], jsonData[5]);
         });
     const nodes = svg.selectAll(".node")
         .data(root.descendants())
