@@ -280,7 +280,7 @@ function drawInformation(jsonData, sortingList, summary = true, mode = 0, sequen
         result += `<th class="p-2 w-auto tborder-2">Index</th>`;
         result += `<th class="p-2 w-auto"></th>`;
         for (let i = 0; i < sequenceLength; i++) {
-            result += `<td style="color: slateblue"  class="w-auto text-center">${i}</td>`;
+            result += `<td style="color: darkcyan"  class="w-auto text-center">${i}</td>`;
         }
     }
     result += `</tr>`;
