@@ -304,8 +304,8 @@ class Tree:
 
     def tree_to_table(self, sort_values_by: Optional[Tuple[str, ...]] = None, decimal_length: int = 8, columns: Optional
                       [Dict[str, str]] = None, filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] =
-                      None, distance_type: type = str, list_type: type = str, lists: Optional[Tuple[str, ...]] = None,
-                      change_content_type: bool = False) -> pd.DataFrame:
+                      None, distance_type: type = str, list_type: type = str, lists: Optional[Tuple[str, ...]] = None
+                      ) -> pd.DataFrame:
         nodes_info = self.get_list_nodes_info(True, None, filters)
         columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to parent',
                                            'children': 'Children', 'lavel': 'Lavel', 'node_type': 'Node type',
@@ -496,8 +496,7 @@ class Tree:
             columns, lists = self.get_columns(mode, columns)
             column_name = 'Name' if mode == 'node' else 'Child node'
 
-            table = self.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float,
-                                       change_content_type=False)
+            table = self.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float)
             dict_json = dict()
             for row in table.T:
                 dict_row = dict()

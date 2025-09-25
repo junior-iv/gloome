@@ -271,14 +271,14 @@ function drawInformation(jsonData, sortingList, summary = true, mode = 0, sequen
                 value += `<td style="color: ${shortColorList[i]}" class="w-auto text-center">${i}</td>`;
         }
             )}
-        else {value = `<td class="w-auto text-center">${jsonValue}</td>`}
+        // else {value = `<td class="w-auto text-center">${jsonValue}</td>`}
         result += `<th class="p-2 w-auto">${value}</th></tr>`;
     });
 
     if (sequenceLength > 0) {
         result += `<tr><th class="p-2 w-auto tborder-2">Index</th>`;
         for (let i = 0; i < sequenceLength; i++) {
-            result += `<th style="color: slateblue"  class="w-auto text-center">${i}</th></tr>`;
+            result += `<td style="color: slateblue"  class="w-auto text-center">${i}</td></tr>`;
         }
     }
 
