@@ -163,27 +163,25 @@ CALCULATED_ARGS = CalculatedArgs(**{
                                     'newick_tree': None
                                     })
 
-USAGE = ''' 
-            Required parameters:
-                    --msa_file <type=str>
-                        Specify the msa filepath.
-                    --tree_file <type=str>
-                        Specify the tree filepath.
-            Optional parameters:
-                    --mode <type=str>
-                        Execution mode style. Possible options: ('draw_tree', 'compute_likelihood_of_tree', 
-                        'create_all_file_types', 'execute_all_actions'). Default is 'execute_all_actions'.
-                    --with_internal_nodes <type=bool> 
-                        Specify the Newick file type. Default is True.
-                    --categories_quantity <type=int>
-                        Specify categories quantity. Default is 4.
-                    --alpha <type=float>
-                        Specify alpha. Default is 0.5.
-                    --pi_1 <type=float> 
-                        Specify pi_1. Default is 0.5.
-                    --is_optimize_pi <type=bool> 
-                        Specify is_optimize_pi. Default is False.
-        '''
+USAGE = '''\tRequired parameters:
+\t\t--msa_file <type=str>
+\t\t\tSpecify the msa filepath.
+\t\t--tree_file <type=str>
+\t\t\tSpecify the tree filepath.
+\tOptional parameters:
+\t\t--mode <type=str>
+\t\t\tExecution mode style. Possible options: ('draw_tree', 'compute_likelihood_of_tree', 
+\t\t\t'create_all_file_types', 'execute_all_actions'). Default is 'execute_all_actions'.
+\t\t--with_internal_nodes <type=bool> 
+\t\t\tSpecify the Newick file type. Default is True.
+\t\t--categories_quantity <type=int>
+\t\t\tSpecify categories quantity. Default is 4.
+\t\t--alpha <type=float>
+\t\t\tSpecify alpha. Default is 0.5.
+\t\t--pi_1 <type=float> 
+\t\t\tSpecify pi_1. Default is 0.5.
+\t\t--is_optimize_pi <type=bool> 
+\t\t\tSpecify is_optimize_pi. Default is False.'''
 # --sort_values_by <type=str>
 #     Specify the columns by which you want to sort the values in the csv file.
 #     Possible options: ('Name', 'Parent', 'Distance to parent', 'Children'). Default is 'child' 'Name'.

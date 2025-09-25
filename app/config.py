@@ -436,7 +436,6 @@ class SawSubmiter:
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
             if job_state in state_filter:
                 conf.set_job_logger_info(f'Job state: {job_state}')
-                print(job_state)
                 return job_state
             count -= 1
             sleep(waiting_time)

@@ -196,7 +196,6 @@ class Node:
         for i in range(alphabet_size * alphabet_size):
             probability_vector_bl.append(np.sum([marginal_bl_vector[r][i] for r in range(rate_vector_size)]) /
                                          rate_vector_size / likelihood)
-        # print(f'{round(sum(probability_vector_bl), 4)}  {self.name}: {probability_vector_bl}')
         self.probability_vector_gain.append(probability_vector_bl[1])
         self.probability_vector_loss.append(probability_vector_bl[2])
 
@@ -219,9 +218,6 @@ class Node:
             self.marginal_vector.append(current_marginal_vector)
 
         likelihood = np.sum([1 / rate_vector_size * np.sum(self.marginal_vector[r]) for r in range(rate_vector_size)])
-        # print(f'self.marginal_vector: {self.marginal_vector}')
-        # print(f'pi_1: {pi_1}')
-        # print(f'likelihood: {likelihood}')
 
         self.probability_vector = []
         for i in range(alphabet_size):

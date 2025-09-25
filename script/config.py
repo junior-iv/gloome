@@ -103,9 +103,8 @@ class Config:
     def check_and_set_input_and_output_variables(self):
         """get variables from input arguments and fill out the Variable Class properties"""
         if len(self.COMMAND_LINE) < 5:
-            print(len(self.COMMAND_LINE))
-            print('At least two required parameters --msa_file --tree_file')
-            print(self.USAGE)
+            # print(len(self.COMMAND_LINE))
+            print('\tAt least two required parameters --msa_file --tree_file', self.USAGE, sep='\n')
             exit()
 
         if len(self.COMMAND_LINE) > 4 and self.COMMAND_LINE[1].startswith('-') and self.COMMAND_LINE[3].startswith('-'):

@@ -167,7 +167,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("top", `${event.pageY - 20}px`)
                 .style("opacity", .9)
                 .style("visibility",  "visible")
-                .html(convertJSONToTable2(jsonData[4][d.target.data.name], jsonData[5], false));
+                .html(drawInformation(jsonData[4][d.target.data.name], jsonData[5], false, 1));
         })
         .on("mouseout", function() {
             d3.select(this)
@@ -177,7 +177,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("visibility",  "hidden");
         })
         .on("click", function(event, d) {
-            document.getElementById('branchInfo').innerHTML = convertJSONToTable2(jsonData[4][d.target.data.name], jsonData[5]);
+            document.getElementById('branchInfo').innerHTML = drawInformation(jsonData[4][d.target.data.name], jsonData[5], true, 1);
         });
     const nodes = svg.selectAll(".node")
         .data(root.descendants())
@@ -200,7 +200,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("top", `${event.pageY - 20}px`)
                 .style("opacity", .9)
                 .style("visibility",  "visible")
-                .html(convertJSONToTable(jsonData[1][d.data.name], jsonData[2], false));
+                .html(drawInformation(jsonData[1][d.data.name], jsonData[2], false));
         })
         .on("mouseout", function(event, d) {
             d3.select(this)
@@ -211,7 +211,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("visibility",  "hidden");
         })
         .on("click", function(event, d) {
-            document.getElementById('nodeInfo').innerHTML = convertJSONToTable(jsonData[1][d.data.name], jsonData[2]);
+            document.getElementById('nodeInfo').innerHTML = drawInformation(jsonData[1][d.data.name], jsonData[2]);
         });
 
     nodes
@@ -248,10 +248,13 @@ function processError(error) {
     showAlert(error.message, 8000);
 }
 
-function convertJSONToTable2(jsonData, jsonSort, summary = true) {
+function drawInformation(jsonData, jsonSort, summary = true, mode = 0) {
     const sortingList = jsonSort["List for sorting"];
-    const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
+    const fullColorList = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
         "dodgerblue", "slateblue", "darkviolet"];
+    const shortColorList = {"A": "crimson", "L": "darkorange", "G": "forestgreen", "P": "slateblue"}
+    const headersForShortColorList = ["Ancestral Comparison", ]
+    const informationObjects = ['Node', 'Branch']
     let table = '';
     let result = '';
 
@@ -259,47 +262,14 @@ function convertJSONToTable2(jsonData, jsonSort, summary = true) {
         let value = ``;
         let jsonValue = jsonData[header];
         result += `<tr><th class="p-2 w-auto tborder-2">${header}</th>`;
-        if (typeof jsonValue === "object")
+        if (typeof jsonValue === "object" && !headersForShortColorList.includes(header))
             {Object.values(jsonValue).forEach(i => {
-                value += `<td style="color: ${colors[getInteger(i)]}" class="w-auto text-center">${i}</td>`;
+                value += `<td style="color: ${fullColorList[getInteger(i)]}" class="w-auto text-center">${i}</td>`;
                 })
             }
-        else {value = `<td class="w-auto text-center">${jsonValue}</td>`}
-        result += `<th class="p-2 w-auto">${value}</th></tr>`;
-    });
-
-    if (summary) {
-        table = `<details open>
-        <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
-        <span class="arrow">▼</span>
-        Branch information
-        </summary><table class="w-97 m-3 p-4 h7">${result}</table></details>`
-    } else {
-        table = `<table class="w-60 h8">${result}</table>`;
-    }
-    return table;
-}
-
-function convertJSONToTable(jsonData, jsonSort, summary = true) {
-    const sortingList = jsonSort["List for sorting"];
-    const colors = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
-        "dodgerblue", "slateblue", "darkviolet"];
-    const colorsAS = {"A": "crimson", "L": "darkorange", "G": "forestgreen", "P": "slateblue"}
-    let table = '';
-    let result = '';
-
-    sortingList.forEach(header => {
-        let value = ``;
-        let jsonValue = jsonData[header];
-        result += `<tr><th class="p-2 w-auto tborder-2">${header}</th>`;
-        if (typeof jsonValue === "object" && header !== "Ancestral Comparison")
+        else if (typeof jsonValue === "object" && headersForShortColorList.includes(header))
             {Object.values(jsonValue).forEach(i => {
-                value += `<td style="color: ${colors[getInteger(i)]}" class="w-auto text-center">${i}</td>`;
-                })
-            }
-        else if (typeof jsonValue === "object" && header === "Ancestral Comparison")
-            {Object.values(jsonValue).forEach(i => {
-                value += `<td style="color: ${colorsAS[i]}" class="w-auto text-center">${i}</td>`;
+                value += `<td style="color: ${shortColorList[i]}" class="w-auto text-center">${i}</td>`;
         }
             )}
         else {value = `<td class="w-auto text-center">${jsonValue}</td>`}
@@ -310,7 +280,7 @@ function convertJSONToTable(jsonData, jsonSort, summary = true) {
         table = `<details open>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
         <span class="arrow">▼</span>
-        Node information
+        ${informationObjects[mode]} information
         </summary><table class="w-97 m-3 p-4 h7">${result}</table></details>`
     } else {
         table = `<table class="w-60 h8">${result}</table>`;
@@ -318,7 +288,7 @@ function convertJSONToTable(jsonData, jsonSort, summary = true) {
     return table;
 }
 
-function convertJSONToLogLikelihood(jsonData) {
+function drawLogLikelihood(jsonData) {
     let result = `<div class="w-100 flex-row form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" 
             onclick="copyValue('logLikelihoodValue', 7)" title="click here to copy the value of log-Likelihood to the clipboard">
                 Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id, 7)">${jsonData[0]}</span>
@@ -336,7 +306,7 @@ function copyValue(id, variant = 5) {
         });
 }
 
-function convertJSONToTableFoFileList(jsonData) {
+function drawFileList(jsonData) {
     let headersRow = ``;
     let firstRow = ``;
     let secondRow = ``;
@@ -362,7 +332,7 @@ function convertJSONToTableFoFileList(jsonData) {
 
 function showResponse(jsonData, mode = 0) {
     const actions = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types']
-    const dictActions = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': convertJSONToLogLikelihood, 'create_all_file_types': convertJSONToTableFoFileList}
+    const dictActions = {'draw_tree': drawPhylogeneticTree, 'compute_likelihood_of_tree': drawLogLikelihood, 'create_all_file_types': drawFileList}
 
     document.getElementById('title').innerHTML = jsonData['title'];
     completeFormFilling(jsonData['form_data']);
@@ -447,6 +417,7 @@ function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`
 function setVisibilityLoader(visible = true) {
     setLoader(visible)
     document.getElementById('tree').innerText = ``;
+    document.getElementById('branchInfo').innerText = ``;
     document.getElementById('nodeInfo').innerText = ``;
     document.getElementById('logLikelihood').innerText = ``;
     document.getElementById('fileList').innerText = ``;
@@ -546,7 +517,7 @@ function showMessage(message = null, variant = 1) {
 }
 
 function formCleaning(args) {
-    let elementNames = {'value': [`newickText`, `msaText`], 'innerHTML': [`tree`, `nodeInfo`, `logLikelihood`, `fileList`],
+    let elementNames = {'value': [`newickText`, `msaText`], 'innerHTML': [`tree`, 'branchInfo', `nodeInfo`, `logLikelihood`, `fileList`],
         'setDefault': [`pi1`, `alpha`, `categoriesQuantity`, `coefficientBL`]};
     for (let i = 0; i < elementNames.value.length; i++) {
         document.getElementById(elementNames.value[i]).value = ``;
