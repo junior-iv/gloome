@@ -175,13 +175,13 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_
 
 def draw_tree(newick_tree: Tree, file_path: str, create_new_file: bool = False,
               form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None) -> Union[List[Any], str]:
-    size_factor = min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)
     result = [newick_tree.get_json_structure(),
               newick_tree.get_json_structure(return_table=True),
               newick_tree.get_columns_list_for_sorting(),
-              {'Size factor': size_factor},
+              {'Size factor': min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 7, 3)},
               newick_tree.get_json_structure(return_table=True, mode='branch'),
-              newick_tree.get_columns_list_for_sorting(mode='branch')]
+              newick_tree.get_columns_list_for_sorting(mode='branch'),
+              {'Sequence length': len(tuple(newick_tree.msa.values())[0])}]
 
     if create_new_file:
         return create_file(file_path, get_result_data(result, 'draw_tree', form_data), 'result.json')

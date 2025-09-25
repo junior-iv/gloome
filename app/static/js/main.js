@@ -167,7 +167,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("top", `${event.pageY - 20}px`)
                 .style("opacity", .9)
                 .style("visibility",  "visible")
-                .html(drawInformation(jsonData[4][d.target.data.name], jsonData[5], false, 1));
+                .html(drawInformation(jsonData[4][d.target.data.name], jsonData[5]["List for sorting"], false, 1, jsonData[6]["Sequence length"]));
         })
         .on("mouseout", function() {
             d3.select(this)
@@ -177,7 +177,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("visibility",  "hidden");
         })
         .on("click", function(event, d) {
-            document.getElementById('branchInfo').innerHTML = drawInformation(jsonData[4][d.target.data.name], jsonData[5], true, 1);
+            document.getElementById('branchInfo').innerHTML = drawInformation(jsonData[4][d.target.data.name], jsonData[5]["List for sorting"], true, 1, jsonData[6]["Sequence length"]);
         });
     const nodes = svg.selectAll(".node")
         .data(root.descendants())
@@ -200,7 +200,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("top", `${event.pageY - 20}px`)
                 .style("opacity", .9)
                 .style("visibility",  "visible")
-                .html(drawInformation(jsonData[1][d.data.name], jsonData[2], false));
+                .html(drawInformation(jsonData[1][d.data.name], jsonData[2]["List for sorting"], false, 0, jsonData[6]["Sequence length"]));
         })
         .on("mouseout", function(event, d) {
             d3.select(this)
@@ -211,7 +211,7 @@ function drawPhylogeneticTree(jsonData) {
                 .style("visibility",  "hidden");
         })
         .on("click", function(event, d) {
-            document.getElementById('nodeInfo').innerHTML = drawInformation(jsonData[1][d.data.name], jsonData[2]);
+            document.getElementById('nodeInfo').innerHTML = drawInformation(jsonData[1][d.data.name], jsonData[2]["List for sorting"], true, 0, jsonData[6]["Sequence length"]);
         });
 
     nodes
@@ -248,8 +248,7 @@ function processError(error) {
     showAlert(error.message, 8000);
 }
 
-function drawInformation(jsonData, jsonSort, summary = true, mode = 0) {
-    const sortingList = jsonSort["List for sorting"];
+function drawInformation(jsonData, sortingList, summary = true, mode = 0, sequenceLength = 0) {
     const fullColorList = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
         "dodgerblue", "slateblue", "darkviolet"];
     const shortColorList = {"A": "crimson", "L": "darkorange", "G": "forestgreen", "P": "slateblue"}
@@ -275,6 +274,13 @@ function drawInformation(jsonData, jsonSort, summary = true, mode = 0) {
         else {value = `<td class="w-auto text-center">${jsonValue}</td>`}
         result += `<th class="p-2 w-auto">${value}</th></tr>`;
     });
+
+    if (sequenceLength > 0) {
+        result += `<tr><th class="p-2 w-auto tborder-2">Index</th>`;
+        for (let i = 0; i < sequenceLength; i++) {
+            result += `<th style="color: slateblue"  class="w-auto text-center">${i}</th></tr>`;
+        }
+    }
 
     if (summary) {
         table = `<details open>
