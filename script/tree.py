@@ -523,7 +523,7 @@ class Tree:
                                                'probabilities_sequence_characters': 'Probability coefficient',
                                                'ancestral_sequence': 'Ancestral Comparison'}
             lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
-        elif mode == 'branch' or mode == 'branch_tsv':
+        elif mode == 'branch':
             columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', 'distance':
                                                'Branch length', 'probability_vector_gain': 'Gain probability',
                                                'probability_vector_loss': 'Loss probability'}
@@ -537,6 +537,11 @@ class Tree:
                                                'log_likelihood_vector': 'Vector of log-likelihood'}
             lists = ('children', 'probabilities_sequence_characters', 'sequence', 'ancestral_sequence',
                      'log_likelihood_vector')
+        elif mode == 'branch_tsv':
+            columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', 'distance':
+                                               'Branch length', 'branch_probability_vector':
+                                               'Branch probability vector'}
+            lists = ('branch_probability_vector', )
 
         return columns, lists
 
