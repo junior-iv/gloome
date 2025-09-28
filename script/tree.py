@@ -316,9 +316,12 @@ class Tree:
                                            'probability_vector': 'Probability vector', 'probable_character':
                                            'Probable character', 'sequence': 'Sequence', 'ancestral_sequence':
                                            'Ancestral Comparison', 'probabilities_sequence_characters':
-                                           'Probabilities sequence characters'}
+                                           'Probabilities sequence characters', 'probability_vector_gain':
+                                           'Gain probability', 'probability_vector_loss': 'Loss probability'}
         lists = lists if lists else ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector',
-                                     'probability_vector', 'probabilities_sequence_characters', 'log_likelihood_vector')
+                                     'probability_vector', 'probabilities_sequence_characters', 'log_likelihood_vector',
+                                     'ancestral_sequence', 'probability_vector_gain', 'probability_vector_loss',
+                                     'sequence')
 
         for node_info in nodes_info:
             for i in set(node_info.keys()) - set(columns.keys()):
@@ -511,16 +514,29 @@ class Tree:
     @staticmethod
     def get_columns(mode: str = 'node', columns: Optional[Dict[str, str]] = None
                     ) -> Tuple[Dict[str, str], Tuple[str, ...]]:
-        lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
-        if mode == 'node' and columns is None:
-            columns = {'node': 'Name', 'node_type': 'Node type', 'distance': 'Distance to parent', 'sequence':
-                       'Sequence', 'probabilities_sequence_characters': 'Probability coefficient', 'ancestral_sequence':
-                       'Ancestral Comparison'}
+        lists = ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector', 'probability_vector',
+                 'probabilities_sequence_characters', 'log_likelihood_vector', 'sequence', 'ancestral_sequence',
+                 'probability_vector_gain', 'probability_vector_loss')
+        if mode == 'node':
+            columns = columns if columns else {'node': 'Name', 'node_type': 'Node type', 'distance':
+                                               'Distance to parent', 'sequence': 'Sequence',
+                                               'probabilities_sequence_characters': 'Probability coefficient',
+                                               'ancestral_sequence': 'Ancestral Comparison'}
             lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
-        elif mode == 'branch' and columns is None:
-            columns = {'father_name': 'Parent node', 'node': 'Child node', 'distance': 'Branch length',
-                       'probability_vector_gain': 'Gain probability', 'probability_vector_loss': 'Loss probability'}
+        elif mode == 'branch' or mode == 'branch_tsv':
+            columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', 'distance':
+                                               'Branch length', 'probability_vector_gain': 'Gain probability',
+                                               'probability_vector_loss': 'Loss probability'}
             lists = ('probability_vector_gain', 'probability_vector_loss')
+        elif mode == 'node_tsv':
+            columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance':
+                                               'Distance to parent', 'children': 'Children', 'sequence': 'Sequence',
+                                               'probabilities_sequence_characters': 'Probability coefficient',
+                                               'ancestral_sequence': 'Ancestral comparison', 'sequence_likelihood':
+                                               'Likelihood of sequence', 'log_likelihood': 'Log-likelihood',
+                                               'log_likelihood_vector': 'Vector of log-likelihood'}
+            lists = ('children', 'probabilities_sequence_characters', 'sequence', 'ancestral_sequence',
+                     'log_likelihood_vector')
 
         return columns, lists
 
@@ -596,7 +612,7 @@ class Tree:
 
         return self.write_file(file_name, fasta_text)
 
-    def likelihood_to_csv(self, file_name: str = 'log_likelihood.tsv', sep: str = '\t') -> str:
+    def likelihood_to_tsv(self, file_name: str = 'log_likelihood.tsv', sep: str = '\t') -> str:
 
         Tree.make_dir(file_name)
         self.calculate_likelihood()
@@ -606,18 +622,22 @@ class Tree:
 
         return file_name
 
-    def tree_to_csv(self, file_name: str = 'node_results.tsv', sep: str = '\t', sort_values_by:
-                    Optional[Tuple[str, ...]] = None, decimal_length: int = 0, columns: Optional[Dict[str, str]] = None,
-                    filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None) -> str:
+    def tree_to_tsv(self, file_name: str = 'node_results.tsv', sep: str = '\t', mode: str = 'node', **kwargs) -> str:
 
         Tree.make_dir(file_name)
-        columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to parent',
-                                           'children': 'Children', 'sequence': 'Sequence',
-                                           'probabilities_sequence_characters': 'Probability coefficient',
-                                           'ancestral_sequence': 'Ancestral comparison', 'sequence_likelihood':
-                                           'Likelihood of sequence', 'log_likelihood': 'Log-likelihood',
-                                           'log_likelihood_vector': 'Vector of log-likelihood'}
-        table = self.tree_to_table(sort_values_by, decimal_length, columns, filters, list_type=list)
+        columns, lists = kwargs.get('columns', None), kwargs.get('lists', None)
+        if columns is None or lists is None:
+            columns, lists = self.get_columns(mode, columns)
+
+        if kwargs.get('columns', None) is None:
+            kwargs.update(columns=columns)
+        if kwargs.get('lists', None) is None:
+            kwargs.update(lists=lists)
+        if kwargs.get('list_type', None) is None:
+            kwargs.update(list_type=list)
+        if kwargs.get('distance_type', None) is None:
+            kwargs.update(distance_type=float)
+        table = self.tree_to_table(**kwargs)
         table.to_csv(file_name, index=False, sep=sep)
 
         return file_name
