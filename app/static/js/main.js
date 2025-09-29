@@ -299,9 +299,9 @@ function drawInformation(jsonData, sortingList, summary = true, mode = 0, sequen
 
 function drawLogLikelihood(jsonData) {
     let result = `<div class="w-100 flex-row form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" 
-            onclick="copyValue('logLikelihoodValue', 7)" title="click here to copy the value of log-Likelihood to the clipboard">
-                Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id, 7)">${jsonData[0]}</span>
-            </div>`
+        onclick="copyValue('logLikelihoodValue', 7)" title="click here to copy the value of log-Likelihood to the clipboard">
+        Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id, 7)">${jsonData[0]}</span>
+    </div>`
     document.getElementById('logLikelihood').innerHTML = result;
     return result;
 }

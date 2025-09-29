@@ -277,6 +277,12 @@
 {#            {{nwt.arrow(2, 'maroon', 48, 48)}}#}
 {#        </div>#}
     <div id="result" style="visibility: visible" class="d-flex gap-2 flex-column w-auto h-auto bg-light rounded-3 p-3 mx-3">
+<div id="logLikelihood" class="d-flex gap-2 text-start w-100 px-2">
+    <div class="w-100 flex-row form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill"
+         onclick="copyValue('logLikelihoodValue', 7)" title="click here to copy the value of log-Likelihood to the clipboard">
+        Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id, 7)">-184.92563569849239</span>
+    </div>
+</div>
         <div id="logLikelihood" class="d-flex gap-2 text-start w-100 px-2">
 {#            <div title="click here to copy the value of log-Likelihood" class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" onclick="copyValue('logLikelihoodValue')">#}
 {#                Tree Log-Likelihood: <span id="logLikelihoodValue" onclick="copyValue(this.id)">-192.82252052877115</span>#}
