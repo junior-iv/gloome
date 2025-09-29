@@ -505,7 +505,7 @@ function setAccessibility(id = ``, value = null) {
 }
 
 function showMessage(message = null, variant = 1) {
-
+    let alerts = document.getElementById('alerts')
     let elementNames = [`divInfo`, `divDanger`, `divWarning`, `divSuccess`, `divSecondary`, `divLight`, `divDark`, `divPrimary`];
     let classes = [`fixed-center`, `h-30`, `w-30`]
     for (let i = 0; i < elementNames.length; i++) {
@@ -513,12 +513,12 @@ function showMessage(message = null, variant = 1) {
         let element = setVisibility(elementNames[i], visible);
         if (visible) {
             classes.forEach(currentClass => {
-                element.classList.add(currentClass);
+                alerts.classList.add(currentClass);
             })
             element.innerHTML = message
         } else {
             classes.forEach(currentClass => {
-                element.classList.remove(currentClass);
+                alerts.classList.remove(currentClass);
             })
             element.innerHTML = ``
         }

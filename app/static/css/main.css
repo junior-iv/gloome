@@ -54,7 +54,6 @@ details[open] .arrow {
     align-self: stretch;
 }
 
-
 .box {
     display: flex; !important
     flex-wrap: wrap; !important
@@ -67,6 +66,7 @@ details[open] .arrow {
 .default-cursor {
     cursor: text;
 }
+
 .fixed-center {
     position: fixed;
     top: 25%;
