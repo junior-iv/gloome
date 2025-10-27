@@ -188,7 +188,7 @@ class Node:
             current_marginal_bl_vector = []
             for j in range(alphabet_size):
                 for i in range(alphabet_size):
-                    current_marginal_bl_vector.append(frequency * self.up_vector[r][i] *
+                    current_marginal_bl_vector.append(frequency[i] * self.up_vector[r][i] *
                                                       pmatrix[r][i, j] * self.down_vector[r][j])
             marginal_bl_vector.append(current_marginal_bl_vector)
 
@@ -218,7 +218,7 @@ class Node:
                 marg = 0
                 for j in range(alphabet_size):
                     marg += pmatrix[r][i, j] * self.down_vector[r][j]
-                current_marginal_vector.append(frequency * self.up_vector[r][i] * marg)
+                current_marginal_vector.append(frequency[i] * self.up_vector[r][i] * marg)
             self.marginal_vector.append(current_marginal_vector)
 
         likelihood = np.sum([1 / rate_vector_size * np.sum(self.marginal_vector[r]) for r in range(rate_vector_size)])
@@ -243,7 +243,8 @@ class Node:
 
         if not self.children:
             up_vector = list(nodes_dict.get(self.name))
-            self.likelihood = np.sum([frequency * 1 / rate_vector_size * i for i in up_vector])
+            self.likelihood = np.sum([frequency[up_vector.index(max(up_vector))] * 1 / rate_vector_size * i for i in
+                                      up_vector])
             self.probable_character = alphabet[up_vector.index(max(up_vector))]
             self.sequence = f'{self.sequence}{self.probable_character}'
             self.probabilities_sequence_characters += [max(up_vector)]
@@ -269,7 +270,8 @@ class Node:
                         probabilities.update({child.name: probabilities.get(child.name, 0.0) + p1})
                 current_up_vector.append(prod(probabilities.values()))
             self.up_vector.append(current_up_vector)
-            self.likelihood += np.sum([frequency * 1 / rate_vector_size * i for i in current_up_vector])
+            self.likelihood += np.sum([frequency[i] * 1 / rate_vector_size * v for i, v in
+                                       enumerate(current_up_vector)])
 
         self.calculate_sequence_likelihood()
 
@@ -442,11 +444,18 @@ class Node:
     def get_vars(alphabet: Union[Tuple[str, ...], str],
                  rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
                  pi_0: Optional[float] = None, pi_1: Optional[float] = None
-                 ) -> Tuple[int, Tuple[Union[float, np.ndarray], ...], int, Union[float, np.ndarray]]:
+                 ) -> Tuple[int, Tuple[Union[float, np.ndarray], ...], int, Tuple[Union[float, np.ndarray], ...]]:
         alphabet_size = len(alphabet)
         rate_vector = rate_vector if rate_vector else (1.0,)
         rate_vector_size = len(rate_vector)
-        frequency = pi_1 if pi_1 else 1 - (pi_0 if pi_0 else 1 / alphabet_size)
+        if pi_0:
+            frequency = (pi_0, 1 - pi_0)
+        elif pi_1:
+            frequency = (1 - pi_1, pi_1)
+        else:
+            frequency = (1 / alphabet_size, 1 / alphabet_size)
+        # frequency = (pi_0, 1 - pi_0) if pi_0 else ((1 - pi_1, pi_1) if pi_1 else (1 / alphabet_size, 1 / alphabet_size))
+        # frequency = pi_1 if pi_1 else 1 - (pi_0 if pi_0 else 1 / alphabet_size)
 
         return alphabet_size, rate_vector, rate_vector_size, frequency
 

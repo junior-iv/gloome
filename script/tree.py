@@ -7,7 +7,7 @@ from shutil import rmtree
 from json import loads
 from os import path, makedirs
 from d3blocks import D3Blocks
-from .node import Node
+from node import Node
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
 from scipy.stats import gamma
