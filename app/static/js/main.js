@@ -1,5 +1,5 @@
 let jsonTreeData = null
-let checkboxes = ['isOptimizePi', 'isOptimizePiAverage', 'isOptimizeAlpha', 'isOptimizeBL'];
+let checkboxes = ['isOptimizePi', 'isOptimizePiAverage', 'isOptimizeAlpha', 'isOptimizeBL', `isDoNotUseEMail`];
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
     'newickText': {'dependence': '', 'value': ''},
@@ -7,12 +7,29 @@ let objectsDependence = {
     'alpha': {'dependence': ['isOptimizeAlpha'], 'value': ''},
     'categoriesQuantity': {'dependence': '', 'value': ''},
     'coefficientBL': {'dependence': ['isOptimizeBL'], 'value': ''},
+    'eMail': {'dependence': ['isDoNotUseEMail'], 'value': ''},
     'isOptimizePi': {'dependence': '', 'value': ''},
     'isOptimizePiAverage': {'dependence': '', 'value': ''},
     'isOptimizeAlpha': {'dependence': '', 'value': ''},
-    'isOptimizeBL': {'dependence': '', 'value': ''}
+    'isOptimizeBL': {'dependence': '', 'value': ''},
+    'isDoNotUseEMail': {'dependence': '', 'value': ''}
 };
 
+function validateInputEMail(id) {
+    let currentElement = document.getElementById(id);
+    if (currentElement.value.trim() === '') {
+        currentElement.style.removeProperty('border-color');
+    } else if (isEMailValid(currentElement.value)) {
+        currentElement.style.borderColor = 'mediumseagreen';
+    } else {
+        currentElement.style.borderColor = 'orangered';
+    }
+}
+
+function isEMailValid(value) {
+    const EMAIL_REGEXP = /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/iu;
+    return EMAIL_REGEXP.test(value);
+}
 
 function getInteger(data) {
     let result = Math.trunc(Number(data) * 10)
@@ -364,10 +381,12 @@ function makeTree(mode = 0) {
     const alpha = document.getElementById(`alpha`);
     const pi1 = document.getElementById(`pi1`);
     const coefficientBL = document.getElementById(`coefficientBL`);
+    const eMail = document.getElementById(`eMail`);
     const isOptimizePi = document.getElementById(`isOptimizePi`)
     const isOptimizePiAverage = document.getElementById(`isOptimizePiAverage`)
     const isOptimizeAlpha = document.getElementById(`isOptimizeAlpha`)
     const isOptimizeBL = document.getElementById(`isOptimizeBL`)
+    const isDoNotUseEMail = document.getElementById(`isDoNotUseEMail`)
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`msaText`, msaText.value.trim());
@@ -375,10 +394,12 @@ function makeTree(mode = 0) {
     formData.append(`alpha`, alpha.value.trim());
     formData.append(`pi1`, pi1.value.trim());
     formData.append(`coefficientBL`, coefficientBL.value.trim());
+    formData.append(`eMail`, eMail.value.trim());
     formData.append(`isOptimizePi`, +isOptimizePi.checked);
     formData.append(`isOptimizePiAverage`, +isOptimizePiAverage.checked);
     formData.append(`isOptimizeAlpha`, +isOptimizeAlpha.checked);
     formData.append(`isOptimizeBL`, +isOptimizeBL.checked);
+    formData.append(`isDoNotUseEMail`, +isDoNotUseEMail.checked);
 
     jsonTreeData = null
 
@@ -443,8 +464,8 @@ function gedIdentifiers(id = ``) {
         return [id];
     } else {
         return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`, `newickText`,
-            `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `isOptimizePi`, `isOptimizePiAverage`,
-            `isOptimizeAlpha`, `isOptimizeBL`];
+            `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `eMail`, `isOptimizePi`,
+            `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`];
     }
 }
 
@@ -464,7 +485,7 @@ function completeFormFilling(formData) {
 
 function onChangingCheckbox(id, value) {
     let element = document.getElementById(id);
-    let checkboxesGroups = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha'], 'coefficientBL': ['isOptimizeBL']};
+    let checkboxesGroups = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha'], 'coefficientBL': ['isOptimizeBL'], 'eMail': ['isDoNotUseEMail']};
     if (checkboxes.includes(id)) {
         Object.entries(checkboxesGroups).forEach(([key, valueList]) => {
             if (valueList.includes(id)) {

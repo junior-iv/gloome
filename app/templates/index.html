@@ -236,7 +236,43 @@
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if is_optimize_bl -%}
                                                    checked
-                                                {% endif -%}
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                        <div class="box flex-column h-auto w-100 p-2">
+                            <details class="subdetails" open>
+                                <summary class="text-start w-100 form-control btn btn-outline-secondary bg-secondary-subtle border-1 rounded-5">
+                                <span class="subarrow">▽</span>
+                                    e-mail for feedback
+                                </summary>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="eMail" class="h6 text-start text-success-emphasis ms-3">e-mail for feedback</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input value="{{e_mail}}" id="eMail" name="eMail"
+                                               title="e-mail for feedback" type="email" pattern=".+@example\.com" required
+                                               onchange="validateInputEMail(this.id)"
+                                               class="form-control rounded-pill"
+                                            {%- if is_do_not_use_e_mail -%}
+                                                disabled
+                                            {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="isDoNotUseEMail" class="h6 text-start text-success-emphasis ms-3">don`t use e-mail</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="isDoNotUseEMail" name="isDoNotUseEMail" onchange="onChangingCheckbox(this.id, this.checked)"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if is_do_not_use_e_mail -%}
+                                                   checked
+                                               {% endif -%}
                                         />
                                     </div>
                                 </div>

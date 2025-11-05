@@ -55,7 +55,7 @@ class Config:
         self.WEBSERVER_RESULTS_URL = None
         self.WEBSERVER_LOG_URL = None
 
-        self.LOGGER = logger
+        # self.LOGGER = logger
         self.USAGE = USAGE
 
         if attributes:
@@ -86,18 +86,18 @@ class Config:
 
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
-        self.JOB_LOGGER = get_job_logger(f'f{process_id}', self.SERVERS_LOGS_DIR)
-        self.set_job_logger_info(f'PROCESS ID: {process_id}\n'
-                                 f'\tSERVERS_RESULTS_DIR: {self.SERVERS_RESULTS_DIR}\n'
-                                 f'\tSERVERS_LOGS_DIR: {self.SERVERS_LOGS_DIR}\n'
-                                 f'\tMSA_FILE: {self.MSA_FILE}\n'
-                                 f'\tTREE_FILE: {self.TREE_FILE}\n'
-                                 f'\tJOB_LOGGER: {self.JOB_LOGGER}\n'
-                                 f'\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}\n'
-                                 f'\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
+        self.JOB_LOGGER = get_job_logger(f'{process_id}', self.SERVERS_LOGS_DIR)
+        # self.set_job_logger_info(f'PROCESS ID: {process_id}\n'
+        #                          f'\tSERVERS_RESULTS_DIR: {self.SERVERS_RESULTS_DIR}\n'
+        #                          f'\tSERVERS_LOGS_DIR: {self.SERVERS_LOGS_DIR}\n'
+        #                          f'\tMSA_FILE: {self.MSA_FILE}\n'
+        #                          f'\tTREE_FILE: {self.TREE_FILE}\n'
+        #                          f'\tJOB_LOGGER: {self.JOB_LOGGER}\n'
+        #                          f'\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}\n'
+        #                          f'\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
 
     def set_job_logger_info(self, log_msg: str):
-        self.LOGGER.info(log_msg)
+        # self.LOGGER.info(log_msg)
         self.JOB_LOGGER.info(log_msg)
 
     def check_and_set_input_and_output_variables(self):
@@ -121,44 +121,48 @@ class Config:
                      'isOptimizePiAverage': int(self.CURRENT_ARGS.is_optimize_pi_average),
                      'isOptimizeAlpha': int(self.CURRENT_ARGS.is_optimize_alpha),
                      'isOptimizeBL': int(self.CURRENT_ARGS.is_optimize_bl),
+                     'isDoNotUseEMail': int(self.CURRENT_ARGS.is_do_not_use_e_mail),
                      'coefficientBL': self.CURRENT_ARGS.coefficient_bl,
                      'pi1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
-                     'categoriesQuantity': self.CURRENT_ARGS.categories_quantity}
+                     'categoriesQuantity': self.CURRENT_ARGS.categories_quantity,
+                     'eMail': self.CURRENT_ARGS.e_mail}
         return form_data
 
-    def execute_action(self, func, command_name: str, *args, **kwargs):
+    def execute_action(self, func, *args, **kwargs):
         try:
             val = func(*args, **kwargs)
-            self.set_job_logger_info(f'Successfully Command \'{command_name}\' executed successfully. -> {val}')
+            self.set_job_logger_info(f'Successfully Command \'{func.__name__}\' executed successfully. -> {val}')
         except ValueError:
             format_exc = f'{traceback.format_exc()}'
-            self.set_job_logger_info(f'Failed to execute the command \'{command_name}\' -> {format_exc}')
-            self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'{command_name}\'', format_exc))
+            self.set_job_logger_info(f'Failed to execute the command \'{func.__name__}\' -> {format_exc}')
+            self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'{func.__name__}\'', format_exc))
 
     def execute_calculation(self):
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_tree_for_fasta', False):
-            self.execute_action(self.ACTIONS.calculate_tree_for_fasta, 'calculate_tree_for_fasta',
-                                self.CALCULATED_ARGS.newick_tree)
+            self.execute_action(self.ACTIONS.calculate_tree_for_fasta, self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_ancestral_sequence', False):
-            self.execute_action(self.ACTIONS.calculate_ancestral_sequence, 'calculate_ancestral_sequence',
-                                self.CALCULATED_ARGS.newick_tree)
+            self.execute_action(self.ACTIONS.calculate_ancestral_sequence, self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
-            self.execute_action(self.ACTIONS.draw_tree, 'draw_tree',
-                                file_path=self.OUT_DIR, create_new_file=True, form_data=self.get_form_data(),
-                                newick_tree=self.CALCULATED_ARGS.newick_tree)
+            self.execute_action(self.ACTIONS.draw_tree, file_path=self.OUT_DIR, create_new_file=True,
+                                form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('compute_likelihood_of_tree', False):
-            self.execute_action(self.ACTIONS.compute_likelihood_of_tree, 'compute_likelihood_of_tree',
-                                file_path=self.OUT_DIR, create_new_file=True, form_data=self.get_form_data(),
-                                newick_tree=self.CALCULATED_ARGS.newick_tree)
+            self.execute_action(self.ACTIONS.compute_likelihood_of_tree, file_path=self.OUT_DIR, create_new_file=True,
+                                form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
-            self.execute_action(self.ACTIONS.create_all_file_types, 'create_all_file_types',
-                                file_path=self.OUT_DIR, create_new_file=True, form_data=self.get_form_data(),
-                                newick_tree=self.CALCULATED_ARGS.newick_tree)
+            self.execute_action(self.ACTIONS.create_all_file_types, file_path=self.OUT_DIR, create_new_file=True,
+                                form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
-            self.execute_action(self.ACTIONS.execute_all_actions, 'execute_all_actions',
-                                file_path=self.OUT_DIR, create_new_file=True, form_data=self.get_form_data(),
-                                newick_tree=self.CALCULATED_ARGS.newick_tree)
+            self.execute_action(self.ACTIONS.execute_all_actions, file_path=self.OUT_DIR, create_new_file=True,
+                                form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('send_results_email', False):
+            self.execute_action(self.ACTIONS.send_results_email, results_dir=self.SERVERS_RESULTS_DIR, is_error=False,
+                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename, excluded=('.json', '.zip'),
+                                receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
+        if self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('send_results_email', False):
+            self.execute_action(self.ACTIONS.send_results_email, results_dir=self.SERVERS_RESULTS_DIR, is_error=True,
+                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename, excluded=('.json', '.zip'),
+                                receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
 
     def check_arguments_for_errors(self) -> bool:
         if path.isfile(self.TREE_FILE):
@@ -182,10 +186,12 @@ class Config:
                                                                      self.CURRENT_ARGS.alpha,
                                                                      self.CURRENT_ARGS.pi_1,
                                                                      self.CURRENT_ARGS.coefficient_bl,
+                                                                     self.CURRENT_ARGS.e_mail,
                                                                      self.CURRENT_ARGS.is_optimize_pi,
                                                                      self.CURRENT_ARGS.is_optimize_pi_average,
                                                                      self.CURRENT_ARGS.is_optimize_alpha,
-                                                                     self.CURRENT_ARGS.is_optimize_bl)
+                                                                     self.CURRENT_ARGS.is_optimize_bl,
+                                                                     self.CURRENT_ARGS.is_do_not_use_e_mail)
 
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
             try:
@@ -230,7 +236,7 @@ class Config:
                                                       f'Strange error.'))
 
         if self.CALCULATED_ARGS.err_list:
-            self.set_job_logger_info(f'Error list: {self.CALCULATED_ARGS.err_list}')
+            self.set_job_logger_info(f'Error list: \n{self.CALCULATED_ARGS.err_list}')
         else:
             self.set_job_logger_info(f'Verification completed successfully')
 
@@ -251,7 +257,7 @@ class Config:
                             f'"compute_likelihood_of_tree", "create_all_file_types", "execute_all_actions"). '
                             f'Default is {self.MODE[3:]}.')
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=int, required=False,
-                            default=self.CURRENT_ARGS.with_internal_nodes, help=f'Specify the Newick file type '
+                            default=self.CURRENT_ARGS.with_internal_nodes, help=f'Specify the tree has internal nodes '
                             f'(optional). Default is {self.CURRENT_ARGS.with_internal_nodes}.')
         parser.add_argument('--categories_quantity', dest='categories_quantity', type=int, required=False,
                             default=int(self.CURRENT_ARGS.categories_quantity), help=f'Specify categories quantity '
@@ -263,6 +269,9 @@ class Config:
         parser.add_argument('--coefficient_bl', dest='coefficient_bl', type=float, required=False,
                             help=f'Specify coefficient_bl (optional). Default is {self.CURRENT_ARGS.coefficient_bl}.',
                             default=self.CURRENT_ARGS.coefficient_bl)
+        parser.add_argument('--e_mail', dest='e_mail', type=str, required=False,
+                            help=f'Specify e_mail (optional). Default is {self.CURRENT_ARGS.e_mail}.',
+                            default=self.CURRENT_ARGS.e_mail)
         parser.add_argument('--is_optimize_pi', dest='is_optimize_pi', type=int, required=False,
                             help=f'Specify is_optimize_pi (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_optimize_pi)}.', default=int(self.CURRENT_ARGS.is_optimize_pi))
@@ -277,6 +286,10 @@ class Config:
         parser.add_argument('--is_optimize_bl', dest='is_optimize_bl', type=int, required=False,
                             help=f'Specify is_optimize_bl (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_optimize_bl)}.', default=int(self.CURRENT_ARGS.is_optimize_bl))
+        parser.add_argument('--is_do_not_use_e_mail', dest='is_do_not_use_e_mail', type=int, required=False,
+                            help=f'Specify is_do_not_use_e_mail (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.is_do_not_use_e_mail)}.',
+                            default=int(self.CURRENT_ARGS.is_do_not_use_e_mail))
 
         args = parser.parse_args()
 
@@ -288,7 +301,7 @@ class Config:
                 elif arg_name == 'mode':
                     setattr(self, arg_name.upper(), tuple(arg_value))
                 elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
-                                  'is_optimize_alpha', 'is_optimize_bl'):
+                                  'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_e_mail'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))
                 else:
@@ -322,6 +335,8 @@ class Config:
             self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
                                          'calculate_ancestral_sequence': True,
                                          'execute_all_actions': True})
+        if not self.CURRENT_ARGS.is_do_not_use_e_mail and self.CURRENT_ARGS.e_mail:
+            self.DEFAULT_ACTIONS.update({'send_results_email': True})
 
         return args
 

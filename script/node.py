@@ -454,7 +454,8 @@ class Node:
             frequency = (1 - pi_1, pi_1)
         else:
             frequency = (1 / alphabet_size, 1 / alphabet_size)
-        # frequency = (pi_0, 1 - pi_0) if pi_0 else ((1 - pi_1, pi_1) if pi_1 else (1 / alphabet_size, 1 / alphabet_size))
+        # frequency = (pi_0, 1 - pi_0) if pi_0 else ((1 - pi_1, pi_1) if pi_1 else
+        #                                            (1 / alphabet_size, 1 / alphabet_size))
         # frequency = pi_1 if pi_1 else 1 - (pi_0 if pi_0 else 1 / alphabet_size)
 
         return alphabet_size, rate_vector, rate_vector_size, frequency

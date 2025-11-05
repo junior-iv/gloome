@@ -1,12 +1,18 @@
 import types
 
-from os import getenv, path
+from os import getenv, path, system, scandir
 from sys import argv
 from script.tree import Tree
 from script.service_functions import (check_data, create_all_file_types, compute_likelihood_of_tree, draw_tree,
                                       execute_all_actions)
 from typing import List, Tuple, Union
 from dotenv import load_dotenv
+
+import smtplib, ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email import encoders
 
 load_dotenv()
 MODE = ('draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions')
@@ -19,7 +25,7 @@ DEBUG = not IS_PRODUCTION
 SECRET_KEY = getenv('SECRET_KEY')
 TOKEN = getenv('TOKEN')
 PARTITION = getenv('PARTITION')
-USE_OLD_SUBMITER = getenv('USE_OLD_SUBMITER')
+USE_OLD_SUBMITER = int(getenv('USE_OLD_SUBMITER'))
 
 LOGIN_NODE_URLS = getenv('LOGIN_NODE_URLS')
 USER_NAME = getenv('USER_NAME')
@@ -27,6 +33,15 @@ USER_ID = getenv('USER_ID')
 USER_PASSWORD = getenv('USER_PASSWORD')
 ADMIN_EMAIL = getenv('ADMIN_EMAIL')
 SMTP_SERVER = getenv('SMTP_SERVER')
+SMTP_PORT = int(getenv('SMTP_PORT'))
+
+# ADMIN_EMAIL = 'juniorrr.iv@gmail.com'
+# # ADMIN_EMAIL = 'sgloome@gmail.com'
+# SMTP_SERVER = 'smtp.gmail.com'
+# # SMTP_PORT = 465
+# ADMIN_PASSWORD = 'debe eenr qyfr jmdr'
+# # ADMIN_PASSWORD = 'W7wp.N2WaqmT%f'
+# # SMTP_PORT = 587
 
 DEV_EMAIL = getenv('DEV_EMAIL')
 ADMIN_USER_NAME = getenv('ADMIN_USER_NAME')
@@ -66,6 +81,100 @@ TREE_FILE_NAME = 'tree_file.tree'
 
 REQUESTS_NUMBER = 100
 REQUEST_WAITING_TIME = 30
+
+
+class MailSenderSMTPLib:
+    name: str
+    sender: str
+    receiver: str
+    smtp_server: str
+    smtp_port: int
+    password: str
+
+    def __init__(self, **attributes):
+        self.sender = ADMIN_EMAIL
+        self.smtp_server = SMTP_SERVER
+        self.smtp_port = SMTP_PORT
+        self.password = ADMIN_PASSWORD
+
+        self.set_attributes(**attributes)
+
+    def set_attributes(self, **attributes):
+        if attributes:
+            for key, value in attributes.items():
+                setattr(self, key, value)
+
+    def send_email(self, subject: str, attachments: Union[Tuple[str, ...], List[str], str], body: str):
+        message = MIMEMultipart()
+        message["From"] = self.sender
+        message["To"] = self.receiver
+        message["Subject"] = subject
+        message.attach(MIMEText(body, 'plain'))
+
+        if isinstance(attachments, (tuple, list)):
+            for attachment_path in attachments:
+                self.add_attachment_to_email(attachment_path, message)
+        elif isinstance(attachments, str):
+            self.add_attachment_to_email(attachments, message)
+
+        if self.smtp_port == 587:
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                context = ssl.create_default_context()
+                server.starttls(context=context)
+                server.login(self.sender, self.password)
+                server.send_message(message)
+        elif self.smtp_port == 465:
+            with smtplib.SMTP_SSL(self.smtp_server, self.smtp_port) as server:
+                server.login(self.sender, self.password)
+                server.send_message(message)
+
+    def send_results_email(self, results_dir: str, log_file: str, excluded: Union[Tuple[str, ...], List[str], str,
+                           None] = None, included: Union[Tuple[str, ...], List[str], str, None] = None,
+                           is_error: bool = False, **kwargs):
+        self.set_attributes(**kwargs)
+        status = 'failed!' if is_error else 'complited'
+        subject = f'{WEBSERVER_NAME_CAPITAL} job {self.name} by {self.receiver} has {status}'
+        attachments = [log_file]
+        with scandir(results_dir) as entries:
+            for entry in entries:
+                self.add_attachment_to_list(entry, results_dir, attachments, excluded, included)
+        self.send_email(subject, attachments, subject)
+
+    def send_log_files_list(self, log_files_dir: str, start_date: int, end_date: int, excluded: Union[Tuple[str, ...],
+                            List[str], str, None] = None, included: Union[Tuple[str, ...], List[str], str, None] = None,
+                            **kwargs):
+        self.set_attributes(**kwargs)
+        subject = f'{WEBSERVER_NAME_CAPITAL} list of log files by {self.receiver}'
+        attachments = []
+        with scandir(log_files_dir) as entries:
+            for entry in entries:
+                if start_date <= entry.stat().st_ctime_ns < end_date:
+                    self.add_attachment_to_list(entry, log_files_dir, attachments, excluded, included)
+        self.send_email(subject, attachments, subject)
+
+    @staticmethod
+    def add_attachment_to_list(entry, current_dir: str, attachments: List[str], excluded: Union[Tuple[str, ...],
+                               List[str], str, None] = None, included: Union[Tuple[str, ...], List[str], str, None] =
+                               None):
+        exclud = (excluded is not None and (entry.name in excluded or path.splitext(entry.name)[-1] in excluded
+                  or path.splitext(entry.name)[-1][1:] in excluded))
+        includ = (included is None or entry.name in included or path.splitext(entry.name)[-1] in included
+                  or path.splitext(entry.name)[-1][1:] in included)
+        if entry.is_file() and not exclud and includ:
+            attachments.append(path.join(current_dir, entry))
+
+    @staticmethod
+    def add_attachment_to_email(attachment_path, message):
+        with open(attachment_path, "rb") as attachment:
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment.read())
+
+        encoders.encode_base64(part)
+        part.add_header(
+            "Content-Disposition",
+            f"attachment; filename= {path.basename(attachment_path)}",
+        )
+        message.attach(part)
 
 
 class Actions:
@@ -122,10 +231,12 @@ DEFAULT_FORM_ARGUMENTS = {
     'alpha': 0.5,
     'pi_1': 0.5,
     'coefficient_bl': 1.0,
+    'e_mail': '',
     'is_optimize_pi': True,
     'is_optimize_pi_average': False,
     'is_optimize_alpha': True,
-    'is_optimize_bl': True
+    'is_optimize_bl': True,
+    'is_do_not_use_e_mail': True
     }
 
 ACTIONS = Actions(**{
@@ -137,7 +248,9 @@ ACTIONS = Actions(**{
                      'calculate_ancestral_sequence': Tree.calculate_ancestral_sequence,
                      'draw_tree': draw_tree,
                      'create_all_file_types': create_all_file_types,
-                     'execute_all_actions': execute_all_actions
+                     'execute_all_actions': execute_all_actions,
+                     # 'send_error_email': MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL).send_results_email,
+                     'send_results_email': MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL).send_results_email
                      })
 
 VALIDATION_ACTIONS = {
@@ -152,7 +265,9 @@ DEFAULT_ACTIONS = {
     'calculate_ancestral_sequence': False,
     'draw_tree': False,
     'create_all_file_types': False,
-    'execute_all_actions': False
+    'execute_all_actions': False,
+    # 'send_error_email': False,
+    'send_results_email': False
     }
 
 
@@ -167,21 +282,33 @@ USAGE = '''\tRequired parameters:
 \t\t--msa_file <type=str>
 \t\t\tSpecify the msa filepath.
 \t\t--tree_file <type=str>
-\t\t\tSpecify the tree filepath.
+\t\t\tSpecify the newick filepath.
 \tOptional parameters:
 \t\t--mode <type=str>
 \t\t\tExecution mode style. Possible options: ('draw_tree', 'compute_likelihood_of_tree', 
 \t\t\t'create_all_file_types', 'execute_all_actions'). Default is 'execute_all_actions'.
-\t\t--with_internal_nodes <type=bool> 
-\t\t\tSpecify the Newick file type. Default is True.
+\t\t--with_internal_nodes <type=int> 
+\t\t\tSpecify the tree has internal nodes. Default is 1.
 \t\t--categories_quantity <type=int>
 \t\t\tSpecify categories quantity. Default is 4.
 \t\t--alpha <type=float>
 \t\t\tSpecify alpha. Default is 0.5.
 \t\t--pi_1 <type=float> 
 \t\t\tSpecify pi_1. Default is 0.5.
-\t\t--is_optimize_pi <type=bool> 
-\t\t\tSpecify is_optimize_pi. Default is False.'''
+\t\t--coefficient_bl <type=float> 
+\t\t\tSpecify coefficient_bl. Default is 1.0.
+\t\t--e_mail <type=str> 
+\t\t\tSpecify e_mail. Default is ''.
+\t\t--is_optimize_pi <type=int> 
+\t\t\tSpecify is_optimize_pi. Default is 1.
+\t\t--is_optimize_pi_average <type=int> 
+\t\t\tSpecify is_optimize_pi_average. Default is 0.
+\t\t--is_optimize_alpha <type=int> 
+\t\t\tSpecify is_optimize_alpha. Default is 1.
+\t\t--is_optimize_bl <type=int> 
+\t\t\tSpecify is_optimize_bl. Default is 1.
+\t\t--is_do_not_use_e_mail <type=int> 
+\t\t\tSpecify is_do_not_use_e_mail. Default is 1.'''
 # --sort_values_by <type=str>
 #     Specify the columns by which you want to sort the values in the csv file.
 #     Possible options: ('Name', 'Parent', 'Distance to parent', 'Children'). Default is 'child' 'Name'.

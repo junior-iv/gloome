@@ -6,8 +6,9 @@ from typing import Callable, Any
 from datetime import timedelta
 from shutil import make_archive, move
 from numpy import ndarray
-from .tree import Tree
-from .design_functions import *
+from script.tree import Tree
+from script.design_functions import *
+from validate_email import validate_email
 
 
 def get_digit(data: str) -> Union[int, float, str]:
@@ -209,10 +210,12 @@ def check_data(*args) -> List[Tuple[str, str]]:
     alpha = float(args[3])
     pi_1 = float(args[4])
     coefficient_bl = float(args[5])
-    is_optimize_pi = bool(args[6])
-    is_optimize_pi_average = bool(args[7])
-    is_optimize_alpha = bool(args[8])
-    is_optimize_bl = bool(args[9])
+    e_mail = args[6]
+    is_optimize_pi = bool(args[7])
+    is_optimize_pi_average = bool(args[8])
+    is_optimize_alpha = bool(args[9])
+    is_optimize_bl = bool(args[10])
+    is_do_not_use_e_mail = bool(args[11])
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -228,19 +231,26 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'Branch lengths (BL) coefficient value error [ {coefficient_bl} ]',
                          f'The value must be between 0.1 and 10.'))
 
+    if (not isinstance(e_mail, str) or not validate_email(e_mail)) and not is_do_not_use_e_mail:
+        err_list.append((f'Invalid email address [ {e_mail} ]', f'Must be valid email address.'))
+
     if not isinstance(is_optimize_pi, bool):
-        err_list.append((f'optimize π1 value (algorithmic) error [ {is_optimize_pi} ]',
+        err_list.append((f'Optimize π1 value (algorithmic) error [ {is_optimize_pi} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(is_optimize_pi_average, bool):
-        err_list.append((f'optimize π1 value (empirical) error [ {is_optimize_pi_average} ]',
+        err_list.append((f'Optimize π1 value (empirical) error [ {is_optimize_pi_average} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(is_optimize_alpha, bool):
-        err_list.append((f'optimize α value error [ {is_optimize_alpha} ]', f'The value must be boolean type.'))
+        err_list.append((f'Optimize α value error [ {is_optimize_alpha} ]', f'The value must be boolean type.'))
 
     if not isinstance(is_optimize_bl, bool):
-        err_list.append((f'optimize branch lengths coefficient value error [ {is_optimize_bl} ]',
+        err_list.append((f'Optimize branch lengths coefficient value error [ {is_optimize_bl} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(is_do_not_use_e_mail, bool):
+        err_list.append((f'Do not use e-mail value error [ {is_do_not_use_e_mail} ]',
                          f'The value must be boolean type.'))
 
     if not msa:

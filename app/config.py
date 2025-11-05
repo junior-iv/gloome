@@ -65,9 +65,9 @@ class WebConfig:
         self.MODE = None
         self.COMMAND_LINE = None
 
-        self.LOGGER = logger
+        # self.LOGGER = logger
         self.JOBS_NUMBER = JobsCounter()
-        if int(USE_OLD_SUBMITER):
+        if USE_OLD_SUBMITER:
             self.SUBMITER = SlurmSubmiter()
         else:
             self.SUBMITER = SawSubmiter()
@@ -82,7 +82,7 @@ class WebConfig:
             self.change_process_id(get_new_process_id())
 
     def set_job_logger_info(self, log_msg: str):
-        self.LOGGER.info(log_msg)
+        # self.LOGGER.info(log_msg)
         self.JOB_LOGGER.info(log_msg)
 
     def change_process_id(self, process_id: str):
@@ -104,24 +104,25 @@ class WebConfig:
 
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
-        self.JOB_LOGGER = get_job_logger(f'f{process_id}', self.SERVERS_LOGS_DIR)
-        self.set_job_logger_info(f'PROCESS ID: {process_id}\n'
-                                 f'\tSUBMITER: {self.SUBMITER.__class__.__name__}\n'
-                                 f'\tSERVERS_RESULTS_DIR: {self.SERVERS_RESULTS_DIR}\n'
-                                 f'\tSERVERS_LOGS_DIR: {self.SERVERS_LOGS_DIR}\n'
-                                 f'\tMSA_FILE: {self.MSA_FILE}\n'
-                                 f'\tTREE_FILE: {self.TREE_FILE}\n'
-                                 f'\tOUTPUT_FILE: {self.OUTPUT_FILE}\n'
+        self.JOB_LOGGER = get_job_logger(f'{process_id}', self.SERVERS_LOGS_DIR)
+        self.set_job_logger_info(f'\n\tPROCESS ID: {process_id}\n'
+                                 f'\tSUBMITER: {self.SUBMITER}\n'
+                                 # f'\tSERVERS_RESULTS_DIR: {self.SERVERS_RESULTS_DIR}\n'
+                                 # f'\tSERVERS_LOGS_DIR: {self.SERVERS_LOGS_DIR}\n'
+                                 # f'\tMSA_FILE: {self.MSA_FILE}\n'
+                                 # f'\tTREE_FILE: {self.TREE_FILE}\n'
+                                 # f'\tOUTPUT_FILE: {self.OUTPUT_FILE}\n'
                                  f'\tJOB_LOGGER: {self.JOB_LOGGER}\n'
                                  f'\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}\n'
                                  f'\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
 
     def arguments_filling(self, **arguments):
-        dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'isOptimizePi', 'isOptimizePiAverage',
-                   'isOptimizeBL', 'isOptimizeAlpha'),
-                  ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'is_optimize_pi', 'is_optimize_pi_average',
-                   'is_optimize_bl', 'is_optimize_alpha'),
-                  ((int, ), (float, ), (float, ), (float, ), (int, bool), (int, bool), (int, bool), (int, bool)))
+        dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'eMail', 'isOptimizePi',
+                   'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseEMail'),
+                  ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'e_mail', 'is_optimize_pi',
+                   'is_optimize_pi_average', 'is_optimize_bl', 'is_optimize_alpha', 'is_do_not_use_e_mail'),
+                  ((int, ), (float, ), (float, ), (float, ), (str, ), (int, bool), (int, bool), (int, bool),
+                   (int, bool), (int, bool)))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -133,17 +134,19 @@ class WebConfig:
         self.MODE = ' '.join(mode)
         self.CALCULATED_ARGS.newick_text = arguments.get('newickText')
         self.CALCULATED_ARGS.msa = arguments.get('msaText')
-        self.set_job_logger_info(f'MODE: {self.MODE}\n'
+        self.set_job_logger_info(f'\n\tMODE: {self.MODE}\n'
                                  f'\tcategories_quantity: {self.CURRENT_ARGS.categories_quantity}\n'
                                  f'\talpha: {self.CURRENT_ARGS.alpha}\n'
                                  f'\tpi_1: {self.CURRENT_ARGS.pi_1}\n'
                                  f'\tcoefficient_bl: {self.CURRENT_ARGS.coefficient_bl}\n'
+                                 f'\te_mail: {self.CURRENT_ARGS.e_mail}\n'
                                  f'\tis_optimize_pi: {self.CURRENT_ARGS.is_optimize_pi}\n'
                                  f'\tis_optimize_pi_average: {self.CURRENT_ARGS.is_optimize_pi_average}\n'
                                  f'\tis_optimize_alpha: {self.CURRENT_ARGS.is_optimize_alpha}\n'
                                  f'\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}\n'
-                                 f'\tnewick_text: {self.CALCULATED_ARGS.newick_text}\n'
-                                 f'\tmsa: {self.CALCULATED_ARGS.msa}\n')
+                                 f'\tis_do_not_use_e_mail: {self.CURRENT_ARGS.is_do_not_use_e_mail}\n'
+                                 f'\tnewick_text: \n{self.CALCULATED_ARGS.newick_text}\n'
+                                 f'\tmsa: \n{self.CALCULATED_ARGS.msa}\n')
 
     def texts_filling(self, replace_path: bool = True) -> None:
         if replace_path:
@@ -166,9 +169,9 @@ class WebConfig:
 
         if replace_path:
             self.replace_files_path()
-        self.set_job_logger_info(f'Create msa file: {self.MSA_FILE}')
-        self.set_job_logger_info(f'Create newick file: {self.TREE_FILE}')
-        self.set_job_logger_info(f'File path: {self.CALCULATED_ARGS.file_path}')
+        self.set_job_logger_info(f'Created msa file: {self.MSA_FILE}')
+        self.set_job_logger_info(f'Created newick file: {self.TREE_FILE}')
+        self.set_job_logger_info(f'Output files path: {self.CALCULATED_ARGS.file_path}')
 
     def create_command_line(self) -> None:
         self.COMMAND_LINE = (
@@ -180,18 +183,21 @@ class WebConfig:
             f'--alpha {self.CURRENT_ARGS.alpha} '
             f'--pi_1 {self.CURRENT_ARGS.pi_1} '
             f'--coefficient_bl {self.CURRENT_ARGS.coefficient_bl} '
+            f'--e_mail {self.CURRENT_ARGS.e_mail} '
             f'--is_optimize_pi {int(self.CURRENT_ARGS.is_optimize_pi)} '
             f'--is_optimize_pi_average {int(self.CURRENT_ARGS.is_optimize_pi_average)} '
             f'--is_optimize_alpha {int(self.CURRENT_ARGS.is_optimize_alpha)} '
             f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
+            f'--is_do_not_use_e_mail {int(self.CURRENT_ARGS.is_do_not_use_e_mail)} '
             f'--mode {self.MODE}')
-        self.set_job_logger_info(f'COMMAND_LINE: {self.COMMAND_LINE}')
+        self.set_job_logger_info(f'COMMAND_LINE: \n{self.COMMAND_LINE}')
 
     def get_request_body(self):
         # TODO think about job_name = f'gloome_{self.PROCESS_ID}_{self.JOBS_NUMBER.inc()}'
         # job_name = f'gloome_{self.PROCESS_ID}_{self.JOBS_NUMBER.inc()}'
         job_name = f'gloome_{self.PROCESS_ID}'
-        prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{self.PROCESS_ID}_'
+        # prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{self.PROCESS_ID}_'
+        prefix = f'{self.PROCESS_ID}_'
         tmp_dir = path.join(self.PRODJECT_DIR, 'tmp')
         cmd = (f'#!/bin/bash\n'
                f'source ~/.bashrc\n'
@@ -241,7 +247,7 @@ class WebConfig:
             }
         body = {'SlurmSubmiter': {'script': cmd, 'job': job_slurm}, 'SawSubmiter': job_saw}
 
-        return body.get(self.SUBMITER.__class__.__name__)
+        return body.get(self.SUBMITER.get_name())
 
     def get_response_design(self, json_object: Optional[Any], action_name: str) -> Optional[Any]:
         if 'create_all_file_types' in action_name:
@@ -275,14 +281,13 @@ class WebConfig:
 
         self.CURRENT_JOB = self.SUBMITER.submit_job(json=request_body).get('job_id', self.JOBS_NUMBER.value)
         self.HISTORY.append(self.CURRENT_JOB)
-        self.set_job_logger_info(f'\tSubmit job (id: {self.CURRENT_JOB})'
-                                 f'\tRequest body: {request_body}\n')
+        self.set_job_logger_info(f'\nSubmit job (id: {self.CURRENT_JOB})'
+                                 f'\nRequest body: {request_body}\n')
 
         job_state = self.SUBMITER.check_job_state(self, count=REQUESTS_NUMBER, waiting_time=REQUEST_WAITING_TIME)
 
         if job_state:
-            self.set_job_logger_info(f'\tJob states: {job_state}\n'
-                                     f'\tResult file: {self.OUTPUT_FILE}\n')
+            self.set_job_logger_info(f'Result file: {self.OUTPUT_FILE}\n')
             return self.read_response()
         return ''
 
@@ -338,6 +343,12 @@ class SawSubmiter:
 
         self.base_url_auth = 'https://saw.tau.ac.il'
         self.api = f"{self.base_url_auth}/slurmapi"
+
+    def __str__(self) -> str:
+        return self.get_name()
+
+    def get_name(self) -> str:
+        return f'{self.__class__.__name__}'
 
     def exec_request(self, url: str, method: str = 'GET', **kwargs):
         headers = {
@@ -448,8 +459,14 @@ class SlurmSubmiter:
         self.api_key = SECRET_KEY
 
         self.base_url_auth = 'https://slurmtron.tau.ac.il'
-        self.api = f"{self.base_url_auth}/slurmrestd"
-        self.generate_token_url = f"{ self.base_url_auth}/slurmapi/generate-token/"
+        self.api = f'{self.base_url_auth}/slurmrestd'
+        self.generate_token_url = f'{self.base_url_auth}/slurmapi/generate-token/'
+
+    def __str__(self) -> str:
+        return self.get_name()
+
+    def get_name(self) -> str:
+        return f'{self.__class__.__name__}'
 
     def generate_token(self):
 
