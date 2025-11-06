@@ -6,9 +6,10 @@ from typing import Callable, Any
 from datetime import timedelta
 from shutil import make_archive, move
 from numpy import ndarray
+from validate_email import validate_email
+
 from script.tree import Tree
 from script.design_functions import *
-from validate_email import validate_email
 
 
 def get_digit(data: str) -> Union[int, float, str]:
@@ -122,12 +123,12 @@ def check_tree_data(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], st
 
 
 def execute_all_actions(newick_tree: Union[str, Tree], file_path: str, create_new_file: bool = False,
-                        form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
-                        ) -> Union[Dict[str, str], str]:
+                        form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
+                        log_file: Optional[str] = None) -> Union[Dict[str, str], str]:
 
-    result_data = {'draw_tree': draw_tree(newick_tree, file_path)}
-    result_data.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree, file_path)})
-    result_data.update({'create_all_file_types': create_all_file_types(newick_tree, file_path)})
+    result_data = {'draw_tree': draw_tree(newick_tree)}
+    result_data.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree)})
+    result_data.update({'create_all_file_types': create_all_file_types(newick_tree, file_path, log_file=log_file)})
     if create_new_file:
         return create_file(file_path, get_result_data(result_data, 'execute_all_actions', form_data), 'result.json')
 
@@ -149,8 +150,8 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], file_path: Optiona
 
 
 def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_new_file: bool = False,
-                          form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None
-                          ) -> Union[Dict[str, str], str]:
+                          form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
+                          log_file: Optional[str] = None) -> Union[Dict[str, str], str]:
 
     result = {'Interactive tree (html)': newick_tree.tree_to_interactive_html(f'{file_path}/interactive_tree.html')}
     # result.update(newick_tree.tree_to_graph(f'{file_path}/graph.txt', ('dot', 'png', 'svg')))
@@ -170,6 +171,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_
     move(archive_name, new_archive_name)
 
     result.update({'Archive (zip)': new_archive_name})
+    if log_file:
+        result.update({'Log-File (log)': log_file})
 
     if create_new_file:
         return create_file(file_path, get_result_data(result, 'create_all_file_types', form_data), 'result.json')
@@ -177,7 +180,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_
     return result
 
 
-def draw_tree(newick_tree: Tree, file_path: str, create_new_file: bool = False,
+def draw_tree(newick_tree: Tree, file_path: Optional[str] = None, create_new_file: bool = False,
               form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None) -> Union[List[Any], str]:
     result = [newick_tree.get_json_structure(),
               newick_tree.get_json_structure(return_table=True),

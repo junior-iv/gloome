@@ -74,7 +74,7 @@ def get_file():
         mode = request.args.get('mode', 'view')
         file_exists = path.exists(file_path)
         as_attachment = mode == 'download' and file_exists
-        file_path = file_path
+        # file_path = file_path
         if mode == 'view':
             j = file_path[::-1].find('.')
             file_extension = file_path[-j:]

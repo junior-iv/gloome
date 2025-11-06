@@ -151,10 +151,12 @@ class Config:
                                 form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
             self.execute_action(self.ACTIONS.create_all_file_types, file_path=self.OUT_DIR, create_new_file=True,
-                                form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
+                                form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
+                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
             self.execute_action(self.ACTIONS.execute_all_actions, file_path=self.OUT_DIR, create_new_file=True,
-                                form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
+                                form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
+                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('send_results_email', False):
             self.execute_action(self.ACTIONS.send_results_email, results_dir=self.SERVERS_RESULTS_DIR, is_error=False,
                                 log_file=self.JOB_LOGGER.handlers[-1].baseFilename, excluded=('.json', '.zip'),
