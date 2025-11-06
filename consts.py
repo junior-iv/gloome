@@ -1,4 +1,4 @@
-from os import getenv, path, system, scandir
+from os import getenv, path, scandir
 from sys import argv
 from typing import List, Tuple, Union
 from dotenv import load_dotenv
