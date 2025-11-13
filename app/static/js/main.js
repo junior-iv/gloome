@@ -47,7 +47,40 @@ function setVisibility(id = 'result', visible = true) {
     return element
 }
 
-function setLoader(loaderOn = true) {
+function delayedWrapper(id = 'wrapper', visible = true, duration = 7500) {
+    setWrapper(id, visible)
+    setTimeout(() => {
+        setWrapper(id, !visible)
+    }, duration);
+}
+
+function setWrapper(id = 'wrapper', visible = true) {
+    let wrapper = document.getElementById(id)
+    setVisibility(id, visible)
+    if (visible) {
+        wrapper.innerHTML =
+            `<div class="scroll-text text-info text-center">Scroll to down</div>
+                <div class="aarrow one">
+                    <div class="m-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" height='36px' viewBox="0 -960 960 960" width='36px' fill="lightskyblue">
+                            <path d="m480-320 160-160-56-56-64 64v-168h-80v168l-64-64-56 56 160 160Zm0 240q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/>
+                        </svg>                    
+                    </div>
+                </div>
+                <div class="aarrow two">
+                    <div class="m-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" height='36px' viewBox="0 -960 960 960" width='36px' fill="lightskyblue">
+                            <path d="m480-320 160-160-56-56-64 64v-168h-80v168l-64-64-56 56 160 160Zm0 240q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/>
+                        </svg>                    
+                    </div>
+                </div>
+            </div>`
+    } else {
+        wrapper.innerHTML = ``
+    }
+}
+
+function setLoader(id = 'result', loaderOn = true) {
     let loader = document.getElementById('loader')
     setVisibility(`result`, !loaderOn)
 
@@ -122,7 +155,7 @@ function getNodeStyle(d, nodeType, mode = 0, sizeFactor = 1){
 function reDrawPhylogeneticTree() {
     if (jsonTreeData !== null){
         setVisibility(`result`, true);
-        setLoader(false)
+        setLoader('result', false)
         showMessage(``, -1);
         document.getElementById('tree').innerText = ``;
         drawPhylogeneticTree(jsonTreeData);
@@ -195,6 +228,7 @@ function drawPhylogeneticTree(jsonData) {
         })
         .on("click", function(event, d) {
             document.getElementById('branchInfo').innerHTML = drawInformation(jsonData[4][d.target.data.name], jsonData[5]["List for sorting"], true, 1, jsonData[6]["Sequence length"]);
+            delayedWrapper();
         });
     const nodes = svg.selectAll(".node")
         .data(root.descendants())
@@ -229,6 +263,7 @@ function drawPhylogeneticTree(jsonData) {
         })
         .on("click", function(event, d) {
             document.getElementById('nodeInfo').innerHTML = drawInformation(jsonData[1][d.data.name], jsonData[2]["List for sorting"], true, 0, jsonData[6]["Sequence length"]);
+            delayedWrapper();
         });
 
     nodes
@@ -314,6 +349,12 @@ function drawInformation(jsonData, sortingList, summary = true, mode = 0, sequen
     return table;
 }
 
+function drawErrorMessage(jsonData) {
+    let result = `<div class="w-100 m-0 alert-dismissible d-flex opacity-85 gap-2 flex-column justify-content-center alert alert-danger text-break text-center border-0 rounded-pill">${jsonData}</div>`
+    document.getElementById('errorMessage').innerHTML = result;
+    return result;
+}
+
 function drawLogLikelihood(jsonData) {
     let result = `<div class="w-100 flex-row form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" 
         onclick="copyValue('logLikelihoodValue', 7)" title="click here to copy the value of log-Likelihood to the clipboard">
@@ -366,13 +407,44 @@ function showResponse(jsonData, mode = 0) {
 
     if (mode === 0) {
         Object.entries(dictActions).forEach(([key, func]) => func(jsonData[key]));
+    } else if (mode === -1) {
+        delete dictActions.create_all_file_types
+        dictActions.error_message = drawErrorMessage
+        Object.entries(dictActions).forEach(([key, func]) => func(jsonData[key]));
+        delayedWrapper()
     } else {
         dictActions[actions[mode-1]](jsonData[actions[mode-1]]);
+        delayedWrapper()
     }
 
     setVisibility(`result`, true);
 }
 
+
+function make_request(absolutePath, formData, mode) {
+    setVisibilityLoader(true);
+    setAccessibility();
+    setVisibility(`result`, false);
+
+    fetch(absolutePath, {
+        method: `POST`,
+        body: formData
+    })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {response.json()
+                .then(data => {throw new Error(data.message)})
+                .catch(error => {processError(error)})}
+        })
+        .then(data => {
+            setVisibilityLoader(false);
+            setAccessibility();
+
+            typeof data.message === "object" ? showResponse(data.message, mode) : showAlert(data.message, 8000);
+        })
+        .catch(error => {processError(error)});
+}
 
 function makeTree(mode = 0) {
     const newickText = document.getElementById(`newickText`);
@@ -403,49 +475,50 @@ function makeTree(mode = 0) {
 
     jsonTreeData = null
 
-    setVisibilityLoader(true);
-    setAccessibility();
-    setVisibility(`result`, false);
-
     let absolutePath = ['/execute_all_actions', `/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
 
-    fetch(absolutePath, {
-        method: `POST`,
-        body: formData
-    })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {response.json()
-                .then(data => {throw new Error(data.message)})
-                .catch(error => {processError(error)})}
-        })
-        .then(data => {
-            setVisibilityLoader(false);
-            setAccessibility();
-
-            typeof data.message === "object" ? showResponse(data.message, mode) : showAlert(data.message, 8000);
-        })
-        .catch(error => {processError(error)});
+    make_request(absolutePath, formData, mode);
 }
 
 function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`) {
     let textFile = document.getElementById(textFileName).files[0];
     let textArea = document.getElementById(textAreaName);
-    {
-        if (textFile) {
-            let reader = new FileReader();
+    if (textFile) {
+        let reader = new FileReader();
 
-            reader.onload = function(event) {
-                textArea.value = event.target.result.trim();
-            };
-            reader.readAsText(textFile);
-        }
+        reader.onload = function(event) {
+            textArea.value = event.target.result.trim();
+        };
+        reader.readAsText(textFile);
     }
 }
 
+function readJson(id = `jsonFile`) {
+    let jsonFile = document.getElementById(id).files[0];
+    let actions = ['execute_all_actions', 'draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types'];
+    const formData = new FormData();
+    const promise = new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = function () {
+                resolve(reader.result);
+            }
+            reader.readAsText(jsonFile);
+        });
+        promise.then(jsonString => {
+            let jsonObject = JSON.parse(jsonString);
+            formData.append(`json_string`, jsonString);
+            let mode = actions.indexOf(jsonObject['action_name']);
+            mode = mode === 0 ? -1 : mode;
+            if (mode === 3 ) {
+                showAlert(`Cannot create file links locally`, 8000);
+            } else {
+                make_request('/read_json_file', formData, mode);
+            }
+    });
+}
+
 function setVisibilityLoader(visible = true) {
-    setLoader(visible)
+    setLoader('result', visible)
     document.getElementById('tree').innerText = ``;
     document.getElementById('branchInfo').innerText = ``;
     document.getElementById('nodeInfo').innerText = ``;

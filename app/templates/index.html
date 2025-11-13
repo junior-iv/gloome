@@ -20,6 +20,17 @@
 {{ super() }}
 <script src="https://d3js.org/d3.v7.js"></script>
 {#            <script src="https://d3js.org/d3.v4.js"></script>#}
+
+<div id="wrapper" class="wrapper align-content-center justify-content-center">
+{#    <div class="scroll-text text-info text-center">Scroll to down</div>#}
+{#    <div class="aarrow one">#}
+{#        <div class="m-2">{{nwt.arrow(4, 'lightskyblue', 36, 36)}}</div>#}
+{#    </div>#}
+{#    <div class="aarrow two">#}
+{#        <div class="m-2">{{nwt.arrow(4, 'lightskyblue', 36, 36)}}</div>#}
+{#    </div>#}
+</div>
+
 <div class="d-flex flex-column justify-content-center h-100 w-100">
     <div class="box flex-row h-80 w-100">
         <div class="box flex-column w-50 h-auto bg-light rounded-3 p-3 ms-3 me-1 my-3">
@@ -104,7 +115,7 @@
                            value="Clear" onclick="formCleaning([{{pi_1}}, {{alpha}}, {{categories_quantity}}, {{coefficient_bl}}])"/>
                 </div>
             </div>
-            <div class="d-flex flex-column text-center w-100 px-2">
+            <div class="d-flex flex-column text-center w-100 pb-1 px-2">
                 <details>
                     <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
                     <span class="arrow">▼</span>
@@ -281,6 +292,34 @@
                     </div>
                 </details>
             </div>
+            <div class="d-flex flex-column text-center w-100 pt-1 px-2">
+                <details>
+                    <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
+                    <span class="arrow">▼</span>
+                    Advanced actions
+                    </summary>
+                    <div class="box w-100 flex-column">
+                        <div class="box flex-column h-auto w-100 p-2">
+                            <details class="subdetails" open>
+                                <summary class="text-start w-100 form-control btn btn-outline-secondary bg-secondary-subtle border-1 rounded-5">
+                                <span class="subarrow">▽</span>
+                                    read JSON response file
+                                </summary>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="eMail" class="h6 text-start text-success-emphasis ms-3">read JSON response file</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="jsonFile" name="jsonFile" type="file" accept=".json"
+                                               title="read JSON response file" class="form-control rounded-pill"
+                                               onchange="readJson(this.id)"/>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </details>
+            </div>
             <div class="d-flex h-100 flex-column text-center w-100 px-2 mt-2">
                 <input id="theButton" name="theButton" type="button" class="h-100 w-100 form-control btn btn-outline-success bg-success-subtle rounded-3"
                       value="SUBMIT" onclick="makeTree(0)"/>
@@ -313,12 +352,6 @@
 {#            {{nwt.arrow(2, 'maroon', 48, 48)}}#}
 {#        </div>#}
     <div id="result" style="visibility: hidden" class="d-flex gap-2 flex-column w-auto h-auto bg-light rounded-3 p-3 mx-3">
-        <div id="logLikelihood" class="d-flex gap-2 text-start w-100 px-2">
-{#            <div class="w-100 flex-row form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill"#}
-{#                 onclick="copyValue('logLikelihoodValue', 7)" title="click here to copy the value of log-Likelihood to the clipboard">#}
-{#                Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id, 7)">-184.92563569849239</span>#}
-{#            </div>#}
-        </div>
         <div id="nodeInfo" class="d-flex gap-2 flex-column text-start w-100 px-2">
 {#            <details open>#}
 {#                <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">#}
@@ -333,6 +366,12 @@
 {#                <table id="tooltip" class="w-97 m-3 p-4 h7"><tbody><tr><th class="p-2 w-auto tborder-2">Name</th><th class="p-2 w-auto"></th><td class="w-auto text-center">N4</td></tr><tr><th class="p-2 w-auto tborder-2">Node type</th><th class="p-2 w-auto"></th><td class="w-auto text-center">node</td></tr><tr><th class="p-2 w-auto tborder-2">Distance to parent</th><th class="p-2 w-auto"></th><td class="w-auto text-center">0.2</td></tr><tr><th class="p-2 w-auto tborder-2">Sequence</th><th class="p-2 w-auto"></th><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: crimson" class="w-auto text-center">0</td><td style="color: darkviolet" class="w-auto text-center">1</td></tr><tr><th class="p-2 w-auto tborder-2">Probability coefficient</th><th class="p-2 w-auto"></th><td style="color: forestgreen" class="w-auto text-center">0.523</td><td style="color: slateblue" class="w-auto text-center">0.846</td><td style="color: slateblue" class="w-auto text-center">0.852</td><td style="color: slateblue" class="w-auto text-center">0.853</td><td style="color: slateblue" class="w-auto text-center">0.809</td><td style="color: darkviolet" class="w-auto text-center">0.957</td><td style="color: slateblue" class="w-auto text-center">0.870</td><td style="color: slateblue" class="w-auto text-center">0.812</td><td style="color: mediumturquoise" class="w-auto text-center">0.626</td><td style="color: forestgreen" class="w-auto text-center">0.574</td><td style="color: forestgreen" class="w-auto text-center">0.528</td><td style="color: mediumturquoise" class="w-auto text-center">0.683</td><td style="color: forestgreen" class="w-auto text-center">0.510</td><td style="color: mediumturquoise" class="w-auto text-center">0.610</td><td style="color: darkviolet" class="w-auto text-center">0.962</td><td style="color: mediumturquoise" class="w-auto text-center">0.638</td><td style="color: slateblue" class="w-auto text-center">0.831</td><td style="color: slateblue" class="w-auto text-center">0.867</td><td style="color: mediumturquoise" class="w-auto text-center">0.626</td><td style="color: dodgerblue" class="w-auto text-center">0.772</td><td style="color: dodgerblue" class="w-auto text-center">0.783</td><td style="color: dodgerblue" class="w-auto text-center">0.772</td><td style="color: slateblue" class="w-auto text-center">0.840</td><td style="color: slateblue" class="w-auto text-center">0.837</td><td style="color: dodgerblue" class="w-auto text-center">0.734</td><td style="color: mediumturquoise" class="w-auto text-center">0.692</td><td style="color: dodgerblue" class="w-auto text-center">0.739</td><td style="color: mediumturquoise" class="w-auto text-center">0.692</td><td style="color: darkviolet" class="w-auto text-center">0.997</td></tr><tr><th class="p-2 w-auto tborder-2">Ancestral Comparison</th><th class="p-2 w-auto"></th><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: forestgreen" class="w-auto text-center">G</td><td style="color: forestgreen" class="w-auto text-center">G</td><td style="color: forestgreen" class="w-auto text-center">G</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: darkorange" class="w-auto text-center">L</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: darkorange" class="w-auto text-center">L</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: slateblue" class="w-auto text-center">P</td><td style="color: darkorange" class="w-auto text-center">L</td><td style="color: crimson" class="w-auto text-center">A</td><td style="color: darkorange" class="w-auto text-center">L</td><td style="color: slateblue" class="w-auto text-center">P</td></tr></tbody></table>#}
 {#            </details>#}
         </div>
+        <div id="logLikelihood" class="d-flex gap-2 flex-column text-start w-100 px-2">
+{#            <div class="w-100 flex-row form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill"#}
+{#                 onclick="copyValue('logLikelihoodValue', 7)" title="click here to copy the value of log-Likelihood to the clipboard">#}
+{#                Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id, 7)">-184.92563569849239</span>#}
+{#            </div>#}
+        </div>
         <div id="fileList" class="d-flex gap-2 flex-column text-start w-100 px-2">
 {#            <details open>#}
 {#                <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">#}
@@ -343,6 +382,8 @@
 {#                <tr><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2F17561985063212.zip&amp;mode=download" target="_blank">download</a></th><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2Finteractive_tree.html&amp;mode=download" target="_blank">download</a></th><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2Fvisual_tree.png&amp;mode=download" target="_blank">download</a></th><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2Fnode_results.tsv&amp;mode=download" target="_blank">download</a></th><th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="/get_file?file_path=%2Flsweb%2Frodion%2Fgloome%2Fresults%2Fout%2F17561985063212%2Flog_likelihood.tsv&amp;mode=download" target="_blank">download</a></th></tr>#}
 {#                </tbody></table>#}
 {#            </details>#}
+        </div>
+        <div id="errorMessage" class="d-flex gap-2 flex-column text-start w-100 px-2">
         </div>
     </div>
 </div>

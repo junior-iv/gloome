@@ -1,9 +1,28 @@
 import traceback
+import json
 
 from app.config import WebConfig
-from script.service_functions import get_variables, check_data, get_error
+from script.service_functions import get_variables, check_data, get_error, loads_json
 from typing import Tuple, Optional, Any
 from flask import request, Response, jsonify
+
+
+def read_json(json_string: str) -> Any:
+    try:
+        result = loads_json(json_string)
+
+        if (result.get('action_name') in ('execute_all_actions', 'create_all_file_types') and
+                result.get('create_all_file_types', None) is not None):
+            result.pop('create_all_file_types')
+            result.update({'error_message': 'Cannot create file links locally'})
+    except Exception:
+        with open(f'/var/www/vhosts/gloome.tau.ac.il/httpdocs/tmp/read_json_'
+                  f'route_debug.log', 'a') as f:
+            f.write(f'\n\n--- Exception at /read_json ---\n')
+            f.write(traceback.format_exc())
+        raise  # Re-raise to still return 500
+
+    return Response(response=jsonify(message=result).response, status=200, mimetype='application/json')
 
 
 def get_response(process_id: int) -> Any:

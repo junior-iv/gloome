@@ -257,11 +257,11 @@ class WebConfig:
                                         change_value_style=False, change_key=True, change_key_style=False)
         return json_object
 
-    def read_response(self) -> Any:
+    def create_response(self) -> Any:
         file_contents = read_file(file_path=self.OUTPUT_FILE)
         json_object = loads_json(file_contents)
-        action_name = json_object.get('action_name')
-        data = json_object.get('data')
+        action_name = json_object.pop('action_name')
+        data = json_object.pop('data')
 
         if 'execute_all_actions' in action_name:
             for key, value in data.items():
@@ -271,9 +271,17 @@ class WebConfig:
             data = self.get_response_design(data, action_name)
 
         data.update({'title': self.PROCESS_ID})
-        data.update({'form_data': json_object.get('form_data')})
+        data.update({'form_data': json_object.pop('form_data')})
+        data.update({'action_name': action_name})
+        create_file(file_path=self.OUTPUT_FILE, data=data)
 
         return data
+
+    def read_response(self) -> Any:
+        file_contents = read_file(file_path=self.OUTPUT_FILE)
+        json_object = loads_json(file_contents)
+
+        return json_object
 
     def get_response(self) -> Optional[Any]:
         self.create_command_line()
@@ -288,7 +296,8 @@ class WebConfig:
 
         if job_state:
             self.set_job_logger_info(f'Result file: {self.OUTPUT_FILE}\n')
-            return self.read_response()
+
+            return self.create_response()
         return ''
 
     @staticmethod
