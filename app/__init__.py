@@ -1,6 +1,6 @@
 from flask import Flask, render_template, send_file
 from consts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR
-from config import FlaskConfig
+from .config import FlaskConfig
 from os import path
 from sys import path as sys_path
 

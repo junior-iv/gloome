@@ -14,7 +14,7 @@ from email import encoders
 
 from script.tree import Tree
 from script.service_functions import (check_data, create_all_file_types, compute_likelihood_of_tree, draw_tree,
-                                      execute_all_actions)
+                                      execute_all_actions, recompile_json)
 
 load_dotenv()
 MODE = ('draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions')
@@ -24,19 +24,6 @@ PREFIX = '/'
 APPLICATION_ROOT = PREFIX
 DEBUG = not IS_PRODUCTION
 
-SECRET_KEY = getenv('SECRET_KEY')
-TOKEN = getenv('TOKEN')
-PARTITION = getenv('PARTITION')
-USE_OLD_SUBMITER = int(getenv('USE_OLD_SUBMITER'))
-
-LOGIN_NODE_URLS = getenv('LOGIN_NODE_URLS')
-USER_NAME = getenv('USER_NAME')
-USER_ID = getenv('USER_ID')
-USER_PASSWORD = getenv('USER_PASSWORD')
-ADMIN_EMAIL = getenv('ADMIN_EMAIL')
-SMTP_SERVER = getenv('SMTP_SERVER')
-SMTP_PORT = int(getenv('SMTP_PORT'))
-
 # ADMIN_EMAIL = 'juniorrr.iv@gmail.com'
 # # ADMIN_EMAIL = 'sgloome@gmail.com'
 # SMTP_SERVER = 'smtp.gmail.com'
@@ -44,12 +31,6 @@ SMTP_PORT = int(getenv('SMTP_PORT'))
 # ADMIN_PASSWORD = 'debe eenr qyfr jmdr'
 # # ADMIN_PASSWORD = 'W7wp.N2WaqmT%f'
 # # SMTP_PORT = 587
-
-DEV_EMAIL = getenv('DEV_EMAIL')
-ADMIN_USER_NAME = getenv('ADMIN_USER_NAME')
-ADMIN_PASSWORD = getenv('ADMIN_PASSWORD')
-SEND_EMAIL_DIR_IBIS = getenv('SEND_EMAIL_DIR_IBIS')
-OWNER_EMAIL = getenv('OWNER_EMAIL')
 
 PREFERRED_URL_SCHEME = 'https'
 WEBSERVER_NAME_CAPITAL = 'Gloome'
@@ -83,6 +64,50 @@ TREE_FILE_NAME = 'tree_file.tree'
 
 REQUESTS_NUMBER = 100
 REQUEST_WAITING_TIME = 30
+
+# IS_LOCAL = request.remote_addr in ('127.0.0.1', '::1')
+# IS_LOCAL = 'powerslurm' not in socket.gethostname()
+IS_LOCAL = path.exists(path.join(BIN_DIR, '.env'))
+
+if IS_LOCAL:
+    SECRET_KEY = ''
+    TOKEN = ''
+    PARTITION = ''
+    USE_OLD_SUBMITER = 0
+
+    LOGIN_NODE_URLS = ''
+    USER_NAME = ''
+    USER_ID = ''
+    USER_PASSWORD = ''
+    ADMIN_EMAIL = ''
+    SMTP_SERVER = ''
+    SMTP_PORT = 0
+
+    DEV_EMAIL = ''
+    ADMIN_USER_NAME = ''
+    ADMIN_PASSWORD = ''
+    SEND_EMAIL_DIR_IBIS = ''
+    OWNER_EMAIL = ''
+else:
+    SECRET_KEY = getenv('SECRET_KEY')
+    TOKEN = getenv('TOKEN')
+    ACCOUNT = getenv('ACCOUNT')
+    PARTITION = getenv('PARTITION')
+    USE_OLD_SUBMITER = int(getenv('USE_OLD_SUBMITER'))
+
+    LOGIN_NODE_URLS = getenv('LOGIN_NODE_URLS')
+    USER_NAME = getenv('USER_NAME')
+    USER_ID = getenv('USER_ID')
+    USER_PASSWORD = getenv('USER_PASSWORD')
+    ADMIN_EMAIL = getenv('ADMIN_EMAIL')
+    SMTP_SERVER = getenv('SMTP_SERVER')
+    SMTP_PORT = int(getenv('SMTP_PORT'))
+
+    DEV_EMAIL = getenv('DEV_EMAIL')
+    ADMIN_USER_NAME = getenv('ADMIN_USER_NAME')
+    ADMIN_PASSWORD = getenv('ADMIN_PASSWORD')
+    SEND_EMAIL_DIR_IBIS = getenv('SEND_EMAIL_DIR_IBIS')
+    OWNER_EMAIL = getenv('OWNER_EMAIL')
 
 
 class MailSenderSMTPLib:
@@ -238,11 +263,6 @@ class DefaultArgs:
 
 COMMAND_LINE = argv
 
-DEFAULT_ARGUMENTS = DefaultArgs(**{
-    'with_internal_nodes': True,
-    'sep': '\t'
-    })
-
 DEFAULT_FORM_ARGUMENTS = {
     'categories_quantity': 4,
     'alpha': 0.5,
@@ -256,6 +276,13 @@ DEFAULT_FORM_ARGUMENTS = {
     'is_do_not_use_e_mail': True
     }
 
+DEFAULT_ARGUMENTS = DefaultArgs(**{
+    'with_internal_nodes': True,
+    'sep': '\t'
+    })
+
+DEFAULT_ARGUMENTS.update(DEFAULT_FORM_ARGUMENTS)
+
 ACTIONS = Actions(**{
                      'check_data': check_data,
                      'check_tree': Tree.rename_nodes,
@@ -266,6 +293,7 @@ ACTIONS = Actions(**{
                      'draw_tree': draw_tree,
                      'create_all_file_types': create_all_file_types,
                      'execute_all_actions': execute_all_actions,
+                     'recompile_json': recompile_json,
                      # 'send_error_email': MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL).send_results_email,
                      'send_results_email': MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL).send_results_email
                      })
@@ -283,6 +311,7 @@ DEFAULT_ACTIONS = {
     'draw_tree': False,
     'create_all_file_types': False,
     'execute_all_actions': False,
+    'recompile_json': False,
     # 'send_error_email': False,
     'send_results_email': False
     }
@@ -301,6 +330,10 @@ USAGE = '''\tRequired parameters:
 \t\t--tree_file <type=str>
 \t\t\tSpecify the newick filepath.
 \tOptional parameters:
+\t\t--out_dir <type=str>
+\t\t\tSpecify the outdir path.
+\t\t--process_id <type=str>
+\t\t\tSpecify a process ID or it will be generated automatically.
 \t\t--mode <type=str>
 \t\t\tExecution mode style. Possible options: ('draw_tree', 'compute_likelihood_of_tree', 
 \t\t\t'create_all_file_types', 'execute_all_actions'). Default is 'execute_all_actions'.

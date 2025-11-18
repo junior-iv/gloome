@@ -2,8 +2,7 @@ import requests
 
 from time import sleep
 from utils import *
-from script.service_functions import read_file, loads_json, create_file, result_design
-from flask import url_for
+from script.service_functions import read_file, loads_json, create_file, recompile_json
 from typing import Optional, Any, Set
 
 
@@ -15,6 +14,8 @@ OUT_DIR = path.join(SERVERS_RESULTS_DIR, 'out')
 
 class WebConfig:
     def __init__(self, **attributes):
+        self.IS_LOCAL = IS_LOCAL
+        self.ACCOUNT = ACCOUNT
         self.PARTITION = PARTITION
         self.MODULE_LOAD = MODULE_LOAD
         self.PRODJECT_DIR = PRODJECT_DIR
@@ -33,7 +34,7 @@ class WebConfig:
         self.ERROR_TEMPLATE = ERROR_TEMPLATE
 
         self.CURRENT_ARGS = DEFAULT_ARGUMENTS
-        self.CURRENT_ARGS.update(DEFAULT_FORM_ARGUMENTS)
+        # self.CURRENT_ARGS.update(DEFAULT_FORM_ARGUMENTS)
 
         self.ACTIONS = ACTIONS
         self.DEFAULT_ACTIONS = DEFAULT_ACTIONS
@@ -201,35 +202,37 @@ class WebConfig:
         tmp_dir = path.join(self.PRODJECT_DIR, 'tmp')
         cmd = (f'#!/bin/bash\n'
                f'source ~/.bashrc\n'
-               f'cd /lsweb/rodion/gloome/\n'
+               f'cd {self.PRODJECT_DIR}\n'
                f'echo "Loading module..."\n'
                f'{self.MODULE_LOAD}\n'
                f'echo "Activating env..."\n'
                f'{self.ENVIRONMENT_ACTIVATE}\n'
                f'echo "Executing python script..."\n'
                f'{self.COMMAND_LINE}')
-        job_slurm = {
-                'name': job_name,
-                'partition': self.PARTITION,
-                'account': 'pupkoweb-users',
-                'tasks': 1,
-                'nodes': '1',
-                'cpus_per_task': 1,
-                'memory_per_node': {'number': 6144, 'set': True},
-                'time_limit': {'number': 10080, 'set': True},
-                'current_working_directory': tmp_dir,
-                'standard_output': path.join(tmp_dir, f'{prefix}output.txt'),
-                'standard_error': path.join(tmp_dir, f'{prefix}error.txt'),
-                'environment': [
-                    f'PATH={self.ENVIRONMENT_DIR}/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:'
-                    f'mamba/condabin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
-                    f'/usr/local.cc/bin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
-                    f'/usr/local.cc/bin'
-                ]
-            }
+        job_slurm = {'script': cmd,
+                     'job': {
+                         'name': job_name,
+                         'partition': self.PARTITION,
+                         'account': self.ACCOUNT,
+                         'tasks': 1,
+                         'nodes': '1',
+                         'cpus_per_task': 1,
+                         'memory_per_node': {'number': 6144, 'set': True},
+                         'time_limit': {'number': 10080, 'set': True},
+                         'current_working_directory': tmp_dir,
+                         'standard_output': path.join(tmp_dir, f'{prefix}output.txt'),
+                         'standard_error': path.join(tmp_dir, f'{prefix}error.txt'),
+                         'environment': [
+                             f'PATH={self.ENVIRONMENT_DIR}/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:'
+                             f'mamba/condabin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
+                             f'/usr/local.cc/bin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:'
+                             f'/usr/sbin:/usr/local.cc/bin'
+                         ]
+                     }}
         job_saw = {
                 'script': cmd,
                 'partition': self.PARTITION,
+                'qos': 'owner',
                 'name': f'{job_name}',
                 'tasks': 1,
                 'nodes': 1,
@@ -244,38 +247,38 @@ class WebConfig:
                     f'/usr/local.cc/bin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
                     f'/usr/local.cc/bin'
                 ]
-            }
-        body = {'SlurmSubmiter': {'script': cmd, 'job': job_slurm}, 'SawSubmiter': job_saw}
+        }
+        body = {'SlurmSubmiter': job_slurm, 'SawSubmiter': job_saw}
 
         return body.get(self.SUBMITER.get_name())
-
-    def get_response_design(self, json_object: Optional[Any], action_name: str) -> Optional[Any]:
-        if 'create_all_file_types' in action_name:
-            json_object = self.link_design(json_object)
-        # if 'draw_tree' not in action_name:
-            json_object = result_design(json_object, change_value='compute_likelihood_of_tree' in action_name,
-                                        change_value_style=False, change_key=True, change_key_style=False)
-        return json_object
-
-    def create_response(self) -> Any:
-        file_contents = read_file(file_path=self.OUTPUT_FILE)
-        json_object = loads_json(file_contents)
-        action_name = json_object.pop('action_name')
-        data = json_object.pop('data')
-
-        if 'execute_all_actions' in action_name:
-            for key, value in data.items():
-                data.update({key: self.get_response_design(value, key)})
-            pass
-        else:
-            data = self.get_response_design(data, action_name)
-
-        data.update({'title': self.PROCESS_ID})
-        data.update({'form_data': json_object.pop('form_data')})
-        data.update({'action_name': action_name})
-        create_file(file_path=self.OUTPUT_FILE, data=data)
-
-        return data
+    #
+    # def get_response_design(self, json_object: Optional[Any], action_name: str) -> Optional[Any]:
+    #     if 'create_all_file_types' in action_name:
+    #         json_object = self.link_design(json_object)
+    #     # if 'draw_tree' not in action_name:
+    #         json_object = result_design(json_object, change_value='compute_likelihood_of_tree' in action_name,
+    #                                     change_value_style=False, change_key=True, change_key_style=False)
+    #     return json_object
+    #
+    # def create_response(self) -> Any:
+    #     file_contents = read_file(file_path=self.OUTPUT_FILE)
+    #     json_object = loads_json(file_contents)
+    #     action_name = json_object.pop('action_name')
+    #     data = json_object.pop('data')
+    #
+    #     if 'execute_all_actions' in action_name:
+    #         for key, value in data.items():
+    #             data.update({key: get_response_design(value, key)})
+    #         pass
+    #     else:
+    #         data = get_response_design(data, action_name)
+    #
+    #     data.update({'title': self.PROCESS_ID})
+    #     data.update({'form_data': json_object.pop('form_data')})
+    #     data.update({'action_name': action_name})
+    #     create_file(file_path=self.OUTPUT_FILE, data=data)
+    #
+    #     return data
 
     def read_response(self) -> Any:
         file_contents = read_file(file_path=self.OUTPUT_FILE)
@@ -297,23 +300,23 @@ class WebConfig:
         if job_state:
             self.set_job_logger_info(f'Result file: {self.OUTPUT_FILE}\n')
 
-            return self.create_response()
+            return recompile_json(output_file=self.OUTPUT_FILE, process_id=self.PROCESS_ID, is_local=self.IS_LOCAL)
         return ''
 
-    @staticmethod
-    def link_design(json_object: Any):
-        for key, value in json_object.items():
-            if key == 'execution_time':
-                continue
-            json_object.update(
-                {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                            f'href="{url_for("get_file", file_path=value, mode="download")}" '
-                            f'target="_blank">download</a>',
-                            f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                            f'href="{url_for("get_file", file_path=value, mode="view")}" '
-                            f'target="_blank">view</a>']})
-        return json_object
-
+    # @staticmethod
+    # def link_design(json_object: Any):
+    #     for key, value in json_object.items():
+    #         if key == 'execution_time':
+    #             continue
+    #         json_object.update(
+    #             {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+    #                         f'href="{url_for("get_file", file_path=value, mode="download")}" '
+    #                         f'target="_blank">download</a>',
+    #                         f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+    #                         f'href="{url_for("get_file", file_path=value, mode="view")}" '
+    #                         f'target="_blank">view</a>']})
+    #     return json_object
+    #
     @staticmethod
     def check_dir(file_path: str, **kwargs):
         if not path.exists(file_path):
@@ -580,6 +583,29 @@ class SlurmSubmiter:
                 if result is not None:
                     return result
         return None
+#
+#
+# class LocalSubmiter:
+#     def __init__(self):
+#         self.current_user = USER_NAME
+#         self.api_key = SECRET_KEY
+#
+#         self.base_url_auth = 'https://slurmtron.tau.ac.il'
+#         self.api = f'{self.base_url_auth}/slurmrestd'
+#         self.generate_token_url = f'{self.base_url_auth}/slurmapi/generate-token/'
+#
+#     def __str__(self) -> str:
+#         return self.get_name()
+#
+#     def get_name(self) -> str:
+#         return f'{self.__class__.__name__}'
+#
+#     @staticmethod
+#     def execute_job():
+#         from script.config import Config
+#         config = Config()
+#         config.check_and_set_input_and_output_variables()
+#         config.execute_calculation()
 
 
 class JobsCounter:

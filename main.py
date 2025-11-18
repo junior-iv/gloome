@@ -1,15 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-main.py — PRO Installer + Launcher
-----------------------------------
-✅ Перевіряє версію Python
-✅ Зчитує requirements.txt
-✅ Встановлює пакети з прогрес-баром і таймінгом
-✅ Запускає головну логіку програми
-"""
-
 import sys
 import subprocess
 import importlib
@@ -23,7 +14,6 @@ if sys.version_info < MIN_PYTHON:
 
 
 def load_requirements():
-    """Зчитує пакети з requirements.txt."""
     if not os.path.exists("requirements.txt"):
         print('⚠️  requirements.txt file not found. Skipping package installation.')
         return []
@@ -38,7 +28,6 @@ def load_requirements():
 
 
 def install_packages(packages):
-    """Перевіряє та встановлює пакети з прогрес-баром."""
     if not packages:
         return
 
@@ -72,31 +61,35 @@ def install_packages(packages):
 
 
 def main():
-    print('🚀 Launching the application...\n')
+    # print('🚀 Launching the application...\n')
 
-    # Встановлення залежностей
     packages = load_requirements()
     install_packages(packages)
 
-    # Імпорти після інсталяції
-    import requests
-    import pandas as pd
-    import numpy as np
+    os.system('script/main.py')
 
-    # Основна частина
-    print('🧠 The main logic of the application...\n')
+    # import requests
 
-    response = requests.get('https://api.github.com')
-    print(f'🌐 GitHub API status: {response.status_code}')
-
-    df = pd.DataFrame({
-        'x': np.arange(5),
-        'x²': np.arange(5) ** 2
-    })
-    print('\n📊 Data:')
-    print(df)
-
-    print('\n✅ The program was completed successfully!')
+    # 'git clone https://github.com/junior-iv/gloome.git;'
+    # mv / lsweb / rodion / gloome / gloome / lsweb / rodion / gloome / to_del;
+    # yes | cp / lsweb / rodion / gloome / to_del / * / lsweb / rodion / gloome / -arRv;
+    # rm / lsweb / rodion / gloome / to_del - rf;'
+    # import pandas as pd
+    # import numpy as np
+    #
+    # print('🧠 The main logic of the application...\n')
+    #
+    # response = requests.get('https://api.github.com')
+    # print(f'🌐 GitHub API status: {response.status_code}')
+    #
+    # df = pd.DataFrame({
+    #     'x': np.arange(5),
+    #     'x²': np.arange(5) ** 2
+    # })
+    # print('\n📊 Data:')
+    # print(df)
+    #
+    # print('\n✅ The program was completed successfully!')
 
 
 if __name__ == '__main__':

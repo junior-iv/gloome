@@ -1,16 +1,15 @@
 import argparse
 import traceback
-import socket
 
 from sys import exit
 from utils import *
 from typing import Dict
+# from flask import request
 
 
 class Config:
     def __init__(self, **attributes):
         self.MODE = MODE
-        # self.DEFAULT_FORM_ARGUMENTS = DEFAULT_FORM_ARGUMENTS
         self.COMMAND_LINE = COMMAND_LINE
 
         self.BIN_DIR = BIN_DIR
@@ -25,14 +24,14 @@ class Config:
         self.ERROR_TEMPLATE = ERROR_TEMPLATE
 
         self.IS_PRODUCTION = IS_PRODUCTION
-        self.IS_LOCAL = 'powerslurm' not in socket.gethostname()
+        self.IS_LOCAL = IS_LOCAL
 
         self.ACTIONS = ACTIONS
         self.VALIDATION_ACTIONS = VALIDATION_ACTIONS
         self.DEFAULT_ACTIONS = DEFAULT_ACTIONS
 
         self.CURRENT_ARGS = DEFAULT_ARGUMENTS
-        self.CURRENT_ARGS.update(DEFAULT_FORM_ARGUMENTS)
+        # self.CURRENT_ARGS.update(DEFAULT_FORM_ARGUMENTS)
 
         self.MSA_FILE_NAME = MSA_FILE_NAME
         self.TREE_FILE_NAME = TREE_FILE_NAME
@@ -157,6 +156,9 @@ class Config:
             self.execute_action(self.ACTIONS.execute_all_actions, file_path=self.OUT_DIR, create_new_file=True,
                                 form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
                                 log_file=self.JOB_LOGGER.handlers[-1].baseFilename)
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('recompile_json', False):
+            self.execute_action(self.ACTIONS.recompile_json, output_file=path.join(self.OUT_DIR, 'result.json'),
+                                process_id=self.PROCESS_ID, is_local=self.IS_LOCAL)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('send_results_email', False):
             self.execute_action(self.ACTIONS.send_results_email, results_dir=self.SERVERS_RESULTS_DIR, is_error=False,
                                 log_file=self.JOB_LOGGER.handlers[-1].baseFilename, excluded=('.json', '.zip'),
@@ -252,8 +254,10 @@ class Config:
                             f'(required).')
         parser.add_argument('--tree_file', dest='TREE_FILE', type=str, required=True, help=f'Specify the newick '
                             f'filepath (required).')
+        parser.add_argument('--out_dir', dest='OUT_DIR', type=str, required=True, help=f'Specify the outdir path '
+                            f'(optional).')
         parser.add_argument('--process_id', dest='process_id', type=str, required=False, default=self.PROCESS_ID,
-                            help=f'Process id (optional). Default is {self.PROCESS_ID}.')
+                            help=f'Specify a process ID or it will be generated automatically (optional).')
         parser.add_argument('--mode', dest='mode', required=False, action="extend", nargs="+", type=str,
                             help=f'Execution mode style (optional). Possible options: ("draw_tree", '
                             f'"compute_likelihood_of_tree", "create_all_file_types", "execute_all_actions"). '
@@ -337,7 +341,9 @@ class Config:
             self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
                                          'calculate_ancestral_sequence': True,
                                          'execute_all_actions': True})
-        if not self.CURRENT_ARGS.is_do_not_use_e_mail and self.CURRENT_ARGS.e_mail:
+        if self.IS_LOCAL:
+            self.DEFAULT_ACTIONS.update({'recompile_json': True})
+        if not self.IS_LOCAL and not self.CURRENT_ARGS.is_do_not_use_e_mail and self.CURRENT_ARGS.e_mail:
             self.DEFAULT_ACTIONS.update({'send_results_email': True})
 
         return args

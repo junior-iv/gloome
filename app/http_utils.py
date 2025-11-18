@@ -1,5 +1,4 @@
 import traceback
-import json
 
 from app.config import WebConfig
 from script.service_functions import get_variables, check_data, get_error, loads_json
@@ -42,7 +41,6 @@ def get_response(process_id: int) -> Any:
 
 
 def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
-    # print(request.remote_addr in ('127.0.0.1', '::1'))
     if request.method == 'POST':
         args = get_variables(dict(request.form))
         err_list = check_data(*args)
