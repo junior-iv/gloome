@@ -67,7 +67,7 @@ REQUEST_WAITING_TIME = 30
 
 # IS_LOCAL = request.remote_addr in ('127.0.0.1', '::1')
 # IS_LOCAL = 'powerslurm' not in socket.gethostname()
-IS_LOCAL = path.exists(path.join(BIN_DIR, '.env'))
+IS_LOCAL = not path.exists(path.join(BIN_DIR, '.env'))
 
 if IS_LOCAL:
     SECRET_KEY = ''
