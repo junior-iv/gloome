@@ -315,10 +315,6 @@ class Config:
                         setattr(self, arg_name.upper(), arg_value)
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, arg_value)
-                        # if arg_name == 'sort_values_by':
-                        #     setattr(self.CURRENT_ARGS, arg_name, tuple(arg_value))
-                        # else:
-                        #     setattr(self.CURRENT_ARGS, arg_name, arg_value)
 
         self.DEFAULT_ACTIONS.update({'compute_likelihood_of_tree': False,
                                      'calculate_tree_for_fasta': False,

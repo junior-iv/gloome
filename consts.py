@@ -41,7 +41,9 @@ WEBSERVER_LOG_URL = path.join(WEBSERVER_URL, 'logs')
 
 WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
 MODULE_LOAD = 'module load mamba/mamba-1.5.8'
-PRODJECT_DIR = '/lsweb/rodion/gloome'
+# PRODJECT_DIR = '/lsweb/rodion/gloome'
+PRODJECT_DIR = '/gloome'
+# SLURM_PRODJECT_DIR = '/gloome'
 ENVIRONMENT_DIR = path.join(PRODJECT_DIR, 'gloome_env2')
 ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
 
@@ -294,7 +296,6 @@ ACTIONS = Actions(**{
                      'create_all_file_types': create_all_file_types,
                      'execute_all_actions': execute_all_actions,
                      'recompile_json': recompile_json,
-                     # 'send_error_email': MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL).send_results_email,
                      'send_results_email': MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL).send_results_email
                      })
 
@@ -312,7 +313,6 @@ DEFAULT_ACTIONS = {
     'create_all_file_types': False,
     'execute_all_actions': False,
     'recompile_json': False,
-    # 'send_error_email': False,
     'send_results_email': False
     }
 
