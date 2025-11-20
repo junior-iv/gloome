@@ -3,7 +3,7 @@ from sys import argv
 from typing import List, Tuple, Union
 from dotenv import load_dotenv
 from flask import url_for
-from types import FunctionType
+from types import FunctionType, MethodType
 
 from smtplib import SMTP, SMTP_SSL
 from ssl import create_default_context
@@ -226,7 +226,7 @@ class Actions:
     def __init__(self, **attributes):
         if attributes:
             for key, value in attributes.items():
-                if type(value) is FunctionType:
+                if type(value) in (FunctionType, MethodType):
                     setattr(self, key, value)
 
 
