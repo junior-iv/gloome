@@ -1,9 +1,10 @@
 import requests
 
 from time import sleep
+from typing import Optional, Any, Set
+
 from utils import *
 from script.service_functions import read_file, loads_json, create_file, recompile_json
-from typing import Optional, Any, Set
 
 
 SERVERS_RESULTS_DIR = path.join(STATIC_DIR, 'results')
@@ -50,6 +51,7 @@ class WebConfig:
         self.WEBSERVER_NAME = WEBSERVER_NAME
         self.WEBSERVER_URL = WEBSERVER_URL
         self.WEBSERVER_TITLE = WEBSERVER_TITLE
+        self.USE_ATTACHMENTS = False
 
         self.PROCESS_ID = None
         self.SERVERS_RESULTS_DIR = None
@@ -190,7 +192,8 @@ class WebConfig:
             f'--is_optimize_alpha {int(self.CURRENT_ARGS.is_optimize_alpha)} '
             f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
             f'--is_do_not_use_e_mail {int(self.CURRENT_ARGS.is_do_not_use_e_mail)} '
-            f'--mode {self.MODE}')
+            f'--mode {self.MODE} '
+            f'--use_attachments {int(self.USE_ATTACHMENTS)}')
         self.set_job_logger_info(f'COMMAND_LINE: \n{self.COMMAND_LINE}')
 
     def get_request_body(self):
@@ -321,30 +324,6 @@ class WebConfig:
     def check_dir(file_path: str, **kwargs):
         if not path.exists(file_path):
             makedirs(file_path, **kwargs)
-
-
-class FlaskConfig:
-
-    # RECAPTCHA_SITE_KEY: str
-    # RECAPTCHA_SECRET_KEY: str
-    SECRET_KEY: str
-    DEBUG: bool
-    PREFERRED_URL_SCHEME: str
-    SERVER_NAME = str
-    APPLICATION_ROOT = str
-    # UPLOAD_FOLDERS_ROOT_PATH: str
-    MAX_CONTENT_LENGTH: int
-
-    def __init__(self, **attributes):
-        self.SECRET_KEY = SECRET_KEY
-        self.DEBUG = DEBUG
-        self.PREFERRED_URL_SCHEME = PREFERRED_URL_SCHEME
-        self.SERVER_NAME = WEBSERVER_NAME
-        self.APPLICATION_ROOT = APPLICATION_ROOT
-        self.MAX_CONTENT_LENGTH = MAX_CONTENT_LENGTH
-        if attributes:
-            for key, value in attributes.items():
-                setattr(self, key, value)
 
 
 class SawSubmiter:
