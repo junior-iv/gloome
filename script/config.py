@@ -2,9 +2,9 @@ import argparse
 import traceback
 
 from sys import exit
-from utils import *
 from typing import Dict
-# from flask import request
+
+from utils import *
 
 
 class Config:
@@ -44,6 +44,7 @@ class Config:
         self.WEBSERVER_NAME = WEBSERVER_NAME
         self.WEBSERVER_URL = WEBSERVER_URL
         self.WEBSERVER_TITLE = WEBSERVER_TITLE
+        self.USE_ATTACHMENTS = True
 
         self.PROCESS_ID = None
         self.SERVERS_RESULTS_DIR = None
@@ -160,13 +161,15 @@ class Config:
             self.execute_action(self.ACTIONS.recompile_json, output_file=path.join(self.OUT_DIR, 'result.json'),
                                 process_id=self.PROCESS_ID, is_local=self.IS_LOCAL)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('send_results_email', False):
-            self.execute_action(self.ACTIONS.send_results_email, results_dir=self.SERVERS_RESULTS_DIR, is_error=False,
+            self.execute_action(self.ACTIONS.send_results_email, results_files_dir=self.OUT_DIR, is_error=False,
                                 log_file=self.JOB_LOGGER.handlers[-1].baseFilename, excluded=('.json', '.zip'),
-                                receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
+                                receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID,
+                                use_attachments=self.USE_ATTACHMENTS)
         if self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('send_results_email', False):
-            self.execute_action(self.ACTIONS.send_results_email, results_dir=self.SERVERS_RESULTS_DIR, is_error=True,
+            self.execute_action(self.ACTIONS.send_results_email, results_files_dir=self.OUT_DIR, is_error=True,
                                 log_file=self.JOB_LOGGER.handlers[-1].baseFilename, excluded=('.json', '.zip'),
-                                receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
+                                receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID,
+                                use_attachments=self.USE_ATTACHMENTS)
 
     def check_arguments_for_errors(self) -> bool:
         if path.isfile(self.TREE_FILE):
@@ -250,12 +253,12 @@ class Config:
         """parse arguments and fill out the relevant Variable Class properties"""
         parser = argparse.ArgumentParser(prog=self.WEBSERVER_NAME_CAPITAL, description='GLOOME',
                                          usage='%(prog)s [options]')
-        parser.add_argument('--msa_file', dest='MSA_FILE', type=str, required=True, help=f'Specify the msa filepath '
-                            f'(required).')
-        parser.add_argument('--tree_file', dest='TREE_FILE', type=str, required=True, help=f'Specify the newick '
-                            f'filepath (required).')
-        parser.add_argument('--out_dir', dest='OUT_DIR', type=str, required=True, help=f'Specify the outdir path '
-                            f'(optional).')
+        parser.add_argument('--msa_file', dest='MSA_FILE', type=str, required=True,
+                            help=f'Specify the msa filepath (required).')
+        parser.add_argument('--tree_file', dest='TREE_FILE', type=str, required=True,
+                            help=f'Specify the newick filepath (required).')
+        parser.add_argument('--out_dir', dest='OUT_DIR', type=str, required=True,
+                            help=f'Specify the outdir path (optional).')
         parser.add_argument('--process_id', dest='process_id', type=str, required=False, default=self.PROCESS_ID,
                             help=f'Specify a process ID or it will be generated automatically (optional).')
         parser.add_argument('--mode', dest='mode', required=False, action="extend", nargs="+", type=str,
@@ -281,8 +284,8 @@ class Config:
         parser.add_argument('--is_optimize_pi', dest='is_optimize_pi', type=int, required=False,
                             help=f'Specify is_optimize_pi (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_optimize_pi)}.', default=int(self.CURRENT_ARGS.is_optimize_pi))
-        parser.add_argument('--is_optimize_pi_average', dest='is_optimize_pi_average', type=int,
-                            required=False, help=f'Specify is_optimize_pi_average (optional). Default is '
+        parser.add_argument('--is_optimize_pi_average', dest='is_optimize_pi_average', type=int, required=False,
+                            help=f'Specify is_optimize_pi_average (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_optimize_pi_average)}.',
                             default=int(self.CURRENT_ARGS.is_optimize_pi_average))
         parser.add_argument('--is_optimize_alpha', dest='is_optimize_alpha', type=int, required=False,
@@ -296,6 +299,9 @@ class Config:
                             help=f'Specify is_do_not_use_e_mail (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_do_not_use_e_mail)}.',
                             default=int(self.CURRENT_ARGS.is_do_not_use_e_mail))
+        parser.add_argument('--use_attachments', dest='use_attachments', type=int, required=False,
+                            help=f'Specify use_attachments (technical parameter, do not change).',
+                            default=int(self.USE_ATTACHMENTS))
 
         args = parser.parse_args()
 
@@ -306,6 +312,8 @@ class Config:
                         self.change_process_id(arg_value)
                 elif arg_name == 'mode':
                     setattr(self, arg_name.upper(), tuple(arg_value))
+                elif arg_name == 'use_attachments':
+                    setattr(self, arg_name.upper(), bool(arg_value))
                 elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
                                   'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_e_mail'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
