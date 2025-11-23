@@ -4,7 +4,6 @@ from typing import List, Tuple, Union
 from dotenv import load_dotenv
 from flask import url_for
 from types import FunctionType, MethodType
-
 from smtplib import SMTP, SMTP_SSL
 from ssl import create_default_context
 from email.mime.multipart import MIMEMultipart
@@ -112,6 +111,30 @@ else:
     OWNER_EMAIL = getenv('OWNER_EMAIL')
 
 
+class FlaskConfig:
+
+    # RECAPTCHA_SITE_KEY: str
+    # RECAPTCHA_SECRET_KEY: str
+    SECRET_KEY: str
+    DEBUG: bool
+    PREFERRED_URL_SCHEME: str
+    SERVER_NAME = str
+    APPLICATION_ROOT = str
+    # UPLOAD_FOLDERS_ROOT_PATH: str
+    MAX_CONTENT_LENGTH: int
+
+    def __init__(self, **attributes):
+        self.SECRET_KEY = SECRET_KEY
+        self.DEBUG = DEBUG
+        self.PREFERRED_URL_SCHEME = PREFERRED_URL_SCHEME
+        self.SERVER_NAME = WEBSERVER_NAME
+        self.APPLICATION_ROOT = APPLICATION_ROOT
+        self.MAX_CONTENT_LENGTH = MAX_CONTENT_LENGTH
+        if attributes:
+            for key, value in attributes.items():
+                setattr(self, key, value)
+
+
 class MailSenderSMTPLib:
     name: str
     sender: str
@@ -148,13 +171,13 @@ class MailSenderSMTPLib:
                 if use_attachments:
                     self.add_attachment_to_email(attachment_path, message)
                 else:
-                    body += (f'\n<a href="{url_for("get_file", file_path=attachment_path, mode="view")}" '
+                    body += (f'\n<a href="{url_for(endpoint="get_file", file_path=attachment_path, mode="view")}" '
                              f'target="_blank">{attachment_path}</a>')
         elif isinstance(attachments, str):
             if use_attachments:
                 self.add_attachment_to_email(attachments, message)
             else:
-                body += (f'\n<a href="{url_for("get_file", file_path=attachments, mode="view")}" '
+                body += (f'\n<a href="{url_for(endpoint="get_file", file_path=attachments, mode="view")}" '
                          f'target="_blank">{attachments}</a>')
 
         message.attach(MIMEText(body, 'plain'))
@@ -170,7 +193,7 @@ class MailSenderSMTPLib:
                 server.login(self.sender, self.password)
                 server.send_message(message)
 
-    def send_results_email(self, results_dir: str, log_file: str, excluded: Union[Tuple[str, ...], List[str], str,
+    def send_results_email(self, results_files_dir: str, log_file: str, excluded: Union[Tuple[str, ...], List[str], str,
                            None] = None, included: Union[Tuple[str, ...], List[str], str, None] = None, is_error:
                            bool = False, use_attachments: bool = False, **kwargs) -> None:
         self.set_attributes(**kwargs)
@@ -178,9 +201,9 @@ class MailSenderSMTPLib:
         subject = f'{WEBSERVER_NAME_CAPITAL} job {self.name} by {self.receiver} has {status}'
         body = f'{subject}\n'
         attachments = [log_file]
-        with scandir(results_dir) as entries:
+        with scandir(results_files_dir) as entries:
             for entry in entries:
-                self.add_attachment_to_list(entry, results_dir, attachments, excluded, included)
+                self.add_attachment_to_list(entry, results_files_dir, attachments, excluded, included)
         self.send_email(subject, attachments, body, use_attachments)
 
     def send_log_files_list(self, log_files_dir: str, start_date: int, end_date: int, excluded: Union[Tuple[str, ...],
@@ -358,7 +381,9 @@ USAGE = '''\tRequired parameters:
 \t\t--is_optimize_bl <type=int> 
 \t\t\tSpecify is_optimize_bl. Default is 1.
 \t\t--is_do_not_use_e_mail <type=int> 
-\t\t\tSpecify is_do_not_use_e_mail. Default is 1.'''
+\t\t\tSpecify is_do_not_use_e_mail. Default is 1.
+\t\t--use_attachments <type=int> 
+\t\t\tSpecify use_attachments (technical parameter, do not change).'''
 # --sort_values_by <type=str>
 #     Specify the columns by which you want to sort the values in the csv file.
 #     Possible options: ('Name', 'Parent', 'Distance to parent', 'Children'). Default is 'child' 'Name'.
