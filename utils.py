@@ -5,9 +5,10 @@ import re
 
 from enum import Enum
 from os import chdir, system, makedirs
-from consts import *
 from time import time
 from random import randint
+
+from consts import *
 
 LOGGER_LEVEL_JOB_MANAGE_THREAD_SAFE = logging.DEBUG
 LOGGER_LEVEL_JOB_MANAGE_API = logging.DEBUG

@@ -1,9 +1,10 @@
 import traceback
 
-from app.config import WebConfig
-from script.service_functions import get_variables, check_data, get_error, loads_json
 from typing import Tuple, Optional, Any
 from flask import request, Response, jsonify
+
+from app.config import WebConfig
+from script.service_functions import get_variables, check_data, get_error, loads_json
 
 
 def read_json(json_string: str) -> Any:

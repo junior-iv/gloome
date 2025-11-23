@@ -7,12 +7,13 @@ from shutil import rmtree
 from json import loads
 from os import path, makedirs
 from d3blocks import D3Blocks
-from script.node import Node
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
 from scipy.stats import gamma
 from scipy.special import gammainc
 from scipy.optimize import minimize_scalar
+
+from script.node import Node
 
 
 class Tree:
