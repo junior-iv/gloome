@@ -257,7 +257,7 @@ class Config:
                             help=f'Specify the msa filepath (required).')
         parser.add_argument('--tree_file', dest='TREE_FILE', type=str, required=True,
                             help=f'Specify the newick filepath (required).')
-        parser.add_argument('--out_dir', dest='OUT_DIR', type=str, required=True,
+        parser.add_argument('--out_dir', dest='OUT_DIR', type=str, required=False, default=self.OUT_DIR,
                             help=f'Specify the outdir path (optional).')
         parser.add_argument('--process_id', dest='process_id', type=str, required=False, default=self.PROCESS_ID,
                             help=f'Specify a process ID or it will be generated automatically (optional).')
