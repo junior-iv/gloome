@@ -2,9 +2,12 @@ import traceback
 
 from typing import Tuple, Optional, Any
 from flask import request, Response, jsonify
+from os import path
 
 from app.config import WebConfig
 from script.service_functions import get_variables, check_data, get_error, loads_json
+
+LOG_PATH = '/var/www/vhosts/gloome.tau.ac.il/logs'
 
 
 def read_json(json_string: str) -> Any:
@@ -16,9 +19,8 @@ def read_json(json_string: str) -> Any:
             result.pop('create_all_file_types')
             result.update({'error_message': 'Cannot create file links locally'})
     except Exception:
-        with open(f'/var/www/vhosts/gloome.tau.ac.il/httpdocs/tmp/read_json_'
-                  f'route_debug.log', 'a') as f:
-            f.write(f'\n\n--- Exception at /read_json ---\n')
+        with open(path.join(LOG_PATH, f'read_json_Route_debug.log'), 'a') as f:
+            f.write(f'\n\n--- Exception at execute_request ---\n')
             f.write(traceback.format_exc())
         raise  # Re-raise to still return 500
 
@@ -32,9 +34,8 @@ def get_response(process_id: int) -> Any:
         result = conf.read_response()
     except Exception:
         conf.set_job_logger_info(traceback.format_exc())
-        with open(f'/var/www/vhosts/gloome.tau.ac.il/httpdocs/tmp/results_{conf.PROCESS_ID}_'
-                  f'route_debug.log', 'a') as f:
-            f.write(f'\n\n--- Exception at /draw_tree ---\n')
+        with open(path.join(LOG_PATH, f'get_response_{conf.PROCESS_ID}_route_debug.log'), 'a') as f:
+            f.write(f'\n\n--- Exception at execute_request ---\n')
             f.write(traceback.format_exc())
         raise  # Re-raise to still return 500
 
@@ -58,9 +59,9 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
                 result = conf.get_response()
             except Exception:
                 conf.set_job_logger_info(traceback.format_exc())
-                with open(f'/var/www/vhosts/gloome.tau.ac.il/httpdocs/tmp/{conf.CURRENT_JOB}_{conf.PROCESS_ID}_'
-                          f'route_debug.log', 'a') as f:
-                    f.write(f'\n\n--- Exception at /draw_tree ---\n')
+                with open(path.join(LOG_PATH, f'execute_request_{conf.CURRENT_JOB}_{conf.PROCESS_ID}_Route_debug.log'),
+                          'a') as f:
+                    f.write(f'\n\n--- Exception at execute_request ---\n')
                     f.write(traceback.format_exc())
                 raise  # Re-raise to still return 500
 
