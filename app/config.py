@@ -177,6 +177,11 @@ class WebConfig:
         self.set_job_logger_info(f'Output files path: {self.CALCULATED_ARGS.file_path}')
 
     def create_command_line(self) -> None:
+        if self.CURRENT_ARGS.e_mail:
+            e_mail = f'--e_mail {self.CURRENT_ARGS.e_mail} '
+            is_do_not_use_e_mail = f'--is_do_not_use_e_mail {int(self.CURRENT_ARGS.is_do_not_use_e_mail)} '
+        else:
+            e_mail = is_do_not_use_e_mail = '123'
         self.COMMAND_LINE = (
             f'python {path.join(".", "script/main.py")} '
             f'--process_id {self.PROCESS_ID} '
@@ -186,12 +191,12 @@ class WebConfig:
             f'--alpha {self.CURRENT_ARGS.alpha} '
             f'--pi_1 {self.CURRENT_ARGS.pi_1} '
             f'--coefficient_bl {self.CURRENT_ARGS.coefficient_bl} '
-            f'--e_mail {self.CURRENT_ARGS.e_mail} '
+            f'{e_mail}'
             f'--is_optimize_pi {int(self.CURRENT_ARGS.is_optimize_pi)} '
             f'--is_optimize_pi_average {int(self.CURRENT_ARGS.is_optimize_pi_average)} '
             f'--is_optimize_alpha {int(self.CURRENT_ARGS.is_optimize_alpha)} '
             f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
-            f'--is_do_not_use_e_mail {int(self.CURRENT_ARGS.is_do_not_use_e_mail)} '
+            f' {is_do_not_use_e_mail} '
             f'--mode {self.MODE} '
             f'--use_attachments {int(self.USE_ATTACHMENTS)}')
         self.set_job_logger_info(f'COMMAND_LINE: \n{self.COMMAND_LINE}')
