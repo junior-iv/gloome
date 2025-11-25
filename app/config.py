@@ -165,8 +165,6 @@ class WebConfig:
         self.CALCULATED_ARGS.file_path = self.OUT_DIR.replace(STATIC_DIR, self.PRODJECT_DIR)
 
     def create_tmp_data_files(self, replace_path: bool = True) -> None:
-        self.check_dir(self.CALCULATED_ARGS.file_path)
-
         log_path = '/var/www/vhosts/gloome.tau.ac.il/logs'
         with open(path.join(log_path, f'file_path_{self.PROCESS_ID}.log'),
                   'a') as f:
@@ -174,6 +172,8 @@ class WebConfig:
             f.write(self.MSA_FILE)
             f.write(self.TREE_FILE)
             f.write(self.CALCULATED_ARGS.file_path)
+
+        self.check_dir(self.CALCULATED_ARGS.file_path)
 
         create_file(self.MSA_FILE, self.CALCULATED_ARGS.msa)
         create_file(self.TREE_FILE, self.CALCULATED_ARGS.newick_text)
