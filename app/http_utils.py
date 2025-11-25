@@ -55,6 +55,14 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
             conf = WebConfig()
             conf.arguments_filling(**kwargs, mode=mode)
             # conf.create_tmp_data_files()
+
+            with open(path.join(LOG_PATH, f'file_path_{conf.PROCESS_ID}.log'),
+                      'a') as f:
+                f.write(f'\n\n--- Exception at file_path ---\n')
+                f.write(conf.MSA_FILE)
+                f.write(conf.TREE_FILE)
+                f.write(conf.CALCULATED_ARGS.file_path)
+
             try:
                 conf.create_tmp_data_files()
             except Exception:
