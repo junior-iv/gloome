@@ -59,9 +59,9 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
             with open(path.join(LOG_PATH, f'file_path_{conf.PROCESS_ID}.log'),
                       'a') as f:
                 f.write(f'\n\n--- Exception at file_path ---\n')
-                f.write(f'\n{conf.MSA_FILE}\n')
-                f.write(f'\n{conf.TREE_FILE}\n')
-                f.write(f'\n{conf.CALCULATED_ARGS.file_path}\n')
+                f.write(f'\n\n{conf.MSA_FILE}\n')
+                f.write(f'\n\n{conf.TREE_FILE}\n')
+                f.write(f'\n\n{conf.CALCULATED_ARGS.file_path}\n')
 
             try:
                 conf.create_tmp_data_files()
