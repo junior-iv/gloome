@@ -59,14 +59,14 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
             with open(path.join(LOG_PATH, f'file_path_{conf.PROCESS_ID}.log'),
                       'a') as f:
                 f.write(f'\n\n--- Exception at file_path ---\n')
-                f.write(conf.MSA_FILE)
-                f.write(conf.TREE_FILE)
-                f.write(conf.CALCULATED_ARGS.file_path)
+                f.write(f'\n{conf.MSA_FILE}\n')
+                f.write(f'\n{conf.TREE_FILE}\n')
+                f.write(f'\n{conf.CALCULATED_ARGS.file_path}\n')
 
             try:
                 conf.create_tmp_data_files()
             except Exception:
-                with open(path.join(LOG_PATH, f'create_data_files_{conf.CURRENT_JOB}_{conf.PROCESS_ID}.log'),
+                with open(path.join(LOG_PATH, f'create_data_files_{conf.PROCESS_ID}.log'),
                           'a') as f:
                     f.write(f'\n\n--- Exception at create_data_files ---\n')
                     f.write(traceback.format_exc())
