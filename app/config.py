@@ -181,7 +181,7 @@ class WebConfig:
             e_mail = f'--e_mail {self.CURRENT_ARGS.e_mail} '
             is_do_not_use_e_mail = f'--is_do_not_use_e_mail {int(self.CURRENT_ARGS.is_do_not_use_e_mail)} '
         else:
-            e_mail = is_do_not_use_e_mail = '123'
+            e_mail = is_do_not_use_e_mail = ''
         self.COMMAND_LINE = (
             f'python {path.join(".", "script/main.py")} '
             f'--process_id {self.PROCESS_ID} '
