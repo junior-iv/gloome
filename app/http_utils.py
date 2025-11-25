@@ -8,6 +8,7 @@ from app.config import WebConfig
 from script.service_functions import get_variables, check_data, get_error, loads_json
 
 LOG_PATH = '/var/www/vhosts/gloome.tau.ac.il/logs'
+HTTPDOCS_PATH = '/var/www/vhosts/gloome.tau.ac.il/httpdocs/'
 
 
 def read_json(json_string: str) -> Any:
@@ -58,10 +59,10 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
 
             with open(path.join(LOG_PATH, f'file_path_{conf.PROCESS_ID}.log'),
                       'a') as f:
-                f.write(f'\n\n--- file_path ---\n')
-                f.write(f'\n\n--- MSA_FILE ---\n\n{conf.MSA_FILE}\n')
-                f.write(f'\n\n--- TREE_FILE ---\n\n{conf.TREE_FILE}\n')
-                f.write(f'\n\n--- CALCULATED_ARGS.file_path ---\n\n{conf.CALCULATED_ARGS.file_path}\n')
+                f.write(f'\n--- file_path ---\n')
+                f.write(f'\n--- MSA_FILE ---\n{conf.MSA_FILE}\n')
+                f.write(f'\n--- TREE_FILE ---\n{conf.TREE_FILE}\n')
+                f.write(f'\n--- CALCULATED_ARGS.file_path ---\n{conf.CALCULATED_ARGS.file_path}\n')
 
             try:
                 conf.create_tmp_data_files()
@@ -70,6 +71,14 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
                           'a') as f:
                     f.write(f'\n\n--- Exception at create_data_files ---\n')
                     f.write(traceback.format_exc())
+
+            with open(path.join(LOG_PATH, f'file_path_{conf.PROCESS_ID}.log'),
+                      'a') as f:
+                f.write(f'\n--- file_path_3 ---\n')
+                f.write(f'\n--- MSA_FILE ---\n{conf.MSA_FILE}\n')
+                f.write(f'\n--- TREE_FILE ---\n{conf.TREE_FILE}\n')
+                f.write(f'\n--- CALCULATED_ARGS.file_path ---\n{conf.CALCULATED_ARGS.file_path}\n')
+
             try:
                 result = conf.get_response()
             except Exception:
