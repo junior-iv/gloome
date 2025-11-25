@@ -54,7 +54,14 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
             status = 200
             conf = WebConfig()
             conf.arguments_filling(**kwargs, mode=mode)
-            conf.create_tmp_data_files()
+            # conf.create_tmp_data_files()
+            try:
+                conf.create_tmp_data_files()
+            except Exception:
+                with open(path.join(LOG_PATH, f'create_data_files_{conf.CURRENT_JOB}_{conf.PROCESS_ID}.log'),
+                          'a') as f:
+                    f.write(f'\n\n--- Exception at create_data_files ---\n')
+                    f.write(traceback.format_exc())
             try:
                 result = conf.get_response()
             except Exception:
