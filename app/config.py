@@ -157,7 +157,7 @@ class WebConfig:
             f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
             f' {is_do_not_use_e_mail} '
             f'--mode {self.MODE} '
-            f'--use_attachments {int(self.USE_ATTACHMENTS)} '
+            # f'--use_attachments {int(self.USE_ATTACHMENTS)} '
             f'--is_request 1')
         self.JOB_LOGGER.info(f'COMMAND_LINE: \n{self.COMMAND_LINE}')
 
@@ -266,12 +266,12 @@ class WebConfig:
         job_state = self.SUBMITER.check_job_state(self, count=REQUESTS_NUMBER, waiting_time=REQUEST_WAITING_TIME)
 
         mail_sender = MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL)
-        if job_state == 'COMPLETED':
+        if job_state == 'COMPLETED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
             mail_sender.send_results_email(results_files_dir=self.OUT_DIR, is_error=False,
                                            log_file=self.JOB_LOGGER.handlers[-1].baseFilename,
                                            included=('.json', '.zip', '.log'), receiver=self.CURRENT_ARGS.e_mail,
                                            name=self.PROCESS_ID, use_attachments=self.USE_ATTACHMENTS)
-        if job_state == 'FAILED':
+        if job_state == 'FAILED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
             mail_sender.send_results_email(results_files_dir=self.OUT_DIR, is_error=True,
                                            log_file=self.JOB_LOGGER.handlers[-1].baseFilename, included=('.log', ),
                                            receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID,
@@ -279,7 +279,7 @@ class WebConfig:
         if job_state:
             self.JOB_LOGGER.info(f'Result file: {self.OUTPUT_FILE}\n')
 
-            return self.OUTPUT_FILE
+            return self.read_response()
         return ''
 
     # @staticmethod
