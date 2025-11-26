@@ -164,12 +164,12 @@ class Config:
                                 process_id=self.PROCESS_ID, is_local=self.IS_LOCAL)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('send_results_email', False):
             self.execute_action(self.ACTIONS.send_results_email, results_files_dir=self.OUT_DIR, is_error=False,
-                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename, excluded=('.json', '.zip'),
+                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename, included=('.json', '.zip', '.log'),
                                 receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID,
                                 use_attachments=self.USE_ATTACHMENTS)
         if self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('send_results_email', False):
             self.execute_action(self.ACTIONS.send_results_email, results_files_dir=self.OUT_DIR, is_error=True,
-                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename, excluded=('.json', '.zip'),
+                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename, included=('.json', '.zip', '.log'),
                                 receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID,
                                 use_attachments=self.USE_ATTACHMENTS)
 
