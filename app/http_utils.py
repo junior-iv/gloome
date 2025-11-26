@@ -4,11 +4,11 @@ from typing import Tuple, Optional, Any
 from flask import request, Response, jsonify
 from os import path
 
-from app.config import WebConfig
+from app.config import WebConfig, SERVERS_LOGS_DIR
 from script.service_functions import get_variables, check_data, get_error, loads_json
 
-LOG_PATH = '/var/www/vhosts/gloome.tau.ac.il/logs'
-HTTPDOCS_PATH = '/var/www/vhosts/gloome.tau.ac.il/httpdocs/'
+# LOG_PATH = '/var/www/vhosts/gloome.tau.ac.il/logs'
+# HTTPDOCS_PATH = '/var/www/vhosts/gloome.tau.ac.il/httpdocs/'
 
 
 def read_json(json_string: str) -> Any:
@@ -20,7 +20,7 @@ def read_json(json_string: str) -> Any:
             result.pop('create_all_file_types')
             result.update({'error_message': 'Cannot create file links locally'})
     except Exception:
-        with open(path.join(LOG_PATH, f'read_json_Route_debug.log'), 'a') as f:
+        with open(path.join(SERVERS_LOGS_DIR, f'read_json_Route_debug.log'), 'a') as f:
             f.write(f'\n\n--- Exception at execute_request ---\n')
             f.write(traceback.format_exc())
         raise  # Re-raise to still return 500
@@ -30,12 +30,12 @@ def read_json(json_string: str) -> Any:
 
 def get_response(process_id: int) -> Any:
     conf = WebConfig(PROCESS_ID=process_id)
-    conf.texts_filling()
     try:
+        conf.texts_filling()
         result = conf.read_response()
     except Exception:
         conf.set_job_logger_info(traceback.format_exc())
-        with open(path.join(LOG_PATH, f'get_response_{conf.PROCESS_ID}_route_debug.log'), 'a') as f:
+        with open(path.join(SERVERS_LOGS_DIR, f'get_response_{conf.PROCESS_ID}_route_debug.log'), 'a') as f:
             f.write(f'\n\n--- Exception at execute_request ---\n')
             f.write(traceback.format_exc())
         raise  # Re-raise to still return 500
@@ -54,37 +54,15 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
         else:
             status = 200
             conf = WebConfig()
-            conf.arguments_filling(**kwargs, mode=mode)
-            # conf.create_tmp_data_files()
-
-            with open(path.join(LOG_PATH, f'file_path_{conf.PROCESS_ID}.log'),
-                      'a') as f:
-                f.write(f'\n--- file_path ---\n')
-                f.write(f'\n--- MSA_FILE ---\n{conf.MSA_FILE}\n')
-                f.write(f'\n--- TREE_FILE ---\n{conf.TREE_FILE}\n')
-                f.write(f'\n--- CALCULATED_ARGS.file_path ---\n{conf.CALCULATED_ARGS.file_path}\n')
 
             try:
+                conf.arguments_filling(**kwargs, mode=mode)
                 conf.create_tmp_data_files()
-            except Exception:
-                with open(path.join(LOG_PATH, f'create_data_files_{conf.PROCESS_ID}.log'),
-                          'a') as f:
-                    f.write(f'\n\n--- Exception at create_data_files ---\n')
-                    f.write(traceback.format_exc())
-
-            with open(path.join(LOG_PATH, f'file_path_{conf.PROCESS_ID}.log'),
-                      'a') as f:
-                f.write(f'\n--- file_path_3 ---\n')
-                f.write(f'\n--- MSA_FILE ---\n{conf.MSA_FILE}\n')
-                f.write(f'\n--- TREE_FILE ---\n{conf.TREE_FILE}\n')
-                f.write(f'\n--- CALCULATED_ARGS.file_path ---\n{conf.CALCULATED_ARGS.file_path}\n')
-
-            try:
                 result = conf.get_response()
             except Exception:
                 conf.set_job_logger_info(traceback.format_exc())
-                with open(path.join(LOG_PATH, f'execute_request_{conf.CURRENT_JOB}_{conf.PROCESS_ID}_Route_debug.log'),
-                          'a') as f:
+                with open(path.join(SERVERS_LOGS_DIR, f'execute_request_{conf.CURRENT_JOB}_{conf.PROCESS_ID}'
+                          f'_Route_debug.log'), 'a') as f:
                     f.write(f'\n\n--- Exception at execute_request ---\n')
                     f.write(traceback.format_exc())
                 raise  # Re-raise to still return 500

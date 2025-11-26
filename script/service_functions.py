@@ -125,11 +125,12 @@ def check_tree_data(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], st
 
 def execute_all_actions(newick_tree: Union[str, Tree], file_path: str, create_new_file: bool = False,
                         form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
-                        log_file: Optional[str] = None) -> Union[Dict[str, str], str]:
+                        log_file: Optional[str] = None, with_internal_nodes: bool = True) -> Union[Dict[str, str], str]:
 
     result_data = {'draw_tree': draw_tree(newick_tree)}
     result_data.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree)})
-    result_data.update({'create_all_file_types': create_all_file_types(newick_tree, file_path, log_file=log_file)})
+    result_data.update({'create_all_file_types': create_all_file_types(newick_tree, file_path, log_file=log_file,
+                                                                       with_internal_nodes=with_internal_nodes)})
     if create_new_file:
         return create_file(file_path, get_result_data(result_data, 'execute_all_actions', form_data), 'result.json')
 
@@ -152,7 +153,8 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree], file_path: Optiona
 
 def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_new_file: bool = False,
                           form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
-                          log_file: Optional[str] = None) -> Union[Dict[str, str], str]:
+                          log_file: Optional[str] = None, with_internal_nodes: bool = True
+                          ) -> Union[Dict[str, str], str]:
 
     result = {'Interactive tree (html)': newick_tree.tree_to_interactive_html(f'{file_path}/interactive_tree.html')}
     # result.update(newick_tree.tree_to_graph(f'{file_path}/graph.txt', ('dot', 'png', 'svg')))
@@ -160,7 +162,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_
     # result.update({'Newick text (tree)': newick_tree.tree_to_newick_file(f'{file_path}/newick_tree.tree', True)})
     # table = newick_tree.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float)
     # result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
-    result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', True, ('png', )))
+    result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', with_internal_nodes, ('png', )))
     result.update({'Table of nodes (tsv)': newick_tree.tree_to_tsv(f'{file_path}/node_results.tsv', mode='node_tsv')})
     result.update({'Table of branches (tsv)': newick_tree.tree_to_tsv(f'{file_path}/branch_results.tsv',
                                                                       mode='branch_tsv')})

@@ -41,12 +41,14 @@ WEBSERVER_LOG_URL = path.join(WEBSERVER_URL, 'logs')
 WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
 MODULE_LOAD = 'module load mamba/mamba-1.5.8'
 # PRODJECT_DIR = '/lsweb/rodion/gloome'
-PRODJECT_DIR = '/gloome'
+# PRODJECT_DIR = '/gloome'
 # SLURM_PRODJECT_DIR = '/gloome'
-ENVIRONMENT_DIR = path.join(PRODJECT_DIR, 'gloome_env2')
-ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
 
 BIN_DIR = path.dirname(path.abspath(__file__))
+
+ENVIRONMENT_DIR = path.join(BIN_DIR, 'gloome_env2')
+ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
+
 SCRIPT_DIR = path.join(BIN_DIR, 'script')
 SRC_DIR = path.join(BIN_DIR, 'src')
 INITIAL_DATA_DIR = path.join(SRC_DIR, 'initial_data')

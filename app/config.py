@@ -7,10 +7,10 @@ from utils import *
 from script.service_functions import read_file, loads_json, create_file, recompile_json
 
 
-SERVERS_RESULTS_DIR = path.join(STATIC_DIR, 'results')
-SERVERS_LOGS_DIR = path.join(SERVERS_RESULTS_DIR, 'logs')
-IN_DIR = path.join(SERVERS_RESULTS_DIR, 'in')
-OUT_DIR = path.join(SERVERS_RESULTS_DIR, 'out')
+# SERVERS_RESULTS_DIR = path.join(STATIC_DIR, 'results')
+# SERVERS_LOGS_DIR = path.join(SERVERS_RESULTS_DIR, 'logs')
+# IN_DIR = path.join(SERVERS_RESULTS_DIR, 'in')
+# OUT_DIR = path.join(SERVERS_RESULTS_DIR, 'out')
 
 
 class WebConfig:
@@ -19,7 +19,7 @@ class WebConfig:
         self.ACCOUNT = ACCOUNT
         self.PARTITION = PARTITION
         self.MODULE_LOAD = MODULE_LOAD
-        self.PRODJECT_DIR = PRODJECT_DIR
+        # self.PRODJECT_DIR = PRODJECT_DIR
         self.ENVIRONMENT_DIR = ENVIRONMENT_DIR
         self.ENVIRONMENT_ACTIVATE = ENVIRONMENT_ACTIVATE
 
@@ -151,35 +151,30 @@ class WebConfig:
                                  f'\tnewick_text: \n{self.CALCULATED_ARGS.newick_text}\n'
                                  f'\tmsa: \n{self.CALCULATED_ARGS.msa}\n')
 
-    def texts_filling(self, replace_path: bool = True) -> None:
-        if replace_path:
-            self.replace_files_path()
+    def texts_filling(self) -> None:
+        # def texts_filling(self, replace_path: bool = True) -> None:
+        # if replace_path:
+        #     self.replace_files_path()
         with open(self.TREE_FILE, 'r') as f:
             self.CALCULATED_ARGS.newick_text = f.read()
         with open(self.MSA_FILE, 'r') as f:
             self.CALCULATED_ARGS.msa = f.read()
 
-    def replace_files_path(self) -> None:
-        self.MSA_FILE = self.MSA_FILE.replace(STATIC_DIR, self.PRODJECT_DIR)
-        self.TREE_FILE = self.TREE_FILE.replace(STATIC_DIR, self.PRODJECT_DIR)
-        self.CALCULATED_ARGS.file_path = self.OUT_DIR.replace(STATIC_DIR, self.PRODJECT_DIR)
-
-    def create_tmp_data_files(self, replace_path: bool = True) -> None:
-
-        with open(path.join('/var/www/vhosts/gloome.tau.ac.il/logs', f'file_path_{self.PROCESS_ID}.log'),
-                  'a') as f:
-            f.write(f'\n--- file_path_2 ---\n')
-            f.write(f'\n--- MSA_FILE ---\n{self.MSA_FILE}\n')
-            f.write(f'\n--- TREE_FILE ---\n{self.TREE_FILE}\n')
-            f.write(f'\n--- CALCULATED_ARGS.file_path ---\n{self.CALCULATED_ARGS.file_path}\n')
+    # def replace_files_path(self) -> None:
+    #     self.MSA_FILE = self.MSA_FILE.replace(STATIC_DIR, self.PRODJECT_DIR)
+    #     self.TREE_FILE = self.TREE_FILE.replace(STATIC_DIR, self.PRODJECT_DIR)
+    #     self.CALCULATED_ARGS.file_path = self.OUT_DIR.replace(STATIC_DIR, self.PRODJECT_DIR)
+    #
+    def create_tmp_data_files(self) -> None:
+        # def create_tmp_data_files(self, replace_path: bool = True) -> None:
 
         self.check_dir(self.CALCULATED_ARGS.file_path)
 
         create_file(self.MSA_FILE, self.CALCULATED_ARGS.msa)
         create_file(self.TREE_FILE, self.CALCULATED_ARGS.newick_text)
 
-        if replace_path:
-            self.replace_files_path()
+        # if replace_path:
+        #     self.replace_files_path()
         self.set_job_logger_info(f'Created msa file: {self.MSA_FILE}')
         self.set_job_logger_info(f'Created newick file: {self.TREE_FILE}')
         self.set_job_logger_info(f'Output files path: {self.CALCULATED_ARGS.file_path}')
@@ -215,10 +210,10 @@ class WebConfig:
         job_name = f'gloome_{self.PROCESS_ID}'
         # prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{self.PROCESS_ID}_'
         prefix = f'{self.PROCESS_ID}_'
-        tmp_dir = path.join(self.PRODJECT_DIR, 'tmp')
+        tmp_dir = path.join(self.BIN_DIR, 'tmp')
         cmd = (f'#!/bin/bash\n'
                f'source ~/.bashrc\n'
-               f'cd {self.PRODJECT_DIR}\n'
+               f'cd {self.BIN_DIR}\n'
                f'echo "Loading module..."\n'
                f'{self.MODULE_LOAD}\n'
                f'echo "Activating env..."\n'
