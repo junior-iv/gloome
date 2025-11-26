@@ -12,39 +12,19 @@ class Config:
         self.MODE = MODE
         self.COMMAND_LINE = COMMAND_LINE
 
-        self.BIN_DIR = BIN_DIR
-        self.SCRIPT_DIR = SCRIPT_DIR
-        self.INITIAL_DATA_DIR = INITIAL_DATA_DIR
-        self.SRC_DIR = SRC_DIR
-        self.APP_DIR = APP_DIR
-        self.TMP_DIR = TMP_DIR
-        self.TEMPLATES_DIR = TEMPLATES_DIR
         self.IN_DIR = IN_DIR
         self.OUT_DIR = OUT_DIR
-        self.ERROR_TEMPLATE = ERROR_TEMPLATE
-
-        self.IS_PRODUCTION = IS_PRODUCTION
-        self.IS_LOCAL = IS_LOCAL
 
         self.ACTIONS = ACTIONS
         self.VALIDATION_ACTIONS = VALIDATION_ACTIONS
         self.DEFAULT_ACTIONS = DEFAULT_ACTIONS
 
         self.CURRENT_ARGS = DEFAULT_ARGUMENTS
-        # self.CURRENT_ARGS.update(DEFAULT_FORM_ARGUMENTS)
-
-        self.MSA_FILE_NAME = MSA_FILE_NAME
-        self.TREE_FILE_NAME = TREE_FILE_NAME
 
         self.CALCULATED_ARGS = CALCULATED_ARGS
-        self.MENU = MENU
 
-        self.PREFERRED_URL_SCHEME = PREFERRED_URL_SCHEME
         self.WEBSERVER_NAME_CAPITAL = WEBSERVER_NAME_CAPITAL
-        self.WEBSERVER_NAME = WEBSERVER_NAME
-        self.WEBSERVER_URL = WEBSERVER_URL
-        self.WEBSERVER_TITLE = WEBSERVER_TITLE
-        self.USE_ATTACHMENTS = True
+        self.IS_REQUEST = False
 
         self.PROCESS_ID = None
         self.SERVERS_RESULTS_DIR = None
@@ -87,18 +67,6 @@ class Config:
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
         self.JOB_LOGGER = get_job_logger(f'{process_id}', self.SERVERS_LOGS_DIR)
-        # self.set_job_logger_info(f'PROCESS ID: {process_id}\n'
-        #                          f'\tSERVERS_RESULTS_DIR: {self.SERVERS_RESULTS_DIR}\n'
-        #                          f'\tSERVERS_LOGS_DIR: {self.SERVERS_LOGS_DIR}\n'
-        #                          f'\tMSA_FILE: {self.MSA_FILE}\n'
-        #                          f'\tTREE_FILE: {self.TREE_FILE}\n'
-        #                          f'\tJOB_LOGGER: {self.JOB_LOGGER}\n'
-        #                          f'\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}\n'
-        #                          f'\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
-
-    def set_job_logger_info(self, log_msg: str):
-        # self.LOGGER.info(log_msg)
-        self.JOB_LOGGER.info(log_msg)
 
     def check_and_set_input_and_output_variables(self):
         """get variables from input arguments and fill out the Variable Class properties"""
@@ -132,10 +100,10 @@ class Config:
     def execute_action(self, func, *args, **kwargs):
         try:
             val = func(*args, **kwargs)
-            self.set_job_logger_info(f'Successfully Command \'{func.__name__}\' executed successfully. -> {val}')
+            self.JOB_LOGGER.info(f'Successfully Command \'{func.__name__}\' executed successfully. -> {val}')
         except ValueError:
             format_exc = f'{traceback.format_exc()}'
-            self.set_job_logger_info(f'Failed to execute the command \'{func.__name__}\' -> {format_exc}')
+            self.JOB_LOGGER.info(f'Failed to execute the command \'{func.__name__}\' -> {format_exc}')
             self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'{func.__name__}\'', format_exc))
 
     def execute_calculation(self):
@@ -161,17 +129,7 @@ class Config:
                                 log_file=self.JOB_LOGGER.handlers[-1].baseFilename)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('recompile_json', False):
             self.execute_action(self.ACTIONS.recompile_json, output_file=path.join(self.OUT_DIR, 'result.json'),
-                                process_id=self.PROCESS_ID, is_local=self.IS_LOCAL)
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('send_results_email', False):
-            self.execute_action(self.ACTIONS.send_results_email, results_files_dir=self.OUT_DIR, is_error=False,
-                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename, included=('.json', '.zip', '.log'),
-                                receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID,
-                                use_attachments=self.USE_ATTACHMENTS)
-        if self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('send_results_email', False):
-            self.execute_action(self.ACTIONS.send_results_email, results_files_dir=self.OUT_DIR, is_error=True,
-                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename, included=('.json', '.zip', '.log'),
-                                receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID,
-                                use_attachments=self.USE_ATTACHMENTS)
+                                process_id=self.PROCESS_ID, create_link=self.IS_REQUEST)
 
     def check_arguments_for_errors(self) -> bool:
         if path.isfile(self.TREE_FILE):
@@ -245,9 +203,9 @@ class Config:
                                                       f'Strange error.'))
 
         if self.CALCULATED_ARGS.err_list:
-            self.set_job_logger_info(f'Error list: \n{self.CALCULATED_ARGS.err_list}')
+            self.JOB_LOGGER.info(f'Error list: \n{self.CALCULATED_ARGS.err_list}')
         else:
-            self.set_job_logger_info(f'Verification completed successfully')
+            self.JOB_LOGGER.info(f'Verification completed successfully')
 
         return not self.CALCULATED_ARGS.err_list
 
@@ -301,9 +259,9 @@ class Config:
                             help=f'Specify is_do_not_use_e_mail (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_do_not_use_e_mail)}.',
                             default=int(self.CURRENT_ARGS.is_do_not_use_e_mail))
-        parser.add_argument('--use_attachments', dest='use_attachments', type=int, required=False,
-                            help=f'Specify use_attachments (technical parameter, do not change).',
-                            default=int(self.USE_ATTACHMENTS))
+        parser.add_argument('--is_request', dest='is_request', type=int, required=False,
+                            help=f'Specify is_request (technical parameter, do not change).',
+                            default=int(self.IS_REQUEST))
 
         args = parser.parse_args()
 
@@ -314,7 +272,7 @@ class Config:
                         self.change_process_id(arg_value)
                 elif arg_name == 'mode':
                     setattr(self, arg_name.upper(), tuple(arg_value))
-                elif arg_name == 'use_attachments':
+                elif arg_name == 'is_request':
                     setattr(self, arg_name.upper(), bool(arg_value))
                 elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
                                   'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_e_mail'):
@@ -347,10 +305,9 @@ class Config:
             self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
                                          'calculate_ancestral_sequence': True,
                                          'execute_all_actions': True})
-        if self.IS_LOCAL:
-            self.DEFAULT_ACTIONS.update({'recompile_json': True})
-        if not self.IS_LOCAL and not self.CURRENT_ARGS.is_do_not_use_e_mail and self.CURRENT_ARGS.e_mail:
-            self.DEFAULT_ACTIONS.update({'send_results_email': True})
+        self.DEFAULT_ACTIONS.update({'recompile_json': True})
+        # if not self.IS_LOCAL and not self.CURRENT_ARGS.is_do_not_use_e_mail and self.CURRENT_ARGS.e_mail:
+        #     self.DEFAULT_ACTIONS.update({'send_results_email': True})
 
         return args
 

@@ -34,7 +34,7 @@ def get_response(process_id: int) -> Any:
         conf.texts_filling()
         result = conf.read_response()
     except Exception:
-        conf.set_job_logger_info(traceback.format_exc())
+        conf.JOB_LOGGER.info(traceback.format_exc())
         with open(path.join(SERVERS_LOGS_DIR, f'get_response_{conf.PROCESS_ID}_route_debug.log'), 'a') as f:
             f.write(f'\n\n--- Exception at execute_request ---\n')
             f.write(traceback.format_exc())
@@ -60,7 +60,7 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
                 conf.create_tmp_data_files()
                 result = conf.get_response()
             except Exception:
-                conf.set_job_logger_info(traceback.format_exc())
+                conf.JOB_LOGGER.info(traceback.format_exc())
                 with open(path.join(SERVERS_LOGS_DIR, f'execute_request_{conf.CURRENT_JOB}_{conf.PROCESS_ID}'
                           f'_Route_debug.log'), 'a') as f:
                     f.write(f'\n\n--- Exception at execute_request ---\n')

@@ -66,13 +66,12 @@ MSA_FILE_NAME = 'msa_file.msa'
 TREE_FILE_NAME = 'tree_file.tree'
 
 REQUESTS_NUMBER = 100
-REQUEST_WAITING_TIME = 30
+REQUEST_WAITING_TIME = 20
 
 # IS_LOCAL = request.remote_addr in ('127.0.0.1', '::1')
 # IS_LOCAL = 'powerslurm' not in socket.gethostname()
-IS_LOCAL = not path.exists(path.join(BIN_DIR, '.env'))
 
-if IS_LOCAL:
+if not path.exists(path.join(BIN_DIR, '.env')):
     SECRET_KEY = ''
     TOKEN = ''
     PARTITION = ''
@@ -135,115 +134,6 @@ class FlaskConfig:
         if attributes:
             for key, value in attributes.items():
                 setattr(self, key, value)
-
-
-class MailSenderSMTPLib:
-    name: str
-    sender: str
-    receiver: str
-    smtp_server: str
-    smtp_port: int
-    password: str
-
-    def __init__(self, **attributes):
-        self.sender = ADMIN_EMAIL
-        self.smtp_server = SMTP_SERVER
-        self.smtp_port = SMTP_PORT
-        self.password = ADMIN_PASSWORD
-        self.receiver = ''
-        self.name = ''
-
-        self.set_attributes(**attributes)
-
-    def set_attributes(self, **attributes) -> None:
-        if attributes:
-            for key, value in attributes.items():
-                if hasattr(self, key):
-                    setattr(self, key, value)
-
-    def send_email(self, subject: str, attachments: Union[Tuple[str, ...], List[str], str], body: str,
-                   use_attachments: bool = False) -> None:
-        message = MIMEMultipart()
-        message["From"] = self.sender
-        message["To"] = self.receiver
-        message["Subject"] = subject
-
-        if isinstance(attachments, (tuple, list)):
-            for attachment_path in attachments:
-                if use_attachments:
-                    self.add_attachment_to_email(attachment_path, message)
-                else:
-                    body += (f'\n<a href="{url_for(endpoint="get_file", file_path=attachment_path, mode="view")}" '
-                             f'target="_blank">{attachment_path}</a>')
-        elif isinstance(attachments, str):
-            if use_attachments:
-                self.add_attachment_to_email(attachments, message)
-            else:
-                body += (f'\n<a href="{url_for(endpoint="get_file", file_path=attachments, mode="view")}" '
-                         f'target="_blank">{attachments}</a>')
-
-        message.attach(MIMEText(body, 'plain'))
-
-        if self.smtp_port == 587:
-            with SMTP(self.smtp_server, self.smtp_port) as server:
-                context = create_default_context()
-                server.starttls(context=context)
-                server.login(self.sender, self.password)
-                server.send_message(message)
-        elif self.smtp_port == 465:
-            with SMTP_SSL(self.smtp_server, self.smtp_port) as server:
-                server.login(self.sender, self.password)
-                server.send_message(message)
-
-    def send_results_email(self, results_files_dir: str, log_file: str, excluded: Union[Tuple[str, ...], List[str], str,
-                           None] = None, included: Union[Tuple[str, ...], List[str], str, None] = None, is_error:
-                           bool = False, use_attachments: bool = False, **kwargs) -> None:
-        self.set_attributes(**kwargs)
-        status = 'failed!' if is_error else 'complited'
-        subject = f'{WEBSERVER_NAME_CAPITAL} job {self.name} by {self.receiver} has {status}'
-        body = f'{subject}\n'
-        attachments = [log_file]
-        with scandir(results_files_dir) as entries:
-            for entry in entries:
-                self.add_attachment_to_list(entry, results_files_dir, attachments, excluded, included)
-        self.send_email(subject, attachments, body, use_attachments)
-
-    def send_log_files_list(self, log_files_dir: str, start_date: int, end_date: int, excluded: Union[Tuple[str, ...],
-                            List[str], str, None] = None, included: Union[Tuple[str, ...], List[str], str, None] = None,
-                            use_attachments: bool = False, **kwargs) -> None:
-        self.set_attributes(**kwargs)
-        subject = f'{WEBSERVER_NAME_CAPITAL} list of log files by {self.receiver}'
-        body = f'{subject}\n'
-        attachments = []
-        with scandir(log_files_dir) as entries:
-            for entry in entries:
-                if start_date <= entry.stat().st_ctime_ns < end_date:
-                    self.add_attachment_to_list(entry, log_files_dir, attachments, excluded, included)
-        self.send_email(subject, attachments, body, use_attachments)
-
-    @staticmethod
-    def add_attachment_to_list(entry, current_dir: str, attachments: List[str], excluded: Union[Tuple[str, ...],
-                               List[str], str, None] = None, included: Union[Tuple[str, ...], List[str], str, None] =
-                               None) -> None:
-        includ = (included is None or entry.name in included or path.splitext(entry.name)[-1] in included
-                  or path.splitext(entry.name)[-1][1:] in included)
-        exclud = (excluded is not None and (entry.name in excluded or path.splitext(entry.name)[-1] in excluded
-                  or path.splitext(entry.name)[-1][1:] in excluded))
-        if entry.is_file() and not exclud and includ:
-            attachments.append(path.join(current_dir, entry))
-
-    @staticmethod
-    def add_attachment_to_email(attachment_path, message) -> None:
-        with open(attachment_path, "rb") as attachment:
-            part = MIMEBase("application", "octet-stream")
-            part.set_payload(attachment.read())
-
-        encoders.encode_base64(part)
-        part.add_header(
-            "Content-Disposition",
-            f"attachment; filename= {path.basename(attachment_path)}",
-        )
-        message.attach(part)
 
 
 class Actions:
@@ -320,8 +210,7 @@ ACTIONS = Actions(**{
                      'draw_tree': draw_tree,
                      'create_all_file_types': create_all_file_types,
                      'execute_all_actions': execute_all_actions,
-                     'recompile_json': recompile_json,
-                     'send_results_email': MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL).send_results_email
+                     'recompile_json': recompile_json
                      })
 
 VALIDATION_ACTIONS = {
@@ -337,8 +226,7 @@ DEFAULT_ACTIONS = {
     'draw_tree': False,
     'create_all_file_types': False,
     'execute_all_actions': False,
-    'recompile_json': False,
-    'send_results_email': False
+    'recompile_json': False
     }
 
 
@@ -384,11 +272,8 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify is_optimize_bl. Default is 1.
 \t\t--is_do_not_use_e_mail <type=int> 
 \t\t\tSpecify is_do_not_use_e_mail. Default is 1.
-\t\t--use_attachments <type=int> 
-\t\t\tSpecify use_attachments (technical parameter, do not change).'''
-# --sort_values_by <type=str>
-#     Specify the columns by which you want to sort the values in the csv file.
-#     Possible options: ('Name', 'Parent', 'Distance to parent', 'Children'). Default is 'child' 'Name'.
+\t\t--is_request <type=int> 
+\t\t\tSpecify is_request (technical parameter, do not change).'''
 
 MENU = ({'name': 'Home', 'url': 'index',
          'submenu': ()

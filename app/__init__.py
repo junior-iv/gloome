@@ -6,10 +6,10 @@ root_path = path.abspath(path.dirname(path.dirname(__file__)))
 if root_path not in sys_path:
     sys_path.insert(0, root_path)
 
-# Path to the script folder
-script_path = path.abspath(path.dirname(__file__))
-if script_path not in sys_path:
-    sys_path.insert(0, script_path)
+# Path to the app folder
+app_path = path.abspath(path.dirname(__file__))
+if app_path not in sys_path:
+    sys_path.insert(0, app_path)
 
 from http_utils import *
 

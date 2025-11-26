@@ -4,53 +4,28 @@ from time import sleep
 from typing import Optional, Any, Set
 
 from utils import *
-from script.service_functions import read_file, loads_json, create_file, recompile_json
-
-
-# SERVERS_RESULTS_DIR = path.join(STATIC_DIR, 'results')
-# SERVERS_LOGS_DIR = path.join(SERVERS_RESULTS_DIR, 'logs')
-# IN_DIR = path.join(SERVERS_RESULTS_DIR, 'in')
-# OUT_DIR = path.join(SERVERS_RESULTS_DIR, 'out')
+from script.service_functions import read_file, loads_json, create_file
 
 
 class WebConfig:
     def __init__(self, **attributes):
-        self.IS_LOCAL = IS_LOCAL
         self.ACCOUNT = ACCOUNT
         self.PARTITION = PARTITION
         self.MODULE_LOAD = MODULE_LOAD
-        # self.PRODJECT_DIR = PRODJECT_DIR
         self.ENVIRONMENT_DIR = ENVIRONMENT_DIR
         self.ENVIRONMENT_ACTIVATE = ENVIRONMENT_ACTIVATE
 
         self.BIN_DIR = BIN_DIR
-        self.SCRIPT_DIR = SCRIPT_DIR
-        self.INITIAL_DATA_DIR = INITIAL_DATA_DIR
-        self.SRC_DIR = SRC_DIR
-        self.APP_DIR = APP_DIR
-        self.TMP_DIR = TMP_DIR
-        self.TEMPLATES_DIR = TEMPLATES_DIR
         self.IN_DIR = IN_DIR
         self.OUT_DIR = OUT_DIR
-        self.ERROR_TEMPLATE = ERROR_TEMPLATE
 
         self.CURRENT_ARGS = DEFAULT_ARGUMENTS
-        # self.CURRENT_ARGS.update(DEFAULT_FORM_ARGUMENTS)
-
-        self.ACTIONS = ACTIONS
-        self.DEFAULT_ACTIONS = DEFAULT_ACTIONS
 
         self.MSA_FILE_NAME = MSA_FILE_NAME
         self.TREE_FILE_NAME = TREE_FILE_NAME
 
         self.CALCULATED_ARGS = CALCULATED_ARGS
-        self.MENU = MENU
 
-        self.PREFERRED_URL_SCHEME = PREFERRED_URL_SCHEME
-        self.WEBSERVER_NAME_CAPITAL = WEBSERVER_NAME_CAPITAL
-        self.WEBSERVER_NAME = WEBSERVER_NAME
-        self.WEBSERVER_URL = WEBSERVER_URL
-        self.WEBSERVER_TITLE = WEBSERVER_TITLE
         self.USE_ATTACHMENTS = False
 
         self.PROCESS_ID = None
@@ -68,7 +43,6 @@ class WebConfig:
         self.MODE = None
         self.COMMAND_LINE = None
 
-        # self.LOGGER = logger
         self.JOBS_NUMBER = JobsCounter()
         if USE_OLD_SUBMITER:
             self.SUBMITER = SlurmSubmiter()
@@ -83,10 +57,6 @@ class WebConfig:
                     setattr(self, key, value)
         if self.PROCESS_ID is None:
             self.change_process_id(get_new_process_id())
-
-    def set_job_logger_info(self, log_msg: str):
-        # self.LOGGER.info(log_msg)
-        self.JOB_LOGGER.info(log_msg)
 
     def change_process_id(self, process_id: str):
         self.PROCESS_ID = process_id
@@ -108,16 +78,11 @@ class WebConfig:
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
         self.JOB_LOGGER = get_job_logger(f'{process_id}', self.SERVERS_LOGS_DIR)
-        self.set_job_logger_info(f'\n\tPROCESS ID: {process_id}\n'
-                                 f'\tSUBMITER: {self.SUBMITER}\n'
-                                 # f'\tSERVERS_RESULTS_DIR: {self.SERVERS_RESULTS_DIR}\n'
-                                 # f'\tSERVERS_LOGS_DIR: {self.SERVERS_LOGS_DIR}\n'
-                                 # f'\tMSA_FILE: {self.MSA_FILE}\n'
-                                 # f'\tTREE_FILE: {self.TREE_FILE}\n'
-                                 # f'\tOUTPUT_FILE: {self.OUTPUT_FILE}\n'
-                                 f'\tJOB_LOGGER: {self.JOB_LOGGER}\n'
-                                 f'\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}\n'
-                                 f'\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
+        self.JOB_LOGGER.info(f'\n\tPROCESS ID: {process_id}\n'
+                             f'\tSUBMITER: {self.SUBMITER}\n'
+                             f'\tJOB_LOGGER: {self.JOB_LOGGER}\n'
+                             f'\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}\n'
+                             f'\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
 
     def arguments_filling(self, **arguments):
         dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'eMail', 'isOptimizePi',
@@ -137,19 +102,19 @@ class WebConfig:
         self.MODE = ' '.join(mode)
         self.CALCULATED_ARGS.newick_text = arguments.get('newickText')
         self.CALCULATED_ARGS.msa = arguments.get('msaText')
-        self.set_job_logger_info(f'\n\tMODE: {self.MODE}\n'
-                                 f'\tcategories_quantity: {self.CURRENT_ARGS.categories_quantity}\n'
-                                 f'\talpha: {self.CURRENT_ARGS.alpha}\n'
-                                 f'\tpi_1: {self.CURRENT_ARGS.pi_1}\n'
-                                 f'\tcoefficient_bl: {self.CURRENT_ARGS.coefficient_bl}\n'
-                                 f'\te_mail: {self.CURRENT_ARGS.e_mail}\n'
-                                 f'\tis_optimize_pi: {self.CURRENT_ARGS.is_optimize_pi}\n'
-                                 f'\tis_optimize_pi_average: {self.CURRENT_ARGS.is_optimize_pi_average}\n'
-                                 f'\tis_optimize_alpha: {self.CURRENT_ARGS.is_optimize_alpha}\n'
-                                 f'\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}\n'
-                                 f'\tis_do_not_use_e_mail: {self.CURRENT_ARGS.is_do_not_use_e_mail}\n'
-                                 f'\tnewick_text: \n{self.CALCULATED_ARGS.newick_text}\n'
-                                 f'\tmsa: \n{self.CALCULATED_ARGS.msa}\n')
+        self.JOB_LOGGER.info(f'\n\tMODE: {self.MODE}\n'
+                             f'\tcategories_quantity: {self.CURRENT_ARGS.categories_quantity}\n'
+                             f'\talpha: {self.CURRENT_ARGS.alpha}\n'
+                             f'\tpi_1: {self.CURRENT_ARGS.pi_1}\n'
+                             f'\tcoefficient_bl: {self.CURRENT_ARGS.coefficient_bl}\n'
+                             f'\te_mail: {self.CURRENT_ARGS.e_mail}\n'
+                             f'\tis_optimize_pi: {self.CURRENT_ARGS.is_optimize_pi}\n'
+                             f'\tis_optimize_pi_average: {self.CURRENT_ARGS.is_optimize_pi_average}\n'
+                             f'\tis_optimize_alpha: {self.CURRENT_ARGS.is_optimize_alpha}\n'
+                             f'\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}\n'
+                             f'\tis_do_not_use_e_mail: {self.CURRENT_ARGS.is_do_not_use_e_mail}\n'
+                             f'\tnewick_text: \n{self.CALCULATED_ARGS.newick_text}\n'
+                             f'\tmsa: \n{self.CALCULATED_ARGS.msa}\n')
 
     def texts_filling(self) -> None:
         # def texts_filling(self, replace_path: bool = True) -> None:
@@ -160,24 +125,15 @@ class WebConfig:
         with open(self.MSA_FILE, 'r') as f:
             self.CALCULATED_ARGS.msa = f.read()
 
-    # def replace_files_path(self) -> None:
-    #     self.MSA_FILE = self.MSA_FILE.replace(STATIC_DIR, self.PRODJECT_DIR)
-    #     self.TREE_FILE = self.TREE_FILE.replace(STATIC_DIR, self.PRODJECT_DIR)
-    #     self.CALCULATED_ARGS.file_path = self.OUT_DIR.replace(STATIC_DIR, self.PRODJECT_DIR)
-    #
     def create_tmp_data_files(self) -> None:
-        # def create_tmp_data_files(self, replace_path: bool = True) -> None:
-
         self.check_dir(self.CALCULATED_ARGS.file_path)
 
         create_file(self.MSA_FILE, self.CALCULATED_ARGS.msa)
         create_file(self.TREE_FILE, self.CALCULATED_ARGS.newick_text)
 
-        # if replace_path:
-        #     self.replace_files_path()
-        self.set_job_logger_info(f'Created msa file: {self.MSA_FILE}')
-        self.set_job_logger_info(f'Created newick file: {self.TREE_FILE}')
-        self.set_job_logger_info(f'Output files path: {self.CALCULATED_ARGS.file_path}')
+        self.JOB_LOGGER.info(f'Created msa file: {self.MSA_FILE}')
+        self.JOB_LOGGER.info(f'Created newick file: {self.TREE_FILE}')
+        self.JOB_LOGGER.info(f'Output files path: {self.CALCULATED_ARGS.file_path}')
 
     def create_command_line(self) -> None:
         if self.CURRENT_ARGS.e_mail:
@@ -201,8 +157,9 @@ class WebConfig:
             f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
             f' {is_do_not_use_e_mail} '
             f'--mode {self.MODE} '
-            f'--use_attachments {int(self.USE_ATTACHMENTS)}')
-        self.set_job_logger_info(f'COMMAND_LINE: \n{self.COMMAND_LINE}')
+            f'--use_attachments {int(self.USE_ATTACHMENTS)} '
+            f'--is_request 1')
+        self.JOB_LOGGER.info(f'COMMAND_LINE: \n{self.COMMAND_LINE}')
 
     def get_request_body(self):
         # TODO think about job_name = f'gloome_{self.PROCESS_ID}_{self.JOBS_NUMBER.inc()}'
@@ -303,15 +260,26 @@ class WebConfig:
 
         self.CURRENT_JOB = self.SUBMITER.submit_job(json=request_body).get('job_id', self.JOBS_NUMBER.value)
         self.HISTORY.append(self.CURRENT_JOB)
-        self.set_job_logger_info(f'\nSubmit job (id: {self.CURRENT_JOB})'
-                                 f'\nRequest body: {request_body}\n')
+        self.JOB_LOGGER.info(f'\nSubmit job (id: {self.CURRENT_JOB})'
+                             f'\nRequest body: {request_body}\n')
 
         job_state = self.SUBMITER.check_job_state(self, count=REQUESTS_NUMBER, waiting_time=REQUEST_WAITING_TIME)
 
+        mail_sender = MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL)
+        if job_state == 'COMPLETED':
+            mail_sender.send_results_email(results_files_dir=self.OUT_DIR, is_error=False,
+                                           log_file=self.JOB_LOGGER.handlers[-1].baseFilename,
+                                           included=('.json', '.zip', '.log'), receiver=self.CURRENT_ARGS.e_mail,
+                                           name=self.PROCESS_ID, use_attachments=self.USE_ATTACHMENTS)
+        if job_state == 'FAILED':
+            mail_sender.send_results_email(results_files_dir=self.OUT_DIR, is_error=True,
+                                           log_file=self.JOB_LOGGER.handlers[-1].baseFilename, included=('.log', ),
+                                           receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID,
+                                           use_attachments=self.USE_ATTACHMENTS)
         if job_state:
-            self.set_job_logger_info(f'Result file: {self.OUTPUT_FILE}\n')
+            self.JOB_LOGGER.info(f'Result file: {self.OUTPUT_FILE}\n')
 
-            return recompile_json(output_file=self.OUTPUT_FILE, process_id=self.PROCESS_ID, is_local=self.IS_LOCAL)
+            return self.OUTPUT_FILE
         return ''
 
     # @staticmethod
@@ -445,7 +413,7 @@ class SawSubmiter:
             state_filter = ['FAILED']
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
             if job_state in state_filter:
-                conf.set_job_logger_info(f'Job state: {job_state}')
+                conf.JOB_LOGGER.info(f'Job state: {job_state}')
                 return job_state
             count -= 1
             sleep(waiting_time)
@@ -547,7 +515,7 @@ class SlurmSubmiter:
             state_filter = ['FAILED']
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
             if job_state in state_filter:
-                conf.set_job_logger_info(f'Job state: {job_state}')
+                conf.JOB_LOGGER.info(f'Job state: {job_state}')
                 return job_state in state
             count -= 1
             sleep(waiting_time)
@@ -570,29 +538,115 @@ class SlurmSubmiter:
                 if result is not None:
                     return result
         return None
-#
-#
-# class LocalSubmiter:
-#     def __init__(self):
-#         self.current_user = USER_NAME
-#         self.api_key = SECRET_KEY
-#
-#         self.base_url_auth = 'https://slurmtron.tau.ac.il'
-#         self.api = f'{self.base_url_auth}/slurmrestd'
-#         self.generate_token_url = f'{self.base_url_auth}/slurmapi/generate-token/'
-#
-#     def __str__(self) -> str:
-#         return self.get_name()
-#
-#     def get_name(self) -> str:
-#         return f'{self.__class__.__name__}'
-#
-#     @staticmethod
-#     def execute_job():
-#         from script.config import Config
-#         config = Config()
-#         config.check_and_set_input_and_output_variables()
-#         config.execute_calculation()
+
+
+class MailSenderSMTPLib:
+    name: str
+    sender: str
+    receiver: str
+    smtp_server: str
+    smtp_port: int
+    password: str
+
+    def __init__(self, **attributes):
+        self.sender = ADMIN_EMAIL
+        self.smtp_server = SMTP_SERVER
+        self.smtp_port = SMTP_PORT
+        self.password = ADMIN_PASSWORD
+        self.receiver = ''
+        self.name = ''
+
+        self.set_attributes(**attributes)
+
+    def set_attributes(self, **attributes) -> None:
+        if attributes:
+            for key, value in attributes.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
+
+    def send_email(self, subject: str, attachments: Union[Tuple[str, ...], List[str], str], body: str,
+                   use_attachments: bool = False) -> None:
+        message = MIMEMultipart()
+        message["From"] = self.sender
+        message["To"] = self.receiver
+        message["Subject"] = subject
+
+        if isinstance(attachments, (tuple, list)):
+            for attachment_path in attachments:
+                if use_attachments:
+                    self.add_attachment_to_email(attachment_path, message)
+                else:
+                    body += (f'\n<a href="{url_for(endpoint="get_file", file_path=attachment_path, mode="view")}" '
+                             f'target="_blank">{attachment_path}</a>')
+        elif isinstance(attachments, str):
+            if use_attachments:
+                self.add_attachment_to_email(attachments, message)
+            else:
+                body += (f'\n<a href="{url_for(endpoint="get_file", file_path=attachments, mode="view")}" '
+                         f'target="_blank">{attachments}</a>')
+
+        message.attach(MIMEText(body, 'plain'))
+
+        if self.smtp_port == 587:
+            with SMTP(self.smtp_server, self.smtp_port) as server:
+                context = create_default_context()
+                server.starttls(context=context)
+                server.login(self.sender, self.password)
+                server.send_message(message)
+        elif self.smtp_port == 465:
+            with SMTP_SSL(self.smtp_server, self.smtp_port) as server:
+                server.login(self.sender, self.password)
+                server.send_message(message)
+
+    def send_results_email(self, results_files_dir: str, log_file: str, excluded: Union[Tuple[str, ...], List[str], str,
+                           None] = None, included: Union[Tuple[str, ...], List[str], str, None] = None, is_error:
+                           bool = False, use_attachments: bool = False, **kwargs) -> None:
+        self.set_attributes(**kwargs)
+        status = 'failed!' if is_error else 'complited'
+        subject = f'{WEBSERVER_NAME_CAPITAL} job {self.name} by {self.receiver} has {status}'
+        body = f'{subject}\n'
+        attachments = [log_file]
+        with scandir(results_files_dir) as entries:
+            for entry in entries:
+                self.add_attachment_to_list(entry, results_files_dir, attachments, excluded, included)
+        self.send_email(subject, attachments, body, use_attachments)
+
+    def send_log_files_list(self, log_files_dir: str, start_date: int, end_date: int, excluded: Union[Tuple[str, ...],
+                            List[str], str, None] = None, included: Union[Tuple[str, ...], List[str], str, None] = None,
+                            use_attachments: bool = False, **kwargs) -> None:
+        self.set_attributes(**kwargs)
+        subject = f'{WEBSERVER_NAME_CAPITAL} list of log files by {self.receiver}'
+        body = f'{subject}\n'
+        attachments = []
+        with scandir(log_files_dir) as entries:
+            for entry in entries:
+                if start_date <= entry.stat().st_ctime_ns < end_date:
+                    self.add_attachment_to_list(entry, log_files_dir, attachments, excluded, included)
+        self.send_email(subject, attachments, body, use_attachments)
+
+    @staticmethod
+    def add_attachment_to_list(entry, current_dir: str, attachments: List[str], excluded: Union[Tuple[str, ...],
+                               List[str], str, None] = None, included: Union[Tuple[str, ...], List[str], str, None] =
+                               None) -> None:
+        includ = (included is None or entry.name in included or path.splitext(entry.name)[-1] in included
+                  or path.splitext(entry.name)[-1][1:] in included)
+        exclud = (excluded is not None and (entry.name in excluded or path.splitext(entry.name)[-1] in excluded
+                  or path.splitext(entry.name)[-1][1:] in excluded))
+        if entry.is_file() and not exclud and includ:
+            attachments.append(path.join(current_dir, entry))
+
+    @staticmethod
+    def add_attachment_to_email(attachment_path, message) -> None:
+        with open(attachment_path, "rb") as attachment:
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment.read())
+
+        encoders.encode_base64(part)
+        part.add_header(
+            "Content-Disposition",
+            f"attachment; filename= {path.basename(attachment_path)}",
+        )
+        message.attach(part)
 
 
 class JobsCounter:

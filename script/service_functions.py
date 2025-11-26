@@ -332,7 +332,7 @@ def get_function_parameters(func: Callable) -> Tuple[str, ...]:
     return tuple(inspect.signature(func).parameters.keys())
 
 
-def recompile_json(output_file: str, process_id: int, is_local: bool) -> None:
+def recompile_json(output_file: str, process_id: int, create_link: bool) -> None:
     file_contents = read_file(file_path=output_file)
     json_object = loads_json(file_contents)
     action_name = json_object.pop('action_name')
@@ -340,10 +340,10 @@ def recompile_json(output_file: str, process_id: int, is_local: bool) -> None:
 
     if 'execute_all_actions' in action_name:
         for key, value in data.items():
-            data.update({key: get_response_design(value, key, is_local)})
+            data.update({key: get_response_design(value, key, create_link)})
         pass
     else:
-        data = get_response_design(data, action_name, is_local)
+        data = get_response_design(data, action_name, create_link)
 
     data.update({'title': process_id})
     data.update({'form_data': json_object.pop('form_data')})
@@ -351,8 +351,8 @@ def recompile_json(output_file: str, process_id: int, is_local: bool) -> None:
     create_file(file_path=output_file, data=data)
 
 
-def get_response_design(json_object: Optional[Any], action_name: str, is_local: bool) -> Optional[Any]:
-    if 'create_all_file_types' in action_name and not is_local:
+def get_response_design(json_object: Optional[Any], action_name: str, create_link: bool) -> Optional[Any]:
+    if 'create_all_file_types' in action_name and not create_link:
         json_object = link_design(json_object)
         json_object = result_design(json_object, change_value='compute_likelihood_of_tree' in action_name,
                                     change_value_style=False, change_key=True, change_key_style=False)
