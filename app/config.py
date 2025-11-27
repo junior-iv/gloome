@@ -2,7 +2,7 @@ import requests
 
 from time import sleep
 from typing import Optional, Any, Set
-from flask import url_for
+from flask import Flask, url_for
 
 from smtplib import SMTP, SMTP_SSL
 from ssl import create_default_context
@@ -13,6 +13,9 @@ from email import encoders
 
 from utils import *
 from script.service_functions import read_file, loads_json, create_file
+
+app = Flask(__name__)
+app.config.from_object(FlaskConfig())
 
 
 class WebConfig:

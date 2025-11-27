@@ -1,12 +1,13 @@
 from os import getenv, path, scandir
 from sys import argv
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional, Any
 from dotenv import load_dotenv
 from types import FunctionType, MethodType
+from flask import Flask, url_for
 
 from script.tree import Tree
 from script.service_functions import (check_data, create_all_file_types, compute_likelihood_of_tree, draw_tree,
-                                      execute_all_actions, recompile_json)
+                                      execute_all_actions, read_file, loads_json, create_file, result_design)
 
 load_dotenv()
 MODE = ('draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions')
@@ -26,8 +27,8 @@ DEBUG = not IS_PRODUCTION
 
 PREFERRED_URL_SCHEME = 'https'
 WEBSERVER_NAME_CAPITAL = 'Gloome'
-SERVER_NAME = 'gloome.tau.ac.il'
-WEBSERVER_URL = f'{PREFERRED_URL_SCHEME}://{SERVER_NAME}'
+WEBSERVER_NAME = 'gloome.tau.ac.il'
+WEBSERVER_URL = f'{PREFERRED_URL_SCHEME}://{WEBSERVER_NAME}'
 WEBSERVER_RESULTS_URL = path.join(WEBSERVER_URL, 'results')
 WEBSERVER_LOG_URL = path.join(WEBSERVER_URL, 'logs')
 
@@ -121,7 +122,7 @@ class FlaskConfig:
         self.SECRET_KEY = SECRET_KEY
         self.DEBUG = DEBUG
         self.PREFERRED_URL_SCHEME = PREFERRED_URL_SCHEME
-        self.SERVER_NAME = SERVER_NAME
+        self.SERVER_NAME = WEBSERVER_NAME
         self.APPLICATION_ROOT = APPLICATION_ROOT
         self.MAX_CONTENT_LENGTH = MAX_CONTENT_LENGTH
         if attributes:
@@ -169,6 +170,51 @@ class DefaultArgs:
                 if isinstance(arg, dict):
                     for key, value in arg.items():
                         setattr(self, key, value)
+
+
+app = Flask(__name__)
+app.config.from_object(FlaskConfig())
+
+
+def recompile_json(output_file: str, process_id: int, create_link: bool) -> None:
+    file_contents = read_file(file_path=output_file)
+    json_object = loads_json(file_contents)
+    action_name = json_object.pop('action_name')
+    data = json_object.pop('data')
+
+    if 'execute_all_actions' in action_name:
+        for key, value in data.items():
+            data.update({key: get_response_design(value, key, create_link)})
+        pass
+    else:
+        data = get_response_design(data, action_name, create_link)
+
+    data.update({'title': process_id})
+    data.update({'form_data': json_object.pop('form_data')})
+    data.update({'action_name': action_name})
+    create_file(file_path=output_file, data=data)
+
+
+def get_response_design(json_object: Optional[Any], action_name: str, create_link: bool) -> Optional[Any]:
+    if 'create_all_file_types' in action_name and not create_link:
+        json_object = link_design(json_object)
+        json_object = result_design(json_object, change_value='compute_likelihood_of_tree' in action_name,
+                                    change_value_style=False, change_key=True, change_key_style=False)
+    return json_object
+
+
+def link_design(json_object: Any) -> Any:
+    for key, value in json_object.items():
+        if key == 'execution_time':
+            continue
+        json_object.update(
+            {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+                        f'href="{url_for("get_file", file_path=value, mode="download")}" '
+                        f'target="_blank">download</a>',
+                        f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
+                        f'href="{url_for("get_file", file_path=value, mode="view")}" '
+                        f'target="_blank">view</a>']})
+    return json_object
 
 
 COMMAND_LINE = argv
