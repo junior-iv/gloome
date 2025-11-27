@@ -14,13 +14,6 @@ from utils import *
 from script.service_functions import read_file, loads_json, create_file
 
 
-app = Flask(__name__)
-app.config.from_object(FlaskConfig())
-
-if __name__ == '__main__':
-    app.run(debug=True, port=8000)
-
-
 class WebConfig:
     def __init__(self, **attributes):
         self.ACCOUNT = ACCOUNT
@@ -566,6 +559,16 @@ class MailSenderSMTPLib:
                 if hasattr(self, key):
                     setattr(self, key, value)
 
+    def create_attachments(self, use_attachments: bool, attachment_path: str, message: MIMEMultipart, body: str):
+        if use_attachments:
+            self.add_attachment_to_email(attachment_path, message)
+        else:
+            mode = 'view' if (path.splitext(attachment_path)[1] in
+                              ('txt', 'csv', 'tsv', 'tree', 'dot', 'fasta', 'log')) else 'download'
+            body += (f'\n<a href="'
+                     f'{url_for(endpoint="get_file", file_path=attachment_path, mode=mode, _external=True)}" '
+                     f'target="_blank">{path.basename(attachment_path)}</a>')
+
     def send_email(self, subject: str, attachments: Union[Tuple[str, ...], List[str], str], body: str,
                    use_attachments: bool = False) -> None:
         message = MIMEMultipart()
@@ -575,19 +578,9 @@ class MailSenderSMTPLib:
 
         if isinstance(attachments, (tuple, list)):
             for attachment_path in attachments:
-                if use_attachments:
-                    self.add_attachment_to_email(attachment_path, message)
-                else:
-                    body += (f'\n<a href="'
-                             f'{url_for(endpoint="get_file", file_path=attachment_path, mode="view", _external=True)}" '
-                             f'target="_blank">{path.basename(attachment_path)}</a>')
+                self.create_attachments(use_attachments, attachment_path, message, body)
         elif isinstance(attachments, str):
-            if use_attachments:
-                self.add_attachment_to_email(attachments, message)
-            else:
-                body += (f'\n<a href="'
-                         f'{url_for(endpoint="get_file", file_path=attachments, mode="view", _external=True)}" '
-                         f'target="_blank">{path.basename(attachments)}</a>')
+            self.create_attachments(use_attachments, attachments, message, body)
         self.sender_logger.info(body)
         message.attach(MIMEText(body, 'html'))
 

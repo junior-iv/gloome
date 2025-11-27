@@ -1,5 +1,5 @@
 from flask import render_template, send_file
-from consts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, path, FlaskConfig, Flask
+from consts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, path, app
 from sys import path as sys_path
 
 root_path = path.abspath(path.dirname(path.dirname(__file__)))
@@ -12,12 +12,6 @@ if app_path not in sys_path:
     sys_path.insert(0, app_path)
 
 from http_utils import *
-
-app = Flask(__name__)
-app.config.from_object(FlaskConfig())
-
-if __name__ == '__main__':
-    app.run(debug=True, port=8000)
 
 
 @app.route('/')
@@ -84,8 +78,7 @@ def get_file():
         file_exists = path.exists(file_path)
         as_attachment = mode == 'download' and file_exists
         if mode == 'view':
-            j = file_path[::-1].find('.')
-            file_extension = file_path[-j:]
+            file_extension = path.splitext(file_path)[1]
             if file_extension in ('txt', 'csv', 'tsv', 'tree', 'dot', 'fasta', 'log'):
                 return send_file(file_path, as_attachment=as_attachment, mimetype='text/plain;charset=UTF-8')
 
