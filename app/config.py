@@ -540,6 +540,7 @@ class MailSenderSMTPLib:
     smtp_server: str
     smtp_port: int
     password: str
+    sender_logger: Any
 
     def __init__(self, **attributes):
         self.sender = ADMIN_EMAIL
@@ -550,6 +551,7 @@ class MailSenderSMTPLib:
         self.name = ''
 
         self.set_attributes(**attributes)
+        self.sender_logger = get_job_logger(f'{self.name} {self.sender}', SERVERS_LOGS_DIR)
 
     def set_attributes(self, **attributes) -> None:
         if attributes:
@@ -577,7 +579,7 @@ class MailSenderSMTPLib:
             else:
                 body += (f'\n<a href="{url_for(endpoint="get_file", file_path=attachments, mode="view")}" '
                          f'target="_blank">{attachments}</a>')
-        print(body)
+        self.sender_logger.info(body)
         message.attach(MIMEText(body, 'plain'))
 
         if self.smtp_port == 587:
