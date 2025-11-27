@@ -175,6 +175,9 @@ class DefaultArgs:
 app = Flask(__name__)
 app.config.from_object(FlaskConfig())
 
+if __name__ == '__main__':
+    app.run(debug=True, port=8000)
+
 
 def recompile_json(output_file: str, process_id: int, create_link: bool) -> None:
     file_contents = read_file(file_path=output_file)
@@ -215,6 +218,10 @@ def link_design(json_object: Any) -> Any:
                         f'href="{url_for("get_file", file_path=value, mode="view")}" '
                         f'target="_blank">view</a>']})
     return json_object
+
+
+if __name__ == '__main__':
+    app.run(debug=True, port=8000)
 
 
 COMMAND_LINE = argv
