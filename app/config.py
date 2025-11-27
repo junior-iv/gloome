@@ -1,8 +1,7 @@
 import requests
 
 from time import sleep
-from typing import Optional, Any, Set
-from flask import Flask, url_for
+from typing import Set
 
 from smtplib import SMTP, SMTP_SSL
 from ssl import create_default_context
