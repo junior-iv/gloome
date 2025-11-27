@@ -2,6 +2,7 @@ import requests
 
 from time import sleep
 from typing import Optional, Any, Set
+from flask import url_for
 
 from smtplib import SMTP, SMTP_SSL
 from ssl import create_default_context
@@ -11,7 +12,7 @@ from email.mime.text import MIMEText
 from email import encoders
 
 from utils import *
-from script.service_functions import read_file, loads_json, create_file, url_for
+from script.service_functions import read_file, loads_json, create_file
 
 
 class WebConfig:
@@ -572,13 +573,13 @@ class MailSenderSMTPLib:
                     self.add_attachment_to_email(attachment_path, message)
                 else:
                     body += (f'\n<a href="{url_for(endpoint="get_file", file_path=attachment_path, mode="view")}" '
-                             f'target="_blank">{attachment_path}</a>')
+                             f'target="_blank">{path.basename(attachment_path)}</a>')
         elif isinstance(attachments, str):
             if use_attachments:
                 self.add_attachment_to_email(attachments, message)
             else:
                 body += (f'\n<a href="{url_for(endpoint="get_file", file_path=attachments, mode="view")}" '
-                         f'target="_blank">{attachments}</a>')
+                         f'target="_blank">{path.basename(attachments)}</a>')
         self.sender_logger.info(body)
         message.attach(MIMEText(body, 'plain'))
 
