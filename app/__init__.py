@@ -1,5 +1,5 @@
-from flask import render_template, send_file, Flask
-from consts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, path, FlaskConfig
+from flask import render_template, send_file
+from consts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, path, app
 from sys import path as sys_path
 
 root_path = path.abspath(path.dirname(path.dirname(__file__)))
@@ -12,9 +12,6 @@ if app_path not in sys_path:
     sys_path.insert(0, app_path)
 
 from http_utils import *
-
-app = Flask(__name__)
-app.config.from_object(FlaskConfig())
 
 
 @app.route('/')

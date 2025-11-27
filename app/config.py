@@ -13,12 +13,6 @@ from email import encoders
 from utils import *
 from script.service_functions import read_file, loads_json, create_file
 
-app = Flask(__name__)
-app.config.from_object(FlaskConfig())
-
-if __name__ == '__main__':
-    app.run(debug=True, port=8000)
-
 
 class WebConfig:
     def __init__(self, **attributes):
@@ -577,16 +571,18 @@ class MailSenderSMTPLib:
                 if use_attachments:
                     self.add_attachment_to_email(attachment_path, message)
                 else:
-                    body += (f'\n<a href="{url_for(endpoint="get_file", file_path=attachment_path, mode="view")}" '
+                    body += (f'\n<a href="'
+                             f'{url_for(endpoint="get_file", file_path=attachment_path, mode="view", _external=True)}" '
                              f'target="_blank">{path.basename(attachment_path)}</a>')
         elif isinstance(attachments, str):
             if use_attachments:
                 self.add_attachment_to_email(attachments, message)
             else:
-                body += (f'\n<a href="{url_for(endpoint="get_file", file_path=attachments, mode="view")}" '
+                body += (f'\n<a href="'
+                         f'{url_for(endpoint="get_file", file_path=attachments, mode="view", _external=True)}" '
                          f'target="_blank">{path.basename(attachments)}</a>')
         self.sender_logger.info(body)
-        message.attach(MIMEText(body, 'plain'))
+        message.attach(MIMEText(body, 'html'))
 
         if self.smtp_port == 587:
             with SMTP(self.smtp_server, self.smtp_port) as server:
