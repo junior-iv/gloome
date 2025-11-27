@@ -176,7 +176,7 @@ app = Flask(__name__)
 app.config.from_object(FlaskConfig())
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run()
 
 
 def recompile_json(output_file: str, process_id: int, create_link: bool) -> None:
