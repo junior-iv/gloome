@@ -14,7 +14,7 @@ from script.service_functions import get_variables, check_data, get_error, loads
 def read_json(json_string: str) -> Any:
     try:
         result = loads_json(json_string)
-
+        print(json_string)
         if (result.get('action_name') in ('execute_all_actions', 'create_all_file_types') and
                 result.get('create_all_file_types', None) is not None):
             result.pop('create_all_file_types')
@@ -23,6 +23,7 @@ def read_json(json_string: str) -> Any:
         with open(path.join(SERVERS_LOGS_DIR, f'read_json_Route_debug.log'), 'a') as f:
             f.write(f'\n\n--- Exception at execute_request ---\n')
             f.write(traceback.format_exc())
+            print(traceback.format_exc())
         raise  # Re-raise to still return 500
 
     return Response(response=jsonify(message=result).response, status=200, mimetype='application/json')

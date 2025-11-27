@@ -3,8 +3,15 @@ import requests
 from time import sleep
 from typing import Optional, Any, Set
 
+from smtplib import SMTP, SMTP_SSL
+from ssl import create_default_context
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email import encoders
+
 from utils import *
-from script.service_functions import read_file, loads_json, create_file
+from script.service_functions import read_file, loads_json, create_file, url_for
 
 
 class WebConfig:
@@ -282,20 +289,6 @@ class WebConfig:
             return self.read_response()
         return ''
 
-    # @staticmethod
-    # def link_design(json_object: Any):
-    #     for key, value in json_object.items():
-    #         if key == 'execution_time':
-    #             continue
-    #         json_object.update(
-    #             {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-    #                         f'href="{url_for("get_file", file_path=value, mode="download")}" '
-    #                         f'target="_blank">download</a>',
-    #                         f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-    #                         f'href="{url_for("get_file", file_path=value, mode="view")}" '
-    #                         f'target="_blank">view</a>']})
-    #     return json_object
-    #
     @staticmethod
     def check_dir(file_path: str, **kwargs):
         if not path.exists(file_path):
@@ -584,7 +577,7 @@ class MailSenderSMTPLib:
             else:
                 body += (f'\n<a href="{url_for(endpoint="get_file", file_path=attachments, mode="view")}" '
                          f'target="_blank">{attachments}</a>')
-
+        print(body)
         message.attach(MIMEText(body, 'plain'))
 
         if self.smtp_port == 587:

@@ -2,14 +2,7 @@ from os import getenv, path, scandir
 from sys import argv
 from typing import List, Tuple, Union
 from dotenv import load_dotenv
-from flask import url_for
 from types import FunctionType, MethodType
-from smtplib import SMTP, SMTP_SSL
-from ssl import create_default_context
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email.mime.text import MIMEText
-from email import encoders
 
 from script.tree import Tree
 from script.service_functions import (check_data, create_all_file_types, compute_likelihood_of_tree, draw_tree,
