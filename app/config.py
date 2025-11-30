@@ -564,11 +564,10 @@ class MailSenderSMTPLib:
             self.add_attachment_to_email(attachment_path, message)
             return ''
         else:
-            mode = 'view' if (path.splitext(attachment_path)[1] in
+            mode = 'view' if (path.splitext(attachment_path)[-1][1:] in
                               ('txt', 'csv', 'tsv', 'tree', 'dot', 'fasta', 'log')) else 'download'
-            return (f'\n<a href="'
-                     f'{url_for(endpoint="get_file", file_path=attachment_path, mode=mode, _external=True)}" '
-                     f'target="_blank">{path.basename(attachment_path)}</a>')
+            return (f'\n<a href="{url_for(endpoint="get_file", file_path=attachment_path, mode=mode, _external=True)}" '
+                    f'target="_blank">{path.basename(attachment_path)}</a>')
 
     def send_email(self, subject: str, attachments: Union[Tuple[str, ...], List[str], str], body: str,
                    use_attachments: bool = False) -> None:
