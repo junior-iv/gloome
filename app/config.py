@@ -13,6 +13,12 @@ from email import encoders
 from utils import *
 from script.service_functions import read_file, loads_json, create_file
 
+app = Flask(__name__)
+app.config.from_object(FlaskConfig())
+
+if __name__ == '__main__':
+    app.run(debug=True, port=8000)
+
 
 class WebConfig:
     def __init__(self, **attributes):
