@@ -1,23 +1,13 @@
-from flask import render_template, send_file
-from consts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, path, FlaskConfig, Flask
-from sys import path as sys_path
-
-root_path = path.abspath(path.dirname(path.dirname(__file__)))
-if root_path not in sys_path:
-    sys_path.insert(0, root_path)
-
-# Path to the app folder
-app_path = path.abspath(path.dirname(__file__))
-if app_path not in sys_path:
-    sys_path.insert(0, app_path)
-
-from http_utils import *
+from flask import render_template, send_file, Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
+from consts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR
+from app.http_utils import *
+# from app.routes import pages
 
 app = Flask(__name__)
-app.config.from_object(FlaskConfig())
-
-if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+app.config.from_pyfile('flask_config.py')
+# app.config.from_object(FlaskConfig())
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 
 @app.route('/')
@@ -120,4 +110,4 @@ def test():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run()
