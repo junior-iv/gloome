@@ -561,7 +561,7 @@ class MailSenderSMTPLib:
                 if hasattr(self, key):
                     setattr(self, key, value)
 
-    def create_attachments(self, use_attachments: bool, attachment_path: str, message: MIMEMultipart, body: str):
+    def create_attachments(self, attachment_path: str, message: MIMEMultipart, use_attachments: bool = False):
         if use_attachments:
             self.add_attachment_to_email(attachment_path, message)
             return ''
@@ -580,9 +580,9 @@ class MailSenderSMTPLib:
 
         if isinstance(attachments, (tuple, list)):
             for attachment_path in attachments:
-                body += self.create_attachments(use_attachments, attachment_path, message, body)
+                body += self.create_attachments(attachment_path, message, use_attachments)
         elif isinstance(attachments, str):
-            body += self.create_attachments(use_attachments, attachments, message, body)
+            body += self.create_attachments(attachments, message, use_attachments)
         self.sender_logger.info(body)
         message.attach(MIMEText(body, 'html'))
 
