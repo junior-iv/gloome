@@ -352,6 +352,9 @@ def recompile_json(output_file: str, process_id: int, create_link: bool) -> None
 
 
 def get_response_design(json_object: Optional[Any], action_name: str, create_link: bool) -> Optional[Any]:
+    print(action_name, create_link)
+    print('\n')
+    print(json_object)
     if 'create_all_file_types' in action_name and create_link:
         json_object = link_design(json_object)
         json_object = result_design(json_object, change_value='compute_likelihood_of_tree' in action_name,
@@ -365,9 +368,9 @@ def link_design(json_object: Any) -> Any:
             continue
         json_object.update(
             {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                        f'href="{url_for("get_file", file_path=value, mode="download", _external=True)}" '
+                        f'href="{url_for("get_file", file_path=value, mode="download")}" '
                         f'target="_blank">download</a>',
                         f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                        f'href="{url_for("get_file", file_path=value, mode="view", _external=True)}" '
+                        f'href="{url_for("get_file", file_path=value, mode="view")}" '
                         f'target="_blank">view</a>']})
     return json_object
