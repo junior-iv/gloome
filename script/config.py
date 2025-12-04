@@ -130,6 +130,7 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('recompile_json', False):
             self.execute_action(self.ACTIONS.recompile_json, output_file=path.join(self.OUT_DIR, 'result.json'),
                                 process_id=self.PROCESS_ID, create_link=self.IS_REQUEST)
+            self.JOB_LOGGER.info(load_obj(path.join(self.OUT_DIR, 'result.json')))
 
     def check_arguments_for_errors(self) -> bool:
         if path.isfile(self.TREE_FILE):
