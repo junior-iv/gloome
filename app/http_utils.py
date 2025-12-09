@@ -14,13 +14,6 @@ from script.service_functions import get_variables, check_data, get_error, loads
 def read_json(json_string: str) -> Any:
     try:
         result = loads_json(json_string)
-        with open(path.join(SERVERS_LOGS_DIR, f'read_json_json_string.log'), 'a') as f:
-            f.write(f'\n\n--- Exception at execute_request ---\n')
-            f.write(json_string)
-        if (result.get('action_name') in ('execute_all_actions', 'create_all_file_types') and
-                result.get('create_all_file_types', None) is not None):
-            result.pop('create_all_file_types')
-            result.update({'error_message': 'Cannot create file links locally'})
     except Exception:
         with open(path.join(SERVERS_LOGS_DIR, f'read_json_Route_debug.log'), 'a') as f:
             f.write(f'\n\n--- Exception at execute_request ---\n')

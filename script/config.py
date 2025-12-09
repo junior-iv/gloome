@@ -24,7 +24,6 @@ class Config:
         self.CALCULATED_ARGS = CALCULATED_ARGS
 
         self.WEBSERVER_NAME_CAPITAL = WEBSERVER_NAME_CAPITAL
-        self.IS_REQUEST = False
 
         self.PROCESS_ID = None
         self.SERVERS_RESULTS_DIR = None
@@ -127,9 +126,9 @@ class Config:
                                 form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
                                 with_internal_nodes=self.CURRENT_ARGS.with_internal_nodes,
                                 log_file=self.JOB_LOGGER.handlers[-1].baseFilename)
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('recompile_json', False):
+        if not self.CALCULATED_ARGS.err_list:
             self.execute_action(self.ACTIONS.recompile_json, output_file=path.join(self.OUT_DIR, 'result.json'),
-                                process_id=self.PROCESS_ID, create_link=self.IS_REQUEST)
+                                process_id=self.PROCESS_ID, create_link=False)
             # self.JOB_LOGGER.info(load_obj(path.join(self.OUT_DIR, 'result.json')))
 
     def check_arguments_for_errors(self) -> bool:
@@ -232,7 +231,7 @@ class Config:
             self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
                                          'calculate_ancestral_sequence': True,
                                          'execute_all_actions': True})
-        self.DEFAULT_ACTIONS.update({'recompile_json': True})
+        # self.DEFAULT_ACTIONS.update({'recompile_json': True})
         # if not self.IS_LOCAL and not self.CURRENT_ARGS.is_do_not_use_e_mail and self.CURRENT_ARGS.e_mail:
         #     self.DEFAULT_ACTIONS.update({'send_results_email': True})
 
@@ -286,9 +285,6 @@ class Config:
                             help=f'Specify is_do_not_use_e_mail (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_do_not_use_e_mail)}.',
                             default=int(self.CURRENT_ARGS.is_do_not_use_e_mail))
-        parser.add_argument('--is_request', dest='is_request', type=int, required=False,
-                            help=f'Specify is_request (technical parameter, do not change).',
-                            default=int(self.IS_REQUEST))
 
         args = parser.parse_args()
 
@@ -299,8 +295,6 @@ class Config:
                         self.change_process_id(arg_value)
                 elif arg_name == 'mode':
                     setattr(self, arg_name.upper(), tuple(arg_value))
-                elif arg_name == 'is_request':
-                    setattr(self, arg_name.upper(), bool(arg_value))
                 elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
                                   'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_e_mail'):
                     if hasattr(self.CURRENT_ARGS, arg_name):

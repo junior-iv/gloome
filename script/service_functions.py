@@ -336,12 +336,11 @@ def recompile_json(output_file: str, process_id: int, create_link: bool) -> None
     file_contents = read_file(file_path=output_file)
     json_object = loads_json(file_contents)
     action_name = json_object.pop('action_name')
-    data = json_object.pop('data')
+    data = json_object.pop('data') if 'data' in json_object.keys() else json_object.copy()
 
     if 'execute_all_actions' in action_name:
         for key, value in data.items():
             data.update({key: get_response_design(value, key, create_link)})
-        pass
     else:
         data = get_response_design(data, action_name, create_link)
 
@@ -364,12 +363,9 @@ def link_design(json_object: Any) -> Any:
         if key == 'execution_time':
             continue
         json_object.update(
-            {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                        # f'href="{value}" '
-                        f'href="{url_for("get_file", file_path=value, mode="download")}" '
+            {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="'
+                        f'{url_for("get_file", file_path=value, mode="download")}" '
                         f'target="_blank">download</a>',
-                        f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" '
-                        # f'href="{value}" '
-                        f'href="{url_for("get_file", file_path=value, mode="view")}" '
-                        f'target="_blank">view</a>']})
+                        f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="'
+                        f'{url_for("get_file", file_path=value, mode="view")}" target="_blank">view</a>']})
     return json_object

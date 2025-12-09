@@ -165,9 +165,7 @@ class WebConfig:
             f'--is_optimize_alpha {int(self.CURRENT_ARGS.is_optimize_alpha)} '
             f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
             f' {is_do_not_use_e_mail} '
-            f'--mode {self.MODE} '
-            # f'--use_attachments {int(self.USE_ATTACHMENTS)} '
-            f'--is_request 1')
+            f'--mode {self.MODE}')
         self.JOB_LOGGER.info(f'COMMAND_LINE: \n{self.COMMAND_LINE}')
 
     def get_request_body(self):
@@ -287,6 +285,8 @@ class WebConfig:
                                            use_attachments=self.USE_ATTACHMENTS)
         if job_state:
             self.JOB_LOGGER.info(f'Result file: {self.OUTPUT_FILE}\n')
+            if job_state == 'COMPLETED':
+                recompile_json(self.OUTPUT_FILE, self.PROCESS_ID, True)
 
             return self.read_response()
         return ''

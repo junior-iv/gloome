@@ -105,30 +105,6 @@ else:
     OWNER_EMAIL = getenv('OWNER_EMAIL')
 
 
-class FlaskConfig:
-
-    # RECAPTCHA_SITE_KEY: str
-    # RECAPTCHA_SECRET_KEY: str
-    SECRET_KEY: str
-    DEBUG: bool
-    PREFERRED_URL_SCHEME: str
-    SERVER_NAME = str
-    APPLICATION_ROOT = str
-    # UPLOAD_FOLDERS_ROOT_PATH: str
-    MAX_CONTENT_LENGTH: int
-
-    def __init__(self, **attributes):
-        self.SECRET_KEY = SECRET_KEY
-        self.DEBUG = DEBUG
-        self.PREFERRED_URL_SCHEME = PREFERRED_URL_SCHEME
-        self.SERVER_NAME = WEBSERVER_NAME
-        self.APPLICATION_ROOT = APPLICATION_ROOT
-        self.MAX_CONTENT_LENGTH = MAX_CONTENT_LENGTH
-        if attributes:
-            for key, value in attributes.items():
-                setattr(self, key, value)
-
-
 class Actions:
 
     def __init__(self, **attributes):
@@ -218,8 +194,7 @@ DEFAULT_ACTIONS = {
     'calculate_ancestral_sequence': False,
     'draw_tree': False,
     'create_all_file_types': False,
-    'execute_all_actions': False,
-    'recompile_json': False
+    'execute_all_actions': False
     }
 
 
@@ -264,9 +239,7 @@ USAGE = '''\tRequired parameters:
 \t\t--is_optimize_bl <type=int> 
 \t\t\tSpecify is_optimize_bl. Default is 1.
 \t\t--is_do_not_use_e_mail <type=int> 
-\t\t\tSpecify is_do_not_use_e_mail. Default is 1.
-\t\t--is_request <type=int> 
-\t\t\tSpecify is_request (technical parameter, do not change).'''
+\t\t\tSpecify is_do_not_use_e_mail. Default is 1.'''
 
 MENU = ({'name': 'Home', 'url': 'index',
          'submenu': ()
