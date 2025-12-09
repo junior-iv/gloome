@@ -421,7 +421,7 @@ function showResponse(jsonData, mode = 0) {
 }
 
 
-function make_request(absolutePath, formData, mode) {
+function makeRequest(absolutePath, formData, mode) {
     setVisibilityLoader(true);
     setAccessibility();
     setVisibility(`result`, false);
@@ -477,7 +477,7 @@ function makeTree(mode = 0) {
 
     let absolutePath = ['/execute_all_actions', `/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
 
-    make_request(absolutePath, formData, mode);
+    makeRequest(absolutePath, formData, mode);
 }
 
 function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`) {
@@ -512,7 +512,7 @@ function readJson(id = `jsonFile`) {
             if (mode === 3 ) {
                 showAlert(`Cannot create file links locally`, 8000);
             } else {
-                make_request('/read_json_file', formData, mode);
+                makeRequest('/read_json_file', formData, mode);
             }
     });
 }

@@ -14,6 +14,6 @@ if script_path not in syspath:
 from script.config import Config
 
 if __name__ == '__main__':
-    config = Config()
-    config.check_and_set_input_and_output_variables()
-    config.execute_calculation()
+    conf = Config()
+    conf.check_and_set_input_and_output_variables()
+    conf.execute_calculation()

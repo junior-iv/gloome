@@ -130,7 +130,7 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('recompile_json', False):
             self.execute_action(self.ACTIONS.recompile_json, output_file=path.join(self.OUT_DIR, 'result.json'),
                                 process_id=self.PROCESS_ID, create_link=self.IS_REQUEST)
-            self.JOB_LOGGER.info(load_obj(path.join(self.OUT_DIR, 'result.json')))
+            # self.JOB_LOGGER.info(load_obj(path.join(self.OUT_DIR, 'result.json')))
 
     def check_arguments_for_errors(self) -> bool:
         if path.isfile(self.TREE_FILE):
@@ -210,6 +210,32 @@ class Config:
 
         return not self.CALCULATED_ARGS.err_list
 
+    def enable_default_actions(self):
+        self.DEFAULT_ACTIONS.update({'compute_likelihood_of_tree': False,
+                                     'calculate_tree_for_fasta': False,
+                                     'calculate_ancestral_sequence': False,
+                                     'draw_tree': False,
+                                     'create_all_file_types': False,
+                                     'execute_all_actions': False})
+
+        if 'compute_likelihood_of_tree' in self.MODE:
+            self.DEFAULT_ACTIONS.update({'compute_likelihood_of_tree': True})
+        if 'draw_tree' in self.MODE:
+            self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
+                                         'calculate_ancestral_sequence': True,
+                                         'draw_tree': True})
+        if 'create_all_file_types' in self.MODE:
+            self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
+                                         'calculate_ancestral_sequence': True,
+                                         'create_all_file_types': True})
+        if 'execute_all_actions' in self.MODE:
+            self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
+                                         'calculate_ancestral_sequence': True,
+                                         'execute_all_actions': True})
+        self.DEFAULT_ACTIONS.update({'recompile_json': True})
+        # if not self.IS_LOCAL and not self.CURRENT_ARGS.is_do_not_use_e_mail and self.CURRENT_ARGS.e_mail:
+        #     self.DEFAULT_ACTIONS.update({'send_results_email': True})
+
     def parse_arguments(self):
         """parse arguments and fill out the relevant Variable Class properties"""
         parser = argparse.ArgumentParser(prog=self.WEBSERVER_NAME_CAPITAL, description='GLOOME',
@@ -285,30 +311,7 @@ class Config:
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, arg_value)
 
-        self.DEFAULT_ACTIONS.update({'compute_likelihood_of_tree': False,
-                                     'calculate_tree_for_fasta': False,
-                                     'calculate_ancestral_sequence': False,
-                                     'draw_tree': False,
-                                     'create_all_file_types': False,
-                                     'execute_all_actions': False})
-
-        if 'compute_likelihood_of_tree' in self.MODE:
-            self.DEFAULT_ACTIONS.update({'compute_likelihood_of_tree': True})
-        if 'draw_tree' in self.MODE:
-            self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
-                                         'calculate_ancestral_sequence': True,
-                                         'draw_tree': True})
-        if 'create_all_file_types' in self.MODE:
-            self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
-                                         'calculate_ancestral_sequence': True,
-                                         'create_all_file_types': True})
-        if 'execute_all_actions' in self.MODE:
-            self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
-                                         'calculate_ancestral_sequence': True,
-                                         'execute_all_actions': True})
-        self.DEFAULT_ACTIONS.update({'recompile_json': True})
-        # if not self.IS_LOCAL and not self.CURRENT_ARGS.is_do_not_use_e_mail and self.CURRENT_ARGS.e_mail:
-        #     self.DEFAULT_ACTIONS.update({'send_results_email': True})
+        self.enable_default_actions()
 
         return args
 
