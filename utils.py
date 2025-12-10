@@ -426,7 +426,7 @@ def get_job_logger(job_id, server_logs_dir):
     if len(current_logger.handlers) == 0:
         # log_file = path.join(server_logs_dir, f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{job_id}.log')
         log_file = path.join(server_logs_dir, f'{job_id}.log')
-        handler = logging.FileHandler(log_file, 'w', 'utf-8')  # or whatever
+        handler = logging.FileHandler(log_file, 'a', 'utf-8')  # or whatever
         handler.setFormatter(formatter)
         current_logger.addHandler(handler)
         current_logger.propagate = False
