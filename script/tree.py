@@ -258,7 +258,7 @@ class Tree:
         """This method is for internal use only."""
         return self.structure_to_html_tree(self.tree_to_structure(), style, status)
 
-    def tree_to_structure(self) -> dict:
+    def tree_to_structure(self) -> Dict[str, str]:
         """This method is for internal use only."""
         return self.subtree_to_structure(self.root)
 
@@ -355,7 +355,7 @@ class Tree:
 
         return tree_table.sort_values(by=list(sort_values_by)) if sort_values_by else tree_table
 
-    def calculate_ancestral_sequence(self, newick_node: Optional[Union[Node, str]] = None) -> None:
+    def calculate_ancestral_sequence(self, newick_node: Optional[Union[Node, str]] = None) -> str:
         if self.alphabet and not self.calculated_ancestor_sequence:
             node_list = []
             if not newick_node:
@@ -379,6 +379,7 @@ class Tree:
                         elif current_node.sequence[i] == current_node.father.sequence[i] == self.alphabet[1]:
                             current_node.ancestral_sequence += ancestral_alphabet[3]
             self.calculated_ancestor_sequence = True
+        return 'OK' if self.calculated_ancestor_sequence else ''
 
     # def calculate_marginal(self, newick_node: Optional[Union[Node, str]] = None, msa: Optional[str] = None) -> None:
     #     node_list = []
@@ -454,7 +455,7 @@ class Tree:
         self.root.clean_all()
         self.likelihood, self.log_likelihood, self.log_likelihood_vector = 1, 0, []
 
-    def calculate_tree_for_fasta(self) -> str:
+    def calculate_tree_for_fasta(self) -> Dict[str, Union[float, np.ndarray, int]]:
         if self.msa and not self.calculated_tree_for_fasta:
             self.clean_all()
 
@@ -469,7 +470,8 @@ class Tree:
             self.calculated_tree_for_fasta = True
             self.calculated_likelihood = True
 
-        return self.get_fasta_text()
+        return {'likelihood': self.likelihood, 'log_likelihood': self.log_likelihood,
+                'log_likelihood_vector': self.log_likelihood_vector}
 
     def calculate_likelihood(self) -> None:
         if self.msa and self.alphabet and not self.calculated_likelihood:

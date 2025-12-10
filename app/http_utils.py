@@ -34,16 +34,15 @@ def read_json(json_string: str) -> Any:
 
 def get_response(process_id: int) -> Any:
     conf = WebConfig(PROCESS_ID=process_id)
-    conf.JOB_LOGGER.info(f'\n\n\tattempt/start execution of the "get_response" function'
-                         f'\n\tCURRENT_TIME: {current_time()}\n'
-                         f'\n\tPROCESS_ID: {conf.PROCESS_ID}\n')
+    conf.JOB_LOGGER.info(f'\n\ttry to get response\n')
+
     try:
         conf.texts_filling()
         result = conf.read_response()
     except Exception:
         exception_text = traceback.format_exc()
-        header = f'\n\n\t--- EXCEPTION at get_response ---'
-        f'\n\tCURRENT_TIME: {current_time()}\n'
+        header = f'\n\t--- EXCEPTION at get_response ---'
+        f'\n\tCURRENT_TIME: {current_time()}'
         f'\n\tPROCESS_ID: {conf.PROCESS_ID}\n'
         conf.JOB_LOGGER.info(f'{header}{exception_text}')
         wright_log(file_path=path.join(TMP_DIR, f'get_response_{conf.PROCESS_ID}_route_debug.log'),
@@ -64,20 +63,19 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
         else:
             status = 200
             conf = WebConfig()
+            'try to run request'
+            conf.JOB_LOGGER.info(f'\n\ttry to run request\n')
 
-            conf.JOB_LOGGER.info(f'\n\n\tattempt/start execution of the "execute_request" function'
-                                 f'\n\tCURRENT_TIME: {current_time()}\n'
-                                 f'\n\tPROCESS_ID: {conf.PROCESS_ID}\n')
             try:
                 conf.arguments_filling(**kwargs, mode=mode)
                 conf.create_tmp_data_files()
                 result = conf.get_response()
             except Exception:
                 exception_text = traceback.format_exc()
-                header = f'\n\n--- EXCEPTION at execute_request ---\n'
-                f'CURRENT_TIME: {current_time()}\n'
-                f'CURRENT_JOB: {conf.CURRENT_JOB}\n'
-                f'PROCESS_ID: {conf.PROCESS_ID}\n'
+                header = f'\n\t--- EXCEPTION at execute_request ---'
+                f'\n\tCURRENT_TIME: {current_time()}'
+                f'\n\tCURRENT_JOB: {conf.CURRENT_JOB}'
+                f'\n\tPROCESS_ID: {conf.PROCESS_ID}\n'
                 conf.JOB_LOGGER.info(f'{header}{exception_text}')
                 wright_log(file_path=path.join(TMP_DIR, f'execute_request_{conf.PROCESS_ID}_route_debug.log'),
                            header=header, exception_text=exception_text)

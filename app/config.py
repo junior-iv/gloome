@@ -87,11 +87,11 @@ class WebConfig:
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
         self.JOB_LOGGER = get_job_logger(f'{process_id}', self.SERVERS_LOGS_DIR)
-        self.JOB_LOGGER.info(f'\n\tPROCESS ID: {process_id}\n'
-                             f'\tSUBMITER: {self.SUBMITER}\n'
-                             f'\tJOB_LOGGER: {self.JOB_LOGGER}\n'
-                             f'\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}\n'
-                             f'\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
+        self.JOB_LOGGER.info(f'\n\tcreate a new instance of the WebConfig class'
+                             f'\n\tPROCESS ID: {process_id}'
+                             f'\n\tSUBMITER: {self.SUBMITER}'
+                             f'\n\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}'
+                             f'\n\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
 
     def arguments_filling(self, **arguments):
         dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'eMail', 'isOptimizePi',
@@ -111,19 +111,22 @@ class WebConfig:
         self.MODE = ' '.join(mode)
         self.CALCULATED_ARGS.newick_text = arguments.get('newickText')
         self.CALCULATED_ARGS.msa = arguments.get('msaText')
-        self.JOB_LOGGER.info(f'\n\tMODE: {self.MODE}\n'
-                             f'\tcategories_quantity: {self.CURRENT_ARGS.categories_quantity}\n'
-                             f'\talpha: {self.CURRENT_ARGS.alpha}\n'
-                             f'\tpi_1: {self.CURRENT_ARGS.pi_1}\n'
-                             f'\tcoefficient_bl: {self.CURRENT_ARGS.coefficient_bl}\n'
-                             f'\te_mail: {self.CURRENT_ARGS.e_mail}\n'
-                             f'\tis_optimize_pi: {self.CURRENT_ARGS.is_optimize_pi}\n'
-                             f'\tis_optimize_pi_average: {self.CURRENT_ARGS.is_optimize_pi_average}\n'
-                             f'\tis_optimize_alpha: {self.CURRENT_ARGS.is_optimize_alpha}\n'
-                             f'\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}\n'
-                             f'\tis_do_not_use_e_mail: {self.CURRENT_ARGS.is_do_not_use_e_mail}\n'
-                             f'\tnewick_text: \n{self.CALCULATED_ARGS.newick_text}\n'
-                             f'\tmsa: \n{self.CALCULATED_ARGS.msa}\n')
+        self.JOB_LOGGER.info(f'\n\tpopulate arguments from web page data'
+                             f'\n\tMODE: {self.MODE}'
+                             f'\n\tcategories_quantity: {self.CURRENT_ARGS.categories_quantity}'
+                             f'\n\talpha: {self.CURRENT_ARGS.alpha}'
+                             f'\n\tpi_1: {self.CURRENT_ARGS.pi_1}'
+                             f'\n\tcoefficient_bl: {self.CURRENT_ARGS.coefficient_bl}'
+                             f'\n\te_mail: {self.CURRENT_ARGS.e_mail}'
+                             f'\n\tis_optimize_pi: {self.CURRENT_ARGS.is_optimize_pi}'
+                             f'\n\tis_optimize_pi_average: {self.CURRENT_ARGS.is_optimize_pi_average}'
+                             f'\n\tis_optimize_alpha: {self.CURRENT_ARGS.is_optimize_alpha}'
+                             f'\n\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}'
+                             f'\n\tis_do_not_use_e_mail: {self.CURRENT_ARGS.is_do_not_use_e_mail}'
+                             f'\n\tnewick_text: '
+                             f'\n\t{self.CALCULATED_ARGS.newick_text}'
+                             f'\n\tmsa: '
+                             f'\n\t{self.CALCULATED_ARGS.msa}\n')
 
     def texts_filling(self) -> None:
         # def texts_filling(self, replace_path: bool = True) -> None:
@@ -140,9 +143,10 @@ class WebConfig:
         create_file(self.MSA_FILE, self.CALCULATED_ARGS.msa)
         create_file(self.TREE_FILE, self.CALCULATED_ARGS.newick_text)
 
-        self.JOB_LOGGER.info(f'Created msa file: {self.MSA_FILE}')
-        self.JOB_LOGGER.info(f'Created newick file: {self.TREE_FILE}')
-        self.JOB_LOGGER.info(f'Output files path: {self.CALCULATED_ARGS.file_path}')
+        self.JOB_LOGGER.info(f'\n\tcreate input data files'
+                             f'\n\tCreated msa file: {self.MSA_FILE}'
+                             f'\n\tCreated newick file: {self.TREE_FILE}'
+                             f'\n\tOutput files path: {self.CALCULATED_ARGS.file_path}\n')
 
     def create_command_line(self) -> None:
         if self.CURRENT_ARGS.e_mail:
@@ -166,7 +170,8 @@ class WebConfig:
             f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
             f' {is_do_not_use_e_mail} '
             f'--mode {self.MODE}')
-        self.JOB_LOGGER.info(f'COMMAND_LINE: \n{self.COMMAND_LINE}')
+        self.JOB_LOGGER.info(f'\n\tcreate a command line: '
+                             f'\n\tCOMMAND_LINE: {self.COMMAND_LINE}\n')
 
     def get_request_body(self):
         # TODO think about job_name = f'gloome_{self.PROCESS_ID}_{self.JOBS_NUMBER.inc()}'
@@ -267,8 +272,9 @@ class WebConfig:
 
         self.CURRENT_JOB = self.SUBMITER.submit_job(json=request_body).get('job_id', self.JOBS_NUMBER.value)
         self.HISTORY.append(self.CURRENT_JOB)
-        self.JOB_LOGGER.info(f'\nSubmit job (id: {self.CURRENT_JOB})'
-                             f'\nRequest body: {request_body}\n')
+        self.JOB_LOGGER.info(f'\n\tregarding the request being processed'
+                             f'\n\tSubmit job (id: {self.CURRENT_JOB})'
+                             f'\n\tRequest body: {request_body}\n')
 
         job_state = self.SUBMITER.check_job_state(self, count=REQUESTS_NUMBER, waiting_time=REQUEST_WAITING_TIME)
 
@@ -284,7 +290,7 @@ class WebConfig:
                                            receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID,
                                            use_attachments=self.USE_ATTACHMENTS)
         if job_state:
-            self.JOB_LOGGER.info(f'Result file: {self.OUTPUT_FILE}\n')
+            # self.JOB_LOGGER.info(f'\n\tResult file: {self.OUTPUT_FILE}\n')
             if job_state == 'COMPLETED':
                 recompile_json(self.OUTPUT_FILE, self.PROCESS_ID, True)
 
@@ -408,7 +414,7 @@ class SawSubmiter:
             state_filter = ['FAILED']
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
             if job_state in state_filter:
-                conf.JOB_LOGGER.info(f'Job state: {job_state}')
+                conf.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
                 return job_state
             count -= 1
             sleep(waiting_time)
@@ -510,7 +516,7 @@ class SlurmSubmiter:
             state_filter = ['FAILED']
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
             if job_state in state_filter:
-                conf.JOB_LOGGER.info(f'Job state: {job_state}')
+                conf.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
                 return job_state in state
             count -= 1
             sleep(waiting_time)

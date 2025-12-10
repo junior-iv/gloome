@@ -99,7 +99,8 @@ class Config:
     def execute_action(self, func, *args, **kwargs):
         try:
             val = func(*args, **kwargs)
-            self.JOB_LOGGER.info(f'Successfully Command \'{func.__name__}\' executed successfully. -> {val}')
+            if val:
+                self.JOB_LOGGER.info(f'\n\tSuccessfully Command \'{func.__name__}\' executed successfully. -> {val}\n')
         except ValueError:
             format_exc = f'{traceback.format_exc()}'
             self.JOB_LOGGER.info(f'Failed to execute the command \'{func.__name__}\' -> {format_exc}')

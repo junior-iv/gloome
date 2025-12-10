@@ -332,7 +332,7 @@ def get_function_parameters(func: Callable) -> Tuple[str, ...]:
     return tuple(inspect.signature(func).parameters.keys())
 
 
-def recompile_json(output_file: str, process_id: int, create_link: bool) -> None:
+def recompile_json(output_file: str, process_id: int, create_link: bool) -> str:
     file_contents = read_file(file_path=output_file)
     json_object = loads_json(file_contents)
     action_name = json_object.pop('action_name')
@@ -348,6 +348,8 @@ def recompile_json(output_file: str, process_id: int, create_link: bool) -> None
     data.update({'form_data': json_object.pop('form_data')})
     data.update({'action_name': action_name})
     create_file(file_path=output_file, data=data)
+
+    return '; '.join(data.keys())
 
 
 def get_response_design(json_object: Optional[Any], action_name: str, create_link: bool) -> Optional[Any]:
