@@ -123,10 +123,8 @@ class WebConfig:
                              f'\n\tis_optimize_alpha: {self.CURRENT_ARGS.is_optimize_alpha}'
                              f'\n\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}'
                              f'\n\tis_do_not_use_e_mail: {self.CURRENT_ARGS.is_do_not_use_e_mail}'
-                             f'\n\tnewick_text: '
-                             f'\n\t{self.CALCULATED_ARGS.newick_text}'
-                             f'\n\tmsa: '
-                             f'\n\t{self.CALCULATED_ARGS.msa}\n')
+                             f'\n\tnewick_text: {self.CALCULATED_ARGS.newick_text}'
+                             f'\n\tmsa: {self.CALCULATED_ARGS.msa}\n')
 
     def texts_filling(self) -> None:
         # def texts_filling(self, replace_path: bool = True) -> None:
@@ -280,16 +278,16 @@ class WebConfig:
 
         mail_sender = MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL)
         if job_state == 'COMPLETED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
-            mail_sender.send_results_email(results_files_dir=self.OUT_DIR, is_error=False,
-                                           log_file=self.JOB_LOGGER.handlers[-1].baseFilename,
+            mail_sender.send_results_email(results_files_dir=self.OUT_DIR, use_attachments=self.USE_ATTACHMENTS,
+                                           is_error=False, log_file=self.JOB_LOGGER.handlers[-1].baseFilename,
                                            included=('.json', '.zip', '.log'), receiver=self.CURRENT_ARGS.e_mail,
-                                           name=self.PROCESS_ID, use_attachments=self.USE_ATTACHMENTS)
+                                           name=self.PROCESS_ID)
         if job_state == 'FAILED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
-            mail_sender.send_results_email(results_files_dir=self.OUT_DIR, is_error=True,
+            mail_sender.send_results_email(results_files_dir=self.OUT_DIR, is_error=True, name=self.PROCESS_ID,
                                            log_file=self.JOB_LOGGER.handlers[-1].baseFilename, included=('.log', ),
-                                           receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID,
-                                           use_attachments=self.USE_ATTACHMENTS)
+                                           receiver=self.CURRENT_ARGS.e_mail, use_attachments=self.USE_ATTACHMENTS)
         if job_state:
+            self.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
             # self.JOB_LOGGER.info(f'\n\tResult file: {self.OUTPUT_FILE}\n')
             if job_state == 'COMPLETED':
                 recompile_json(self.OUTPUT_FILE, self.PROCESS_ID, True)
@@ -414,7 +412,7 @@ class SawSubmiter:
             state_filter = ['FAILED']
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
             if job_state in state_filter:
-                conf.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
+                # conf.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
                 return job_state
             count -= 1
             sleep(waiting_time)

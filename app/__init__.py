@@ -70,15 +70,12 @@ def get_exemple():
 def get_file():
     if request.method == 'GET':
         file_path = request.args.get('file_path', '')
-        mode = request.args.get('mode', 'view')
-        file_exists = path.exists(file_path)
-        as_attachment = mode == 'download' and file_exists
-        if mode == 'view':
+        if request.args.get('mode', 'view') == 'view':
             file_extension = path.splitext(file_path)[1]
             if file_extension in ('txt', 'csv', 'tsv', 'tree', 'dot', 'fasta', 'log'):
-                return send_file(file_path, as_attachment=as_attachment, mimetype='text/plain;charset=UTF-8')
+                return send_file(file_path, as_attachment=False, mimetype='text/html')
 
-        return send_file(file_path, as_attachment=as_attachment)
+        return send_file(file_path, as_attachment=True)
 
 
 @app.route('/create_all_file_types', methods=['POST'])
