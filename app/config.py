@@ -280,8 +280,8 @@ class WebConfig:
         if job_state == 'COMPLETED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
             mail_sender.send_results_email(results_files_dir=self.OUT_DIR, use_attachments=self.USE_ATTACHMENTS,
                                            is_error=False, log_file=self.JOB_LOGGER.handlers[-1].baseFilename,
-                                           included=('.json', '.zip', '.log'), receiver=self.CURRENT_ARGS.e_mail,
-                                           name=self.PROCESS_ID)
+                                           included=('.json', '.zip', '.log', '.html', '.png', 'tsv'),
+                                           receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
         if job_state == 'FAILED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
             mail_sender.send_results_email(results_files_dir=self.OUT_DIR, is_error=True, name=self.PROCESS_ID,
                                            log_file=self.JOB_LOGGER.handlers[-1].baseFilename, included=('.log', ),
@@ -572,7 +572,7 @@ class MailSenderSMTPLib:
         else:
             mode = 'view' if (path.splitext(attachment_path)[-1][1:] in
                               ('txt', 'csv', 'tsv', 'tree', 'dot', 'fasta', 'log', 'png', 'svg', 'jpeg', 'jpg',
-                               'html', 'htm')) else 'download'
+                               'html', 'htm', 'json', 'zip')) else 'download'
             return (f'\n<a href="{url_for(endpoint="get_file", file_path=attachment_path, mode=mode, _external=True)}" '
                     f'target="_blank">{path.basename(attachment_path)}</a>')
 
