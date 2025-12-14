@@ -70,17 +70,19 @@ def get_file():
         file_path = request.args.get('file_path', '')
         if request.args.get('mode', 'view') == 'view':
             file_extension = path.splitext(file_path)[1][1:]
-            if file_extension in ('txt', 'tree', 'dot', 'fasta', 'log', 'html', 'htm'):
+            if file_extension in ('txt', 'tree', 'dot', 'fasta', 'log', 'html', 'htm', 'csv', 'tsv'):
                 return send_file(file_path, as_attachment=False, mimetype='text/html')
-            elif file_extension in ('csv', 'tsv'):
-                return send_file(file_path, as_attachment=False, mimetype='text/csv')
+            # elif file_extension in ('csv', 'tsv'):
+            #     return send_file(file_path, as_attachment=False, mimetype='text/csv')
             elif file_extension in ('png', ):
                 return send_file(file_path, as_attachment=False, mimetype='image/png')
             elif file_extension in ('svg', ):
                 return send_file(file_path, as_attachment=False, mimetype='image/svg+xml')
             elif file_extension in ('jpeg', 'jpg'):
                 return send_file(file_path, as_attachment=False, mimetype='image/jpeg')
-            elif file_extension in ('zip', ):
+            elif file_extension in ('json',):
+                return send_file(file_path, as_attachment=False, mimetype='application/json')
+            elif file_extension in ('zip',):
                 return send_file(file_path, as_attachment=False, mimetype='application/zip')
             elif file_extension in ('rar', ):
                 return send_file(file_path, as_attachment=False, mimetype='application/x-rar-compressed')
