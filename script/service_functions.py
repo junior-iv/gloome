@@ -340,9 +340,9 @@ def recompile_json(output_file: str, process_id: int, create_link: bool) -> str:
 
     if 'execute_all_actions' in action_name:
         for key, value in data.items():
-            data.update({key: get_response_design(value, key, create_link)})
+            data.update({key: get_response_design(value, key, create_link, output_file)})
     else:
-        data = get_response_design(data, action_name, create_link)
+        data = get_response_design(data, action_name, create_link, output_file)
 
     data.update({'title': process_id})
     data.update({'form_data': json_object.pop('form_data')})
@@ -352,8 +352,11 @@ def recompile_json(output_file: str, process_id: int, create_link: bool) -> str:
     return '; '.join(data.keys())
 
 
-def get_response_design(json_object: Optional[Any], action_name: str, create_link: bool) -> Optional[Any]:
+def get_response_design(json_object: Optional[Any], action_name: str, create_link: bool, output_file: str = ''
+                        ) -> Optional[Any]:
     if 'create_all_file_types' in action_name and create_link:
+        if output_file:
+            json_object.update({'json response file (json)': output_file})
         json_object = link_design(json_object)
         json_object = result_design(json_object, change_value='compute_likelihood_of_tree' in action_name,
                                     change_value_style=False, change_key=True, change_key_style=False)
