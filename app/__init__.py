@@ -71,7 +71,7 @@ def get_file():
     if request.method == 'GET':
         file_path = request.args.get('file_path', '')
         if request.args.get('mode', 'view') == 'view':
-            file_extension = path.splitext(file_path)[1]
+            file_extension = path.splitext(file_path)[1][1:]
             if file_extension in ('txt', 'csv', 'tsv', 'tree', 'dot', 'fasta', 'log'):
                 return send_file(file_path, as_attachment=False, mimetype='text/html')
 
