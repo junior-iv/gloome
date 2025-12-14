@@ -80,6 +80,36 @@ def get_file():
                 return send_file(file_path, as_attachment=False, mimetype='image/svg+xml')
             elif file_extension in ('jpeg', 'jpg'):
                 return send_file(file_path, as_attachment=False, mimetype='image/jpeg')
+            elif file_extension in ('zip', ):
+                return send_file(file_path, as_attachment=False, mimetype='application/zip')
+            elif file_extension in ('rar', ):
+                return send_file(file_path, as_attachment=False, mimetype='application/x-rar-compressed')
+            elif file_extension in ('7z', ):
+                return send_file(file_path, as_attachment=False, mimetype='application/x-7z-compressed')
+            elif file_extension in ('gz', 'tgz'):
+                return send_file(file_path, as_attachment=False, mimetype='application/gzip')
+            elif file_extension in ('tar', ):
+                return send_file(file_path, as_attachment=False, mimetype='application/x-tar')
+            elif file_extension in ('pdf', ):
+                return send_file(file_path, as_attachment=False, mimetype='application/pdf')
+            elif file_extension in ('doc', 'dot', 'wiz'):
+                return send_file(file_path, as_attachment=False, mimetype='application/msword')
+            elif file_extension in ('docx', ):
+                return send_file(file_path, as_attachment=False,
+                                 mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            elif file_extension in ('xls', 'xlt', 'xla'):
+                return send_file(file_path, as_attachment=False, mimetype='application/vnd.ms-excel')
+            elif file_extension in ('xlsx', ):
+                return send_file(file_path, as_attachment=False,
+                                 mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            elif file_extension in ('ppt', 'pps', 'pps'):
+                return send_file(file_path, as_attachment=False, mimetype='application/vnd.ms-powerpoint')
+            elif file_extension in ('pptx', ):
+                return send_file(file_path, as_attachment=False,
+                                 mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation')
+            elif file_extension in ('ppsx', ):
+                return send_file(file_path, as_attachment=False,
+                                 mimetype='application/vnd.openxmlformats-officedocument.presentationml.slideshow')
 
         return send_file(file_path, as_attachment=True)
 
