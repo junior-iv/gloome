@@ -571,7 +571,8 @@ class MailSenderSMTPLib:
             return ''
         else:
             mode = 'view' if (path.splitext(attachment_path)[-1][1:] in
-                              ('txt', 'csv', 'tsv', 'tree', 'dot', 'fasta', 'log')) else 'download'
+                              ('txt', 'csv', 'tsv', 'tree', 'dot', 'fasta', 'log', 'png', 'svg', 'jpeg', 'jpg',
+                               'html', 'htm')) else 'download'
             return (f'\n<a href="{url_for(endpoint="get_file", file_path=attachment_path, mode=mode, _external=True)}" '
                     f'target="_blank">{path.basename(attachment_path)}</a>')
 

@@ -2,11 +2,9 @@ from flask import render_template, send_file, Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 from consts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR
 from app.http_utils import *
-# from app.routes import pages
 
 app = Flask(__name__)
 app.config.from_pyfile('flask_config.py')
-# app.config.from_object(FlaskConfig())
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 
@@ -72,8 +70,16 @@ def get_file():
         file_path = request.args.get('file_path', '')
         if request.args.get('mode', 'view') == 'view':
             file_extension = path.splitext(file_path)[1][1:]
-            if file_extension in ('txt', 'csv', 'tsv', 'tree', 'dot', 'fasta', 'log'):
+            if file_extension in ('txt', 'tree', 'dot', 'fasta', 'log', 'html', 'htm'):
                 return send_file(file_path, as_attachment=False, mimetype='text/html')
+            elif file_extension in ('csv', 'tsv'):
+                return send_file(file_path, as_attachment=False, mimetype='text/csv')
+            elif file_extension in ('png', ):
+                return send_file(file_path, as_attachment=False, mimetype='image/png')
+            elif file_extension in ('svg', ):
+                return send_file(file_path, as_attachment=False, mimetype='image/svg+xml')
+            elif file_extension in ('jpeg', 'jpg'):
+                return send_file(file_path, as_attachment=False, mimetype='image/jpeg')
 
         return send_file(file_path, as_attachment=True)
 
