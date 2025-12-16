@@ -1,6 +1,6 @@
 from flask import render_template, send_file, Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
-from consts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR
+from consts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, SERVERS_LOGS_DIR
 from app.http_utils import *
 
 app = Flask(__name__)
@@ -17,6 +17,23 @@ def index():
 @app.route('/results/<process_id>', methods=['GET'])
 def get_results(process_id):
     return render_template('index.html', menu=MENU, title=(':', ), data=get_response(process_id=process_id))
+
+
+@app.route('/logs/<process_id>', methods=['GET'])
+def get_logs(process_id):
+    return send_file(path.join(SERVERS_LOGS_DIR, f'{process_id}.log'), as_attachment=False, mimetype='text/html')
+
+
+@app.route('/job_status/<process_id>', methods=['GET'])
+def job_status(process_id):
+    status = JOB_STATUS.get(process_id)
+    if status is None:
+        return jsonify({'error': 'unknown job'}), 404
+
+    if status == 'running':
+        return jsonify({'status': status})
+
+    return jsonify({'status': status, 'result': JOB_RESULTS.get(process_id)})
 
 
 @app.route('/read_json_file', methods=['POST'])

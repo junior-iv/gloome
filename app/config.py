@@ -65,7 +65,7 @@ class WebConfig:
                 else:
                     setattr(self, key, value)
         if self.PROCESS_ID is None:
-            self.change_process_id(get_new_process_id())
+            self.change_process_id(self.get_new_process_id())
 
     def change_process_id(self, process_id: str):
         self.PROCESS_ID = process_id
@@ -300,6 +300,11 @@ class WebConfig:
         if not path.exists(file_path):
             makedirs(file_path, **kwargs)
 
+    @staticmethod
+    def get_new_process_id():
+        time_str = str(round(time()))
+        rand_str = str(randint(1000, 9999))
+        return f'{time_str}{rand_str}'
 
 class SawSubmiter:
     def __init__(self):

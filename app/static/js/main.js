@@ -296,8 +296,10 @@ function drawPhylogeneticTree(jsonData) {
 
 function processError(error) {
     setVisibilityLoader(false);
+    setAccessibility(``, false);
+    setVisibility(`result`, false);
     console.log(`Error:`, error);
-    showAlert(error.message, 8000);
+    typeof error === "object" && error.hasOwnProperty("message") ? showAlert(error.message, 8000) : showAlert(error, 8000);
 }
 
 function drawInformation(jsonData, sortingList, summary = true, mode = 0, sequenceLength = 0) {
@@ -421,31 +423,92 @@ function showResponse(jsonData, mode = 0) {
 }
 
 
+function getJobResult(processID) {
+    return fetch(`/job_status/${processID}`, {method: `GET`})
+        .then(response => {
+            return response.json()
+        })
+}
+
 function makeRequest(absolutePath, formData, mode) {
     setVisibilityLoader(true);
     setAccessibility();
     setVisibility(`result`, false);
 
-    fetch(absolutePath, {
-        method: `POST`,
-        body: formData
-    })
+    fetch(absolutePath, {method: `POST`, body: formData})
         .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {response.json()
-                .then(data => {throw new Error(data.message)})
-                .catch(error => {processError(error)})}
+            return response.json()
         })
         .then(data => {
-            setVisibilityLoader(false);
-            setAccessibility();
+            if (data.success) {
+                const processID = data.data.processID;
+                let interval= setInterval(() => {
+                    let jobResult = getJobResult(processID);
+                    if ([`failed`, `finished`].includes(jobResult.status)){
+                        setVisibilityLoader(false);
+                        setAccessibility(``, false);
+                        clearInterval(interval);
+                        showResponse(jobResult.result, mode);
+                    }
+                }, 10000)
 
-            typeof data.message === "object" ? showResponse(data.message, mode) : showAlert(data.message, 8000);
+            } else {
+                processError(data.error);
+            }
         })
-        .catch(error => {processError(error)});
+        .catch (error => {
+            processError(error);
+        });
 }
 
+// async function makeRequest(absolutePath, formData, mode) {
+//     setVisibilityLoader(true);
+//     setAccessibility();
+//     setVisibility(`result`, false);
+//
+//     try {
+//         const response = await fetch(absolutePath, {method: `POST`, body: formData});
+//         const data = await response.json();
+//         setVisibilityLoader(false);
+//         setAccessibility(``, false);
+//         if (data.success) {
+//             const processID = data.data.processID;
+//             const status = setInterval(getStatus(processID), 10000);
+//             showAlert(`process ID: ${data.data.processID}`, 8000);
+//         } else {
+//             processError(data.error);
+//         }
+//     } catch (error) {
+//         processError(error);
+//     }
+// }
+//
+// function makeRequest(absolutePath, formData, mode) {
+//     setVisibilityLoader(true);
+//     setAccessibility();
+//     setVisibility(`result`, false);
+//
+//     fetch(absolutePath, {
+//         method: `POST`,
+//         body: formData
+//     })
+//         .then(response => {
+//             if (response.ok) {
+//                 return response.json();
+//             } else {response.json()
+//                 .then(data => {throw new Error(data.message)})
+//                 .catch(error => {processError(error)})}
+//         })
+//         .then(data => {
+//             setVisibilityLoader(false);
+//             setAccessibility();
+//
+//             typeof data.message === "object" ? setInterval(() => {showMessage(``, -1)}, 5000) : showAlert(data.message, 8000);
+//             // typeof data.message === "object" ? showResponse(data.message, mode) : showAlert(data.message, 8000);
+//         })
+//         .catch(error => {processError(error)});
+// }
+//
 function makeTree(mode = 0) {
     const newickText = document.getElementById(`newickText`);
     const msaText = document.getElementById(`msaText`);
