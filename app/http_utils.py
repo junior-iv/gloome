@@ -27,7 +27,7 @@ def get_job_status(process_id: Union[int, str]) -> Dict[str, Any]:
     if not path.exists(ok_file_path) and not path.exists(fail_file_path):
         return {'status': 'running'}
     if not path.exists(ok_file_path) and path.exists(fail_file_path):
-        return {'status': 'running'}
+        return {'status': 'failed'}
 
 
 def run_job(process_id, kwargs, mode):
@@ -61,8 +61,11 @@ def start_background_job(kwargs, mode):
 
 
 def wright_file(file_path: str, header: str = '', exception_text: str = '') -> None:
-    with open(file_path, 'r', encoding='utf-8') as file:
-        old_content = file.read()
+    if path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as file:
+            old_content = file.read()
+    else:
+        old_content = ''
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(header)
         file.write(exception_text)
