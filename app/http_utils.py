@@ -11,7 +11,8 @@ from script.service_functions import get_variables, check_data, get_error, loads
 
 def wright_end_file(process_id: Union[int, str], completed: bool, result_dir: str) -> str:
     file_path = path.join(result_dir, f'GLOOME_{process_id}.END_{"OK" if completed else "FAIL"}')
-    wright_file(file_path)
+    with open(file_path, 'w', encoding='utf-8') as file:
+        pass
 
     return file_path
 
