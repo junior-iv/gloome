@@ -422,12 +422,9 @@ function showResponse(jsonData, mode = 0) {
     setVisibility(`result`, true);
 }
 
-
-function getJobResult(processID) {
-    return fetch(`/job_status/${processID}`, {method: `GET`})
-        .then(response => {
-            return response.json()
-        })
+async function getJobResult(processID) {
+    const response = await fetch(`/job_status/${processID}`, {method: `GET`});
+    return await response.json();
 }
 
 function makeRequest(absolutePath, formData, mode) {
