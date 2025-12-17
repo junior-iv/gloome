@@ -424,7 +424,8 @@ function showResponse(jsonData, mode = 0) {
 
 async function getJobResult(processID) {
     const response = await fetch(`/job_status/${processID}`, {method: `GET`});
-    return await response.json();
+    const data = await response.json();
+    return data;
 }
 
 function makeRequest(absolutePath, formData, mode) {
