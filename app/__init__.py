@@ -26,14 +26,9 @@ def get_logs(process_id):
 
 @app.route('/job_status/<process_id>', methods=['GET'])
 def job_status(process_id):
-    status = JOB_STATUS.get(process_id)
-    if status is None:
-        return jsonify({'error': 'unknown job'}), 404
+    status = get_job_status(process_id)
 
-    if status == 'running':
-        return jsonify({'status': status})
-
-    return jsonify({'status': status, 'result': JOB_RESULTS.get(process_id)})
+    return jsonify(status)
 
 
 @app.route('/read_json_file', methods=['POST'])

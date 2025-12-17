@@ -1,15 +1,33 @@
 import traceback
 import multiprocessing as mp
 
-from typing import Tuple, Optional, Any
+from typing import Tuple, Optional, Any, Dict, Union
 from flask import request, Response, jsonify
 from os import path
 
 from app.config import WebConfig, TMP_DIR, current_time
-from script.service_functions import get_variables, check_data, get_error, loads_json
+from script.service_functions import get_variables, check_data, get_error, loads_json, read_file
 
-JOB_STATUS = {}
-JOB_RESULTS = {}
+
+def wright_end_file(process_id: Union[int, str], completed: bool, result_dir: str) -> str:
+    file_path = path.join(result_dir, f'GLOOME_{process_id}.END_{"OK" if completed else "FAIL"}')
+    wright_file(file_path)
+
+    return file_path
+
+
+def get_job_status(process_id: Union[int, str]) -> Dict[str, Any]:
+    conf = WebConfig(PROCESS_ID=process_id)
+    if not path.exists(conf.OUT_DIR):
+        return {'error': 'unknown job'}
+    ok_file_path = path.join(conf.OUT_DIR, f'GLOOME_{process_id}.END_OK')
+    fail_file_path = path.join(conf.OUT_DIR, f'GLOOME_{process_id}.END_FAIL')
+    if path.exists(ok_file_path) and not path.exists(fail_file_path):
+        return {'status': 'finished', 'result': read_file(file_path=conf.OUTPUT_FILE)}
+    if not path.exists(ok_file_path) and not path.exists(fail_file_path):
+        return {'status': 'running'}
+    if not path.exists(ok_file_path) and path.exists(fail_file_path):
+        return {'status': 'running'}
 
 
 def run_job(process_id, kwargs, mode):
@@ -19,9 +37,8 @@ def run_job(process_id, kwargs, mode):
     try:
         conf.arguments_filling(**kwargs, mode=mode)
         conf.create_tmp_data_files()
-        result = conf.get_response()
-        JOB_RESULTS[process_id] = result
-        JOB_STATUS[process_id] = 'finished'
+        conf.get_response()
+        wright_end_file(process_id, True, conf.OUT_DIR)
     except Exception:
         exception_text = traceback.format_exc()
         header = f'\n\t--- EXCEPTION at execute_request ---'
@@ -29,25 +46,21 @@ def run_job(process_id, kwargs, mode):
         f'\n\tCURRENT_JOB: {conf.CURRENT_JOB}'
         f'\n\tPROCESS_ID: {conf.PROCESS_ID}\n'
         conf.JOB_LOGGER.info(f'{header}{exception_text}')
-        wright_log(file_path=path.join(TMP_DIR, f'execute_request_{conf.PROCESS_ID}_route_debug.log'),
-                   header=header, exception_text=exception_text)
-        JOB_RESULTS[process_id] = {"error": exception_text}
-        JOB_STATUS[process_id] = "failed"
-
+        wright_file(file_path=path.join(TMP_DIR, f'execute_request_{conf.PROCESS_ID}_route_debug.log'), header=header,
+                    exception_text=exception_text)
+        wright_end_file(process_id, False, conf.OUT_DIR)
         raise  # Re-raise to still return 500
 
 
 def start_background_job(kwargs, mode):
-    # job_id = uuid.uuid4().hex
     process_id = WebConfig.get_new_process_id()
 
-    JOB_STATUS[process_id] = 'running'
     p = mp.Process(target=run_job, args=(process_id, kwargs, mode))
     p.start()
     return process_id
 
 
-def wright_log(file_path: str, header: str, exception_text: str) -> None:
+def wright_file(file_path: str, header: str = '', exception_text: str = '') -> None:
     with open(file_path, 'r', encoding='utf-8') as file:
         old_content = file.read()
     with open(file_path, 'w', encoding='utf-8') as file:
@@ -60,9 +73,9 @@ def read_json(json_string: str) -> Any:
     try:
         result = loads_json(json_string)
     except Exception:
-        wright_log(file_path=path.join(TMP_DIR, f'read_json_route_debug.log'),
-                   header=f'\n\n--- [{current_time()}] Exception at execute_request ---\n',
-                   exception_text=traceback.format_exc())
+        wright_file(file_path=path.join(TMP_DIR, f'read_json_route_debug.log'),
+                    header=f'\n\n--- [{current_time()}] Exception at execute_request ---\n',
+                    exception_text=traceback.format_exc())
         raise  # Re-raise to still return 500
 
     return Response(response=jsonify(message=result).response, status=200, mimetype='application/json')
@@ -81,8 +94,8 @@ def get_response(process_id: int) -> Any:
         f'\n\tCURRENT_TIME: {current_time()}'
         f'\n\tPROCESS_ID: {conf.PROCESS_ID}\n'
         conf.JOB_LOGGER.info(f'{header}{exception_text}')
-        wright_log(file_path=path.join(TMP_DIR, f'get_response_{conf.PROCESS_ID}_route_debug.log'),
-                   header=header, exception_text=exception_text)
+        wright_file(file_path=path.join(TMP_DIR, f'get_response_{conf.PROCESS_ID}_route_debug.log'),
+                    header=header, exception_text=exception_text)
         raise  # Re-raise to still return 500
 
     return result
