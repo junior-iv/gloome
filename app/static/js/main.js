@@ -425,61 +425,66 @@ function showResponse(jsonData, mode = 0) {
 async function getJobResult(processID) {
     const response = await fetch(`/job_status/${processID}`, {method: `GET`});
     const data = await response.json();
-    return data;
+    return response.json();
 }
 
-function makeRequest(absolutePath, formData, mode) {
-    setVisibilityLoader(true);
-    setAccessibility();
-    setVisibility(`result`, false);
-
-    fetch(absolutePath, {method: `POST`, body: formData})
-        .then(response => {
-            return response.json()
-        })
-        .then(data => {
-            if (data.success) {
-                const processID = data.data.processID;
-                let interval= setInterval(() => {
-                    let jobResult = getJobResult(processID);
-                    if ([`failed`, `finished`].includes(jobResult.status)){
-                        setVisibilityLoader(false);
-                        setAccessibility(``, false);
-                        clearInterval(interval);
-                        showResponse(jobResult.result, mode);
-                    }
-                }, 10000)
-
-            } else {
-                processError(data.error);
-            }
-        })
-        .catch (error => {
-            processError(error);
-        });
-}
-
-// async function makeRequest(absolutePath, formData, mode) {
+// function makeRequest(absolutePath, formData, mode) {
 //     setVisibilityLoader(true);
 //     setAccessibility();
 //     setVisibility(`result`, false);
 //
-//     try {
-//         const response = await fetch(absolutePath, {method: `POST`, body: formData});
-//         const data = await response.json();
-//         setVisibilityLoader(false);
-//         setAccessibility(``, false);
-//         if (data.success) {
-//             const processID = data.data.processID;
-//             const status = setInterval(getStatus(processID), 10000);
-//             showAlert(`process ID: ${data.data.processID}`, 8000);
-//         } else {
-//             processError(data.error);
-//         }
-//     } catch (error) {
-//         processError(error);
-//     }
+//     fetch(absolutePath, {method: `POST`, body: formData})
+//         .then(response => {
+//             return response.json()
+//         })
+//         .then(data => {
+//             if (data.success) {
+//                 const processID = data.data.processID;
+//                 let interval= setInterval(() => {
+//                     let jobResult = getJobResult(processID);
+//                     if ([`failed`, `finished`].includes(jobResult.status)){
+//                         setVisibilityLoader(false);
+//                         setAccessibility(``, false);
+//                         clearInterval(interval);
+//                         showResponse(jobResult.result, mode);
+//                     }
+//                 }, 10000)
+//
+//             } else {
+//                 processError(data.error);
+//             }
+//         })
+//         .catch (error => {
+//             processError(error);
+//         });
 // }
+//
+async function makeRequest(absolutePath, formData, mode) {
+    setVisibilityLoader(true);
+    setAccessibility();
+    setVisibility(`result`, false);
+
+    try {
+        const response = await fetch(absolutePath, {method: `POST`, body: formData});
+        const data = await response.json();
+        if (data.success) {
+            const processID = data.data.processID;
+            const interval = setInterval(async () => {
+                let jobResult = await getJobResult(processID);
+                if ([`failed`, `finished`].includes(jobResult.status)) {
+                    setVisibilityLoader(false);
+                    setAccessibility(``, false);
+                    clearInterval(interval);
+                    showResponse(jobResult.result, mode);
+                }
+            }, 5000);
+        } else {
+            processError(data.error);
+        }
+    } catch (error) {
+        processError(error);
+    }
+}
 //
 // function makeRequest(absolutePath, formData, mode) {
 //     setVisibilityLoader(true);
