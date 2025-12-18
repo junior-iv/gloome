@@ -485,7 +485,9 @@ function makeTree(mode = 0) {
 
     let absolutePath = ['/execute_all_actions', `/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
 
-    makeRequest(absolutePath, formData, mode).then(() => console.log(`OK`)).catch(error => console.error(error));
+    makeRequest(absolutePath, formData, mode)
+        .then(() => console.log(`a request was sent to '${absolutePath.slice(1)}'`))
+        .catch(error => console.error(error));
 }
 
 function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`) {
