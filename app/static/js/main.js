@@ -427,37 +427,6 @@ async function getJobResult(processID) {
     return await response.json();
 }
 
-// function makeRequest(absolutePath, formData, mode) {
-//     setVisibilityLoader(true);
-//     setAccessibility();
-//     setVisibility(`result`, false);
-//
-//     fetch(absolutePath, {method: `POST`, body: formData})
-//         .then(response => {
-//             return response.json()
-//         })
-//         .then(data => {
-//             if (data.success) {
-//                 const processID = data.data.processID;
-//                 let interval= setInterval(() => {
-//                     let jobResult = getJobResult(processID);
-//                     if ([`failed`, `finished`].includes(jobResult.status)){
-//                         setVisibilityLoader(false);
-//                         setAccessibility(``, false);
-//                         clearInterval(interval);
-//                         showResponse(jobResult.result, mode);
-//                     }
-//                 }, 10000)
-//
-//             } else {
-//                 processError(data.error);
-//             }
-//         })
-//         .catch (error => {
-//             processError(error);
-//         });
-// }
-//
 async function makeRequest(absolutePath, formData, mode) {
     setVisibilityLoader(true);
     setAccessibility();
@@ -484,33 +453,7 @@ async function makeRequest(absolutePath, formData, mode) {
         processError(error);
     }
 }
-//
-// function makeRequest(absolutePath, formData, mode) {
-//     setVisibilityLoader(true);
-//     setAccessibility();
-//     setVisibility(`result`, false);
-//
-//     fetch(absolutePath, {
-//         method: `POST`,
-//         body: formData
-//     })
-//         .then(response => {
-//             if (response.ok) {
-//                 return response.json();
-//             } else {response.json()
-//                 .then(data => {throw new Error(data.message)})
-//                 .catch(error => {processError(error)})}
-//         })
-//         .then(data => {
-//             setVisibilityLoader(false);
-//             setAccessibility();
-//
-//             typeof data.message === "object" ? setInterval(() => {showMessage(``, -1)}, 5000) : showAlert(data.message, 8000);
-//             // typeof data.message === "object" ? showResponse(data.message, mode) : showAlert(data.message, 8000);
-//         })
-//         .catch(error => {processError(error)});
-// }
-//
+
 function makeTree(mode = 0) {
     const newickText = document.getElementById(`newickText`);
     const msaText = document.getElementById(`msaText`);
@@ -542,7 +485,7 @@ function makeTree(mode = 0) {
 
     let absolutePath = ['/execute_all_actions', `/draw_tree`, `/compute_likelihood_of_tree`, '/create_all_file_types'][mode];
 
-    makeRequest(absolutePath, formData, mode);
+    makeRequest(absolutePath, formData, mode).then(() => console.log(`OK`)).catch(error => console.error(error));
 }
 
 function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`) {
