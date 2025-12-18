@@ -611,7 +611,7 @@ class MailSenderSMTPLib:
                            None] = None, included: Union[Tuple[str, ...], List[str], str, None] = None, is_error:
                            bool = False, use_attachments: bool = False, **kwargs) -> None:
         self.set_attributes(**kwargs)
-        status = 'failed!' if is_error else 'complited'
+        status = 'failed!' if is_error else 'completed'
         subject = f'{WEBSERVER_NAME_CAPITAL} job {self.name} by {self.receiver} has {status}'
         body = f'{subject}\n'
         attachments = [log_file]

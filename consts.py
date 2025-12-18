@@ -58,8 +58,8 @@ ERROR_TEMPLATE = path.join(TEMPLATES_DIR, '404.html')
 MSA_FILE_NAME = 'msa_file.msa'
 TREE_FILE_NAME = 'tree_file.tree'
 
-REQUESTS_NUMBER = 100
 REQUEST_WAITING_TIME = 20
+REQUESTS_NUMBER = 24 * 60 * 60 * 3 / REQUEST_WAITING_TIME
 
 # IS_LOCAL = request.remote_addr in ('127.0.0.1', '::1')
 # IS_LOCAL = 'powerslurm' not in socket.gethostname()

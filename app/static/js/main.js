@@ -516,14 +516,7 @@ function readJson(id = `jsonFile`) {
         });
         promise.then(jsonString => {
             let jsonObject = JSON.parse(jsonString);
-            formData.append(`json_string`, jsonString);
-            let mode = actions.indexOf(jsonObject['action_name']);
-            mode = mode === 0 ? -1 : mode;
-            if (mode === 3 ) {
-                showAlert(`Cannot create file links locally`, 8000);
-            } else {
-                makeRequest('/read_json_file', formData, mode);
-            }
+            showResponse(jsonObject, actions.indexOf(jsonObject['action_name']))
     });
 }
 
