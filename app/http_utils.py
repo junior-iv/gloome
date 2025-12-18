@@ -24,7 +24,7 @@ def get_job_status(process_id: Union[int, str]) -> Dict[str, Any]:
     ok_file_path = path.join(conf.OUT_DIR, f'GLOOME_{process_id}.END_OK')
     fail_file_path = path.join(conf.OUT_DIR, f'GLOOME_{process_id}.END_FAIL')
     if path.exists(ok_file_path) and not path.exists(fail_file_path):
-        return {'status': 'finished', 'result': read_file(file_path=conf.OUTPUT_FILE)}
+        return {'status': 'finished', 'result': loads_json(read_file(file_path=conf.OUTPUT_FILE))}
     if not path.exists(ok_file_path) and not path.exists(fail_file_path):
         return {'status': 'running'}
     if not path.exists(ok_file_path) and path.exists(fail_file_path):
