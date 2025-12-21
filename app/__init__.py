@@ -82,10 +82,12 @@ def get_file():
         file_path = request.args.get('file_path', '')
         if request.args.get('mode', 'view') == 'view':
             file_extension = path.splitext(file_path)[1][1:]
-            if file_extension in ('txt', 'tree', 'dot', 'fasta', 'log', 'html', 'htm', 'csv', 'tsv'):
+            if file_extension in ('html', 'htm'):
                 return send_file(file_path, as_attachment=False, mimetype='text/html')
-            # elif file_extension in ('csv', 'tsv'):
-            #     return send_file(file_path, as_attachment=False, mimetype='text/csv')
+            elif file_extension in ('txt', 'tree', 'dot', 'fasta', 'log'):
+                return send_file(file_path, as_attachment=False, mimetype='text/plain')
+            elif file_extension in ('csv', 'tsv'):
+                return send_file(file_path, as_attachment=False, mimetype='text/csv')
             elif file_extension in ('png', ):
                 return send_file(file_path, as_attachment=False, mimetype='image/png')
             elif file_extension in ('svg', ):
