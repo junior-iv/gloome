@@ -65,10 +65,10 @@ class WebConfig:
                 else:
                     setattr(self, key, value)
         if self.PROCESS_ID is None:
-            self.change_process_id(self.get_new_process_id())
+            self.change_process_id()
 
-    def change_process_id(self, process_id: str):
-        self.PROCESS_ID = process_id
+    def change_process_id(self, process_id: Optional[str] = None):
+        self.PROCESS_ID = self.get_new_process_id() if process_id is None else process_id
 
         self.SERVERS_RESULTS_DIR = SERVERS_RESULTS_DIR
         self.SERVERS_LOGS_DIR = SERVERS_LOGS_DIR
@@ -86,12 +86,13 @@ class WebConfig:
 
         self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
         self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
-        self.JOB_LOGGER = get_job_logger(f'{process_id}', self.SERVERS_LOGS_DIR)
-        self.JOB_LOGGER.info(f'\n\tcreate a new instance of the WebConfig class'
-                             f'\n\tPROCESS ID: {process_id}'
-                             f'\n\tSUBMITER: {self.SUBMITER}'
-                             f'\n\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}'
-                             f'\n\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
+        self.JOB_LOGGER = get_job_logger(f'{self.PROCESS_ID}', self.SERVERS_LOGS_DIR)
+        if process_id is None:
+            self.JOB_LOGGER.info(f'\n\tcreate a new instance of the WebConfig class'
+                                 f'\n\tPROCESS ID: {self.PROCESS_ID}'
+                                 f'\n\tSUBMITER: {self.SUBMITER}'
+                                 f'\n\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}'
+                                 f'\n\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
 
     def arguments_filling(self, **arguments):
         dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'eMail', 'isOptimizePi',
