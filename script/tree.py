@@ -692,7 +692,7 @@ class Tree:
 
         self.calculate_tree_for_fasta()
         self.calculate_ancestral_sequence()
-        size_factor = 1 + self.get_node_count({'node_type': ['leaf']}) // 7
+        size_factor = min(2 + self.get_node_count({'node_type': ['leaf']}) // 10, 10)
 
         df = self.tree_to_table(columns={'node': 'target', 'father_name': 'source', 'distance': 'weight', 'sequence':
                                          'sequence', 'probabilities_sequence_characters': 'prob_characters',
@@ -764,7 +764,7 @@ class Tree:
                       ) -> Union[str, Dict[str, str]]:
         file_extensions = Tree.check_file_extensions_tuple(file_extensions, 'png')
 
-        size_factor = 1 + self.get_node_count({'node_type': ['leaf']}) // 7
+        size_factor = min(2 + self.get_node_count({'node_type': ['leaf']}) // 10, 10)
         Tree.make_dir(file_name)
         columns = {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to parent'}
         table = self.tree_to_table(None, 0, columns)
