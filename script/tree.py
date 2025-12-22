@@ -610,7 +610,6 @@ class Tree:
         self.optimize_coefficient_bl(coefficient_bl, is_optimize_bl)
         self.parameters_optimization(pi_0, pi_1, is_optimize_pi, is_optimize_pi_average)
         self.optimize_alpha(alpha, categories_quantity, is_optimize_alpha)
-
         if (self.is_optimize_alpha or self.is_optimize_pi) and self.is_optimize_bl:
             self.optimize_coefficient_bl(self.coefficient_bl, self.is_optimize_bl)
 
@@ -790,8 +789,8 @@ class Tree:
         return file_names
 
     def optimize(self, func: Union[Callable, str], bracket: Tuple[Union[float, np.ndarray], ...] = (0.5,),
-                 bounds: Tuple[Union[float, np.ndarray], ...] = (0.001, 0.999),
-                 args: Optional[Tuple[Any, ...]] = None, result_fild: Optional[str] = None):
+                 bounds: Tuple[Union[float, np.ndarray], ...] = (0.001, 0.999), args: Optional[Tuple[Any, ...]] = None,
+                 result_fild: Optional[str] = None):
         """
             result_fild: `str` (default), message, success, status, fun, x, nit, nfev
         """

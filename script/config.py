@@ -135,14 +135,14 @@ class Config:
     def check_arguments_for_errors(self) -> bool:
         if path.isfile(self.TREE_FILE):
             with open(self.TREE_FILE, 'r') as f:
-                self.CALCULATED_ARGS.newick_text = f.read()
+                self.CALCULATED_ARGS.newick_text = f.read().strip()
         else:
             self.CALCULATED_ARGS.err_list.append((f'The File does not exist',
                                                   f'File "{self.TREE_FILE}" does not exist '))
 
         if path.isfile(self.MSA_FILE):
             with open(self.MSA_FILE, 'r') as f:
-                self.CALCULATED_ARGS.msa = f.read()
+                self.CALCULATED_ARGS.msa = f.read().strip()
         else:
             self.CALCULATED_ARGS.err_list.append((f'The File does not exist',
                                                   f'File "{self.MSA_FILE}" does not exist '))
@@ -317,6 +317,4 @@ class Config:
 
     @staticmethod
     def get_new_process_id():
-        time_str = str(round(time()))
-        rand_str = str(randint(1000, 9999))
-        return f'{time_str}{rand_str}'
+        return f'{round(time())}{randint(1000, 9999)}'

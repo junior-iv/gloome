@@ -5,6 +5,8 @@ from typing import Optional, Dict, Union, List, Tuple, Any
 from scipy.linalg import expm
 from math import log, prod
 
+eps = 5e-324
+
 
 class Node:
     father: Optional['Node']
@@ -173,13 +175,12 @@ class Node:
 
     def calculate_sequence_likelihood(self) -> None:
         self.sequence_likelihood *= self.likelihood
-        self.log_likelihood += log(self.likelihood)
-        self.log_likelihood_vector.append(log(self.likelihood))
+        self.log_likelihood += log(max(self.likelihood, eps))
+        self.log_likelihood_vector.append(log(max(self.likelihood, eps)))
 
     def calculate_gl_probability(self, alphabet: Union[Tuple[str, ...], str],
                                  rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
-                                 pi_0: Optional[float] = None, pi_1: Optional[float] = None
-                                 ) -> None:
+                                 pi_0: Optional[float] = None, pi_1: Optional[float] = None) -> None:
         alphabet_size, rate_vector, rate_vector_size, frequency = self.get_vars(alphabet, rate_vector, pi_0, pi_1)
         marginal_bl_vector = []
         pmatrix = tuple([self.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector])
@@ -268,6 +269,7 @@ class Node:
                         pmatrix, up_vector = dict_children.get(child.name)
                         p1 = pmatrix[r][j, i] * up_vector[r][i]
                         probabilities.update({child.name: probabilities.get(child.name, 0.0) + p1})
+
                 current_up_vector.append(prod(probabilities.values()))
             self.up_vector.append(current_up_vector)
             self.likelihood += np.sum([frequency[i] * 1 / rate_vector_size * v for i, v in
@@ -358,8 +360,8 @@ class Node:
 
             char_likelihood = self.calculate_up(nodes_dict, alphabet, rate_vector, pi_0, pi_1)
             likelihood *= char_likelihood
-            log_likelihood += log(char_likelihood)
-            log_likelihood_list.append(log(char_likelihood))
+            log_likelihood += log(max(char_likelihood, eps))
+            log_likelihood_list.append(log(max(char_likelihood, eps)))
 
         return log_likelihood_list, log_likelihood, likelihood
 

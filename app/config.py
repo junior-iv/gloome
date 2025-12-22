@@ -132,9 +132,9 @@ class WebConfig:
         # if replace_path:
         #     self.replace_files_path()
         with open(self.TREE_FILE, 'r') as f:
-            self.CALCULATED_ARGS.newick_text = f.read()
+            self.CALCULATED_ARGS.newick_text = f.read().strip()
         with open(self.MSA_FILE, 'r') as f:
-            self.CALCULATED_ARGS.msa = f.read()
+            self.CALCULATED_ARGS.msa = f.read().strip()
 
     def create_tmp_data_files(self) -> None:
         self.check_dir(self.CALCULATED_ARGS.file_path)
@@ -306,6 +306,7 @@ class WebConfig:
         time_str = str(round(time()))
         rand_str = str(randint(1000, 9999))
         return f'{time_str}{rand_str}'
+
 
 class SawSubmiter:
     def __init__(self):
@@ -577,8 +578,10 @@ class MailSenderSMTPLib:
             return ''
         else:
             mode = 'view' if (path.splitext(attachment_path)[-1][1:] in
-                              ('txt', 'csv', 'tsv', 'tree', 'dot', 'fasta', 'log', 'png', 'svg', 'jpeg', 'jpg',
-                               'html', 'htm', 'json', 'zip')) else 'download'
+                              ('txt', 'csv', 'tsv', 'nwk', 'tree', 'dot', 'fasta', 'log', 'png', 'svg', 'jpeg', 'jpg',
+                               'html', 'htm', 'json', 'zip', 'rar', '7z', 'gz', 'tgz', 'tar', 'pdf', 'doc', 'dot',
+                               'wiz', 'docx', 'xls', 'xlt', 'xla', 'xlsx', 'ppt', 'pps', 'pps', 'pptx', 'ppsx'
+                               )) else 'download'
             return (f'\n<a href="{url_for(endpoint="get_file", file_path=attachment_path, mode=mode, _external=True)}" '
                     f'target="_blank">{path.basename(attachment_path)}</a>')
 
@@ -649,7 +652,7 @@ class MailSenderSMTPLib:
     def add_attachment_to_email(attachment_path, message) -> None:
         with open(attachment_path, "rb") as attachment:
             part = MIMEBase("application", "octet-stream")
-            part.set_payload(attachment.read())
+            part.set_payload(attachment.read().strip())
 
         encoders.encode_base64(part)
         part.add_header(

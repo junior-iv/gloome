@@ -71,7 +71,7 @@ def get_exemple():
         for i in (f'msa/patternMSA{mode}.msa', f'tree/newickTree{mode}.tree'):
             full_file_name = f'{INITIAL_DATA_DIR}/{i}'
             with open(full_file_name, 'r') as f:
-                result.append(f.read())
+                result.append(f.read().strip())
 
         return jsonify(message=result)
 
@@ -84,7 +84,7 @@ def get_file():
             file_extension = path.splitext(file_path)[1][1:]
             if file_extension in ('html', 'htm'):
                 return send_file(file_path, as_attachment=False, mimetype='text/html')
-            elif file_extension in ('txt', 'tree', 'dot', 'fasta', 'log', 'csv', 'tsv'):
+            elif file_extension in ('txt', 'nwk', 'tree', 'dot', 'fasta', 'log'):
                 return send_file(file_path, as_attachment=False, mimetype='text/plain')
             elif file_extension in ('csv', ):
                 return send_file(file_path, as_attachment=False, mimetype='text/csv')
@@ -96,9 +96,9 @@ def get_file():
                 return send_file(file_path, as_attachment=False, mimetype='image/svg+xml')
             elif file_extension in ('jpeg', 'jpg'):
                 return send_file(file_path, as_attachment=False, mimetype='image/jpeg')
-            elif file_extension in ('json',):
+            elif file_extension in ('json', ):
                 return send_file(file_path, as_attachment=False, mimetype='application/json')
-            elif file_extension in ('zip',):
+            elif file_extension in ('zip', ):
                 return send_file(file_path, as_attachment=False, mimetype='application/zip')
             elif file_extension in ('rar', ):
                 return send_file(file_path, as_attachment=False, mimetype='application/x-rar-compressed')
