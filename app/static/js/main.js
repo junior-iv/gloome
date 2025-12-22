@@ -574,20 +574,6 @@ function onChangingCheckbox(id, value) {
         element.value = value;
     }
 }
-// function onChangingCheckbox(id, value) {
-//     let element = document.getElementById(id);
-//     let objectsD = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha'], 'coefficientBL': ['isOptimizeBL']};
-//     if (checkboxes.includes(id)) {
-//         Object.entries(objectsD).forEach(([key, valueList]) => {
-//             if (valueList.includes(id)) {
-//                 valueList.forEach(elementId => id !== elementId ? element.checked = Boolean(value) : document.getElementById(elementId).checked = false)
-//             }
-//             // setAccessibility(key, element.checked);
-//         });
-//     } else {
-//         element.value = value;
-//     }
-// }
 
 function setAccessibility(id = ``, value = null) {
     let elementIdentifiers = gedIdentifiers(id);

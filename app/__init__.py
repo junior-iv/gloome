@@ -84,12 +84,12 @@ def get_file():
             file_extension = path.splitext(file_path)[1][1:]
             if file_extension in ('html', 'htm'):
                 return send_file(file_path, as_attachment=False, mimetype='text/html')
-            elif file_extension in ('txt', 'nwk', 'tree', 'dot', 'fasta', 'log'):
+            elif file_extension in ('txt', 'nwk', 'tree', 'dot', 'fasta', 'log', 'csv', 'tsv'):
                 return send_file(file_path, as_attachment=False, mimetype='text/plain')
-            elif file_extension in ('csv', ):
-                return send_file(file_path, as_attachment=False, mimetype='text/csv')
-            elif file_extension in ('tsv', ):
-                return send_file(file_path, as_attachment=False, mimetype='text/tab-separated-values')
+            # elif file_extension in ('csv', ):
+            #     return send_file(file_path, as_attachment=False, mimetype='text/csv')
+            # elif file_extension in ('tsv', ):
+            #     return send_file(file_path, as_attachment=False, mimetype='text/tab-separated-values')
             elif file_extension in ('png', ):
                 return send_file(file_path, as_attachment=False, mimetype='image/png')
             elif file_extension in ('svg', ):
