@@ -188,7 +188,7 @@ def draw_tree(newick_tree: Tree, file_path: Optional[str] = None, create_new_fil
     result = [newick_tree.get_json_structure(),
               newick_tree.get_json_structure(return_table=True),
               newick_tree.get_columns_list_for_sorting(),
-              {'Size factor': min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 10, 5)},
+              {'Size factor': min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 9, 5)},
               newick_tree.get_json_structure(return_table=True, mode='branch'),
               newick_tree.get_columns_list_for_sorting(mode='branch'),
               {'Sequence length': len(tuple(newick_tree.msa.values())[0])}]
