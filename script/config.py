@@ -206,7 +206,19 @@ class Config:
         if self.CALCULATED_ARGS.err_list:
             self.JOB_LOGGER.info(f'Error list: \n{self.CALCULATED_ARGS.err_list}')
         else:
-            self.JOB_LOGGER.info(f'Verification completed successfully')
+            if any((self.CURRENT_ARGS.is_optimize_pi_average, self.CURRENT_ARGS.is_optimize_pi,
+                    self.CURRENT_ARGS.is_optimize_alpha, self.CURRENT_ARGS.is_optimize_bl)):
+                information = f'\n\tresults of optimizing some arguments'
+                if any((self.CURRENT_ARGS.is_optimize_pi_average, self.CURRENT_ARGS.is_optimize_pi)):
+                    information += f'\n\tpi_1: {self.CURRENT_ARGS.pi_1}'
+                if self.CURRENT_ARGS.is_optimize_alpha:
+                    information += f'\n\talpha: {self.CURRENT_ARGS.alpha}'
+                if self.CURRENT_ARGS.is_optimize_bl:
+                    information += f'\n\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}'
+                information += f'\n'
+                self.JOB_LOGGER.info(information)
+
+            self.JOB_LOGGER.info(f'Verification completed successfully\n')
 
         return not self.CALCULATED_ARGS.err_list
 
