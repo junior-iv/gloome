@@ -181,13 +181,12 @@ class Config:
                 self.CALCULATED_ARGS.err_list.append((f'MSA error',
                                                       f'Wrong MSA format. Please provide MSA in FASTA format.'))
 
-        information = f'\n\tresults of optimizing some arguments'
-
         if not self.CALCULATED_ARGS.err_list and (self.CURRENT_ARGS.is_optimize_pi_average or
                                                   self.CURRENT_ARGS.is_optimize_pi):
             try:
                 self.CURRENT_ARGS.pi_1 = self.CALCULATED_ARGS.newick_tree.pi_1
-                information = f'{information}\n\tpi_1: {self.CALCULATED_ARGS.newick_tree.pi_1}'
+                self.JOB_LOGGER.info(f'\n\tresults of optimizing π1'
+                                     f'\n\tπ1: {self.CALCULATED_ARGS.newick_tree.pi_1}\n')
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Strange error',
                                                       f'Strange error.'))
@@ -195,7 +194,8 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.CURRENT_ARGS.is_optimize_alpha:
             try:
                 self.CURRENT_ARGS.alpha = self.CALCULATED_ARGS.newick_tree.alpha
-                information = f'{information}\n\talpha: {self.CALCULATED_ARGS.newick_tree.alpha}'
+                self.JOB_LOGGER.info(f'\n\tresults of optimizing α'
+                                     f'\n\tα: {self.CALCULATED_ARGS.newick_tree.alpha}\n')
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Strange error',
                                                       f'Strange error.'))
@@ -203,7 +203,8 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.CURRENT_ARGS.is_optimize_bl:
             try:
                 self.CURRENT_ARGS.coefficient_bl = self.CALCULATED_ARGS.newick_tree.coefficient_bl
-                information = f'{information}\n\tcoefficient_bl: {self.CALCULATED_ARGS.newick_tree.coefficient_bl}'
+                self.JOB_LOGGER.info(f'\n\tresults of optimizing branch lengths coefficient'
+                                     f'\n\tα: {self.CALCULATED_ARGS.newick_tree.coefficient_bl}\n')
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Strange error',
                                                       f'Strange error.'))
@@ -211,9 +212,6 @@ class Config:
         if self.CALCULATED_ARGS.err_list:
             self.JOB_LOGGER.info(f'Error list: \n{self.CALCULATED_ARGS.err_list}')
         else:
-            if any((self.CURRENT_ARGS.is_optimize_pi_average, self.CURRENT_ARGS.is_optimize_pi,
-                    self.CURRENT_ARGS.is_optimize_alpha, self.CURRENT_ARGS.is_optimize_bl)):
-                self.JOB_LOGGER.info(f'{information}\n')
             self.JOB_LOGGER.info(f'Verification completed successfully\n')
 
         return not self.CALCULATED_ARGS.err_list
