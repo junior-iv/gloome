@@ -181,10 +181,13 @@ class Config:
                 self.CALCULATED_ARGS.err_list.append((f'MSA error',
                                                       f'Wrong MSA format. Please provide MSA in FASTA format.'))
 
+        information = f'\n\tresults of optimizing some arguments'
+
         if not self.CALCULATED_ARGS.err_list and (self.CURRENT_ARGS.is_optimize_pi_average or
                                                   self.CURRENT_ARGS.is_optimize_pi):
             try:
                 self.CURRENT_ARGS.pi_1 = self.CALCULATED_ARGS.newick_tree.pi_1
+                information = f'{information}\n\tpi_1: {self.CALCULATED_ARGS.newick_tree.pi_1}'
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Strange error',
                                                       f'Strange error.'))
@@ -192,6 +195,7 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.CURRENT_ARGS.is_optimize_alpha:
             try:
                 self.CURRENT_ARGS.alpha = self.CALCULATED_ARGS.newick_tree.alpha
+                information = f'{information}\n\talpha: {self.CALCULATED_ARGS.newick_tree.alpha}'
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Strange error',
                                                       f'Strange error.'))
@@ -199,6 +203,7 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.CURRENT_ARGS.is_optimize_bl:
             try:
                 self.CURRENT_ARGS.coefficient_bl = self.CALCULATED_ARGS.newick_tree.coefficient_bl
+                information = f'{information}\n\tcoefficient_bl: {self.CALCULATED_ARGS.newick_tree.coefficient_bl}'
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Strange error',
                                                       f'Strange error.'))
@@ -208,16 +213,7 @@ class Config:
         else:
             if any((self.CURRENT_ARGS.is_optimize_pi_average, self.CURRENT_ARGS.is_optimize_pi,
                     self.CURRENT_ARGS.is_optimize_alpha, self.CURRENT_ARGS.is_optimize_bl)):
-                information = f'\n\tresults of optimizing some arguments'
-                if any((self.CURRENT_ARGS.is_optimize_pi_average, self.CURRENT_ARGS.is_optimize_pi)):
-                    information += f'\n\tpi_1: {self.CURRENT_ARGS.pi_1}'
-                if self.CURRENT_ARGS.is_optimize_alpha:
-                    information += f'\n\talpha: {self.CURRENT_ARGS.alpha}'
-                if self.CURRENT_ARGS.is_optimize_bl:
-                    information += f'\n\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}'
-                information += f'\n'
-                self.JOB_LOGGER.info(information)
-
+                self.JOB_LOGGER.info(f'{information}\n')
             self.JOB_LOGGER.info(f'Verification completed successfully\n')
 
         return not self.CALCULATED_ARGS.err_list
