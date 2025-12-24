@@ -602,13 +602,18 @@ class MailSenderSMTPLib:
 
         if self.smtp_port == 587:
             with SMTP(self.smtp_server, self.smtp_port) as server:
-                context = create_default_context()
-                server.starttls(context=context)
+                server.starttls(context=create_default_context())
                 server.login(self.sender, self.password)
                 server.send_message(message)
         elif self.smtp_port == 465:
             with SMTP_SSL(self.smtp_server, self.smtp_port) as server:
                 server.login(self.sender, self.password)
+                server.send_message(message)
+        elif self.smtp_port == 0:
+            with SMTP(self.smtp_server) as server:
+                server.send_message(message)
+        elif self.smtp_port == -1:
+            with SMTP_SSL(self.smtp_server) as server:
                 server.send_message(message)
 
     def send_results_email(self, results_files_dir: str, log_file: str, excluded: Union[Tuple[str, ...], List[str], str,
