@@ -520,7 +520,7 @@ class SlurmSubmiter:
             raise Exception(f"Error: {response.status_code}, {response.text}")
 
     def check_job_state(self, conf: WebConfig, state: Union[Tuple[str, ...], List[str], Set[str], str] = 'COMPLETED',
-                        count: int = 50, waiting_time: int = 10) -> bool:
+                        count: int = 50, waiting_time: int = 10) -> str:
         while count:
             try:
                 job_info = self.get_job_state(conf.CURRENT_JOB)
@@ -533,10 +533,10 @@ class SlurmSubmiter:
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
             if job_state in state_filter:
                 conf.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
-                return job_state in state
+                return job_state
             count -= 1
             sleep(waiting_time)
-        return False
+        return ''
 
     @classmethod
     def find_in_json(cls, data: Any, key: Union[bool, int, float, str], value: Optional[Any] = None,
