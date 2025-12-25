@@ -493,26 +493,26 @@ class SlurmSubmiter:
         return response
 
     def get_job_state(self, job_id):
-        url = f'{self.api}/slurm/v0.0.41/job/{job_id}'
+        url = f'{self.api}/slurm/v0.0.42/job/{job_id}'
 
         return self.exec_request(url)
 
     def get_jobs_state(self):
-        url = f'{self.api}/slurm/v0.0.41/jobs/state'
+        url = f'{self.api}/slurm/v0.0.42/jobs/state'
 
         return self.exec_request(url)
 
     def ping(self):
-        url = f'{self.api}/slurm/v0.0.41/ping'
+        url = f'{self.api}/slurm/v0.0.42/ping'
         return self.exec_request(url)
 
     def get_jobs(self):
-        url = f'{self.api}/slurm/v0.0.41/jobs'
+        url = f'{self.api}/slurm/v0.0.42/jobs'
 
         return self.exec_request(url)
 
     def submit_job(self, payload, **kwargs):
-        url = f'{self.api}/slurm/v0.0.41/job/submit'
+        url = f'{self.api}/slurm/v0.0.42/job/submit'
         response = self.exec_request(url, method='POST', json=payload, **kwargs)
         if response.status_code == 200:
             return response.json()  # Assuming the token is returned in JSON format
