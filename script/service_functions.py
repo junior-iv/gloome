@@ -291,7 +291,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
         if not newick_text:
             err_list.append((f'TREE error', f'No Phylogenetic tree was provided.'))
-        elif (not (newick_text.startswith('(') and newick_text.endswith(';') and newick_text[:-1].endswith(')')) or
+        elif (not (newick_text.startswith('(') and newick_text.endswith(';')) or
               (newick_text.count('(') != newick_text.count(')'))):
             err_list.append((f'TREE error', f'Wrong Phylogenetic tree format. Please provide a tree in Newick format.'))
         else:
