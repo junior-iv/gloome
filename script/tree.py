@@ -293,6 +293,7 @@ class Tree:
         lst_nodes = str_children.split(',')
         for str_node in lst_nodes:
             newick_node = self.__set_node(str_node.strip(), num)
+            newick_node.father = father
             father.add_child(newick_node)
 
     def check_tree_for_binary(self) -> bool:

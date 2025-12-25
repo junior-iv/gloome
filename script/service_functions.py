@@ -301,6 +301,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
                 current_tree = None
 
             if current_tree:
+                for current_node in current_tree.get_list_nodes_info(with_additional_details=True, filters={'distance':
+                                                                     [0.0, ]}, only_node_list=True):
+                    current_node.distance_to_father = float(f'{current_node.distance_to_father:.4f}1')
                 edges_distances_list = current_tree.tree_to_table(filters={'node_type': ['leaf', 'node']},
                                                                   columns={'distance': 'distance'},
                                                                   distance_type=float).T.values[0].tolist()
