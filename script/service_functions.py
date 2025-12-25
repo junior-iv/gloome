@@ -305,7 +305,8 @@ def check_data(*args) -> List[Tuple[str, str]]:
                                                                   columns={'distance': 'distance'},
                                                                   distance_type=float).T.values[0].tolist()
                 if not all(edges_distances_list):
-                    err_list.append((f'TREE error', f'One or more branches in the tree have zero length.'))
+                    err_list.append((f'TREE error', f'One or more branches in the tree have zero length.\n'
+                                                    f'{edges_distances_list}'))
                 if not (current_tree.get_node_count({'node_type': ['leaf']}) == len(msa.split('\n')) / 2 ==
                         msa.count('>')):
                     err_list.append((f'MSA error',
