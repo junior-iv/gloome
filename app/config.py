@@ -511,9 +511,9 @@ class SlurmSubmiter:
 
         return self.exec_request(url)
 
-    def submit_job(self, payload, **kwargs):
+    def submit_job(self, json, **kwargs):
         url = f'{self.api}/slurm/v0.0.42/job/submit'
-        response = self.exec_request(url, method='POST', json=payload, **kwargs)
+        response = self.exec_request(url, method='POST', json=json, **kwargs)
         if response.status_code == 200:
             return response.json()  # Assuming the token is returned in JSON format
         else:
