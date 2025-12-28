@@ -5,11 +5,10 @@ from dotenv import load_dotenv
 from types import FunctionType, MethodType
 
 from script.tree import Tree
-from script.service_functions import (check_data, create_all_file_types, compute_likelihood_of_tree, draw_tree,
-                                      execute_all_actions, recompile_json)
+from script.service_functions import check_data, execute_all_actions, recompile_json
 
 load_dotenv()
-MODE = ('draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions')
+MODE = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions']
 IS_PRODUCTION = True
 MAX_CONTENT_LENGTH = 16 * 1000 * 1000 * 1000
 PREFIX = '/'
@@ -173,11 +172,11 @@ ACTIONS = Actions(**{
                      'check_data': check_data,
                      'check_tree': Tree.rename_nodes,
                      'set_tree_data': Tree.set_tree_data,
-                     'compute_likelihood_of_tree': compute_likelihood_of_tree,
+                     # 'compute_likelihood_of_tree': compute_likelihood_of_tree,
                      'calculate_tree_for_fasta': Tree.calculate_tree_for_fasta,
                      'calculate_ancestral_sequence': Tree.calculate_ancestral_sequence,
-                     'draw_tree': draw_tree,
-                     'create_all_file_types': create_all_file_types,
+                     # 'draw_tree': draw_tree,
+                     # 'create_all_file_types': create_all_file_types,
                      'execute_all_actions': execute_all_actions,
                      'recompile_json': recompile_json
                      })
@@ -190,13 +189,16 @@ VALIDATION_ACTIONS = {
 DEFAULT_ACTIONS = {
     'set_tree_data': True,
     'calculate_tree_for_fasta': False,
-    'compute_likelihood_of_tree': False,
+    # 'compute_likelihood_of_tree': False,
     'calculate_ancestral_sequence': False,
-    'draw_tree': False,
-    'create_all_file_types': False,
+    # 'draw_tree': False,
+    # 'create_all_file_types': False,
     'execute_all_actions': False
     }
 
+MAIN_ACTIONS = {'compute_likelihood_of_tree': False,
+                'draw_tree': False,
+                'create_all_file_types': False}
 
 CALCULATED_ARGS = CalculatedArgs(**{
                                     'file_path': None,

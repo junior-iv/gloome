@@ -9,7 +9,7 @@ from utils import *
 
 class Config:
     def __init__(self, **attributes):
-        self.MODE = MODE
+        self.MODE = MODE[3:4]
         self.COMMAND_LINE = COMMAND_LINE
 
         self.IN_DIR = IN_DIR
@@ -18,6 +18,7 @@ class Config:
         self.ACTIONS = ACTIONS
         self.VALIDATION_ACTIONS = VALIDATION_ACTIONS
         self.DEFAULT_ACTIONS = DEFAULT_ACTIONS
+        self.MAIN_ACTIONS = MAIN_ACTIONS
 
         self.CURRENT_ARGS = DEFAULT_ARGUMENTS
 
@@ -110,22 +111,22 @@ class Config:
             self.execute_action(self.ACTIONS.calculate_tree_for_fasta, self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_ancestral_sequence', False):
             self.execute_action(self.ACTIONS.calculate_ancestral_sequence, self.CALCULATED_ARGS.newick_tree)
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
-            self.execute_action(self.ACTIONS.draw_tree, file_path=self.OUT_DIR, create_new_file=True,
-                                form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('compute_likelihood_of_tree', False):
-            self.execute_action(self.ACTIONS.compute_likelihood_of_tree, file_path=self.OUT_DIR, create_new_file=True,
-                                form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
-            self.execute_action(self.ACTIONS.create_all_file_types, file_path=self.OUT_DIR, create_new_file=True,
-                                form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
-                                with_internal_nodes=self.CURRENT_ARGS.with_internal_nodes,
-                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename)
+        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
+        #     self.execute_action(self.ACTIONS.draw_tree, file_path=self.OUT_DIR, create_new_file=True,
+        #                         form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
+        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('compute_likelihood_of_tree', False):
+        #     self.execute_action(self.ACTIONS.compute_likelihood_of_tree, file_path=self.OUT_DIR, create_new_file=True,
+        #                         form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
+        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
+        #     self.execute_action(self.ACTIONS.create_all_file_types, file_path=self.OUT_DIR, create_new_file=True,
+        #                         form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
+        #                         with_internal_nodes=self.CURRENT_ARGS.with_internal_nodes,
+        #                         log_file=self.JOB_LOGGER.handlers[-1].baseFilename)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
             self.execute_action(self.ACTIONS.execute_all_actions, file_path=self.OUT_DIR, create_new_file=True,
                                 form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
                                 with_internal_nodes=self.CURRENT_ARGS.with_internal_nodes,
-                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename)
+                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename, actions=self.MAIN_ACTIONS)
         if not self.CALCULATED_ARGS.err_list:
             self.execute_action(self.ACTIONS.recompile_json, output_file=path.join(self.OUT_DIR, 'result.json'),
                                 process_id=self.PROCESS_ID, create_link=False)
@@ -209,27 +210,40 @@ class Config:
         return not self.CALCULATED_ARGS.err_list
 
     def enable_default_actions(self):
-        self.DEFAULT_ACTIONS.update({'compute_likelihood_of_tree': False,
-                                     'calculate_tree_for_fasta': False,
-                                     'calculate_ancestral_sequence': False,
-                                     'draw_tree': False,
-                                     'create_all_file_types': False,
-                                     'execute_all_actions': False})
+        self.DEFAULT_ACTIONS.update({
+            # 'compute_likelihood_of_tree': False,
+            'calculate_tree_for_fasta': False,
+            'calculate_ancestral_sequence': False,
+            # 'draw_tree': False,
+            # 'create_all_file_types': False,
+            'execute_all_actions': False
+        })
+        self.MAIN_ACTIONS.update({
+            'compute_likelihood_of_tree': False,
+            'draw_tree': False,
+            'create_all_file_types': False
+        })
 
         if 'compute_likelihood_of_tree' in self.MODE:
-            self.DEFAULT_ACTIONS.update({'compute_likelihood_of_tree': True})
+            self.DEFAULT_ACTIONS.update({'execute_all_actions': True})
+            self.MAIN_ACTIONS.update({'compute_likelihood_of_tree': True})
         if 'draw_tree' in self.MODE:
             self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
                                          'calculate_ancestral_sequence': True,
-                                         'draw_tree': True})
+                                         'execute_all_actions': True})
+            self.MAIN_ACTIONS.update({'draw_tree': True})
         if 'create_all_file_types' in self.MODE:
             self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
                                          'calculate_ancestral_sequence': True,
-                                         'create_all_file_types': True})
+                                         'execute_all_actions': True})
+            self.MAIN_ACTIONS.update({'create_all_file_types': True})
         if 'execute_all_actions' in self.MODE:
             self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
                                          'calculate_ancestral_sequence': True,
                                          'execute_all_actions': True})
+            self.MAIN_ACTIONS.update({'compute_likelihood_of_tree': True,
+                                      'draw_tree': True,
+                                      'create_all_file_types': True})
         # self.DEFAULT_ACTIONS.update({'recompile_json': True})
         # if not self.IS_LOCAL and not self.CURRENT_ARGS.is_do_not_use_e_mail and self.CURRENT_ARGS.e_mail:
         #     self.DEFAULT_ACTIONS.update({'send_results_email': True})
@@ -249,7 +263,7 @@ class Config:
         parser.add_argument('--mode', dest='mode', required=False, action="extend", nargs="+", type=str,
                             help=f'Execution mode style (optional). Possible options: ("draw_tree", '
                             f'"compute_likelihood_of_tree", "create_all_file_types", "execute_all_actions"). '
-                            f'Default is {self.MODE[3:4]}.', default=self.MODE[3:4])
+                            f'Default is {self.MODE[3:4]}.')
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=int, required=False,
                             default=self.CURRENT_ARGS.with_internal_nodes, help=f'Specify the tree has internal nodes '
                             f'(optional). Default is {self.CURRENT_ARGS.with_internal_nodes}.')
@@ -293,7 +307,7 @@ class Config:
                     if arg_value != self.PROCESS_ID:
                         self.change_process_id(arg_value)
                 elif arg_name == 'mode':
-                    setattr(self, arg_name.upper(), tuple(arg_value))
+                    setattr(self, arg_name.upper(), arg_value)
                 elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
                                   'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_e_mail'):
                     if hasattr(self.CURRENT_ARGS, arg_name):

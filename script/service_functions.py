@@ -127,36 +127,32 @@ def check_tree_data(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], st
 
 def execute_all_actions(newick_tree: Union[str, Tree], file_path: str, create_new_file: bool = False,
                         form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
-                        log_file: Optional[str] = None, with_internal_nodes: bool = True) -> Union[Dict[str, str], str]:
-
-    result_data = {'draw_tree': draw_tree(newick_tree)}
-    result_data.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree)})
-    result_data.update({'create_all_file_types': create_all_file_types(newick_tree, file_path, log_file=log_file,
-                                                                       with_internal_nodes=with_internal_nodes)})
+                        log_file: Optional[str] = None, with_internal_nodes: bool = True,
+                        actions: Optional[Dict[str, bool]] = None) -> Union[Dict[str, str], str]:
+    result_data = {}
+    if actions is None or actions.get('draw_tree', False):
+        result_data.update({'draw_tree': draw_tree(newick_tree)})
+    if actions is None or actions.get('compute_likelihood_of_tree', False):
+        result_data.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree)})
+    if actions is None or actions.get('create_all_file_types', False):
+        result_data.update({'create_all_file_types': create_all_file_types(newick_tree, file_path, log_file,
+                                                                           with_internal_nodes)})
     if create_new_file:
         return create_file(file_path, get_result_data(result_data, 'execute_all_actions', form_data), 'result.json')
 
     return result_data
 
 
-def compute_likelihood_of_tree(newick_tree: Union[str, Tree], file_path: Optional[str] = None,
-                               form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
-                               create_new_file: bool = False
-                               ) -> Union[List[Union[float, ndarray]], str]:
+def compute_likelihood_of_tree(newick_tree: Union[str, Tree]) -> Union[List[Union[float, ndarray]], str]:
 
     newick_tree.calculate_likelihood()
     result = [newick_tree.log_likelihood]
 
-    if create_new_file:
-        return create_file(file_path, get_result_data(result, 'compute_likelihood_of_tree', form_data), 'result.json')
-
     return result
 
 
-def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_new_file: bool = False,
-                          form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
-                          log_file: Optional[str] = None, with_internal_nodes: bool = True
-                          ) -> Union[Dict[str, str], str]:
+def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, log_file: Optional[str] = None,
+                          with_internal_nodes: bool = True) -> Union[Dict[str, str], str]:
     # result.update(newick_tree.tree_to_graph(f'{file_path}/graph.txt', ('dot', 'png', 'svg')))
     # result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', True, ('txt', 'png', 'svg')))
     # result.update({'Newick text (tree)': newick_tree.tree_to_newick_file(f'{file_path}/newick_tree.tree', True)})
@@ -179,14 +175,10 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_
     if log_file:
         result.update({'Log-File (log)': log_file})
 
-    if create_new_file:
-        return create_file(file_path, get_result_data(result, 'create_all_file_types', form_data), 'result.json')
-
     return result
 
 
-def draw_tree(newick_tree: Tree, file_path: Optional[str] = None, create_new_file: bool = False,
-              form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None) -> Union[List[Any], str]:
+def draw_tree(newick_tree: Tree) -> Union[List[Any], str]:
     result = [newick_tree.get_json_structure(),
               newick_tree.get_json_structure(return_table=True),
               newick_tree.get_columns_list_for_sorting(),
@@ -194,9 +186,6 @@ def draw_tree(newick_tree: Tree, file_path: Optional[str] = None, create_new_fil
               newick_tree.get_json_structure(return_table=True, mode='branch'),
               newick_tree.get_columns_list_for_sorting(mode='branch'),
               {'Sequence length': len(tuple(newick_tree.msa.values())[0])}]
-
-    if create_new_file:
-        return create_file(file_path, get_result_data(result, 'draw_tree', form_data), 'result.json')
 
     return result
 
