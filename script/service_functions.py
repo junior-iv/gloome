@@ -167,7 +167,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_
     result.update({'Table of branches (tsv)': newick_tree.tree_to_tsv(f'{file_path}/branch_results.tsv',
                                                                       mode='branch_tsv')})
     result.update({'log-Likelihood (tsv)': newick_tree.likelihood_to_tsv(f'{file_path}/log_likelihood.tsv')})
-    result.update({'Tree attributes (tsv)': newick_tree.attributes_to_tsv(f'{file_path}/tree_attributes.tsv')})
+    # result.update({'Tree attributes (tsv)': newick_tree.attributes_to_tsv(f'{file_path}/tree_attributes.tsv')})
 
     archive_path = path.join(path.dirname(file_path), path.basename(file_path))
     archive_name = make_archive(archive_path, 'zip', file_path, '.')
