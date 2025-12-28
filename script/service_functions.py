@@ -12,6 +12,8 @@ from flask import url_for
 from script.tree import Tree
 from script.design_functions import *
 
+number = 0
+
 
 def get_digit(data: str) -> Union[int, float, str]:
     try:
@@ -155,19 +157,18 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, create_
                           form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
                           log_file: Optional[str] = None, with_internal_nodes: bool = True
                           ) -> Union[Dict[str, str], str]:
-
-    result = {'Interactive tree (html)': newick_tree.tree_to_interactive_html(f'{file_path}/interactive_tree.html')}
     # result.update(newick_tree.tree_to_graph(f'{file_path}/graph.txt', ('dot', 'png', 'svg')))
     # result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', True, ('txt', 'png', 'svg')))
     # result.update({'Newick text (tree)': newick_tree.tree_to_newick_file(f'{file_path}/newick_tree.tree', True)})
     # table = newick_tree.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float)
     # result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
+    result = {'Interactive tree (html)': newick_tree.tree_to_interactive_html(f'{file_path}/interactive_tree.html')}
     result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', with_internal_nodes, ('png', )))
     result.update({'Table of nodes (tsv)': newick_tree.tree_to_tsv(f'{file_path}/node_results.tsv', mode='node_tsv')})
     result.update({'Table of branches (tsv)': newick_tree.tree_to_tsv(f'{file_path}/branch_results.tsv',
                                                                       mode='branch_tsv')})
     result.update({'log-Likelihood (tsv)': newick_tree.likelihood_to_tsv(f'{file_path}/log_likelihood.tsv')})
-    # result.update({'Tree attributes (tsv)': newick_tree.attributes_to_tsv(f'{file_path}/tree_attributes.tsv')})
+    result.update({'Tree attributes (tsv)': newick_tree.attributes_to_tsv(f'{file_path}/tree_attributes.tsv')})
 
     archive_path = path.join(path.dirname(file_path), path.basename(file_path))
     archive_name = make_archive(archive_path, 'zip', file_path, '.')

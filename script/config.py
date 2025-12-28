@@ -70,7 +70,6 @@ class Config:
     def check_and_set_input_and_output_variables(self):
         """get variables from input arguments and fill out the Variable Class properties"""
         if len(self.COMMAND_LINE) < 5:
-            # print(len(self.COMMAND_LINE))
             print('\tAt least two required parameters --msa_file --tree_file', self.USAGE, sep='\n')
             exit()
 
@@ -130,7 +129,6 @@ class Config:
         if not self.CALCULATED_ARGS.err_list:
             self.execute_action(self.ACTIONS.recompile_json, output_file=path.join(self.OUT_DIR, 'result.json'),
                                 process_id=self.PROCESS_ID, create_link=False)
-            # self.JOB_LOGGER.info(load_obj(path.join(self.OUT_DIR, 'result.json')))
 
     def check_arguments_for_errors(self) -> bool:
         if path.isfile(self.TREE_FILE):
@@ -251,7 +249,7 @@ class Config:
         parser.add_argument('--mode', dest='mode', required=False, action="extend", nargs="+", type=str,
                             help=f'Execution mode style (optional). Possible options: ("draw_tree", '
                             f'"compute_likelihood_of_tree", "create_all_file_types", "execute_all_actions"). '
-                            f'Default is {self.MODE[3:]}.')
+                            f'Default is {self.MODE[3:4]}.', default=self.MODE[3:4])
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=int, required=False,
                             default=self.CURRENT_ARGS.with_internal_nodes, help=f'Specify the tree has internal nodes '
                             f'(optional). Default is {self.CURRENT_ARGS.with_internal_nodes}.')

@@ -620,17 +620,14 @@ class Tree:
 
         return self.write_file(file_name, fasta_text)
 
-    def attributes_to_tsv(self, file_name: str = 'log_likelihood.tsv', sep: str = '\t') -> str:
+    def attributes_to_tsv(self, file_name: str = 'tree_attributes.tsv', sep: str = '\t') -> str:
 
         Tree.make_dir(file_name)
-
-        tree_table = pd.DataFrame({'π0 value': self.pi_0,
-                                   'π1 value': self.pi_1,
-                                   'Γ distribution α value': self.alpha,
-                                   'number of rate categories': self.categories_quantity,
-                                   'branch lengths coefficient': self.coefficient_bl,
-                                   'rate vector': self.rate_vector,
-                                   'alphabet': self.alphabet})
+        data = {'π0 value': self.pi_0, 'π1 value': self.pi_1, 'Γ distribution α value': self.alpha,
+                'number of rate categories': self.categories_quantity, 'coefficient of branch lengths':
+                self.coefficient_bl, 'rate vector': self.rate_vector, 'alphabet': self.alphabet}
+        tree_table = pd.DataFrame({k: ((v, ) if isinstance(v, (set, tuple, list)) else v) for k, v in data.items()
+                                   if v is not None})
         tree_table.to_csv(file_name, sep=sep, index=False)
 
         return file_name
