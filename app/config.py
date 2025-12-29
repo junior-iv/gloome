@@ -445,6 +445,7 @@ class SlurmSubmiter:
         self.base_url_auth = 'https://slurmtron.tau.ac.il'
         self.api = f'{self.base_url_auth}/slurmrestd'
         self.generate_token_url = f'{self.base_url_auth}/slurmapi/generate-token/'
+        self.version = self.get_version()
 
     def __str__(self) -> str:
         return self.get_name()
@@ -492,27 +493,39 @@ class SlurmSubmiter:
 
         return response
 
+    def get_version(self, last_version: bool = True):
+        versions_info = self.get_versions_info()
+        versions = sorted({re.search(r'(v\d+\.\d+\.\d+)', k).group(1)
+                           for k in versions_info.json().get('paths').keys()})
+
+        return versions[-1] if last_version else versions
+
+    def get_versions_info(self):
+        url = f'{self.api}/openapi/v3'
+
+        return self.exec_request(url)
+
     def get_job_state(self, job_id):
-        url = f'{self.api}/slurm/v0.0.42/job/{job_id}'
+        url = f'{self.api}/slurm/{self.version}/job/{job_id}'
 
         return self.exec_request(url)
 
     def get_jobs_state(self):
-        url = f'{self.api}/slurm/v0.0.42/jobs/state'
+        url = f'{self.api}/slurm/{self.version}/jobs/state'
 
         return self.exec_request(url)
 
     def ping(self):
-        url = f'{self.api}/slurm/v0.0.42/ping'
+        url = f'{self.api}/slurm/{self.version}/ping'
         return self.exec_request(url)
 
     def get_jobs(self):
-        url = f'{self.api}/slurm/v0.0.42/jobs'
+        url = f'{self.api}/slurm/{self.version}/jobs'
 
         return self.exec_request(url)
 
     def submit_job(self, json, **kwargs):
-        url = f'{self.api}/slurm/v0.0.42/job/submit'
+        url = f'{self.api}/slurm/{self.version}/job/submit'
         response = self.exec_request(url, method='POST', json=json, **kwargs)
         if response.status_code == 200:
             return response.json()  # Assuming the token is returned in JSON format
