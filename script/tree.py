@@ -350,7 +350,7 @@ class Tree:
         tree_table = pd.DataFrame([i for i in nodes_info], index=None)
         tree_table = tree_table.rename(columns=columns)
         tree_table = tree_table.reindex(columns=columns.values())
-        tree_table = tree_table.fillna(0)
+        # tree_table = tree_table.fillna(0)
         if isinstance(list_type, (list, tuple, set)):
             lists_names = [v for k, v in columns.items() if k in lists]
             sort_values_by = tuple([i for i in sort_values_by if i not in lists_names])
@@ -514,7 +514,7 @@ class Tree:
         else:
             dict_json = self.root.node_to_json()
 
-        return dict_json
+        return loads(str(dict_json).replace(f'\'', r'"'))
 
     @staticmethod
     def get_columns(mode: str = 'node', columns: Optional[Dict[str, str]] = None
