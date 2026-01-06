@@ -195,6 +195,7 @@ class Node:
 
         likelihood = np.sum([1 / rate_vector_size * np.sum(self.father.marginal_vector[r]) for r in
                              range(rate_vector_size)])
+        likelihood = max(likelihood, eps)
 
         branch_probability_vector = []
         for i in range(alphabet_size * alphabet_size):
@@ -223,6 +224,7 @@ class Node:
             self.marginal_vector.append(current_marginal_vector)
 
         likelihood = np.sum([1 / rate_vector_size * np.sum(self.marginal_vector[r]) for r in range(rate_vector_size)])
+        likelihood = max(likelihood, eps)
 
         self.probability_vector = []
         for i in range(alphabet_size):

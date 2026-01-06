@@ -9,10 +9,10 @@ from app.config import WebConfig, TMP_DIR, current_time
 from script.service_functions import get_variables, check_data, get_error, loads_json, read_file
 
 
-def wright_end_file(process_id: Union[int, str], completed: bool, result_dir: str) -> str:
+def write_end_file(process_id: Union[int, str], completed: bool, result_dir: str) -> str:
     file_path = path.join(result_dir, f'GLOOME_{process_id}.END_{"OK" if completed else "FAIL"}')
     with open(file_path, 'w', encoding='utf-8') as file:
-        pass
+        file.write('')
 
     return file_path
 
@@ -39,7 +39,7 @@ def run_job(process_id, kwargs, mode):
         conf.arguments_filling(**kwargs, mode=mode)
         conf.create_tmp_data_files()
         conf.get_response()
-        wright_end_file(process_id, True, conf.OUT_DIR)
+        write_end_file(process_id, True, conf.OUT_DIR)
     except Exception:
         exception_text = traceback.format_exc()
         header = f'\n\t--- EXCEPTION at execute_request ---'
@@ -47,9 +47,9 @@ def run_job(process_id, kwargs, mode):
         f'\n\tCURRENT_JOB: {conf.CURRENT_JOB}'
         f'\n\tPROCESS_ID: {conf.PROCESS_ID}\n'
         conf.JOB_LOGGER.info(f'{header}{exception_text}')
-        wright_file(file_path=path.join(TMP_DIR, f'execute_request_{conf.PROCESS_ID}_route_debug.log'), header=header,
-                    exception_text=exception_text)
-        wright_end_file(process_id, False, conf.OUT_DIR)
+        write_log(file_path=path.join(TMP_DIR, f'execute_request_{conf.PROCESS_ID}_route_debug.log'), header=header,
+                  exception_text=exception_text)
+        write_end_file(process_id, False, conf.OUT_DIR)
         raise  # Re-raise to still return 500
 
 
@@ -61,7 +61,7 @@ def start_background_job(kwargs, mode):
     return process_id
 
 
-def wright_file(file_path: str, header: str = '', exception_text: str = '') -> None:
+def write_log(file_path: str, header: str = '', exception_text: str = '') -> None:
     if path.exists(file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
             old_content = file.read()
@@ -77,9 +77,9 @@ def read_json(json_string: str) -> Any:
     try:
         result = loads_json(json_string)
     except Exception:
-        wright_file(file_path=path.join(TMP_DIR, f'read_json_route_debug.log'),
-                    header=f'\n\n--- [{current_time()}] Exception at execute_request ---\n',
-                    exception_text=traceback.format_exc())
+        write_log(file_path=path.join(TMP_DIR, f'read_json_route_debug.log'),
+                  header=f'\n\n--- [{current_time()}] Exception at execute_request ---\n',
+                  exception_text=traceback.format_exc())
         raise  # Re-raise to still return 500
 
     return Response(response=jsonify(message=result).response, status=200, mimetype='application/json')
@@ -98,8 +98,8 @@ def get_response(process_id: int) -> Any:
         f'\n\tCURRENT_TIME: {current_time()}'
         f'\n\tPROCESS_ID: {conf.PROCESS_ID}\n'
         conf.JOB_LOGGER.info(f'{header}{exception_text}')
-        wright_file(file_path=path.join(TMP_DIR, f'get_response_{conf.PROCESS_ID}_route_debug.log'),
-                    header=header, exception_text=exception_text)
+        write_log(file_path=path.join(TMP_DIR, f'get_response_{conf.PROCESS_ID}_route_debug.log'),
+                  header=header, exception_text=exception_text)
         raise  # Re-raise to still return 500
 
     return result
@@ -151,7 +151,7 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
 #                 f'\n\tCURRENT_JOB: {conf.CURRENT_JOB}'
 #                 f'\n\tPROCESS_ID: {conf.PROCESS_ID}\n'
 #                 conf.JOB_LOGGER.info(f'{header}{exception_text}')
-#                 wright_log(file_path=path.join(TMP_DIR, f'execute_request_{conf.PROCESS_ID}_route_debug.log'),
+#                 write_log(file_path=path.join(TMP_DIR, f'execute_request_{conf.PROCESS_ID}_route_debug.log'),
 #                            header=header, exception_text=exception_text)
 #                 raise  # Re-raise to still return 500
 #
