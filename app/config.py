@@ -618,9 +618,9 @@ class MailSenderSMTPLib:
 
         if isinstance(attachments, (tuple, list)):
             for attachment_path in attachments:
-                body += self.create_attachments(attachment_path, message, use_attachments)
+                body += f'<br>{self.create_attachments(attachment_path, message, use_attachments)}'
         elif isinstance(attachments, str):
-            body += self.create_attachments(attachments, message, use_attachments)
+            body += f'<br>{self.create_attachments(attachments, message, use_attachments)}'
         self.sender_logger.info(body)
         message.attach(MIMEText(body, 'html'))
 
