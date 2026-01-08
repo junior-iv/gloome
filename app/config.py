@@ -675,7 +675,7 @@ class MailSenderSMTPLib:
                             List[str], str, None] = None, included: Union[Tuple[str, ...], List[str], str, None] = None,
                             use_attachments: bool = False, **kwargs) -> None:
         self.set_attributes(**kwargs)
-        subject = f'{WEBSERVER_NAME_CAPITAL} Daily Jobs Report'
+        subject = f'{WEBSERVER_NAME_CAPITAL} list of log files by {self.receiver}'
         body = f'{subject}\n'
         attachments = {'successful runs': [], 'failed runs': [], 'incomplete runs': []}
         with scandir(self.log_files_dir) as entries:
