@@ -632,7 +632,9 @@ class MailSenderSMTPLib:
             for key, value in attachments.items():
                 body += f'<br>{key}:'
                 for attachment_path in value:
-                    if key != 'successful runs':
+                    if key == 'successful runs':
+                        attachment_path = self.create_link_to_results(attachment_path)
+                    else:
                         attachment_path = self.create_attachments(attachment_path, message,use_attachments)
                     body += f'<br>{attachment_path}'
         elif isinstance(attachments, str):
@@ -690,6 +692,10 @@ class MailSenderSMTPLib:
                                                     excluded, included)
         for receiver in self.report_receivers:
             self.send_email(subject, attachments, body, use_attachments, receiver)
+
+    @staticmethod
+    def create_link_to_results(result_path):
+        return (f'\n<a href="{result_path}" target="_blank">{result_path}</a>')
 
     @staticmethod
     def add_attachment_to_list(entry, current_dir: str, attachments: List[str], excluded: Union[Tuple[str, ...],
