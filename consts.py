@@ -76,6 +76,7 @@ if not path.exists(path.join(BIN_DIR, '.env')):
     ADMIN_EMAIL = ''
     SMTP_SERVER = ''
     SMTP_PORT = 0
+    REPORT_RECEIVERS = []
 
     DEV_EMAIL = ''
     ADMIN_USER_NAME = ''
@@ -96,6 +97,7 @@ else:
     ADMIN_EMAIL = getenv('ADMIN_EMAIL')
     SMTP_SERVER = getenv('SMTP_SERVER')
     SMTP_PORT = int(getenv('SMTP_PORT'))
+    REPORT_RECEIVERS = getenv('REPORT_RECEIVERS').split()
 
     DEV_EMAIL = getenv('DEV_EMAIL')
     ADMIN_USER_NAME = getenv('ADMIN_USER_NAME')

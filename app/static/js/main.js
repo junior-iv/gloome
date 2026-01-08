@@ -454,6 +454,22 @@ async function makeRequest(absolutePath, formData, mode) {
     }
 }
 
+function sendReports() {
+    showMessage(``, -1);
+
+    fetch(`/send_reports`, {
+        method: 'GET',
+    })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, 8000, 0);
+        })
+        .catch(error => {
+            console.error(`Error:`, error);
+            showAlert(error.message, 8000);
+        });
+}
+
 function makeTree(mode = 0) {
     const newickText = document.getElementById(`newickText`);
     const msaText = document.getElementById(`msaText`);

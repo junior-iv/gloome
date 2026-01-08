@@ -76,6 +76,13 @@ def get_exemple():
         return jsonify(message=result)
 
 
+@app.route('/send_reports', methods=['GET'])
+def send_reports():
+    if request.method == 'GET':
+
+        return send_report()
+
+
 @app.route('/get_file', methods=['GET'])
 def get_file():
     if request.method == 'GET':

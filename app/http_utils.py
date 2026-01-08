@@ -1,11 +1,12 @@
 import traceback
 import multiprocessing as mp
+import datetime
 
 from typing import Tuple, Optional, Any, Dict, Union
 from flask import request, Response, jsonify
 from os import path
 
-from app.config import WebConfig, TMP_DIR, current_time
+from app.config import WebConfig, TMP_DIR, current_time, MailSenderSMTPLib
 from script.service_functions import get_variables, check_data, get_error, loads_json, read_file
 
 
@@ -83,6 +84,23 @@ def read_json(json_string: str) -> Any:
         raise  # Re-raise to still return 500
 
     return Response(response=jsonify(message=result).response, status=200, mimetype='application/json')
+
+
+def send_report() -> Any:
+    try:
+        mail = MailSenderSMTPLib(name='execution reports runs')
+        date = datetime.date.today() - datetime.timedelta(days=1)
+        start_datetime = datetime.datetime(date.year, date.month, date.day, 0, 0, 0, 0).timestamp()
+        end_datetime = datetime.datetime(date.year, date.month, date.day, 23, 59, 59, 999999).timestamp()
+        mail.send_log_files_list(start_date=start_datetime, end_date=end_datetime)
+        result = 'Report sent'
+    except Exception:
+        write_log(file_path=path.join(TMP_DIR, f'send_report_debug.log'),
+                  header=f'\n\n--- [{current_time()}] Exception at send_report ---\n',
+                  exception_text=traceback.format_exc())
+        raise  # Re-raise to still return 500
+
+    return jsonify(message=result)
 
 
 def get_response(process_id: int) -> Any:

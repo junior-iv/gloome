@@ -2,7 +2,7 @@ import requests
 
 from os import scandir
 from time import sleep
-from typing import Set, Any, Optional
+from typing import Set, Any, Optional, Dict
 from flask import url_for
 
 from smtplib import SMTP, SMTP_SSL
@@ -217,6 +217,7 @@ class WebConfig:
                 'nodes': 1,
                 'cpus_per_task': 1,
                 'memory_per_node': 6144,
+                'time_limit': 10080,
                 'current_working_directory': tmp_dir,
                 'standard_output': path.join(tmp_dir, f'{prefix}output.txt'),
                 'standard_error': path.join(tmp_dir, f'{prefix}error.txt'),
@@ -577,6 +578,8 @@ class MailSenderSMTPLib:
     smtp_server: str
     smtp_port: int
     password: str
+    report_receivers: List[str]
+    out_dir: str
     sender_logger: Any
 
     def __init__(self, **attributes):
@@ -584,6 +587,9 @@ class MailSenderSMTPLib:
         self.smtp_server = SMTP_SERVER
         self.smtp_port = SMTP_PORT
         self.password = ADMIN_PASSWORD
+        self.report_receivers = REPORT_RECEIVERS
+        self.log_files_dir = SERVERS_LOGS_DIR
+        self.out_dir = OUT_DIR
         self.receiver = ''
         self.name = ''
 
@@ -609,16 +615,22 @@ class MailSenderSMTPLib:
             return (f'\n<a href="{url_for(endpoint="get_file", file_path=attachment_path, mode=mode, _external=True)}" '
                     f'target="_blank">{path.basename(attachment_path)}</a>')
 
-    def send_email(self, subject: str, attachments: Union[Tuple[str, ...], List[str], str], body: str,
-                   use_attachments: bool = False) -> None:
+    def send_email(self, subject: str, attachments: Union[Tuple[str, ...], List[str], Dict[str, Tuple[str, ...]],
+                   Dict[str, List[str]], str], body: str, use_attachments: bool = False, receiver: Optional[str] = None
+                   ) -> None:
         message = MIMEMultipart()
         message["From"] = self.sender
-        message["To"] = self.receiver
+        message["To"] = self.receiver if receiver is None else receiver
         message["Subject"] = subject
 
         if isinstance(attachments, (tuple, list)):
             for attachment_path in attachments:
                 body += f'<br>{self.create_attachments(attachment_path, message, use_attachments)}'
+        elif isinstance(attachments, dict):
+            for key, value in attachments.items():
+                body += f'<br>{key}:'
+                for attachment_path in value:
+                    body += f'<br>{self.create_attachments(attachment_path, message, use_attachments)}'
         elif isinstance(attachments, str):
             body += f'<br>{self.create_attachments(attachments, message, use_attachments)}'
         self.sender_logger.info(body)
@@ -653,18 +665,28 @@ class MailSenderSMTPLib:
                 self.add_attachment_to_list(entry, results_files_dir, attachments, excluded, included)
         self.send_email(subject, attachments, body, use_attachments)
 
-    def send_log_files_list(self, log_files_dir: str, start_date: int, end_date: int, excluded: Union[Tuple[str, ...],
+    def send_log_files_list(self, start_date: float, end_date: float, excluded: Union[Tuple[str, ...],
                             List[str], str, None] = None, included: Union[Tuple[str, ...], List[str], str, None] = None,
                             use_attachments: bool = False, **kwargs) -> None:
         self.set_attributes(**kwargs)
         subject = f'{WEBSERVER_NAME_CAPITAL} list of log files by {self.receiver}'
         body = f'{subject}\n'
-        attachments = []
-        with scandir(log_files_dir) as entries:
+        attachments = {'successful runs': [], 'failed runs': [], 'incomplete runs': []}
+        with scandir(self.log_files_dir) as entries:
             for entry in entries:
-                if start_date <= entry.stat().st_ctime_ns < end_date:
-                    self.add_attachment_to_list(entry, log_files_dir, attachments, excluded, included)
-        self.send_email(subject, attachments, body, use_attachments)
+                if start_date <= entry.stat().st_ctime < end_date:
+                    process_id = path.splitext(entry.name)[0]
+                    if path.exists(path.join(path.join(self.out_dir, process_id), f'GLOOME_{process_id}.END_FAIL')):
+                        self.add_attachment_to_list(entry, self.log_files_dir, attachments.get('failed runs'), excluded,
+                                                    included)
+                    elif path.exists(path.join(path.join(self.out_dir, process_id), f'GLOOME_{process_id}.END_OK')):
+                        self.add_attachment_to_list(entry, self.log_files_dir, attachments.get('successful runs'), excluded,
+                                                    included)
+                    else:
+                        self.add_attachment_to_list(entry, self.log_files_dir, attachments.get('incomplete runs'), excluded,
+                                                    included)
+        for receiver in self.report_receivers:
+            self.send_email(subject, attachments, body, use_attachments, receiver)
 
     @staticmethod
     def add_attachment_to_list(entry, current_dir: str, attachments: List[str], excluded: Union[Tuple[str, ...],
