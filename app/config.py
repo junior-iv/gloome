@@ -580,6 +580,7 @@ class MailSenderSMTPLib:
     password: str
     report_receivers: List[str]
     out_dir: str
+    results: str
     sender_logger: Any
 
     def __init__(self, **attributes):
@@ -590,6 +591,7 @@ class MailSenderSMTPLib:
         self.report_receivers = REPORT_RECEIVERS
         self.log_files_dir = SERVERS_LOGS_DIR
         self.out_dir = OUT_DIR
+        self.results = WEBSERVER_RESULTS_URL
         self.receiver = ''
         self.name = ''
 
@@ -677,14 +679,13 @@ class MailSenderSMTPLib:
                 if start_date <= entry.stat().st_ctime < end_date:
                     process_id = path.splitext(entry.name)[0]
                     if path.exists(path.join(path.join(self.out_dir, process_id), f'GLOOME_{process_id}.END_FAIL')):
-                        self.add_attachment_to_list(entry, self.log_files_dir, attachments.get('failed runs'), excluded,
-                                                    included)
+                        self.add_attachment_to_list(entry, self.log_files_dir, attachments.get('failed runs'),
+                                                    excluded, included)
                     elif path.exists(path.join(path.join(self.out_dir, process_id), f'GLOOME_{process_id}.END_OK')):
-                        self.add_attachment_to_list(entry, self.log_files_dir, attachments.get('successful runs'), excluded,
-                                                    included)
+                        attachments.get('successful runs').append(f'{self.results}/{process_id}')
                     else:
-                        self.add_attachment_to_list(entry, self.log_files_dir, attachments.get('incomplete runs'), excluded,
-                                                    included)
+                        self.add_attachment_to_list(entry, self.log_files_dir, attachments.get('incomplete runs'),
+                                                    excluded, included)
         for receiver in self.report_receivers:
             self.send_email(subject, attachments, body, use_attachments, receiver)
 
