@@ -695,7 +695,7 @@ class MailSenderSMTPLib:
 
     @staticmethod
     def create_link_to_results(result_path):
-        return (f'\n<a href="{result_path}" target="_blank">{result_path}</a>')
+        return f'\n<a href="{result_path}" target="_blank">{result_path}</a>'
 
     @staticmethod
     def add_attachment_to_list(entry, current_dir: str, attachments: List[str], excluded: Union[Tuple[str, ...],
