@@ -105,7 +105,7 @@ def send_report() -> Any:
 
 def get_response(process_id: int) -> Any:
     conf = WebConfig(PROCESS_ID=process_id)
-    conf.JOB_LOGGER.info(f'\n\ttry to get response\n')
+    # conf.JOB_LOGGER.info(f'\n\ttry to get response\n')
 
     try:
         conf.texts_filling()
