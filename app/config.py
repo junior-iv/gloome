@@ -635,7 +635,7 @@ class MailSenderSMTPLib:
                     if key == 'successful runs':
                         attachment_path = self.create_link_to_results(attachment_path)
                     else:
-                        attachment_path = self.create_attachments(attachment_path, message,use_attachments)
+                        attachment_path = self.create_attachments(attachment_path, message, use_attachments)
                     body += f'<br>{attachment_path}'
         elif isinstance(attachments, str):
             body += f'<br>{self.create_attachments(attachments, message, use_attachments)}'
