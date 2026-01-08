@@ -632,7 +632,9 @@ class MailSenderSMTPLib:
             for key, value in attachments.items():
                 body += f'<br>{key}:'
                 for attachment_path in value:
-                    body += f'<br>{self.create_attachments(attachment_path, message, use_attachments)}'
+                    if key != 'successful runs':
+                        attachment_path = self.create_attachments(attachment_path, message,use_attachments)
+                    body += f'<br>{attachment_path}'
         elif isinstance(attachments, str):
             body += f'<br>{self.create_attachments(attachments, message, use_attachments)}'
         self.sender_logger.info(body)
