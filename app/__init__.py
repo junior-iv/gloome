@@ -1,11 +1,7 @@
-from flask import render_template, send_file, Flask
-from werkzeug.middleware.proxy_fix import ProxyFix
+from flask import render_template, send_file
 from consts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, SERVERS_LOGS_DIR
 from app.http_utils import *
-
-app = Flask(__name__)
-app.config.from_pyfile('flask_config.py')
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+from app.flask_app import *
 
 
 @app.route('/')
@@ -165,7 +161,3 @@ def test():
         result = request.form.get('testData')
         print(result)
         return jsonify(message=result)
-
-
-if __name__ == '__main__':
-    app.run()
