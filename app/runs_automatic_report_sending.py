@@ -1,4 +1,4 @@
-from app.http_utils import *
+from http_utils import *
 
 try:
     mail = MailSenderSMTPLib(name='execution reports runs')
