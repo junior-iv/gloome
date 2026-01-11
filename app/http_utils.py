@@ -2,7 +2,6 @@ import traceback
 import multiprocessing as mp
 
 from app.config import *
-from script.service_functions import get_variables, check_data, get_error, loads_json, read_file
 
 
 def write_end_file(process_id: Union[int, str], completed: bool, result_dir: str) -> str:
@@ -100,7 +99,6 @@ def send_report() -> Any:
 
 def get_response(process_id: int) -> Any:
     conf = WebConfig(PROCESS_ID=process_id)
-    # conf.JOB_LOGGER.info(f'\n\ttry to get response\n')
 
     try:
         conf.texts_filling()
@@ -139,33 +137,3 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
 
         return Response(response=jsonify(set_response_structure({"processID": process_id}, True)).response, status=202,
                         mimetype='application/json')
-
-# def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
-#     if request.method == 'POST':
-#         args = get_variables(dict(request.form))
-#         err_list = check_data(*args)
-#         kwargs = dict(request.form)
-#         if err_list:
-#             status = 400
-#             result = get_error(err_list)
-#         else:
-#             status = 200
-#             conf = WebConfig()
-#             conf.JOB_LOGGER.info(f'\n\ttry to run request\n')
-#
-#             try:
-#                 conf.arguments_filling(**kwargs, mode=mode)
-#                 conf.create_tmp_data_files()
-#                 result = conf.get_response()
-#             except Exception:
-#                 exception_text = traceback.format_exc()
-#                 header = f'\n\t--- EXCEPTION at execute_request ---'
-#                 f'\n\tCURRENT_TIME: {current_time()}'
-#                 f'\n\tCURRENT_JOB: {conf.CURRENT_JOB}'
-#                 f'\n\tPROCESS_ID: {conf.PROCESS_ID}\n'
-#                 conf.JOB_LOGGER.info(f'{header}{exception_text}')
-#                 write_log(file_path=path.join(TMP_DIR, f'execute_request_{conf.PROCESS_ID}_route_debug.log'),
-#                            header=header, exception_text=exception_text)
-#                 raise  # Re-raise to still return 500
-#
-#         return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')

@@ -2,7 +2,6 @@ import requests
 
 from os import scandir
 from time import sleep
-from typing import Set, Any, Optional, Dict
 
 from smtplib import SMTP, SMTP_SSL
 from ssl import create_default_context
@@ -12,8 +11,7 @@ from email.mime.text import MIMEText
 from email import encoders
 
 from utils import *
-from script.service_functions import read_file, loads_json, create_file
-from app.flask_app import *
+from script.service_functions import *
 
 
 class WebConfig:

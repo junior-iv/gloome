@@ -7,7 +7,7 @@ from datetime import timedelta
 from shutil import make_archive, move
 from numpy import ndarray
 from validate_email import validate_email
-from flask import url_for
+from app.flask_app import *
 
 from script.tree import Tree
 from script.design_functions import *
