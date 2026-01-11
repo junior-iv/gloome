@@ -167,7 +167,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, log_fil
     result.update({'Tree attributes (tsv)': newick_tree.attributes_to_tsv(f'{file_path}/tree_attributes.tsv')})
 
     archive_path = path.join(path.dirname(file_path), path.basename(file_path))
-    archive_name = make_archive(archive_path, 'zip', file_path, 'script')
+    archive_name = make_archive(archive_path, 'zip', file_path, '.')
     new_archive_name = path.join(file_path, path.basename(archive_name))
     move(archive_name, new_archive_name)
 

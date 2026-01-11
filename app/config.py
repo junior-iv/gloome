@@ -12,7 +12,7 @@ from email.mime.text import MIMEText
 from email import encoders
 
 from utils import *
-from service_functions import read_file, loads_json, create_file
+from script.service_functions import read_file, loads_json, create_file
 from app.flask_app import *
 
 
