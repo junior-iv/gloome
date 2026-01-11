@@ -1,12 +1,7 @@
 import traceback
 import multiprocessing as mp
-import datetime
 
-from typing import Tuple, Optional, Any, Dict, Union
-from flask import request, Response, jsonify
-from os import path
-
-from app.config import WebConfig, TMP_DIR, current_time, MailSenderSMTPLib
+from app.config import *
 from script.service_functions import get_variables, check_data, get_error, loads_json, read_file
 
 

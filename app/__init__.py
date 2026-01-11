@@ -1,7 +1,4 @@
-from flask import render_template, send_file
-from consts import MENU, DEFAULT_FORM_ARGUMENTS, INITIAL_DATA_DIR, SERVERS_LOGS_DIR
 from app.http_utils import *
-from app.flask_app import *
 
 
 @app.route('/')
