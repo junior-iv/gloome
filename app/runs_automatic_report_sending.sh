@@ -1,0 +1,1 @@
+python /gloome/app/runs_automatic_report_sending.py

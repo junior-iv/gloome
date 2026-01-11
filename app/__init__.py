@@ -67,13 +67,13 @@ def get_exemple():
                 result.append(f.read().strip())
 
         return jsonify(message=result)
-
-
-@app.route('/send_reports', methods=['GET'])
-def send_reports():
-    if request.method == 'GET':
-
-        return send_report()
+#
+#
+# @app.route('/send_reports', methods=['GET'])
+# def send_reports():
+#     if request.method == 'GET':
+#
+#         return send_report()
 
 
 @app.route('/get_file', methods=['GET'])

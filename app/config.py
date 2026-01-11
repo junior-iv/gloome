@@ -12,7 +12,7 @@ from email.mime.text import MIMEText
 from email import encoders
 
 from utils import *
-from script.service_functions import read_file, loads_json, create_file
+from service_functions import read_file, loads_json, create_file
 from app.flask_app import *
 
 
@@ -290,20 +290,8 @@ class WebConfig:
                                            receiver=self.CURRENT_ARGS.e_mail, use_attachments=self.USE_ATTACHMENTS)
         if job_state:
             self.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
-            # self.JOB_LOGGER.info(f'\n\tResult file: {self.OUTPUT_FILE}\n')
             if job_state == 'COMPLETED':
                 recompile_json(self.OUTPUT_FILE, self.PROCESS_ID, True)
-            # if any((self.CURRENT_ARGS.is_optimize_pi_average, self.CURRENT_ARGS.is_optimize_pi,
-            #         self.CURRENT_ARGS.is_optimize_alpha, self.CURRENT_ARGS.is_optimize_bl)):
-            #     file_contents = read_file(file_path=self.OUTPUT_FILE)
-            #     form_data = loads_json(file_contents).form_data
-            #     # self.JOB_LOGGER.info(f'\n\tresults of optimizing π1'
-            #     #                      f'\n\tπ1: {self.CALCULATED_ARGS.newick_tree.pi_1}\n')
-            #     # self.JOB_LOGGER.info(f'\n\tresults of optimizing α'
-            #     #                      f'\n\tα: {self.CALCULATED_ARGS.newick_tree.alpha}\n')
-            #     # self.JOB_LOGGER.info(f'\n\tresults of optimizing branch lengths coefficient'
-            #     #                      f'\n\tbranch lengths coefficient '
-            #     #                      f'{self.CALCULATED_ARGS.newick_tree.coefficient_bl}\n')
 
             return self.read_response()
         return ''
