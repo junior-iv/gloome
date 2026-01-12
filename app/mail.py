@@ -9,7 +9,6 @@ from email.mime.text import MIMEText
 from email import encoders
 
 from utils import *
-from app.flask_app import *
 
 
 class MailSenderSMTPLib:
@@ -121,7 +120,7 @@ class MailSenderSMTPLib:
         attachments = {'successful runs': [], 'failed runs': [], 'incomplete runs': []}
         with scandir(self.log_files_dir) as entries:
             for entry in entries:
-                if start_date <= entry.stat().st_ctime < end_date:
+                if start_date <= entry.stat().st_ctime < end_date and bool(re.fullmatch(r"\d{14}\.log", entry.name)):
                     process_id = path.splitext(entry.name)[0]
                     if path.exists(path.join(path.join(self.out_dir, process_id), f'GLOOME_{process_id}.END_FAIL')):
                         self.add_attachment_to_list(entry, self.log_files_dir, attachments.get('failed runs'),
