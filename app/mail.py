@@ -9,6 +9,7 @@ from email.mime.text import MIMEText
 from email import encoders
 
 from utils import *
+from app.flask_app import *
 
 
 class MailSenderSMTPLib:
