@@ -1,62 +1,62 @@
 from app.http_utils import *
 
 
-@application.route('/')
-@application.route('/index', methods=['GET'])
+@app.route('/')
+@app.route('/index', methods=['GET'])
 def index():
     return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("name")}'), **DEFAULT_FORM_ARGUMENTS)
 
 
-@application.route('/results/<process_id>', methods=['GET'])
+@app.route('/results/<process_id>', methods=['GET'])
 def get_results(process_id):
     return render_template('index.html', menu=MENU, title=(':', ), data=get_response(process_id=process_id))
 
 
-@application.route('/logs/<process_id>', methods=['GET'])
+@app.route('/logs/<process_id>', methods=['GET'])
 def get_logs(process_id):
     return send_file(path.join(SERVERS_LOGS_DIR, f'{process_id}.log'), as_attachment=False, mimetype='text/html')
 
 
-@application.route('/job_status/<process_id>', methods=['GET'])
+@app.route('/job_status/<process_id>', methods=['GET'])
 def job_status(process_id):
     status = get_job_status(process_id)
 
     return jsonify(status)
 
 
-@application.route('/read_json_file', methods=['POST'])
+@app.route('/read_json_file', methods=['POST'])
 def read_json_file():
     json_string = request.form.get('json_string', None) if request.method == 'POST' else None
 
     return read_json(json_string=json_string)
 
 
-@application.route('/overview', methods=['GET'])
+@app.route('/overview', methods=['GET'])
 def overview():
     return render_template('overview.html', menu=MENU, title=(':', f'  {MENU[1].get("name")}'))
 
 
-@application.route('/faq', methods=['GET'])
+@app.route('/faq', methods=['GET'])
 def faq():
     return render_template('faq.html', menu=MENU, title=(':', f'  {MENU[2].get("name")}'))
 
 
-@application.route('/gallery', methods=['GET'])
+@app.route('/gallery', methods=['GET'])
 def gallery():
     return render_template('gallery.html', menu=MENU, title=(':', f'  {MENU[3].get("name")}'))
 
 
-@application.route('/source_code', methods=['GET'])
+@app.route('/source_code', methods=['GET'])
 def source_code():
     return render_template('source_code.html', menu=MENU, title=(':', f'  {MENU[4].get("name")}'))
 
 
-@application.route('/citing_and_credits', methods=['GET'])
+@app.route('/citing_and_credits', methods=['GET'])
 def citing_and_credits():
     return render_template('citing_and_credits.html', menu=MENU, title=(':', f'  {MENU[5].get("name")}'))
 
 
-@application.route('/get_exemple', methods=['GET'])
+@app.route('/get_exemple', methods=['GET'])
 def get_exemple():
     if request.method == 'GET':
         mode = request.args.get('mode', '')
@@ -76,7 +76,7 @@ def get_exemple():
 #         return send_report()
 
 
-@application.route('/get_file', methods=['GET'])
+@app.route('/get_file', methods=['GET'])
 def get_file():
     if request.method == 'GET':
         file_path = request.args.get('file_path', '')
@@ -132,27 +132,27 @@ def get_file():
         return send_file(file_path, as_attachment=True)
 
 
-@application.route('/create_all_file_types', methods=['POST'])
+@app.route('/create_all_file_types', methods=['POST'])
 def create_all_file_types():
     return execute_request(mode=('create_all_file_types', ))
 
 
-@application.route('/draw_tree', methods=['POST'])
+@app.route('/draw_tree', methods=['POST'])
 def draw_tree():
     return execute_request(mode=('draw_tree', ))
 
 
-@application.route('/compute_likelihood_of_tree', methods=['POST'])
+@app.route('/compute_likelihood_of_tree', methods=['POST'])
 def compute_likelihood_of_tree():
     return execute_request(mode=('compute_likelihood_of_tree', ))
 
 
-@application.route('/execute_all_actions', methods=['POST'])
+@app.route('/execute_all_actions', methods=['POST'])
 def execute_all_actions():
     return execute_request(mode=('execute_all_actions', ))
 
 
-@application.route('/test', methods=['POST'])
+@app.route('/test', methods=['POST'])
 def test():
     if request.method == 'POST':
         result = request.form.get('testData')
