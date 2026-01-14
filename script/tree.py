@@ -420,9 +420,13 @@ class Tree:
                                             pi_1=self.pi_1)
 
     def calculate_up(self, msa: str) -> Union[Tuple[Union[List[np.ndarray], List[float]], float], float]:
+        nodes_dict = self.get_msa_dict(msa, self.alphabet)
+        alphabet_size, self.rate_vector, rate_vector_size, frequency = self.root.get_vars(self.alphabet,
+                                                                                          self.rate_vector,
+                                                                                          self.pi_0, self.pi_1)
 
-        return self.root.calculate_up(self.get_msa_dict(msa, self.alphabet), self.alphabet, self.rate_vector, self.pi_0,
-                                      self.pi_1)
+        return self.root.calculate_up(nodes_dict, self.alphabet, self.rate_vector, self.pi_0, self.pi_1, alphabet_size,
+                                      rate_vector_size, frequency)
 
     def calculate_down(self) -> None:
 

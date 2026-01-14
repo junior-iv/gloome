@@ -29,6 +29,7 @@ class Node:
     probabilities_sequence_characters: List[Union[float, np.ndarray]]
     ancestral_sequence: str
     coefficient_bl: Union[float, np.ndarray, int]
+    pmatrix: List[np.ndarray]
 
     def __init__(self, name: Optional[str]) -> None:
         self.father = None
@@ -51,6 +52,7 @@ class Node:
         self.probabilities_sequence_characters = []
         self.ancestral_sequence = ''
         self.coefficient_bl = 1
+        self.pmatrix = []
 
     def __str__(self) -> str:
         return self.get_name(True)
@@ -212,14 +214,14 @@ class Node:
                                       Union[np.ndarray, float]]:
         alphabet_size, rate_vector, rate_vector_size, frequency = self.get_vars(alphabet, rate_vector, pi_0, pi_1)
         self.marginal_vector = []
-        pmatrix = tuple([self.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector])
+        self.pmatrix = [self.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
 
         for r in range(rate_vector_size):
             current_marginal_vector = []
             for i in range(alphabet_size):
                 marg = 0
                 for j in range(alphabet_size):
-                    marg += pmatrix[r][i, j] * self.down_vector[r][j]
+                    marg += self.pmatrix[r][i, j] * self.down_vector[r][j]
                 current_marginal_vector.append(frequency[i] * self.up_vector[r][i] * marg)
             self.marginal_vector.append(current_marginal_vector)
 
@@ -237,10 +239,15 @@ class Node:
         return self.marginal_vector, likelihood
 
     def calculate_up(self, nodes_dict: Dict[str, Tuple[int, ...]], alphabet: Union[Tuple[str, ...], str],
-                     rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
-                     pi_0: Optional[float] = None, pi_1: Optional[float] = None
+                     rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None, pi_0: Optional[float] = None,
+                     pi_1: Optional[float] = None, alphabet_size: int = None, rate_vector_size: int = None,
+                     frequency: Tuple[Union[float, np.ndarray], ...] = None
                      ) -> Union[Union[List[List[np.ndarray]], List[List[float]]], float]:
-        alphabet_size, rate_vector, rate_vector_size, frequency = self.get_vars(alphabet, rate_vector, pi_0, pi_1)
+        if None in (alphabet_size, rate_vector, rate_vector_size, frequency):
+            alphabet_size, rate_vector, rate_vector_size, frequency = self.get_vars(alphabet, rate_vector, pi_0, pi_1)
+        if not self.pmatrix:
+            self.pmatrix = [self.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
+
         self.up_vector = []
         self.likelihood = 0
 
@@ -257,10 +264,11 @@ class Node:
 
             return self.up_vector
 
-        dict_children = {}
         for child in self.children:
-            dict_children.update({child.name: (tuple([child.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in
-                                  rate_vector]), child.calculate_up(nodes_dict, alphabet, rate_vector, pi_0, pi_1))})
+            if not child.pmatrix:
+                child.pmatrix = [child.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
+            child.calculate_up(nodes_dict, alphabet, rate_vector, pi_0, pi_1, alphabet_size, rate_vector_size,
+                               frequency)
 
         for r in range(rate_vector_size):
             current_up_vector = []
@@ -268,8 +276,7 @@ class Node:
                 probabilities = {}
                 for i in range(alphabet_size):
                     for child in self.children:
-                        pmatrix, up_vector = dict_children.get(child.name)
-                        p1 = pmatrix[r][j, i] * up_vector[r][i]
+                        p1 = child.pmatrix[r][j, i] * child.up_vector[r][i]
                         probabilities.update({child.name: probabilities.get(child.name, 0.0) + p1})
 
                 current_up_vector.append(prod(probabilities.values()))
@@ -293,27 +300,27 @@ class Node:
 
         father = self.father
         if father:
-            dict_brothers = {}
             brothers = tuple(set(tree_info.get(father.name).get('children')) - {self.name})
             brothers = [father.get_node_by_name(i) for i in brothers]
             for brother in brothers:
-                dict_brothers.update({brother.name: (tuple([brother.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in
-                                                            rate_vector]), brother.up_vector)})
+                if not brother.pmatrix:
+                    brother.pmatrix = [brother.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
 
-            f_vector = father.down_vector
-            f_pmatrix = tuple([father.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector])
+            if not father.pmatrix:
+                father.pmatrix = [father.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
             for r in range(rate_vector_size):
                 current_down_vector = []
                 for j in range(alphabet_size):
                     probabilities = {}
                     for i in range(alphabet_size):
                         for brother in brothers:
-                            b_pmatrix, b_vector = dict_brothers.get(brother.name)
                             probabilities.update(
                                 {brother.name:
-                                 probabilities.get(brother.name, 0) + (b_pmatrix[r][j, i] * b_vector[r][i])})
+                                 probabilities.get(brother.name, 0) + (brother.pmatrix[r][j, i] *
+                                                                       brother.up_vector[r][i])})
                         probabilities.update(
-                            {father.name: probabilities.get(father.name, 0) + (f_pmatrix[r][j, i] * f_vector[r][i])})
+                            {father.name: probabilities.get(father.name, 0) + (father.pmatrix[r][j, i] *
+                                                                               father.down_vector[r][i])})
 
                     current_down_vector.append(prod(probabilities.values()))
                 self.down_vector.append(current_down_vector)

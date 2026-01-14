@@ -152,26 +152,58 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree]) -> Union[List[Unio
 
 
 def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, log_file: Optional[str] = None,
-                          with_internal_nodes: bool = True) -> Union[Dict[str, str], str]:
+                          with_internal_nodes: bool = True, choose: int = 63) -> Union[Dict[str, str], str]:
+    commands = [{'name': 'Interactive tree (html)', 'func': newick_tree.tree_to_interactive_html,
+                 'args': (f'{file_path}/interactive_tree.html', ), 'kwargs': {}},
+                {'name': 'Newick tree (png)', 'func': newick_tree.tree_to_visual_format,
+                 'args': (f'{file_path}/visual_tree.svg', with_internal_nodes, ('png', )), 'kwargs': {}},
+                {'name': 'Table of nodes (tsv)', 'func': newick_tree.tree_to_tsv,
+                 'args': (f'{file_path}/node_results.tsv', ), 'kwargs': {'mode': 'node_tsv'}},
+                {'name': 'Table of branches (tsv)', 'func': newick_tree.tree_to_tsv,
+                 'args': (f'{file_path}/branch_results.tsv', ), 'kwargs': {'mode': 'node_tsv'}},
+                {'name': 'log-Likelihood (tsv)', 'func': newick_tree.likelihood_to_tsv,
+                 'args': (f'{file_path}/log_likelihood.tsv', ), 'kwargs': {}},
+                {'name': 'Tree attributes (tsv)', 'func': newick_tree.attributes_to_tsv,
+                 'args': (f'{file_path}/tree_attributes.tsv', ), 'kwargs': {}}
+                ]
+    result = {}
+    index = 0
+    while choose > 0:
+        if choose % 2:
+            command = commands[index]
+            name, func, args, kwargs = (command.get('name'), command.get('func'), command.get('args'),
+                                        command.get('kwargs'))
+            fres = func(*args, **kwargs)
+            if isinstance(fres, dict):
+                result.update(fres)
+            else:
+                result.update({name: fres})
+
     # result.update(newick_tree.tree_to_graph(f'{file_path}/graph.txt', ('dot', 'png', 'svg')))
     # result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', True, ('txt', 'png', 'svg')))
     # result.update({'Newick text (tree)': newick_tree.tree_to_newick_file(f'{file_path}/newick_tree.tree', True)})
     # table = newick_tree.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float)
     # result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
-    result = {'Interactive tree (html)': newick_tree.tree_to_interactive_html(f'{file_path}/interactive_tree.html')}
-    result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', with_internal_nodes, ('png', )))
-    result.update({'Table of nodes (tsv)': newick_tree.tree_to_tsv(f'{file_path}/node_results.tsv', mode='node_tsv')})
-    result.update({'Table of branches (tsv)': newick_tree.tree_to_tsv(f'{file_path}/branch_results.tsv',
-                                                                      mode='branch_tsv')})
-    result.update({'log-Likelihood (tsv)': newick_tree.likelihood_to_tsv(f'{file_path}/log_likelihood.tsv')})
-    result.update({'Tree attributes (tsv)': newick_tree.attributes_to_tsv(f'{file_path}/tree_attributes.tsv')})
+    # result.update({'Interactive tree (html)':
+    #                newick_tree.tree_to_interactive_html(f'{file_path}/interactive_tree.html')})
+    # result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', with_internal_nodes,
+    #                                                 ('png', )))
+    # result.update({'Table of nodes (tsv)':
+    #                newick_tree.tree_to_tsv(f'{file_path}/node_results.tsv', mode='node_tsv')})
+    # result.update({'Table of branches (tsv)':
+    #                newick_tree.tree_to_tsv(f'{file_path}/branch_results.tsv', mode='branch_tsv')})
+    # result.update({'log-Likelihood (tsv)':
+    #                newick_tree.likelihood_to_tsv(f'{file_path}/log_likelihood.tsv')})
+    # result.update({'Tree attributes (tsv)':
+    #                newick_tree.attributes_to_tsv(f'{file_path}/tree_attributes.tsv')})
 
-    archive_path = path.join(path.dirname(file_path), path.basename(file_path))
-    archive_name = make_archive(archive_path, 'zip', file_path, '.')
-    new_archive_name = path.join(file_path, path.basename(archive_name))
-    move(archive_name, new_archive_name)
+    if result:
+        archive_path = path.join(path.dirname(file_path), path.basename(file_path))
+        archive_name = make_archive(archive_path, 'zip', file_path, '.')
+        new_archive_name = path.join(file_path, path.basename(archive_name))
+        move(archive_name, new_archive_name)
+        result.update({'Archive (zip)': new_archive_name})
 
-    result.update({'Archive (zip)': new_archive_name})
     if log_file:
         result.update({'Log-File (log)': log_file})
 
