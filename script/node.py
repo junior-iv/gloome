@@ -350,6 +350,7 @@ class Node:
             current_node.probabilities_sequence_characters = []
             current_node.ancestral_sequence = ''
             current_node.coefficient_bl = 1
+            current_node.pmatrix = []
 
     def calculate_likelihood(self, msa_dict: Dict[str, str], alphabet: Union[Tuple[str, ...], str],
                              rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
