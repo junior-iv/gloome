@@ -26,13 +26,13 @@ def get_digit(data: str) -> Union[int, float, str]:
 
 
 def get_variables(request_form: Dict[str, str]) -> Tuple[Union[str, int, float], ...]:
-    result = [bool(int(v)) if k[:2] == 'is' else get_digit(v) for k, v in request_form.items()]
+    result = [bool(int(v)) if k[:2] == 'is' or k[:4] == 'file' else get_digit(v) for k, v in request_form.items()]
 
     return tuple(result)
 
 
 def get_dict(request_form: Dict[str, str]) -> Tuple[Union[str, int, float], ...]:
-    result = {k: bool(int(v)) if k[:2] == 'is' else get_digit(v) for k, v in request_form.items()}
+    result = {k: bool(int(v)) if k[:2] == 'is' or k[:4] == 'file' else get_digit(v) for k, v in request_form.items()}
 
     return tuple(result)
 
@@ -128,7 +128,8 @@ def check_tree_data(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], st
 def execute_all_actions(newick_tree: Union[str, Tree], file_path: str, create_new_file: bool = False,
                         form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
                         log_file: Optional[str] = None, with_internal_nodes: bool = True,
-                        actions: Optional[Dict[str, bool]] = None) -> Union[Dict[str, str], str]:
+                        actions: Optional[Dict[str, bool]] = None, selected_files: Optional[Dict[str, bool]] = None
+                        ) -> Union[Dict[str, str], str]:
     result_data = {}
     if actions is None or actions.get('draw_tree', False):
         result_data.update({'draw_tree': draw_tree(newick_tree)})
@@ -136,7 +137,7 @@ def execute_all_actions(newick_tree: Union[str, Tree], file_path: str, create_ne
         result_data.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree)})
     if actions is None or actions.get('create_all_file_types', False):
         result_data.update({'create_all_file_types': create_all_file_types(newick_tree, file_path, log_file,
-                                                                           with_internal_nodes)})
+                                                                           with_internal_nodes, selected_files)})
     if create_new_file:
         return create_file(file_path, get_result_data(result_data, 'execute_all_actions', form_data), 'result.json')
 
@@ -152,50 +153,38 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree]) -> Union[List[Unio
 
 
 def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, log_file: Optional[str] = None,
-                          with_internal_nodes: bool = True, choose: int = 63) -> Union[Dict[str, str], str]:
-    # commands = [{'name': 'Interactive tree (html)', 'func': newick_tree.tree_to_interactive_html,
-    #              'args': (f'{file_path}/interactive_tree.html', ), 'kwargs': {}},
-    #             {'name': 'Newick tree (png)', 'func': newick_tree.tree_to_visual_format,
-    #              'args': (f'{file_path}/visual_tree.svg', with_internal_nodes, ('png', )), 'kwargs': {}},
-    #             {'name': 'Table of nodes (tsv)', 'func': newick_tree.tree_to_tsv,
-    #              'args': (f'{file_path}/node_results.tsv', ), 'kwargs': {'mode': 'node_tsv'}},
-    #             {'name': 'Table of branches (tsv)', 'func': newick_tree.tree_to_tsv,
-    #              'args': (f'{file_path}/branch_results.tsv', ), 'kwargs': {'mode': 'node_tsv'}},
-    #             {'name': 'log-Likelihood (tsv)', 'func': newick_tree.likelihood_to_tsv,
-    #              'args': (f'{file_path}/log_likelihood.tsv', ), 'kwargs': {}},
-    #             {'name': 'Tree attributes (tsv)', 'func': newick_tree.attributes_to_tsv,
-    #              'args': (f'{file_path}/tree_attributes.tsv', ), 'kwargs': {}}
-    #             ]
+                          with_internal_nodes: Optional[bool] = True, selected_files: Optional[Dict[str, bool]] = None
+                          ) -> Union[Dict[str, str], str]:
+    selected_files = ({'file_interactive_tree_html': True,
+                       'file_newick_tree_png': True,
+                       'file_table_of_nodes_tsv': True,
+                       'file_table_of_branches_tsv': True,
+                       'file_log_likelihood_tsv': True,
+                       'file_table_of_attributes_tsv': True} if selected_files is None else selected_files)
     result = {}
-    # index = 0
-    # while choose > 0:
-    #     if choose % 2:
-    #         command = commands[index]
-    #         name, func, args, kwargs = (command.get('name'), command.get('func'), command.get('args'),
-    #                                     command.get('kwargs'))
-    #         fres = func(*args, **kwargs)
-    #         if isinstance(fres, dict):
-    #             result.update(fres)
-    #         else:
-    #             result.update({name: fres})
-
     # result.update(newick_tree.tree_to_graph(f'{file_path}/graph.txt', ('dot', 'png', 'svg')))
     # result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', True, ('txt', 'png', 'svg')))
     # result.update({'Newick text (tree)': newick_tree.tree_to_newick_file(f'{file_path}/newick_tree.tree', True)})
     # table = newick_tree.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float)
     # result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
-    result.update({'Interactive tree (html)':
-                   newick_tree.tree_to_interactive_html(f'{file_path}/interactive_tree.html')})
-    result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', with_internal_nodes,
-                                                    ('png', )))
-    result.update({'Table of nodes (tsv)':
-                   newick_tree.tree_to_tsv(f'{file_path}/node_results.tsv', mode='node_tsv')})
-    result.update({'Table of branches (tsv)':
-                   newick_tree.tree_to_tsv(f'{file_path}/branch_results.tsv', mode='branch_tsv')})
-    result.update({'log-Likelihood (tsv)':
-                   newick_tree.likelihood_to_tsv(f'{file_path}/log_likelihood.tsv')})
-    result.update({'Tree attributes (tsv)':
-                   newick_tree.attributes_to_tsv(f'{file_path}/tree_attributes.tsv')})
+    if selected_files.get('file_interactive_tree_html', False):
+        result.update({'Interactive tree (html)':
+                       newick_tree.tree_to_interactive_html(f'{file_path}/interactive_tree.html')})
+    if selected_files.get('file_newick_tree_png', False):
+        result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', with_internal_nodes,
+                                                        ('png', )))
+    if selected_files.get('file_table_of_nodes_tsv', False):
+        result.update({'Table of nodes (tsv)':
+                       newick_tree.tree_to_tsv(f'{file_path}/node_results.tsv', mode='node_tsv')})
+    if selected_files.get('file_table_of_branches_tsv', False):
+        result.update({'Table of branches (tsv)':
+                       newick_tree.tree_to_tsv(f'{file_path}/branch_results.tsv', mode='branch_tsv')})
+    if selected_files.get('file_log_likelihood_tsv', False):
+        result.update({'Log-likelihood (tsv)':
+                       newick_tree.likelihood_to_tsv(f'{file_path}/log_likelihood.tsv')})
+    if selected_files.get('file_table_of_attributes_tsv', False):
+        result.update({'Tree attributes (tsv)':
+                       newick_tree.attributes_to_tsv(f'{file_path}/tree_attributes.tsv')})
 
     if result:
         archive_path = path.join(path.dirname(file_path), path.basename(file_path))
@@ -245,6 +234,12 @@ def check_data(*args) -> List[Tuple[str, str]]:
     is_optimize_alpha = bool(args[9])
     is_optimize_bl = bool(args[10])
     is_do_not_use_e_mail = bool(args[11])
+    file_interactive_tree_html = bool(args[12])
+    file_newick_tree_png = bool(args[13])
+    file_table_of_nodes_tsv = bool(args[14])
+    file_table_of_branches_tsv = bool(args[15])
+    file_log_likelihood_tsv = bool(args[16])
+    file_table_of_attributes_tsv = bool(args[17])
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -280,6 +275,30 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not isinstance(is_do_not_use_e_mail, bool):
         err_list.append((f'Do not use e-mail value error [ {is_do_not_use_e_mail} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_interactive_tree_html, bool):
+        err_list.append((f'Interactive tree (html) value error [ {file_interactive_tree_html} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_newick_tree_png, bool):
+        err_list.append((f'Newick tree (png) value error [ {file_newick_tree_png} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_table_of_nodes_tsv, bool):
+        err_list.append((f'Table of nodes (tsv) value error [ {file_table_of_nodes_tsv} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_table_of_branches_tsv, bool):
+        err_list.append((f'Table of branches (tsv) value error [ {file_table_of_branches_tsv} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_log_likelihood_tsv, bool):
+        err_list.append((f'Log-likelihood (tsv) value error [ {file_log_likelihood_tsv} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_table_of_attributes_tsv, bool):
+        err_list.append((f'Table of attributes (tsv) value error [ {file_table_of_attributes_tsv} ]',
                          f'The value must be boolean type.'))
 
     if not msa:

@@ -289,6 +289,92 @@
                                 </div>
                             </details>
                         </div>
+                        <div class="box flex-column h-auto w-100 p-2">
+                            <details class="subdetails">
+                                <summary class="text-start w-100 form-control btn btn-outline-secondary bg-secondary-subtle border-1 rounded-5">
+                                <span class="subarrow">▽</span>
+                                    Results files
+                                </summary>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="fileInteractiveTreeHtml" class="h6 text-start text-success-emphasis ms-3">Interactive tree (html)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="fileInteractiveTreeHtml" name="fileInteractiveTreeHtml"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_interactive_tree_html -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="fileNewickTreePng" class="h6 text-start text-success-emphasis ms-3">Newick tree (png)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="fileNewickTreePng" name="fileNewickTreePng"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_newick_tree_png -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="fileTableOfNodesTsv" class="h6 text-start text-success-emphasis ms-3">Table of nodes (tsv)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="fileTableOfNodesTsv" name="fileTableOfNodesTsv"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_table_of_nodes_tsv -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="fileTableOfBranchesTsv" class="h6 text-start text-success-emphasis ms-3">Table of branches (tsv)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="fileTableOfBranchesTsv" name="fileTableOfBranchesTsv"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_table_of_branches_tsv -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="fileLogLikelihoodTsv" class="h6 text-start text-success-emphasis ms-3">Log-likelihood (tsv)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="fileLogLikelihoodTsv" name="fileLogLikelihoodTsv"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_log_likelihood_tsv -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="fileTableOfAttributesTsv" class="h6 text-start text-success-emphasis ms-3">Table of attributes (tsv)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="fileTableOfAttributesTsv" name="fileTableOfAttributesTsv"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_table_of_attributes_tsv -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
                     </div>
                 </details>
             </div>

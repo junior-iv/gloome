@@ -87,11 +87,16 @@ class WebConfig:
 
     def arguments_filling(self, **arguments):
         dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'eMail', 'isOptimizePi',
-                   'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseEMail'),
+                   'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseEMail',
+                   'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileTableOfNodesTsv',
+                   'fileTableOfBranchesTsv', 'fileLogLikelihoodTsv', 'fileTableOfAttributesTsv'),
                   ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'e_mail', 'is_optimize_pi',
-                   'is_optimize_pi_average', 'is_optimize_bl', 'is_optimize_alpha', 'is_do_not_use_e_mail'),
+                   'is_optimize_pi_average', 'is_optimize_bl', 'is_optimize_alpha', 'is_do_not_use_e_mail',
+                   'file_interactive_tree_html', 'file_newick_tree_png', 'file_table_of_nodes_tsv',
+                   'file_table_of_branches_tsv', 'file_log_likelihood_tsv', 'file_table_of_attributes_tsv'),
                   ((int, ), (float, ), (float, ), (float, ), (str, ), (int, bool), (int, bool), (int, bool),
-                   (int, bool), (int, bool)))
+                   (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
+                   (int, bool)))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -115,6 +120,12 @@ class WebConfig:
                              f'\n\tis_optimize_alpha: {self.CURRENT_ARGS.is_optimize_alpha}'
                              f'\n\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}'
                              f'\n\tis_do_not_use_e_mail: {self.CURRENT_ARGS.is_do_not_use_e_mail}'
+                             f'\n\tfile_interactive_tree_html: {self.CURRENT_ARGS.file_interactive_tree_html}'
+                             f'\n\tfile_newick_tree_png: {self.CURRENT_ARGS.file_newick_tree_png}'
+                             f'\n\tfile_table_of_nodes_tsv: {self.CURRENT_ARGS.file_table_of_nodes_tsv}'
+                             f'\n\tfile_table_of_branches_tsv: {self.CURRENT_ARGS.file_table_of_branches_tsv}'
+                             f'\n\tfile_log_likelihood_tsv: {self.CURRENT_ARGS.file_log_likelihood_tsv}'
+                             f'\n\tfile_table_of_attributes_tsv: {self.CURRENT_ARGS.file_table_of_attributes_tsv}'
                              f'\n\tnewick_text: {self.CALCULATED_ARGS.newick_text}'
                              f'\n\tmsa: {self.CALCULATED_ARGS.msa}\n')
 
@@ -159,6 +170,12 @@ class WebConfig:
             f'--is_optimize_alpha {int(self.CURRENT_ARGS.is_optimize_alpha)} '
             f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
             f' {is_do_not_use_e_mail} '
+            f'--file_interactive_tree_html {int(self.CURRENT_ARGS.file_interactive_tree_html)} '
+            f'--file_newick_tree_png {int(self.CURRENT_ARGS.file_newick_tree_png)} '
+            f'--file_table_of_nodes_tsv {int(self.CURRENT_ARGS.file_table_of_nodes_tsv)} '
+            f'--file_table_of_branches_tsv {int(self.CURRENT_ARGS.file_table_of_branches_tsv)} '
+            f'--file_log_likelihood_tsv {int(self.CURRENT_ARGS.file_log_likelihood_tsv)} '
+            f'--file_table_of_attributes_tsv {int(self.CURRENT_ARGS.file_table_of_attributes_tsv)} '
             f'--mode {self.MODE}')
         self.JOB_LOGGER.info(f'\n\tcreate a command line: '
                              f'\n\tCOMMAND_LINE: {self.COMMAND_LINE}\n')

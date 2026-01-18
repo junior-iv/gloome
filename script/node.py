@@ -168,7 +168,7 @@ class Node:
         return None
 
     def get_pmatrix(self, alphabet_size: int, rate: Union[float, np.ndarray] = 1.0, pi_0: Optional[float] = None,
-                    pi_1: Optional[float] = None):
+                    pi_1: Optional[float] = None) -> np.ndarray:
         return self.get_one_parameter_pmatrix(rate, pi_0, pi_1, alphabet_size)
         # if any((pi_0, pi_1)):
         #     return self.get_one_parameter_qmatrix(rate, pi_0, pi_1, alphabet_size)
@@ -182,17 +182,21 @@ class Node:
 
     def calculate_gl_probability(self, alphabet: Union[Tuple[str, ...], str],
                                  rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
-                                 pi_0: Optional[float] = None, pi_1: Optional[float] = None) -> None:
+                                 pi_0: Optional[float] = None, pi_1: Optional[float] = None,
+                                 pmatrix: List[np.ndarray] = None) -> None:
         alphabet_size, rate_vector, rate_vector_size, frequency = self.get_vars(alphabet, rate_vector, pi_0, pi_1)
         marginal_bl_vector = []
-        pmatrix = tuple([self.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector])
+        if not pmatrix:
+            pmatrix = [self.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
+        if not self.pmatrix:
+            self.pmatrix = pmatrix
 
         for r in range(rate_vector_size):
             current_marginal_bl_vector = []
             for j in range(alphabet_size):
                 for i in range(alphabet_size):
                     current_marginal_bl_vector.append(frequency[i] * self.up_vector[r][i] *
-                                                      pmatrix[r][i, j] * self.down_vector[r][j])
+                                                      self.pmatrix[r][i, j] * self.down_vector[r][j])
             marginal_bl_vector.append(current_marginal_bl_vector)
 
         likelihood = np.sum([1 / rate_vector_size * np.sum(self.father.marginal_vector[r]) for r in
@@ -209,12 +213,15 @@ class Node:
 
     def calculate_marginal(self, alphabet: Union[Tuple[str, ...], str],
                            rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
-                           pi_0: Optional[float] = None, pi_1: Optional[float] = None
+                           pi_0: Optional[float] = None, pi_1: Optional[float] = None, pmatrix: List[np.ndarray] = None
                            ) -> Tuple[Union[Union[List[List[np.ndarray]], List[List[float]]], float],
                                       Union[np.ndarray, float]]:
         alphabet_size, rate_vector, rate_vector_size, frequency = self.get_vars(alphabet, rate_vector, pi_0, pi_1)
         self.marginal_vector = []
-        self.pmatrix = [self.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
+        if not pmatrix:
+            pmatrix = [self.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
+        if not self.pmatrix:
+            self.pmatrix = pmatrix
 
         for r in range(rate_vector_size):
             current_marginal_vector = []
@@ -241,12 +248,14 @@ class Node:
     def calculate_up(self, nodes_dict: Dict[str, Tuple[int, ...]], alphabet: Union[Tuple[str, ...], str],
                      rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None, pi_0: Optional[float] = None,
                      pi_1: Optional[float] = None, alphabet_size: int = None, rate_vector_size: int = None,
-                     frequency: Tuple[Union[float, np.ndarray], ...] = None
+                     frequency: Tuple[Union[float, np.ndarray], ...] = None, pmatrix: List[np.ndarray] = None
                      ) -> Union[Union[List[List[np.ndarray]], List[List[float]]], float]:
         if None in (alphabet_size, rate_vector, rate_vector_size, frequency):
             alphabet_size, rate_vector, rate_vector_size, frequency = self.get_vars(alphabet, rate_vector, pi_0, pi_1)
+        if not pmatrix:
+            pmatrix = [self.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
         if not self.pmatrix:
-            self.pmatrix = [self.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
+            self.pmatrix = pmatrix
 
         self.up_vector = []
         self.likelihood = 0
@@ -266,9 +275,9 @@ class Node:
 
         for child in self.children:
             if not child.pmatrix:
-                child.pmatrix = [child.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
+                child.pmatrix = pmatrix
             child.calculate_up(nodes_dict, alphabet, rate_vector, pi_0, pi_1, alphabet_size, rate_vector_size,
-                               frequency)
+                               frequency, pmatrix)
 
         for r in range(rate_vector_size):
             current_up_vector = []
@@ -293,10 +302,13 @@ class Node:
 
     def calculate_down(self, tree_info: pd.Series, alphabet_size: int,
                        rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
-                       pi_0: Optional[float] = None, pi_1: Optional[float] = None) -> None:
+                       pi_0: Optional[float] = None, pi_1: Optional[float] = None, pmatrix: List[np.ndarray] = None
+                       ) -> None:
         rate_vector = rate_vector if rate_vector else (1.0,)
         rate_vector_size = len(rate_vector)
         self.down_vector = []
+        if not pmatrix:
+            pmatrix = [self.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
 
         father = self.father
         if father:
@@ -304,10 +316,10 @@ class Node:
             brothers = [father.get_node_by_name(i) for i in brothers]
             for brother in brothers:
                 if not brother.pmatrix:
-                    brother.pmatrix = [brother.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
+                    brother.pmatrix = pmatrix
 
             if not father.pmatrix:
-                father.pmatrix = [father.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
+                father.pmatrix = pmatrix
             for r in range(rate_vector_size):
                 current_down_vector = []
                 for j in range(alphabet_size):
@@ -354,13 +366,18 @@ class Node:
 
     def calculate_likelihood(self, msa_dict: Dict[str, str], alphabet: Union[Tuple[str, ...], str],
                              rate_vector: Optional[Tuple[Union[float, np.ndarray], ...]] = None,
-                             pi_0: Optional[float] = None, pi_1: Optional[float] = None
-                             ) -> Tuple[List[float], float, float]:
+                             pi_0: Optional[float] = None, pi_1: Optional[float] = None, alphabet_size: int = None,
+                             rate_vector_size: int = None, frequency: Tuple[Union[float, np.ndarray], ...] = None,
+                             pmatrix: List[np.ndarray] = None) -> Tuple[List[float], float, float]:
 
         leaves_info = self.get_list_nodes_info(True, 'pre-order', {'node_type': ['leaf']})
 
         len_seq = len(min(list(msa_dict.values())))
         likelihood, log_likelihood, log_likelihood_list = 1, 0, []
+        if None in (alphabet_size, rate_vector, rate_vector_size, frequency):
+            alphabet_size, rate_vector, rate_vector_size, frequency = self.get_vars(alphabet, rate_vector, pi_0, pi_1)
+        if not pmatrix:
+            pmatrix = [self.get_pmatrix(alphabet_size, r, pi_0, pi_1) for r in rate_vector]
         for i_char in range(len_seq):
             nodes_dict = dict()
             for i in range(len(leaves_info)):
@@ -368,7 +385,8 @@ class Node:
                 character = msa_dict.get(node_name)[i_char]
                 nodes_dict.update({node_name: tuple([int(j == character) for j in alphabet])})
 
-            char_likelihood = self.calculate_up(nodes_dict, alphabet, rate_vector, pi_0, pi_1)
+            char_likelihood = self.calculate_up(nodes_dict, alphabet, rate_vector, pi_0, pi_1, alphabet_size,
+                                                rate_vector_size, frequency, pmatrix)
             likelihood *= char_likelihood
             log_likelihood += log(max(char_likelihood, eps))
             log_likelihood_list.append(log(max(char_likelihood, eps)))

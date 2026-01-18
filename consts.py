@@ -160,8 +160,14 @@ DEFAULT_FORM_ARGUMENTS = {
     'is_optimize_pi_average': False,
     'is_optimize_alpha': True,
     'is_optimize_bl': True,
-    'is_do_not_use_e_mail': True
-    }
+    'is_do_not_use_e_mail': True,
+    'file_interactive_tree_html': False,
+    'file_newick_tree_png': False,
+    'file_table_of_nodes_tsv': True,
+    'file_table_of_branches_tsv': True,
+    'file_log_likelihood_tsv': True,
+    'file_table_of_attributes_tsv': True
+}
 
 DEFAULT_ARGUMENTS = DefaultArgs(**{
     'with_internal_nodes': True,
@@ -243,7 +249,19 @@ USAGE = '''\tRequired parameters:
 \t\t--is_optimize_bl <type=int> 
 \t\t\tSpecify is_optimize_bl. Default is 1.
 \t\t--is_do_not_use_e_mail <type=int> 
-\t\t\tSpecify is_do_not_use_e_mail. Default is 1.'''
+\t\t\tSpecify is_do_not_use_e_mail. Default is 1.
+\t\t--file_interactive_tree_html <type=int> 
+\t\t\tSpecify file_interactive_tree_html. Default is 0.
+\t\t--file_newick_tree_png <type=int> 
+\t\t\tSpecify file_newick_tree_png. Default is 0.
+\t\t--file_table_of_nodes_tsv <type=int> 
+\t\t\tSpecify file_table_of_nodes_tsv. Default is 1.
+\t\t--file_table_of_branches_tsv <type=int> 
+\t\t\tSpecify file_table_of_branches_tsv. Default is 1.
+\t\t--file_log_likelihood_tsv <type=int> 
+\t\t\tSpecify file_log_likelihood_tsv. Default is 1.
+\t\t--file_table_of_attributes_tsv <type=int> 
+\t\t\tSpecify file_table_of_attributes_tsv. Default is 1.'''
 
 MENU = ({'name': 'Home', 'url': 'index',
          'submenu': ()

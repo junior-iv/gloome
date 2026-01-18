@@ -483,6 +483,12 @@ function makeTree(mode = 0) {
     const isOptimizeAlpha = document.getElementById(`isOptimizeAlpha`)
     const isOptimizeBL = document.getElementById(`isOptimizeBL`)
     const isDoNotUseEMail = document.getElementById(`isDoNotUseEMail`)
+    const fileInteractiveTreeHtml = document.getElementById(`fileInteractiveTreeHtml`)
+    const fileNewickTreePng = document.getElementById(`fileNewickTreePng`)
+    const fileTableOfNodesTsv = document.getElementById(`fileTableOfNodesTsv`)
+    const fileTableOfBranchesTsv = document.getElementById(`fileTableOfBranchesTsv`)
+    const fileLogLikelihoodTsv = document.getElementById(`fileLogLikelihoodTsv`)
+    const fileTableOfAttributesTsv = document.getElementById(`fileTableOfAttributesTsv`)
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`msaText`, msaText.value.trim());
@@ -496,6 +502,12 @@ function makeTree(mode = 0) {
     formData.append(`isOptimizeAlpha`, +isOptimizeAlpha.checked);
     formData.append(`isOptimizeBL`, +isOptimizeBL.checked);
     formData.append(`isDoNotUseEMail`, +isDoNotUseEMail.checked);
+    formData.append(`fileInteractiveTreeHtml`, +fileInteractiveTreeHtml.checked);
+    formData.append(`fileNewickTreePng`, +fileNewickTreePng.checked);
+    formData.append(`fileTableOfNodesTsv`, +fileTableOfNodesTsv.checked);
+    formData.append(`fileTableOfBranchesTsv`, +fileTableOfBranchesTsv.checked);
+    formData.append(`fileLogLikelihoodTsv`, +fileLogLikelihoodTsv.checked);
+    formData.append(`fileTableOfAttributesTsv`, +fileTableOfAttributesTsv.checked);
 
     jsonTreeData = null
 
@@ -557,7 +569,9 @@ function gedIdentifiers(id = ``) {
     } else {
         return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`, `newickText`,
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `eMail`, `isOptimizePi`,
-            `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`];
+            `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`, `fileInteractiveTreeHtml`,
+            `fileNewickTreePng`, `fileTableOfNodesTsv`, `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`,
+            `fileTableOfAttributesTsv`];
     }
 }
 

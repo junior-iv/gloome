@@ -81,6 +81,15 @@ class Config:
                 print(self.USAGE)
                 exit()
 
+    def get_selected_files(self) -> Dict[str, bool]:
+        selected_files = {'file_interactive_tree_html': self.CURRENT_ARGS.file_interactive_tree_html,
+                          'file_newick_tree_png': self.CURRENT_ARGS.file_newick_tree_png,
+                          'file_table_of_nodes_tsv': self.CURRENT_ARGS.file_table_of_nodes_tsv,
+                          'file_table_of_branches_tsv': self.CURRENT_ARGS.file_table_of_branches_tsv,
+                          'file_log_likelihood_tsv': self.CURRENT_ARGS.file_log_likelihood_tsv,
+                          'file_table_of_attributes_tsv': self.CURRENT_ARGS.file_table_of_attributes_tsv}
+        return selected_files
+
     def get_form_data(self) -> Dict[str, Union[str, int]]:
         form_data = {'msaText': self.CALCULATED_ARGS.msa,
                      'newickText': self.CALCULATED_ARGS.newick_text,
@@ -89,6 +98,12 @@ class Config:
                      'isOptimizeAlpha': int(self.CURRENT_ARGS.is_optimize_alpha),
                      'isOptimizeBL': int(self.CURRENT_ARGS.is_optimize_bl),
                      'isDoNotUseEMail': int(self.CURRENT_ARGS.is_do_not_use_e_mail),
+                     'fileInteractiveTreeHtml': int(self.CURRENT_ARGS.file_interactive_tree_html),
+                     'fileNewickTreePng': int(self.CURRENT_ARGS.file_newick_tree_png),
+                     'fileTableOfNodesTsv': int(self.CURRENT_ARGS.file_table_of_nodes_tsv),
+                     'fileTableOfBranchesTsv': int(self.CURRENT_ARGS.file_table_of_branches_tsv),
+                     'fileLogLikelihoodTsv': int(self.CURRENT_ARGS.file_log_likelihood_tsv),
+                     'fileTableOfAttributesTsv': int(self.CURRENT_ARGS.file_table_of_attributes_tsv),
                      'coefficientBL': self.CURRENT_ARGS.coefficient_bl,
                      'pi1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
@@ -126,7 +141,8 @@ class Config:
             self.execute_action(self.ACTIONS.execute_all_actions, file_path=self.OUT_DIR, create_new_file=True,
                                 form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
                                 with_internal_nodes=self.CURRENT_ARGS.with_internal_nodes,
-                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename, actions=self.MAIN_ACTIONS)
+                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename, actions=self.MAIN_ACTIONS,
+                                selected_files=self.get_selected_files())
         if not self.CALCULATED_ARGS.err_list:
             self.execute_action(self.ACTIONS.recompile_json, output_file=path.join(self.OUT_DIR, 'result.json'),
                                 process_id=self.PROCESS_ID, create_link=False)
@@ -158,7 +174,13 @@ class Config:
                                                                      self.CURRENT_ARGS.is_optimize_pi_average,
                                                                      self.CURRENT_ARGS.is_optimize_alpha,
                                                                      self.CURRENT_ARGS.is_optimize_bl,
-                                                                     self.CURRENT_ARGS.is_do_not_use_e_mail)
+                                                                     self.CURRENT_ARGS.is_do_not_use_e_mail,
+                                                                     self.CURRENT_ARGS.file_interactive_tree_html,
+                                                                     self.CURRENT_ARGS.file_newick_tree_png,
+                                                                     self.CURRENT_ARGS.file_table_of_nodes_tsv,
+                                                                     self.CURRENT_ARGS.file_table_of_branches_tsv,
+                                                                     self.CURRENT_ARGS.file_log_likelihood_tsv,
+                                                                     self.CURRENT_ARGS.file_table_of_attributes_tsv)
 
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
             try:
@@ -298,6 +320,30 @@ class Config:
                             help=f'Specify is_do_not_use_e_mail (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_do_not_use_e_mail)}.',
                             default=int(self.CURRENT_ARGS.is_do_not_use_e_mail))
+        parser.add_argument('--file_interactive_tree_html', dest='file_interactive_tree_html', type=int, required=False,
+                            help=f'Specify file_interactive_tree_html (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_interactive_tree_html)}.',
+                            default=int(self.CURRENT_ARGS.file_interactive_tree_html))
+        parser.add_argument('--file_newick_tree_png', dest='file_newick_tree_png', type=int, required=False,
+                            help=f'Specify file_newick_tree_png (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_newick_tree_png)}.',
+                            default=int(self.CURRENT_ARGS.file_newick_tree_png))
+        parser.add_argument('--file_table_of_nodes_tsv', dest='file_table_of_nodes_tsv', type=int, required=False,
+                            help=f'Specify file_table_of_nodes_tsv (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_table_of_nodes_tsv)}.',
+                            default=int(self.CURRENT_ARGS.file_table_of_nodes_tsv))
+        parser.add_argument('--file_table_of_branches_tsv', dest='file_table_of_branches_tsv', type=int, required=False,
+                            help=f'Specify file_table_of_branches_tsv (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_table_of_branches_tsv)}.',
+                            default=int(self.CURRENT_ARGS.file_table_of_branches_tsv))
+        parser.add_argument('--file_log_likelihood_tsv', dest='file_log_likelihood_tsv', type=int, required=False,
+                            help=f'Specify file_log_likelihood_tsv (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_log_likelihood_tsv)}.',
+                            default=int(self.CURRENT_ARGS.file_log_likelihood_tsv))
+        parser.add_argument('--file_table_of_attributes_tsv', dest='file_table_of_attributes_tsv', type=int,
+                            required=False, help=f'Specify file_table_of_attributes_tsv (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_table_of_attributes_tsv)}.',
+                            default=int(self.CURRENT_ARGS.file_table_of_attributes_tsv))
 
         args = parser.parse_args()
 
@@ -309,7 +355,10 @@ class Config:
                 elif arg_name == 'mode':
                     setattr(self, arg_name.upper(), arg_value)
                 elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
-                                  'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_e_mail'):
+                                  'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_e_mail',
+                                  'file_interactive_tree_html', 'file_newick_tree_png', 'file_table_of_nodes_tsv',
+                                  'file_table_of_branches_tsv', 'file_log_likelihood_tsv',
+                                  'file_table_of_attributes_tsv'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))
                 else:
