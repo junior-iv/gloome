@@ -1,5 +1,7 @@
 let jsonTreeData = null
-let checkboxes = ['isOptimizePi', 'isOptimizePiAverage', 'isOptimizeAlpha', 'isOptimizeBL', `isDoNotUseEMail`];
+let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`,
+                      `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfNodesTsv`, `fileTableOfBranchesTsv`,
+                      `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`];
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
     'newickText': {'dependence': '', 'value': ''},
@@ -12,7 +14,13 @@ let objectsDependence = {
     'isOptimizePiAverage': {'dependence': '', 'value': ''},
     'isOptimizeAlpha': {'dependence': '', 'value': ''},
     'isOptimizeBL': {'dependence': '', 'value': ''},
-    'isDoNotUseEMail': {'dependence': '', 'value': ''}
+    'isDoNotUseEMail': {'dependence': '', 'value': ''},
+    'fileInteractiveTreeHtml': {'dependence': '', 'value': ''},
+    'fileNewickTreePng': {'dependence': '', 'value': ''},
+    'fileTableOfNodesTsv': {'dependence': '', 'value': ''},
+    'fileTableOfBranchesTsv': {'dependence': '', 'value': ''},
+    'fileLogLikelihoodTsv': {'dependence': '', 'value': ''},
+    'fileTableOfAttributesTsv': {'dependence': '', 'value': ''}
 };
 
 function validateInputEMail(id) {
