@@ -66,6 +66,7 @@ class MailSenderSMTPLib:
         message["Subject"] = subject
 
         if isinstance(attachments, (tuple, list)):
+            body += self.create_link_to_results(f'{self.results}/{self.name}')
             for attachment_path in attachments:
                 body += f'<br>{self.create_attachments(attachment_path, message, use_attachments)}'
         elif isinstance(attachments, dict):
