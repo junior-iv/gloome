@@ -829,7 +829,8 @@ class Tree:
         current_pi = (pi, None)
         alphabet_size, self.rate_vector, rate_vector_size, frequency = self.root.get_vars(self.alphabet,
                                                                                           self.rate_vector,
-                                                                                          self.pi_0, self.pi_1)
+                                                                                          pi_0=current_pi[mode],
+                                                                                          pi_1=current_pi[::-1][mode])
         return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, pi_0=current_pi[mode],
                                                pi_1=current_pi[::-1][mode], alphabet_size=alphabet_size,
                                                rate_vector_size=rate_vector_size, frequency=frequency)[1]
@@ -840,7 +841,9 @@ class Tree:
         alphabet_size, self.rate_vector, rate_vector_size, frequency = self.root.get_vars(self.alphabet,
                                                                                           self.rate_vector,
                                                                                           self.pi_0, self.pi_1)
-        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1)[1]
+        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1,
+                                               alphabet_size=alphabet_size, rate_vector_size=rate_vector_size,
+                                               frequency=frequency)[1]
 
     def set_coefficient_bl(self, coefficient_bl: Union[int, float, np.ndarray]) -> None:
         node_list = self.root.get_list_nodes_info(only_node_list=True)
