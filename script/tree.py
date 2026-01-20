@@ -420,19 +420,13 @@ class Tree:
                                             pi_1=self.pi_1)
 
     def calculate_up(self, msa: str) -> Union[Tuple[Union[List[np.ndarray], List[float]], float], float]:
-        nodes_dict = self.get_msa_dict(msa, self.alphabet)
-        alphabet_size, self.rate_vector, rate_vector_size, frequency = self.root.get_vars(self.alphabet,
-                                                                                          self.rate_vector,
-                                                                                          self.pi_0, self.pi_1)
 
-        return self.root.calculate_up(nodes_dict, self.alphabet, self.rate_vector, self.pi_0, self.pi_1, alphabet_size,
-                                      rate_vector_size, frequency)
+        return self.root.calculate_up(self.get_msa_dict(msa, self.alphabet), self.alphabet, self.rate_vector, self.pi_0,
+                                      self.pi_1)
 
     def calculate_down(self) -> None:
 
-        alphabet_size = len(self.alphabet)
-
-        self.root.calculate_down(self.get_tree_info(), alphabet_size, self.rate_vector, self.pi_0, self.pi_1)
+        self.root.calculate_down(self.get_tree_info(), len(self.alphabet), self.rate_vector, self.pi_0, self.pi_1)
 
     def get_msa_dict(self, msa: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None, only_leaves: bool = True
                      ) -> Dict[str, Union[Tuple[int, ...], str]]:
@@ -484,12 +478,8 @@ class Tree:
     def calculate_likelihood(self) -> None:
         if self.msa and self.alphabet and not self.calculated_likelihood:
             self.clean_all()
-            alphabet_size, self.rate_vector, rate_vector_size, frequency = self.root.get_vars(self.alphabet,
-                                                                                              self.rate_vector,
-                                                                                              self.pi_0, self.pi_1)
             self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
-                self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1,
-                                               alphabet_size, rate_vector_size, frequency))
+                self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1))
             self.calculated_likelihood = True
 
     def get_fasta_text(self) -> str:
@@ -827,23 +817,13 @@ class Tree:
 
     def pi_optimization(self, pi: Union[float, np.ndarray], mode: int = 0) -> Union[float, np.ndarray]:
         current_pi = (pi, None)
-        alphabet_size, self.rate_vector, rate_vector_size, frequency = self.root.get_vars(self.alphabet,
-                                                                                          self.rate_vector,
-                                                                                          pi_0=current_pi[mode],
-                                                                                          pi_1=current_pi[::-1][mode])
         return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, pi_0=current_pi[mode],
-                                               pi_1=current_pi[::-1][mode], alphabet_size=alphabet_size,
-                                               rate_vector_size=rate_vector_size, frequency=frequency)[1]
+                                               pi_1=current_pi[::-1][mode])[1]
 
     def alpha_optimization(self, alpha: Union[int, float, np.ndarray], categories_quantity: int = 1
                            ) -> Union[float, np.ndarray]:
         self.get_gamma_distribution_categories_vector(categories_quantity, alpha)
-        alphabet_size, self.rate_vector, rate_vector_size, frequency = self.root.get_vars(self.alphabet,
-                                                                                          self.rate_vector,
-                                                                                          self.pi_0, self.pi_1)
-        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1,
-                                               alphabet_size=alphabet_size, rate_vector_size=rate_vector_size,
-                                               frequency=frequency)[1]
+        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1)[1]
 
     def set_coefficient_bl(self, coefficient_bl: Union[int, float, np.ndarray]) -> None:
         node_list = self.root.get_list_nodes_info(only_node_list=True)
@@ -852,13 +832,8 @@ class Tree:
 
     def coefficient_bl_optimization(self, coefficient_bl: Union[int, float, np.ndarray]) -> Union[float, np.ndarray]:
         self.set_coefficient_bl(coefficient_bl)
-        alphabet_size, self.rate_vector, rate_vector_size, frequency = self.root.get_vars(self.alphabet,
-                                                                                          self.rate_vector,
-                                                                                          self.pi_0, self.pi_1)
 
-        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1,
-                                               alphabet_size=alphabet_size, rate_vector_size=rate_vector_size,
-                                               frequency=frequency)[1]
+        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1)[1]
 
     def optimize_pi_average(self, mode: int = 0, msa: Optional[str] = None) -> float:
         all_lines = ''
