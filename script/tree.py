@@ -23,7 +23,6 @@ class Tree:
     rate_vector: Tuple[Union[float, np.ndarray, int], ...] = (1.0, )
     alpha: Optional[Union[float, np.ndarray, int]] = None
     categories_quantity: Optional[int] = None
-    pi_0: Optional[Union[float, np.ndarray, int]] = None
     pi_1: Optional[Union[float, np.ndarray, int]] = None
     coefficient_bl: Optional[Union[float, np.ndarray, int]] = 1,
     log_likelihood_vector: Optional[List[Union[float, np.ndarray]]] = None
@@ -67,12 +66,9 @@ class Tree:
         else:
             self.root = Node('root')
 
-        self.is_optimize_pi, self.is_optimize_pi_average, self.is_optimize_alpha, self.is_optimize_bl = (None, None,
-                                                                                                         None, None)
         self.msa, self.alphabet, self.categories_quantity, self.alpha = None, None, None, None
         self.rate_vector = (1.0,)
-        self.pi_0, self.pi_1, self.coefficient_bl = None, None, 1
-        # self.likelihood, self.log_likelihood, self.log_likelihood_vector = 1, 0, []
+        self.pi_1, self.coefficient_bl = None, 1
         self.log_likelihood_vector, self.log_likelihood, self.likelihood = None, None, None
         self.calculated_ancestor_sequence = self.calculated_tree_for_fasta = self.calculated_likelihood = False
 
@@ -83,6 +79,11 @@ class Tree:
 
     def __str__(self) -> str:
         return self.get_newick()
+
+    def __dir__(self) -> list:
+        return ['root', 'alphabet', 'msa', 'rate_vector', 'alpha', 'categories_quantity', 'pi_1', 'coefficient_bl',
+                'log_likelihood_vector', 'log_likelihood', 'likelihood', 'calculated_ancestor_sequence',
+                'calculated_tree_for_fasta', 'calculated_likelihood']
 
     def __len__(self) -> int:
         return self.get_node_count()
@@ -104,6 +105,52 @@ class Tree:
 
     def __ge__(self, other) -> bool:
         return self > other or self == other or len(str(self)) > len(str(other))
+
+    def print_args(self, state: str = ''):
+        print(f'\n\t\t>\t>\t>')
+        print(f'state:\t{state}')
+        print(f'alphabet:\t{self.alphabet}')
+        print(f'rate_vector:\t{self.rate_vector}')
+        print(f'alpha:\t{self.alpha}')
+        print(f'categories_quantity:\t{self.categories_quantity}')
+        print(f'pi_1:\t{self.pi_1}')
+        print(f'coefficient_bl:\t{self.coefficient_bl}')
+        print(f'log_likelihood_vector:\t{self.log_likelihood_vector}')
+        print(f'log_likelihood:\t{self.log_likelihood}')
+        print(f'likelihood:\t{self.likelihood}')
+
+    def set_tree_data(self, msa: Optional[Union[Dict[str, str], str]] = None,
+                      categories_quantity: Optional[int] = None,
+                      alpha: Optional[float] = None,
+                      beta: Optional[float] = None,
+                      pi_0: Optional[Union[float, np.ndarray, int]] = None,
+                      pi_1: Optional[Union[float, np.ndarray, int]] = None,
+                      coefficient_bl: Optional[Union[float, np.ndarray, int]] = None,
+                      is_optimize_pi: Optional[bool] = None,
+                      is_optimize_pi_average: Optional[bool] = None,
+                      is_optimize_alpha: Optional[bool] = None,
+                      is_optimize_bl: Optional[bool] = None) -> None:
+        self.print_args('start')
+        if isinstance(msa, str):
+            self.msa = self.get_msa_dict(msa)
+        elif isinstance(msa, dict):
+            self.msa = msa
+        if isinstance(self.msa, dict) and self.msa:
+            self.alphabet = Tree.get_alphabet_from_dict(self.msa)
+
+        self.set_all(categories_quantity, alpha, beta, pi_0, pi_1, coefficient_bl)
+        self.print_args('beginning')
+
+        self.optimize_coefficient_bl(is_optimize_bl)
+        self.print_args('optimize_coefficient_bl')
+        self.optimize_pi(is_optimize_pi, is_optimize_pi_average)
+        self.print_args('optimize_pi')
+        self.optimize_alpha(is_optimize_alpha)
+        self.print_args('optimize_alpha')
+
+        if (is_optimize_alpha or is_optimize_pi or is_optimize_pi_average) and is_optimize_bl:
+            self.optimize_coefficient_bl(is_optimize_bl)
+            self.print_args('optimize_coefficient_bl 2')
 
     def print_node_list(self, with_additional_details: bool = False, mode: Optional[str] = None,
                         filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None) -> None:
@@ -383,27 +430,11 @@ class Tree:
             self.calculated_ancestor_sequence = True
         return 'OK' if self.calculated_ancestor_sequence else ''
 
-    # def calculate_marginal(self, newick_node: Optional[Union[Node, str]] = None, msa: Optional[str] = None) -> None:
-    #     node_list = []
-    #     if not newick_node:
-    #         node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'root']}, only_node_list=True)
-    #         if node_list:
-    #             newick_node = np.random.choice(np.array(node_list))
-    #     else:
-    #         if isinstance(newick_node, str):
-    #             newick_node = self.get_node_by_name(newick_node)
-    #         node_list.append(newick_node)
-    #     if not newick_node.up_vector and msa:
-    #         self.calculate_up(msa)
-    #     if not newick_node.down_vector and newick_node.up_vector:
-    #         self.calculate_down()
-
     def calculate_gl_probability(self) -> None:
         node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
 
         for current_node in node_list:
-            current_node.calculate_gl_probability(alphabet=self.alphabet, rate_vector=self.rate_vector, pi_0=self.pi_0,
-                                                  pi_1=self.pi_1)
+            current_node.calculate_gl_probability()
 
     def calculate_marginal(self, newick_node: Optional[Union[Node, str]] = None) -> None:
         if not newick_node:
@@ -416,17 +447,15 @@ class Tree:
                 node_list.append(newick_node)
 
         for current_node in node_list:
-            current_node.calculate_marginal(alphabet=self.alphabet, rate_vector=self.rate_vector, pi_0=self.pi_0,
-                                            pi_1=self.pi_1)
+            current_node.calculate_marginal()
 
     def calculate_up(self, msa: str) -> Union[Tuple[Union[List[np.ndarray], List[float]], float], float]:
 
-        return self.root.calculate_up(self.get_msa_dict(msa, self.alphabet), self.alphabet, self.rate_vector, self.pi_0,
-                                      self.pi_1)
+        return self.root.calculate_up(self.get_msa_dict(msa, self.alphabet))
 
     def calculate_down(self) -> None:
 
-        self.root.calculate_down(self.get_tree_info(), len(self.alphabet), self.rate_vector, self.pi_0, self.pi_1)
+        self.root.calculate_down(self.get_tree_info())
 
     def get_msa_dict(self, msa: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None, only_leaves: bool = True
                      ) -> Dict[str, Union[Tuple[int, ...], str]]:
@@ -453,13 +482,10 @@ class Tree:
 
         return msa_dict
 
-    def clean_all(self):
-        self.root.clean_all()
-        self.likelihood, self.log_likelihood, self.log_likelihood_vector = 1, 0, []
-
     def calculate_tree_for_fasta(self) -> Dict[str, Union[float, np.ndarray, int]]:
         if self.msa and not self.calculated_tree_for_fasta:
             self.clean_all()
+            # self.set_pmatrix()
 
             leaves = self.get_list_nodes_info(filters={'node_type': ['leaf']}, only_node_list=True)
             len_seq = len(min(list(self.msa.values())))
@@ -478,8 +504,9 @@ class Tree:
     def calculate_likelihood(self) -> None:
         if self.msa and self.alphabet and not self.calculated_likelihood:
             self.clean_all()
+            # self.set_pmatrix()
             self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
-                self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1))
+                self.root.calculate_likelihood(self.msa))
             self.calculated_likelihood = True
 
     def get_fasta_text(self) -> str:
@@ -516,105 +543,6 @@ class Tree:
 
         return loads(str(dict_json).replace(f'\'', r'"'))
 
-    @staticmethod
-    def get_columns(mode: str = 'node', columns: Optional[Dict[str, str]] = None
-                    ) -> Tuple[Dict[str, str], Tuple[str, ...]]:
-        lists = ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector', 'probability_vector',
-                 'probabilities_sequence_characters', 'log_likelihood_vector', 'sequence', 'ancestral_sequence',
-                 'probability_vector_gain', 'probability_vector_loss')
-        if mode == 'node':
-            columns = columns if columns else {'node': 'Name', 'node_type': 'Node type', 'distance':
-                                               'Distance to parent', 'sequence': 'Sequence',
-                                               'probabilities_sequence_characters': 'Probability coefficient',
-                                               'ancestral_sequence': 'Ancestral Comparison'}
-            lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
-        elif mode == 'branch':
-            columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', 'distance':
-                                               'Branch length', 'probability_vector_gain': 'Gain probability',
-                                               'probability_vector_loss': 'Loss probability'}
-            lists = ('probability_vector_gain', 'probability_vector_loss')
-        elif mode == 'node_tsv':
-            columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance':
-                                               'Distance to parent', 'children': 'Children', 'sequence': 'Sequence',
-                                               'probabilities_sequence_characters': 'Probability coefficient',
-                                               'ancestral_sequence': 'Ancestral comparison', 'sequence_likelihood':
-                                               'Likelihood of sequence', 'log_likelihood': 'Log-likelihood',
-                                               'log_likelihood_vector': 'Vector of log-likelihood'}
-            lists = ('children', 'probabilities_sequence_characters', 'sequence', 'ancestral_sequence',
-                     'log_likelihood_vector')
-        elif mode == 'branch_tsv':
-            columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', 'distance':
-                                               'Branch length', 'branch_probability_vector':
-                                               'Branch probability vector'}
-            lists = ('branch_probability_vector', )
-
-        return columns, lists
-
-    @staticmethod
-    def get_alpha_beta(alpha: Optional[float] = None, beta: Optional[float] = None) -> Tuple[float, ...]:
-        alpha = alpha if alpha else (beta if beta else 0.5)
-        beta = beta if beta else alpha
-
-        return alpha, beta
-
-    def get_gamma_distribution_categories_vector(self, categories_quantity: Optional[int] = None,
-                                                 alpha: Optional[float] = None, beta: Optional[float] = None
-                                                 ) -> Tuple[float, ...]:
-        categories_quantity = 1 if categories_quantity is None else categories_quantity
-        alpha, beta = self.get_alpha_beta(alpha, beta)
-        categories_vector = []
-        gamma_percent_point = Tree.get_gamma_distribution_percent_point(categories_quantity, alpha, beta)
-        for i in range(categories_quantity):
-            lower_gamma_inc_1 = gammainc(alpha + 1, gamma_percent_point[i] * beta)
-            lower_gamma_inc_2 = gammainc(alpha + 1, gamma_percent_point[i + 1] * beta)
-            mean = (alpha / beta) * (lower_gamma_inc_2 - lower_gamma_inc_1) / (1 / categories_quantity)
-            categories_vector.append(mean)
-
-        self.rate_vector = tuple(categories_vector)
-        self.categories_quantity = categories_quantity
-
-        return self.rate_vector
-
-    def parameters_optimization(self, pi_0: Optional[Union[float, np.ndarray, int]] = None,
-                                pi_1: Optional[Union[float, np.ndarray, int]] = None,
-                                is_optimize_pi: Optional[bool] = None, is_optimize_pi_average: Optional[bool] = None
-                                ) -> None:
-        if isinstance(pi_0, (float, np.ndarray, int)) and pi_0:
-            self.pi_0 = self.optimize_pi(pi=pi_0, mode=0, is_optimize_pi=is_optimize_pi,
-                                         is_optimize_pi_average=is_optimize_pi_average)
-        elif isinstance(pi_1, (float, np.ndarray, int)) and pi_1:
-            self.pi_1 = self.optimize_pi(pi=pi_1, mode=1, is_optimize_pi=is_optimize_pi,
-                                         is_optimize_pi_average=is_optimize_pi_average)
-        self.is_optimize_pi = False if is_optimize_pi is None else is_optimize_pi
-        self.is_optimize_pi_average = False if is_optimize_pi_average is None else is_optimize_pi_average
-
-    def set_tree_data(self, msa: Optional[Union[Dict[str, str], str]] = None,
-                      categories_quantity: Optional[int] = None,
-                      alpha: Optional[float] = None,
-                      beta: Optional[float] = None,
-                      pi_0: Optional[Union[float, np.ndarray, int]] = None,
-                      pi_1: Optional[Union[float, np.ndarray, int]] = None,
-                      coefficient_bl: Optional[Union[float, np.ndarray, int]] = None,
-                      is_optimize_pi: Optional[bool] = None,
-                      is_optimize_pi_average: Optional[bool] = None,
-                      is_optimize_alpha: Optional[bool] = None,
-                      is_optimize_bl: Optional[bool] = None
-                      ) -> None:
-        if isinstance(msa, str):
-            self.msa = self.get_msa_dict(msa)
-        elif isinstance(msa, dict):
-            self.msa = msa
-        if isinstance(self.msa, dict) and self.msa:
-            self.alphabet = Tree.get_alphabet_from_dict(self.msa)
-
-        alpha, beta = self.get_alpha_beta(alpha, beta)
-
-        self.optimize_coefficient_bl(coefficient_bl, is_optimize_bl)
-        self.parameters_optimization(pi_0, pi_1, is_optimize_pi, is_optimize_pi_average)
-        self.optimize_alpha(alpha, categories_quantity, is_optimize_alpha)
-        if (self.is_optimize_alpha or self.is_optimize_pi) and self.is_optimize_bl:
-            self.optimize_coefficient_bl(self.coefficient_bl, self.is_optimize_bl)
-
     def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
 
         fasta_text = self.get_fasta_text()
@@ -624,9 +552,10 @@ class Tree:
     def attributes_to_tsv(self, file_name: str = 'tree_attributes.tsv', sep: str = '\t') -> str:
 
         Tree.make_dir(file_name)
-        data = {'π0 value': self.pi_0, 'π1 value': self.pi_1, 'Γ distribution α value': self.alpha,
+        data = {'π1 value': self.pi_1, 'Γ distribution α value': self.alpha,
                 'number of rate categories': self.categories_quantity, 'coefficient of branch lengths':
-                self.coefficient_bl, 'rate vector': self.rate_vector, 'alphabet': self.alphabet}
+                self.coefficient_bl, 'rate vector': self.rate_vector, 'alphabet': self.alphabet, 'log_likelihood':
+                self.log_likelihood}
         tree_table = pd.DataFrame({k: ((v, ) if isinstance(v, (set, tuple, list)) else v) for k, v in data.items()
                                    if v is not None})
         tree_table.to_csv(file_name, sep=sep, index=False)
@@ -746,9 +675,6 @@ class Tree:
                                               for j in df_copy['ancestral_sequence'][i]])
                 ancestral_sequence = Node.draw_row_html_table('Ancestral Comparison', ancestral_sequence)
             if df_copy["node_type"][i] != 'leaf':
-                # probability_mark = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], "9" if j == 1 else
-                #                             int(j * 10)) for j in df_copy['prob_characters'][i]])
-                # probability_mark = Node.draw_row_html_table('Probability mark (0-9)', probability_mark)
                 probability_coefficient = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], f'{j:.3f}')
                                                   for j in df_copy['prob_characters'][i]])
                 probability_coefficient = Node.draw_row_html_table('Probability coefficient', probability_coefficient)
@@ -762,8 +688,6 @@ class Tree:
                 d3.node_properties.get(df_copy['target'][i])['color'] = 'forestgreen'
                 d3.node_properties.get(df_copy['target'][i])['size'] = 10 / size_factor
             distance = f'<td class="h7 w-auto text-center">{df_copy["weight"][i]}</td>'
-            # info = (f'{Node.draw_row_html_table("Distance", distance)}{sequence}{ancestral_sequence}'
-            #         f'{probability_mark}{probability_coefficient}')
             info = (f'{Node.draw_row_html_table("Distance", distance)}{sequence}{probability_coefficient}'
                     f'{ancestral_sequence}')
             d3.node_properties.get(df_copy['target'][i])['tooltip'] = Node.draw_html_table(info)
@@ -771,7 +695,7 @@ class Tree:
 
         d3.set_edge_properties(df)
         d3.show()
-        # html = d3.chart.show(d3.edge_properties, config=d3.config, node_properties=d3.node_properties)
+
         return file_name
 
     def tree_to_graph(self, file_name: str = 'graph.svg', file_extensions: Optional[Union[str, Tuple[str, ...]]] = None
@@ -808,77 +732,157 @@ class Tree:
         """
             result_fild: `str` (default), message, success, status, fun, x, nit, nfev
         """
-        self.clean_all()
         func = self.__getattribute__(func) if isinstance(func, str) else func
         min_scalar = minimize_scalar(func, bracket=bracket, bounds=bounds) if args is None else (
             minimize_scalar(func, args=args, bracket=bracket, bounds=bounds))
 
         return min_scalar[result_fild] if result_fild else min_scalar
 
-    def pi_optimization(self, pi: Union[float, np.ndarray], mode: int = 0) -> Union[float, np.ndarray]:
+    def pi_optimization(self, pi: Union[float, np.ndarray], mode: int = 1) -> Union[float, np.ndarray]:
         current_pi = (pi, None)
-        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, pi_0=current_pi[mode],
-                                               pi_1=current_pi[::-1][mode])[1]
+        self.clean_all()
+        self.set_pi(current_pi[mode], current_pi[::-1][mode])
+        self.set_vars()
 
-    def alpha_optimization(self, alpha: Union[int, float, np.ndarray], categories_quantity: int = 1
-                           ) -> Union[float, np.ndarray]:
-        self.get_gamma_distribution_categories_vector(categories_quantity, alpha)
-        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1)[1]
+        return -self.root.calculate_likelihood(self.msa)[1]
 
-    def set_coefficient_bl(self, coefficient_bl: Union[int, float, np.ndarray]) -> None:
-        node_list = self.root.get_list_nodes_info(only_node_list=True)
-        for current_node in node_list:
-            current_node.coefficient_bl = coefficient_bl
+    def alpha_optimization(self, alpha: Union[int, float, np.ndarray]) -> Union[float, np.ndarray]:
+        self.clean_all()
+        self.set_gamma_distribution_categories_vector(alpha)
+        self.set_vars()
+
+        return -self.root.calculate_likelihood(self.msa)[1]
 
     def coefficient_bl_optimization(self, coefficient_bl: Union[int, float, np.ndarray]) -> Union[float, np.ndarray]:
+        self.clean_all()
         self.set_coefficient_bl(coefficient_bl)
+        self.set_vars()
 
-        return -self.root.calculate_likelihood(self.msa, self.alphabet, self.rate_vector, self.pi_0, self.pi_1)[1]
+        return -self.root.calculate_likelihood(self.msa)[1]
 
-    def optimize_pi_average(self, mode: int = 0, msa: Optional[str] = None) -> float:
-        all_lines = ''
-        if isinstance(msa, str) and msa:
-            for i, current_line in enumerate(msa.split()):
-                if i % 2:
-                    all_lines += current_line.strip()
-        else:
-            all_lines = ''.join(self.msa.values())
-
-        return all_lines.count(self.alphabet[mode]) / len(all_lines)
-
-    def optimize_coefficient_bl(self, coefficient_bl: Optional[Union[int, float, np.ndarray]] = None,
-                                is_optimize_bl: Optional[bool] = None) -> Union[float, np.ndarray, int]:
+    def optimize_coefficient_bl(self, is_optimize_bl: Optional[bool] = None) -> None:
         if is_optimize_bl:
-            coefficient_bl = self.optimize(func=self.coefficient_bl_optimization, bracket=(1, ),
-                                           bounds=(0.1, 10), result_fild='x')
+            self.coefficient_bl = self.optimize(func=self.coefficient_bl_optimization, bracket=(1, ), bounds=(0.1, 10),
+                                                result_fild='x')
 
+        self.set_vars()
+
+    def optimize_alpha(self, is_optimize_alpha: Optional[bool] = None) -> None:
+        if is_optimize_alpha:
+            self.alpha = self.optimize(func=self.alpha_optimization, bracket=(0.5, ), bounds=(0.1, 20), result_fild='x')
+
+        self.set_vars()
+
+    def optimize_pi(self, is_optimize_pi: Optional[bool] = None, is_optimize_pi_average: Optional[bool] = None,
+                    mode: int = 1) -> None:
+        if is_optimize_pi:
+            self.pi_1 = self.optimize(func=self.pi_optimization, bracket=(0.5, ), bounds=(0.001, 0.999), args=(mode, ),
+                                      result_fild='x')
+        elif is_optimize_pi_average:
+            all_lines_list = list(self.msa.values())
+            all_lines = ''.join(all_lines_list)
+            self.pi_1 = all_lines.count(self.alphabet[mode]) / len(all_lines)
+
+        self.set_vars()
+
+    def clean_all(self):
+        self.root.clean_all()
+        self.likelihood, self.log_likelihood, self.log_likelihood_vector = 1, 0, []
+
+    def set_all(self, categories_quantity: Optional[int] = None, alpha: Optional[float] = None,
+                beta: Optional[float] = None, pi_0: Optional[Union[float, np.ndarray, int]] = None,
+                pi_1: Optional[Union[float, np.ndarray, int]] = None,
+                coefficient_bl: Optional[Union[float, np.ndarray, int]] = None) -> None:
+
+        self.categories_quantity = categories_quantity
+        self.set_alpha(alpha, beta)
+        self.set_pi(pi_0, pi_1)
         self.set_coefficient_bl(coefficient_bl)
-        self.is_optimize_bl = False if is_optimize_bl is None else is_optimize_bl
+        self.set_gamma_distribution_categories_vector(self.alpha)
+        self.set_vars()
+
+    def set_gamma_distribution_categories_vector(self, alpha: Union[int, float, np.ndarray]) -> None:
+        self.set_alpha(alpha)
+        categories_vector = []
+        gamma_percent_point = self.get_gamma_distribution_percent_point()
+        for i in range(self.categories_quantity):
+            lower_gamma_inc_1 = gammainc(self.alpha + 1, gamma_percent_point[i] * self.alpha)
+            lower_gamma_inc_2 = gammainc(self.alpha + 1, gamma_percent_point[i + 1] * self.alpha)
+            mean = (self.alpha / self.alpha) * (lower_gamma_inc_2 - lower_gamma_inc_1) / (1 / self.categories_quantity)
+            categories_vector.append(mean)
+
+        self.rate_vector = tuple(categories_vector)
+
+    def set_coefficient_bl(self, coefficient_bl: Optional[Union[float, np.ndarray, int]] = None) -> None:
         self.coefficient_bl = 1.0 if coefficient_bl is None else coefficient_bl
 
-        return coefficient_bl
+    def set_alpha(self, alpha: Optional[float] = None, beta: Optional[float] = None) -> None:
+        self.alpha = alpha if alpha else (beta if beta else 0.5)
 
-    def optimize_alpha(self, alpha: Union[int, float, np.ndarray], categories_quantity: int = 1,
-                       is_optimize_alpha: Optional[bool] = None) -> Union[float, np.ndarray, int]:
-        if is_optimize_alpha:
-            alpha = self.optimize(func=self.alpha_optimization, bracket=(0.5, ), bounds=(0.1, 20),
-                                  args=(categories_quantity, ), result_fild='x')
-        self.alpha = alpha
-        self.is_optimize_alpha = False if is_optimize_alpha is None else is_optimize_alpha
-        self.get_gamma_distribution_categories_vector(categories_quantity, self.alpha, self.alpha)
+    def set_pi(self, pi_0: Optional[Union[float, np.ndarray, int]] = None,
+               pi_1: Optional[Union[float, np.ndarray, int]] = None) -> None:
+        alphabet_size = len(self.alphabet)
+        if pi_0:
+            self.pi_1 = 1 - pi_0
+        elif pi_1:
+            self.pi_1 = pi_1
+        else:
+            self.pi_1 = 1 / alphabet_size
 
-        return alpha
+    def set_vars(self) -> None:
+        alphabet_size = len(self.alphabet)
+        rate_vector_size = len(self.rate_vector)
+        if self.pi_1:
+            frequency = (1 - self.pi_1, self.pi_1)
+        else:
+            frequency = (1 / alphabet_size, 1 / alphabet_size)
+        for current_node in self.root.get_list_nodes_info(only_node_list=True):
+            current_node.alphabet = self.alphabet
+            current_node.alphabet_size = alphabet_size
+            current_node.rate_vector_size = rate_vector_size
+            current_node.frequency = frequency
+            current_node.pi_1 = self.pi_1
+            current_node.coefficient_bl = self.coefficient_bl
+            current_node.pmatrix = tuple([current_node.get_pmatrix(r) for r in self.rate_vector])
 
-    def optimize_pi(self, pi: Union[int, float, np.ndarray], mode: int = 0, is_optimize_pi: Optional[bool] = None,
-                    is_optimize_pi_average: Optional[bool] = None, msa: Optional[str] = None
-                    ) -> Union[float, np.ndarray, int]:
-        if is_optimize_pi:
-            pi = self.optimize(func=self.pi_optimization, bracket=(0.5, ), bounds=(0.001, 0.999), args=(mode, ),
-                               result_fild='x')
-        elif is_optimize_pi_average:
-            pi = self.optimize_pi_average(mode=mode, msa=msa)
+    def get_gamma_distribution_percent_point(self) -> List[float]:
+        probability_vector = np.linspace(0, 1, self.categories_quantity + 1)
 
-        return pi
+        return gamma.ppf(probability_vector, a=self.alpha, scale=1/self.alpha)
+
+    @staticmethod
+    def get_columns(mode: str = 'node', columns: Optional[Dict[str, str]] = None
+                    ) -> Tuple[Dict[str, str], Tuple[str, ...]]:
+        lists = ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector', 'probability_vector',
+                 'probabilities_sequence_characters', 'log_likelihood_vector', 'sequence', 'ancestral_sequence',
+                 'probability_vector_gain', 'probability_vector_loss')
+        if mode == 'node':
+            columns = columns if columns else {'node': 'Name', 'node_type': 'Node type', 'distance':
+                                               'Distance to parent', 'sequence': 'Sequence',
+                                               'probabilities_sequence_characters': 'Probability coefficient',
+                                               'ancestral_sequence': 'Ancestral Comparison'}
+            lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
+        elif mode == 'branch':
+            columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', 'distance':
+                                               'Branch length', 'probability_vector_gain': 'Gain probability',
+                                               'probability_vector_loss': 'Loss probability'}
+            lists = ('probability_vector_gain', 'probability_vector_loss')
+        elif mode == 'node_tsv':
+            columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance':
+                                               'Distance to parent', 'children': 'Children', 'sequence': 'Sequence',
+                                               'probabilities_sequence_characters': 'Probability coefficient',
+                                               'ancestral_sequence': 'Ancestral comparison', 'sequence_likelihood':
+                                               'Likelihood of sequence', 'log_likelihood': 'Log-likelihood',
+                                               'log_likelihood_vector': 'Vector of log-likelihood'}
+            lists = ('children', 'probabilities_sequence_characters', 'sequence', 'ancestral_sequence',
+                     'log_likelihood_vector')
+        elif mode == 'branch_tsv':
+            columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', 'distance':
+                                               'Branch length', 'branch_probability_vector':
+                                               'Branch probability vector'}
+            lists = ('branch_probability_vector', )
+
+        return columns, lists
 
     @staticmethod
     def write_file(file_name: str, file_text: str) -> str:
@@ -989,12 +993,6 @@ class Tree:
         newick_node = Node(node_data[0])
         newick_node.distance_to_father = float(node_data[1])
         return newick_node
-
-    @staticmethod
-    def get_gamma_distribution_percent_point(categories_quantity: int, alpha: float, beta: float) -> List[float]:
-        probability_vector = np.linspace(0, 1, categories_quantity + 1)
-
-        return gamma.ppf(probability_vector, a=alpha, scale=1/beta)
 
     @staticmethod
     def rename_nodes(newick_tree: Union[str, 'Tree'], node_name: str = 'N', fill_character: str = '0', number_length:
