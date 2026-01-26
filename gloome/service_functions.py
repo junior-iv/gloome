@@ -9,8 +9,8 @@ from numpy import ndarray
 from validate_email import validate_email
 from flask import url_for
 
-from script.tree import Tree
-from script.design_functions import *
+from gloome.tree.tree import Tree
+from gloome.design_functions import *
 
 number = 0
 

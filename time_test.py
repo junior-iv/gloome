@@ -3,8 +3,8 @@ from os import path
 from json import dumps
 from line_profiler import LineProfiler
 
-from script.tree import Tree
-from script.service_functions import draw_tree, compute_likelihood_of_tree, create_all_file_types
+from gloome.tree.tree import Tree
+from gloome.service_functions import draw_tree, compute_likelihood_of_tree, create_all_file_types
 
 
 def read_file(file_path: str) -> Optional[str]:

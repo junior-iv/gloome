@@ -13,7 +13,7 @@ from scipy.stats import gamma
 from scipy.special import gammainc
 from scipy.optimize import minimize_scalar
 
-from script.node import Node
+from gloome.tree.node import Node
 
 
 class Tree:

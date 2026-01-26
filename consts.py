@@ -4,8 +4,8 @@ from typing import List, Tuple, Union
 from dotenv import load_dotenv
 from types import FunctionType, MethodType
 
-from script.tree import Tree
-from script.service_functions import check_data, execute_all_actions, recompile_json
+from gloome.tree.tree import Tree
+from gloome.service_functions import check_data, execute_all_actions, recompile_json
 
 load_dotenv()
 MODE = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions']

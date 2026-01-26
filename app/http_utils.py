@@ -3,7 +3,7 @@ import multiprocessing as mp
 
 from app.flask_app import *
 from app.config import *
-from script.service_functions import get_variables, check_data, get_error, loads_json, read_file
+from gloome.service_functions import get_variables, check_data, get_error, loads_json, read_file
 
 
 def write_end_file(process_id: Union[int, str], completed: bool, result_dir: str) -> str:

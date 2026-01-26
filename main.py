@@ -57,7 +57,7 @@ def install_packages(packages):
             installed += 1
             progress.update(1)
 
-    print('\n✅ Усі залежності готові!\n')
+    print('\n✅ All dependencies are ready!\n')
 
 
 def main():
@@ -66,7 +66,7 @@ def main():
     packages = load_requirements()
     install_packages(packages)
 
-    os.system('script/main.py')
+    os.system('gloome/main.py')
 
     # import requests
 

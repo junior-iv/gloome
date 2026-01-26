@@ -11,7 +11,7 @@ script_path = ospath.abspath(ospath.dirname(__file__))
 if script_path not in syspath:
     syspath.insert(0, script_path)
 
-from script.config import Config
+from gloome.config import Config
 
 if __name__ == '__main__':
     conf = Config()

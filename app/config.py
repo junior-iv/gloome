@@ -3,7 +3,7 @@ import requests
 from time import sleep
 from typing import Set, Any, Optional, Dict
 
-from script.service_functions import read_file, loads_json, create_file
+from gloome.service_functions import read_file, loads_json, create_file
 from app.mail import *
 
 
