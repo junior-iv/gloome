@@ -1,11 +1,14 @@
-from os import getenv, path
+from os import getenv
 from sys import argv
 from typing import List, Tuple, Union
 from dotenv import load_dotenv
 from types import FunctionType, MethodType
+from pathlib import Path
+from urllib import parse
+from importlib.resources import files
 
 from gloome.tree.tree import Tree
-from gloome.service_functions import check_data, execute_all_actions, recompile_json
+from gloome.services.service_functions import check_data, execute_all_actions, recompile_json
 
 load_dotenv()
 MODE = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions']
@@ -15,44 +18,34 @@ PREFIX = '/'
 APPLICATION_ROOT = PREFIX
 DEBUG = not IS_PRODUCTION
 
-# ADMIN_EMAIL = 'juniorrr.iv@gmail.com'
-# # ADMIN_EMAIL = 'sgloome@gmail.com'
-# SMTP_SERVER = 'smtp.gmail.com'
-# # SMTP_PORT = 465
-# ADMIN_PASSWORD = 'debe eenr qyfr jmdr'
-# # ADMIN_PASSWORD = 'W7wp.N2WaqmT%f'
-# # SMTP_PORT = 587
-
 PREFERRED_URL_SCHEME = 'https'
 WEBSERVER_NAME_CAPITAL = 'Gloome'
 WEBSERVER_NAME = 'gloome.tau.ac.il'
 WEBSERVER_URL = f'{PREFERRED_URL_SCHEME}://{WEBSERVER_NAME}'
-WEBSERVER_RESULTS_URL = path.join(WEBSERVER_URL, 'results')
-WEBSERVER_LOG_URL = path.join(WEBSERVER_URL, 'logs')
+RESULTS_URL = parse.urljoin(WEBSERVER_URL, 'results')
+LOG_URL = parse.urljoin(WEBSERVER_URL, 'logs')
 
 WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
 MODULE_LOAD = 'module load mamba/mamba-1.5.8'
-# PRODJECT_DIR = '/lsweb/rodion/gloome'
-# PRODJECT_DIR = '/gloome'
-# SLURM_PRODJECT_DIR = '/gloome'
 
-BIN_DIR = path.dirname(path.abspath(__file__))
+BIN_DIR = Path.cwd().parent
+RESULTS_DIR = BIN_DIR.joinpath('results')
+IN_DIR = RESULTS_DIR.joinpath('in')
+OUT_DIR = RESULTS_DIR.joinpath('out')
+LOGS_DIR = BIN_DIR.joinpath('logs')
+TMP_DIR = BIN_DIR.joinpath('tmp')
+APP_DIR = BIN_DIR.joinpath('app')
+TEMPLATES_DIR = APP_DIR.joinpath('templates')
+STATIC_DIR = APP_DIR.joinpath('static')
+ERROR_TEMPLATE = TEMPLATES_DIR.joinpath('404.html')
+ENV = BIN_DIR.joinpath('.env')
 
-ENVIRONMENT_DIR = path.join(BIN_DIR, 'gloome_env2')
+ENVIRONMENT_DIR = BIN_DIR.joinpath('gloome_env2')
 ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
 
-SCRIPT_DIR = path.join(BIN_DIR, 'script')
-SRC_DIR = path.join(BIN_DIR, 'src')
-INITIAL_DATA_DIR = path.join(SRC_DIR, 'initial_data')
-SERVERS_RESULTS_DIR = path.join(BIN_DIR, 'results')
-IN_DIR = path.join(SERVERS_RESULTS_DIR, 'in')
-OUT_DIR = path.join(SERVERS_RESULTS_DIR, 'out')
-SERVERS_LOGS_DIR = path.join(BIN_DIR, 'logs')
-APP_DIR = path.join(BIN_DIR, 'app')
-TMP_DIR = path.join(BIN_DIR, 'tmp')
-TEMPLATES_DIR = path.join(APP_DIR, 'templates')
-STATIC_DIR = path.join(APP_DIR, 'static')
-ERROR_TEMPLATE = path.join(TEMPLATES_DIR, '404.html')
+GLOOME_DIR = files('gloome')
+DATA_DIR = GLOOME_DIR.joinpath('data')
+INITIAL_DATA_DIR = DATA_DIR.joinpath('initial_data')
 
 MSA_FILE_NAME = 'msa_file.msa'
 TREE_FILE_NAME = 'tree_file.tree'
@@ -60,30 +53,8 @@ TREE_FILE_NAME = 'tree_file.tree'
 REQUEST_WAITING_TIME = 20
 REQUESTS_NUMBER = 24 * 60 * 60 * 3 / REQUEST_WAITING_TIME
 
-# IS_LOCAL = request.remote_addr in ('127.0.0.1', '::1')
-# IS_LOCAL = 'powerslurm' not in socket.gethostname()
-
-if not path.exists(path.join(BIN_DIR, '.env')):
-    SECRET_KEY = ''
-    TOKEN = ''
-    PARTITION = ''
-    USE_OLD_SUBMITER = 0
-
-    LOGIN_NODE_URLS = ''
-    USER_NAME = ''
-    USER_ID = ''
-    USER_PASSWORD = ''
-    ADMIN_EMAIL = ''
-    SMTP_SERVER = ''
-    SMTP_PORT = 0
-    REPORT_RECEIVERS = []
-
-    DEV_EMAIL = ''
-    ADMIN_USER_NAME = ''
-    ADMIN_PASSWORD = ''
-    SEND_EMAIL_DIR_IBIS = ''
-    OWNER_EMAIL = ''
-else:
+if ENV.exists():
+    UNDER_CONSTRUCTION = int(getenv('UNDER_CONSTRUCTION'))
     SECRET_KEY = getenv('SECRET_KEY')
     TOKEN = getenv('TOKEN')
     ACCOUNT = getenv('ACCOUNT')
@@ -104,6 +75,27 @@ else:
     ADMIN_PASSWORD = getenv('ADMIN_PASSWORD')
     SEND_EMAIL_DIR_IBIS = getenv('SEND_EMAIL_DIR_IBIS')
     OWNER_EMAIL = getenv('OWNER_EMAIL')
+else:
+    UNDER_CONSTRUCTION = False
+    SECRET_KEY = ''
+    TOKEN = ''
+    PARTITION = ''
+    USE_OLD_SUBMITER = 0
+
+    LOGIN_NODE_URLS = ''
+    USER_NAME = ''
+    USER_ID = ''
+    USER_PASSWORD = ''
+    ADMIN_EMAIL = ''
+    SMTP_SERVER = ''
+    SMTP_PORT = 0
+    REPORT_RECEIVERS = []
+
+    DEV_EMAIL = ''
+    ADMIN_USER_NAME = ''
+    ADMIN_PASSWORD = ''
+    SEND_EMAIL_DIR_IBIS = ''
+    OWNER_EMAIL = ''
 
 
 class Actions:
@@ -238,8 +230,6 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify pi_1. Default is 0.5.
 \t\t--coefficient_bl <type=float> 
 \t\t\tSpecify coefficient_bl. Default is 1.0.
-\t\t--e_mail <type=str> 
-\t\t\tSpecify e_mail. Default is ''.
 \t\t--is_optimize_pi <type=int> 
 \t\t\tSpecify is_optimize_pi. Default is 1.
 \t\t--is_optimize_pi_average <type=int> 
@@ -248,8 +238,6 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify is_optimize_alpha. Default is 1.
 \t\t--is_optimize_bl <type=int> 
 \t\t\tSpecify is_optimize_bl. Default is 1.
-\t\t--is_do_not_use_e_mail <type=int> 
-\t\t\tSpecify is_do_not_use_e_mail. Default is 1.
 \t\t--file_interactive_tree_html <type=int> 
 \t\t\tSpecify file_interactive_tree_html. Default is 0.
 \t\t--file_newick_tree_png <type=int> 
@@ -261,7 +249,11 @@ USAGE = '''\tRequired parameters:
 \t\t--file_log_likelihood_tsv <type=int> 
 \t\t\tSpecify file_log_likelihood_tsv. Default is 1.
 \t\t--file_table_of_attributes_tsv <type=int> 
-\t\t\tSpecify file_table_of_attributes_tsv. Default is 1.'''
+\t\t\tSpecify file_table_of_attributes_tsv. Default is 1.
+\t\t--e_mail <type=str> 
+\t\t\tSpecify e_mail (technical parameter, do not change).
+\t\t--is_do_not_use_e_mail <type=int> 
+\t\t\tSpecify is_do_not_use_e_mail (technical parameter, do not change).'''
 
 MENU = ({'name': 'Home', 'url': 'index',
          'submenu': ()

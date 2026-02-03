@@ -1,6 +1,5 @@
-from os import scandir
+import re
 from typing import Any, Optional, Dict
-
 from smtplib import SMTP, SMTP_SSL
 from ssl import create_default_context
 from email.mime.multipart import MIMEMultipart
@@ -8,7 +7,7 @@ from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
 
-from utils import *
+from gloome.utils import *
 
 
 class MailSenderSMTPLib:
@@ -19,8 +18,9 @@ class MailSenderSMTPLib:
     smtp_port: int
     password: str
     report_receivers: List[str]
-    out_dir: str
-    results: str
+    log_files_dir: Path
+    out_dir: Path
+    results: Path
     sender_logger: Any
 
     def __init__(self, **attributes):
@@ -29,14 +29,14 @@ class MailSenderSMTPLib:
         self.smtp_port = SMTP_PORT
         self.password = ADMIN_PASSWORD
         self.report_receivers = REPORT_RECEIVERS
-        self.log_files_dir = SERVERS_LOGS_DIR
+        self.log_files_dir = LOGS_DIR
         self.out_dir = OUT_DIR
-        self.results = WEBSERVER_RESULTS_URL
+        self.results = RESULTS_URL
         self.receiver = ''
         self.name = ''
 
         self.set_attributes(**attributes)
-        self.sender_logger = get_job_logger(f'{self.name} {self.sender}', SERVERS_LOGS_DIR)
+        self.sender_logger = get_job_logger(f'{self.name} {self.sender}', LOGS_DIR)
 
     def set_attributes(self, **attributes) -> None:
         if attributes:
@@ -44,22 +44,21 @@ class MailSenderSMTPLib:
                 if hasattr(self, key):
                     setattr(self, key, value)
 
-    def create_attachments(self, attachment_path: str, message: MIMEMultipart, use_attachments: bool = False):
+    def create_attachments(self, attachment_path: Path, message: MIMEMultipart, use_attachments: bool = False):
         if use_attachments:
             self.add_attachment_to_email(attachment_path, message)
             return ''
         else:
-            mode = 'view' if (path.splitext(attachment_path)[-1][1:] in
-                              ('txt', 'csv', 'tsv', 'nwk', 'tree', 'dot', 'fasta', 'log', 'png', 'svg', 'jpeg', 'jpg',
-                               'html', 'htm', 'json', 'zip', 'rar', '7z', 'gz', 'tgz', 'tar', 'pdf', 'doc', 'dot',
-                               'wiz', 'docx', 'xls', 'xlt', 'xla', 'xlsx', 'ppt', 'pps', 'pps', 'pptx', 'ppsx'
-                               )) else 'download'
-            return (f'\n<a href="{WEBSERVER_URL}/get_file?file_path={attachment_path.replace("/", "%2F")}&mode={mode}"'
-                    f' target="_blank">{path.basename(attachment_path)}</a>')
+            suffixes = ('txt', 'csv', 'tsv', 'nwk', 'tree', 'dot', 'fasta', 'log', 'png', 'svg', 'jpeg', 'jpg', 'html',
+                        'htm', 'json', 'zip', 'rar', '7z', 'gz', 'tgz', 'tar', 'pdf', 'doc', 'dot', 'wiz', 'docx',
+                        'xls', 'xlt', 'xla', 'xlsx', 'ppt', 'pps', 'pps', 'pptx', 'ppsx')
+            mode = 'view' if attachment_path.suffix[1:] in suffixes else 'download'
+            return (f'\n<a href="{WEBSERVER_URL}/get_file?file_path={str(attachment_path).replace("/", "%2F")}'
+                    f'&mode={mode}" target="_blank">{attachment_path}</a>')
 
-    def send_email(self, subject: str, attachments: Union[Tuple[str, ...], List[str], Dict[str, Tuple[str, ...]],
-                   Dict[str, List[str]], str], body: str, use_attachments: bool = False, receiver: Optional[str] = None
-                   ) -> None:
+    def send_email(self, subject: str, attachments: Union[List[Path], Dict[str, List[Path]], str],
+                   body: str, use_attachments: bool = False,
+                   receiver: Optional[str] = None) -> None:
         message = MIMEMultipart()
         message["From"] = self.sender
         message["To"] = self.receiver if receiver is None else receiver
@@ -80,7 +79,7 @@ class MailSenderSMTPLib:
                         attachment_path = self.create_attachments(attachment_path, message, use_attachments)
                     body += f'<br>{attachment_path}'
         elif isinstance(attachments, str):
-            body += f'<br>{self.create_attachments(attachments, message, use_attachments)}'
+            body += f'<br>{self.create_attachments(Path(attachments), message, use_attachments)}'
         self.sender_logger.info(body)
         message.attach(MIMEText(body, 'html'))
 
@@ -100,58 +99,55 @@ class MailSenderSMTPLib:
             with SMTP_SSL(self.smtp_server) as server:
                 server.send_message(message)
 
-    def send_results_email(self, results_files_dir: str, log_file: str, excluded: Union[Tuple[str, ...], List[str], str,
-                           None] = None, included: Union[Tuple[str, ...], List[str], str, None] = None, is_error:
-                           bool = False, use_attachments: bool = False, **kwargs) -> None:
+    def send_results_email(self, results_files: Path, log_file: Path,
+                           excluded: Optional[Union[Tuple[str, ...], List[str], str]] = None,
+                           included: Optional[Union[Tuple[str, ...], List[str], str]] = None,
+                           is_error: bool = False, use_attachments: bool = False, **kwargs) -> None:
         self.set_attributes(**kwargs)
         status = 'failed!' if is_error else 'completed'
         subject = f'{WEBSERVER_NAME_CAPITAL} job {self.name} by {self.receiver} has {status}'
         body = f'{subject}\n'
         attachments = [log_file]
-        with scandir(results_files_dir) as entries:
-            for entry in entries:
-                self.add_attachment_to_list(entry, results_files_dir, attachments, excluded, included)
+        for entry in results_files.iterdir():
+            self.add_attachment_to_list(entry, attachments, excluded, included)
         self.send_email(subject, attachments, body, use_attachments)
 
-    def send_log_files_list(self, start_date: float, end_date: float, excluded: Union[Tuple[str, ...],
-                            List[str], str, None] = None, included: Union[Tuple[str, ...], List[str], str, None] = None,
+    def send_log_files_list(self, start_date: float, end_date: float,
+                            excluded: Optional[Union[Tuple[str, ...], List[str], str]] = None,
+                            included: Optional[Union[Tuple[str, ...], List[str], str]] = None,
                             use_attachments: bool = False, **kwargs) -> None:
         self.set_attributes(**kwargs)
         subject = f'{WEBSERVER_NAME_CAPITAL} Daily Jobs Report'
         body = f'{subject}\n'
         attachments = {'successful runs': [], 'failed runs': [], 'incomplete runs': []}
-        with scandir(self.log_files_dir) as entries:
-            for entry in entries:
-                if start_date <= entry.stat().st_ctime < end_date and bool(re.fullmatch(r"\d{14}\.log", entry.name)):
-                    process_id = path.splitext(entry.name)[0]
-                    if path.exists(path.join(path.join(self.out_dir, process_id), f'GLOOME_{process_id}.END_FAIL')):
-                        self.add_attachment_to_list(entry, self.log_files_dir, attachments.get('failed runs'),
-                                                    excluded, included)
-                    elif path.exists(path.join(path.join(self.out_dir, process_id), f'GLOOME_{process_id}.END_OK')):
-                        attachments.get('successful runs').append(f'{self.results}/{process_id}')
-                    else:
-                        self.add_attachment_to_list(entry, self.log_files_dir, attachments.get('incomplete runs'),
-                                                    excluded, included)
+        for entry in self.log_files_dir.iterdir():
+            if start_date <= entry.stat().st_ctime < end_date and bool(re.fullmatch(r"\d{14}\.log", entry.name)):
+                process_id = entry.stem
+                if self.out_dir.joinpath(process_id).joinpath(f'GLOOME_{process_id}.END_FAIL').exists():
+                    self.add_attachment_to_list(entry, attachments.get('failed runs'), excluded, included)
+                elif self.out_dir.joinpath(process_id).joinpath(f'GLOOME_{process_id}.END_OK').exists():
+                    attachments.get('successful runs').append(self.results.joinpath(process_id))
+                else:
+                    self.add_attachment_to_list(entry, attachments.get('incomplete runs'), excluded, included)
         for receiver in self.report_receivers:
             self.send_email(subject, attachments, body, use_attachments, receiver)
 
     @staticmethod
-    def create_link_to_results(result_path):
+    def create_link_to_results(result_path: Union[Path, str]):
         return f'\n<a href="{result_path}" target="_blank">{result_path}</a>'
 
     @staticmethod
-    def add_attachment_to_list(entry, current_dir: str, attachments: List[str], excluded: Union[Tuple[str, ...],
-                               List[str], str, None] = None, included: Union[Tuple[str, ...], List[str], str, None] =
-                               None) -> None:
-        includ = (included is None or entry.name in included or path.splitext(entry.name)[-1] in included
-                  or path.splitext(entry.name)[-1][1:] in included)
-        exclud = (excluded is not None and (entry.name in excluded or path.splitext(entry.name)[-1] in excluded
-                  or path.splitext(entry.name)[-1][1:] in excluded))
+    def add_attachment_to_list(entry: Path, attachments: List[Path],
+                               excluded: Optional[Union[Tuple[str, ...], List[str], str]] = None,
+                               included: Optional[Union[Tuple[str, ...], List[str], str]] = None) -> None:
+        includ = any((included is None, entry.name in included, entry.suffix in included, entry.suffix[1:] in included))
+        exclud = all((excluded is not None, any((entry.name in excluded, entry.suffix in excluded, entry.suffix[1:] in
+                                                 excluded))))
         if entry.is_file() and not exclud and includ:
-            attachments.append(path.join(current_dir, entry))
+            attachments.append(entry)
 
     @staticmethod
-    def add_attachment_to_email(attachment_path, message) -> None:
+    def add_attachment_to_email(attachment_path: Path, message: MIMEMultipart) -> None:
         with open(attachment_path, "rb") as attachment:
             part = MIMEBase("application", "octet-stream")
             part.set_payload(attachment.read().strip())
@@ -159,6 +155,6 @@ class MailSenderSMTPLib:
         encoders.encode_base64(part)
         part.add_header(
             "Content-Disposition",
-            f"attachment; filename= {path.basename(attachment_path)}",
+            f"attachment; filename= {attachment_path.name}",
         )
         message.attach(part)

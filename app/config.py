@@ -1,9 +1,9 @@
 import requests
 
 from time import sleep
-from typing import Set, Any, Optional, Dict
+from typing import Set
 
-from gloome.service_functions import read_file, loads_json, create_file
+from gloome.services.service_functions import read_file, loads_json, create_file
 from app.mail import *
 
 
@@ -16,8 +16,13 @@ class WebConfig:
         self.ENVIRONMENT_ACTIVATE = ENVIRONMENT_ACTIVATE
 
         self.BIN_DIR = BIN_DIR
+        self.RESULTS_DIR = RESULTS_DIR
+        self.LOGS_DIR = LOGS_DIR
+
         self.IN_DIR = IN_DIR
         self.OUT_DIR = OUT_DIR
+        self.RESULTS_URL = RESULTS_URL
+        self.LOG_URL = LOG_URL
 
         self.CURRENT_ARGS = DEFAULT_ARGUMENTS
 
@@ -29,13 +34,9 @@ class WebConfig:
         self.USE_ATTACHMENTS = False
 
         self.PROCESS_ID = None
-        self.SERVERS_RESULTS_DIR = None
-        self.SERVERS_LOGS_DIR = None
         self.MSA_FILE = None
         self.TREE_FILE = None
         self.JOB_LOGGER = None
-        self.WEBSERVER_RESULTS_URL = None
-        self.WEBSERVER_LOG_URL = None
 
         self.HISTORY = list()
         self.CURRENT_JOB = None
@@ -59,31 +60,27 @@ class WebConfig:
             self.change_process_id()
 
     def change_process_id(self, process_id: Optional[str] = None):
-        self.PROCESS_ID = self.get_new_process_id() if process_id is None else process_id
+        self.PROCESS_ID = get_new_process_id() if process_id is None else process_id
 
-        self.SERVERS_RESULTS_DIR = SERVERS_RESULTS_DIR
-        self.SERVERS_LOGS_DIR = SERVERS_LOGS_DIR
-        self.check_dir(self.SERVERS_LOGS_DIR)
+        self.OUT_DIR = self.OUT_DIR.joinpath(self.PROCESS_ID)
+        self.IN_DIR = self.IN_DIR.joinpath(self.PROCESS_ID)
+        check_dir(self.IN_DIR)
+        self.OUTPUT_FILE = self.OUT_DIR.joinpath(f'result.json')
 
-        self.OUT_DIR = path.join(self.OUT_DIR, self.PROCESS_ID)
-        self.IN_DIR = path.join(self.IN_DIR, self.PROCESS_ID)
-        self.check_dir(self.IN_DIR)
-        self.OUTPUT_FILE = path.join(self.OUT_DIR, f'result.json')
-
-        self.MSA_FILE = path.join(self.IN_DIR, self.MSA_FILE_NAME)
-        self.TREE_FILE = path.join(self.IN_DIR, self.TREE_FILE_NAME)
+        self.MSA_FILE = self.IN_DIR.joinpath(self.MSA_FILE_NAME)
+        self.TREE_FILE = self.IN_DIR.joinpath(self.TREE_FILE_NAME)
 
         self.CALCULATED_ARGS.file_path = self.OUT_DIR
 
-        self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
-        self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
-        self.JOB_LOGGER = get_job_logger(f'{self.PROCESS_ID}', self.SERVERS_LOGS_DIR)
+        self.RESULTS_URL = parse.urljoin(self.RESULTS_URL, self.PROCESS_ID)
+        self.LOG_URL = parse.urljoin(self.LOG_URL, self.PROCESS_ID)
+        self.JOB_LOGGER = get_job_logger(f'{self.PROCESS_ID}', self.LOGS_DIR)
         if process_id is None:
             self.JOB_LOGGER.info(f'\n\tcreate a new instance of the WebConfig class'
                                  f'\n\tPROCESS ID: {self.PROCESS_ID}'
                                  f'\n\tSUBMITER: {self.SUBMITER}'
-                                 f'\n\tWEBSERVER_RESULTS_URL: {self.WEBSERVER_RESULTS_URL}'
-                                 f'\n\tWEBSERVER_LOG_URL: {self.WEBSERVER_LOG_URL}\n')
+                                 f'\n\tWEBSERVER_RESULTS_URL: {self.RESULTS_URL}'
+                                 f'\n\tWEBSERVER_LOG_URL: {self.LOG_URL}\n')
 
     def arguments_filling(self, **arguments):
         dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'eMail', 'isOptimizePi',
@@ -130,16 +127,13 @@ class WebConfig:
                              f'\n\tmsa: {self.CALCULATED_ARGS.msa}\n')
 
     def texts_filling(self) -> None:
-        # def texts_filling(self, replace_path: bool = True) -> None:
-        # if replace_path:
-        #     self.replace_files_path()
         with open(self.TREE_FILE, 'r') as f:
             self.CALCULATED_ARGS.newick_text = f.read().strip()
         with open(self.MSA_FILE, 'r') as f:
             self.CALCULATED_ARGS.msa = f.read().strip()
 
     def create_tmp_data_files(self) -> None:
-        self.check_dir(self.CALCULATED_ARGS.file_path)
+        check_dir(self.CALCULATED_ARGS.file_path)
 
         create_file(self.MSA_FILE, self.CALCULATED_ARGS.msa)
         create_file(self.TREE_FILE, self.CALCULATED_ARGS.newick_text)
@@ -156,7 +150,7 @@ class WebConfig:
         else:
             e_mail = is_do_not_use_e_mail = ''
         self.COMMAND_LINE = (
-            f'python {path.join(".", "script/main.py")} '
+            f'python -m gloome '
             f'--process_id {self.PROCESS_ID} '
             f'--msa_file {self.MSA_FILE} '
             f'--tree_file {self.TREE_FILE} '
@@ -186,7 +180,7 @@ class WebConfig:
         job_name = f'gloome_{self.PROCESS_ID}'
         # prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{self.PROCESS_ID}_'
         prefix = f'{self.PROCESS_ID}_'
-        tmp_dir = path.join(self.BIN_DIR, 'tmp')
+        tmp_dir = TMP_DIR
         cmd = (f'#!/bin/bash\n'
                f'source ~/.bashrc\n'
                f'cd {self.BIN_DIR}\n'
@@ -207,8 +201,8 @@ class WebConfig:
                          'memory_per_node': {'number': 6144, 'set': True},
                          'time_limit': {'number': 10080, 'set': True},
                          'current_working_directory': tmp_dir,
-                         'standard_output': path.join(tmp_dir, f'{prefix}output.txt'),
-                         'standard_error': path.join(tmp_dir, f'{prefix}error.txt'),
+                         'standard_output': TMP_DIR.joinpath(f'{prefix}output.txt'),
+                         'standard_error': TMP_DIR.joinpath(f'{prefix}error.txt'),
                          'environment': [
                              f'PATH={self.ENVIRONMENT_DIR}/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:'
                              f'mamba/condabin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
@@ -227,8 +221,8 @@ class WebConfig:
                 'memory_per_node': 6144,
                 'time_limit': 10080,
                 'current_working_directory': tmp_dir,
-                'standard_output': path.join(tmp_dir, f'{prefix}output.txt'),
-                'standard_error': path.join(tmp_dir, f'{prefix}error.txt'),
+                'standard_output': TMP_DIR.joinpath(f'{prefix}output.txt'),
+                'standard_error': TMP_DIR.joinpath(f'{prefix}error.txt'),
                 'environment': [
                     f'PATH={self.ENVIRONMENT_DIR}/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:'
                     f'mamba/condabin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
@@ -288,12 +282,12 @@ class WebConfig:
 
         mail_sender = MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL)
         if job_state == 'COMPLETED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
-            mail_sender.send_results_email(results_files_dir=self.OUT_DIR, use_attachments=self.USE_ATTACHMENTS,
+            mail_sender.send_results_email(results_files=self.OUT_DIR, use_attachments=self.USE_ATTACHMENTS,
                                            is_error=False, log_file=self.JOB_LOGGER.handlers[-1].baseFilename,
                                            included=('.json', '.zip', '.log', '.html', '.png', 'tsv'),
                                            receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
         if job_state == 'FAILED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
-            mail_sender.send_results_email(results_files_dir=self.OUT_DIR, is_error=True, name=self.PROCESS_ID,
+            mail_sender.send_results_email(results_files=self.OUT_DIR, is_error=True, name=self.PROCESS_ID,
                                            log_file=self.JOB_LOGGER.handlers[-1].baseFilename, included=('.log', ),
                                            receiver=self.CURRENT_ARGS.e_mail, use_attachments=self.USE_ATTACHMENTS)
         if job_state:
@@ -303,17 +297,6 @@ class WebConfig:
 
             return self.read_response()
         return ''
-
-    @staticmethod
-    def check_dir(file_path: str, **kwargs):
-        if not path.exists(file_path):
-            makedirs(file_path, **kwargs)
-
-    @staticmethod
-    def get_new_process_id():
-        time_str = str(round(time()))
-        rand_str = str(randint(1000, 9999))
-        return f'{time_str}{rand_str}'
 
 
 class SawSubmiter:
@@ -351,8 +334,7 @@ class SawSubmiter:
                 'nodes':        '(str) '    'Filter by node name',
                 'gres_used':    '(str) '    'Filter by GRES used',
                 'job_user':     '(str) '    'Filter by the SLURM user who submitted the job',
-                'job_state':    '(str) '    'Filter by job state (e.g. RUNNING, COMPLETED, FAILED, etc.)'
-            }
+                'job_state':    '(str) '    'Filter by job state (e.g. RUNNING, COMPLETED, FAILED, etc.)'}
         """
         url = f'{self.api}/jobs/'
         return self.exec_request(url, **kwargs)

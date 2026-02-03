@@ -4,7 +4,7 @@ import traceback
 from sys import exit
 from typing import Dict
 
-from utils import *
+from gloome.utils import *
 
 
 class Config:
@@ -12,8 +12,13 @@ class Config:
         self.MODE = MODE[3:4]
         self.COMMAND_LINE = COMMAND_LINE
 
+        self.RESULTS_DIR = RESULTS_DIR
+        self.LOGS_DIR = LOGS_DIR
+
         self.IN_DIR = IN_DIR
         self.OUT_DIR = OUT_DIR
+        self.RESULTS_URL = RESULTS_URL
+        self.LOG_URL = LOG_URL
 
         self.ACTIONS = ACTIONS
         self.VALIDATION_ACTIONS = VALIDATION_ACTIONS
@@ -27,15 +32,10 @@ class Config:
         self.WEBSERVER_NAME_CAPITAL = WEBSERVER_NAME_CAPITAL
 
         self.PROCESS_ID = None
-        self.SERVERS_RESULTS_DIR = None
-        self.SERVERS_LOGS_DIR = None
         self.MSA_FILE = None
         self.TREE_FILE = None
         self.JOB_LOGGER = None
-        self.WEBSERVER_RESULTS_URL = None
-        self.WEBSERVER_LOG_URL = None
 
-        # self.LOGGER = logger
         self.USAGE = USAGE
 
         if attributes:
@@ -49,24 +49,23 @@ class Config:
             self.parse_arguments()
 
         if not self.PROCESS_ID:
-            self.change_process_id(self.get_new_process_id())
+            self.change_process_id(get_new_process_id())
 
     def change_process_id(self, process_id: str):
         self.PROCESS_ID = process_id
 
-        self.SERVERS_RESULTS_DIR = SERVERS_RESULTS_DIR
-        self.SERVERS_LOGS_DIR = SERVERS_LOGS_DIR
-        self.check_dir(self.SERVERS_LOGS_DIR)
+        self.RESULTS_DIR = RESULTS_DIR
+        self.LOGS_DIR = LOGS_DIR
 
-        self.OUT_DIR = path.join(self.OUT_DIR, self.PROCESS_ID)
-        self.check_dir(self.OUT_DIR)
-        self.IN_DIR = path.join(self.IN_DIR, self.PROCESS_ID)
+        self.OUT_DIR = self.OUT_DIR.joinpath(self.PROCESS_ID)
+        check_dir(self.OUT_DIR)
+        self.IN_DIR = self.IN_DIR.joinpath(self.PROCESS_ID)
 
         self.CALCULATED_ARGS.file_path = self.OUT_DIR
 
-        self.WEBSERVER_RESULTS_URL = path.join(WEBSERVER_RESULTS_URL, self.PROCESS_ID)
-        self.WEBSERVER_LOG_URL = path.join(WEBSERVER_LOG_URL, self.PROCESS_ID)
-        self.JOB_LOGGER = get_job_logger(f'{process_id}', self.SERVERS_LOGS_DIR)
+        self.RESULTS_URL = parse.urljoin(self.RESULTS_URL, self.PROCESS_ID)
+        self.LOG_URL = parse.urljoin(self.LOG_URL, self.PROCESS_ID)
+        self.JOB_LOGGER = get_job_logger(f'{process_id}', self.LOGS_DIR)
 
     def check_and_set_input_and_output_variables(self):
         """get variables from input arguments and fill out the Variable Class properties"""
@@ -126,17 +125,6 @@ class Config:
             self.execute_action(self.ACTIONS.calculate_tree_for_fasta, self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_ancestral_sequence', False):
             self.execute_action(self.ACTIONS.calculate_ancestral_sequence, self.CALCULATED_ARGS.newick_tree)
-        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('draw_tree', False):
-        #     self.execute_action(self.ACTIONS.draw_tree, file_path=self.OUT_DIR, create_new_file=True,
-        #                         form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
-        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('compute_likelihood_of_tree', False):
-        #     self.execute_action(self.ACTIONS.compute_likelihood_of_tree, file_path=self.OUT_DIR, create_new_file=True,
-        #                         form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree)
-        # if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('create_all_file_types', False):
-        #     self.execute_action(self.ACTIONS.create_all_file_types, file_path=self.OUT_DIR, create_new_file=True,
-        #                         form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
-        #                         with_internal_nodes=self.CURRENT_ARGS.with_internal_nodes,
-        #                         log_file=self.JOB_LOGGER.handlers[-1].baseFilename)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
             self.execute_action(self.ACTIONS.execute_all_actions, file_path=self.OUT_DIR, create_new_file=True,
                                 form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
@@ -144,18 +132,18 @@ class Config:
                                 log_file=self.JOB_LOGGER.handlers[-1].baseFilename, actions=self.MAIN_ACTIONS,
                                 selected_files=self.get_selected_files())
         if not self.CALCULATED_ARGS.err_list:
-            self.execute_action(self.ACTIONS.recompile_json, output_file=path.join(self.OUT_DIR, 'result.json'),
+            self.execute_action(self.ACTIONS.recompile_json, output_file=self.OUT_DIR.joinpath('result.json'),
                                 process_id=self.PROCESS_ID, create_link=False)
 
     def check_arguments_for_errors(self) -> bool:
-        if path.isfile(self.TREE_FILE):
+        if self.TREE_FILE.is_file():
             with open(self.TREE_FILE, 'r') as f:
                 self.CALCULATED_ARGS.newick_text = f.read().strip()
         else:
             self.CALCULATED_ARGS.err_list.append((f'The File does not exist',
                                                   f'File "{self.TREE_FILE}" does not exist '))
 
-        if path.isfile(self.MSA_FILE):
+        if self.MSA_FILE.is_file():
             with open(self.MSA_FILE, 'r') as f:
                 self.CALCULATED_ARGS.msa = f.read().strip()
         else:
@@ -233,11 +221,8 @@ class Config:
 
     def enable_default_actions(self):
         self.DEFAULT_ACTIONS.update({
-            # 'compute_likelihood_of_tree': False,
             'calculate_tree_for_fasta': False,
             'calculate_ancestral_sequence': False,
-            # 'draw_tree': False,
-            # 'create_all_file_types': False,
             'execute_all_actions': False
         })
         self.MAIN_ACTIONS.update({
@@ -266,19 +251,16 @@ class Config:
             self.MAIN_ACTIONS.update({'compute_likelihood_of_tree': True,
                                       'draw_tree': True,
                                       'create_all_file_types': True})
-        # self.DEFAULT_ACTIONS.update({'recompile_json': True})
-        # if not self.IS_LOCAL and not self.CURRENT_ARGS.is_do_not_use_e_mail and self.CURRENT_ARGS.e_mail:
-        #     self.DEFAULT_ACTIONS.update({'send_results_email': True})
 
     def parse_arguments(self):
         """parse arguments and fill out the relevant Variable Class properties"""
         parser = argparse.ArgumentParser(prog=self.WEBSERVER_NAME_CAPITAL, description='GLOOME',
                                          usage='%(prog)s [options]')
-        parser.add_argument('--msa_file', dest='MSA_FILE', type=str, required=True,
+        parser.add_argument('--msa_file', dest='msa_file', type=str, required=True,
                             help=f'Specify the msa filepath (required).')
-        parser.add_argument('--tree_file', dest='TREE_FILE', type=str, required=True,
+        parser.add_argument('--tree_file', dest='tree_file', type=str, required=True,
                             help=f'Specify the newick filepath (required).')
-        parser.add_argument('--out_dir', dest='OUT_DIR', type=str, required=False, default=self.OUT_DIR,
+        parser.add_argument('--out_dir', dest='out_dir', type=str, required=False, default=self.OUT_DIR,
                             help=f'Specify the outdir path (optional).')
         parser.add_argument('--process_id', dest='process_id', type=str, required=False, default=self.PROCESS_ID,
                             help=f'Specify a process ID or it will be generated automatically (optional).')
@@ -300,7 +282,7 @@ class Config:
                             help=f'Specify coefficient_bl (optional). Default is {self.CURRENT_ARGS.coefficient_bl}.',
                             default=self.CURRENT_ARGS.coefficient_bl)
         parser.add_argument('--e_mail', dest='e_mail', type=str, required=False,
-                            help=f'Specify e_mail (optional). Default is {self.CURRENT_ARGS.e_mail}.',
+                            help=f'Specify e_mail (technical parameter, do not change).',
                             default=self.CURRENT_ARGS.e_mail)
         parser.add_argument('--is_optimize_pi', dest='is_optimize_pi', type=int, required=False,
                             help=f'Specify is_optimize_pi (optional). Default is '
@@ -317,8 +299,7 @@ class Config:
                             help=f'Specify is_optimize_bl (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_optimize_bl)}.', default=int(self.CURRENT_ARGS.is_optimize_bl))
         parser.add_argument('--is_do_not_use_e_mail', dest='is_do_not_use_e_mail', type=int, required=False,
-                            help=f'Specify is_do_not_use_e_mail (optional). Default is '
-                            f'{int(self.CURRENT_ARGS.is_do_not_use_e_mail)}.',
+                            help=f'Specify is_do_not_use_e_mail (technical parameter, do not change).',
                             default=int(self.CURRENT_ARGS.is_do_not_use_e_mail))
         parser.add_argument('--file_interactive_tree_html', dest='file_interactive_tree_html', type=int, required=False,
                             help=f'Specify file_interactive_tree_html (optional). Default is '
@@ -354,6 +335,8 @@ class Config:
                         self.change_process_id(arg_value)
                 elif arg_name == 'mode':
                     setattr(self, arg_name.upper(), arg_value)
+                elif arg_name in ('msa_file', 'tree_file', 'out_dir'):
+                    setattr(self, arg_name.upper(), Path(arg_value))
                 elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
                                   'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_e_mail',
                                   'file_interactive_tree_html', 'file_newick_tree_png', 'file_table_of_nodes_tsv',
@@ -370,11 +353,6 @@ class Config:
         self.enable_default_actions()
 
         return args
-
-    @staticmethod
-    def check_dir(file_path: str, **kwargs):
-        if not path.exists(file_path):
-            makedirs(file_path, **kwargs)
 
     @staticmethod
     def get_new_process_id():

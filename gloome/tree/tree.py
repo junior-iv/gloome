@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from shutil import rmtree
 from json import loads
-from os import path, makedirs
+from pathlib import Path
 from d3blocks import D3Blocks
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
@@ -605,8 +605,8 @@ class Tree:
         file_extensions = Tree.check_file_extensions_tuple(file_extensions, 'svg')
 
         Tree.make_dir(file_name)
-        tmp_dir = path.join(path.dirname(file_name), 'tmp')
-        tmp_file = path.join(tmp_dir, f'{Tree.get_random_name()}.tree')
+        tmp_dir = Path(file_name).parent.joinpath('tmp')
+        tmp_file = f'{tmp_dir.joinpath(f"{Tree.get_random_name()}.tree")}'
         Tree.make_dir(tmp_file)
         self.tree_to_newick_file(tmp_file, with_internal_nodes)
         phylogenetic_tree = Phylo.read(tmp_file, 'newick')
@@ -665,7 +665,6 @@ class Tree:
                   'dodgerblue', 'slateblue', 'darkviolet']
         colors_as = {'A': 'crimson', 'L': 'darkorange', 'G': 'forestgreen', 'P': 'slateblue'}
         for i in df_copy.T:
-            # probability_mark = probability_coefficient = ancestral_sequence = ''
             probability_coefficient = ancestral_sequence = ''
             sequence = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], j)
                                 for j in df_copy['sequence'][i]])
@@ -952,9 +951,10 @@ class Tree:
 
     @staticmethod
     def make_dir(file_path: str, **kwargs) -> None:
-        dir_path = path.dirname(file_path)
-        if not path.exists(dir_path) and dir_path:
-            makedirs(dir_path, **kwargs)
+        dir_path = Path(file_path).parent
+        if not dir_path.exists():
+            dir_path.mkdir(mode=kwargs.get('mode', 0o777), parents=kwargs.get('parents', True),
+                           exist_ok=kwargs.get('exist_ok', True))
 
     @staticmethod
     def check_tree(newick_tree: Union[str, 'Tree']) -> 'Tree':

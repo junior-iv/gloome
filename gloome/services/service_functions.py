@@ -1,7 +1,7 @@
 import inspect
 import json
 
-from os import path, remove, makedirs
+from pathlib import Path
 from typing import Callable, Any
 from datetime import timedelta
 from shutil import make_archive, move
@@ -10,7 +10,7 @@ from validate_email import validate_email
 from flask import url_for
 
 from gloome.tree.tree import Tree
-from gloome.design_functions import *
+from gloome.services.design_functions import *
 
 number = 0
 
@@ -37,39 +37,41 @@ def get_dict(request_form: Dict[str, str]) -> Tuple[Union[str, int, float], ...]
     return tuple(result)
 
 
-def create_file(file_path: str, data: Union[str, Any], file_name: Optional[str] = None) -> str:
+def get_path(path: Union[str, Path]) -> Path:
+    if path and isinstance(path, str):
+        return Path(path)
+    return path
+
+
+def create_file(file_path: Union[str, Path], data: Union[str, Any], file_name: Optional[str] = None) -> Path:
+    file_path = get_path(file_path)
     if file_name and isinstance(file_name, str):
-        file_path = path.join(file_path, file_name)
-    with open(file_path, 'w') as f:
-        if isinstance(data, str):
-            f.write(data)
-        else:
-            f.write(json.dumps(data))
+        file_path.joinpath(file_name)
+    save_file(file_path, data)
 
     return file_path
 
 
-def create_tmp_data_files(msa: str, newick_tree: str, file_path: Optional[str] = None) -> Tuple[str, ...]:
-    file_path = path.join(path.dirname(path.dirname(path.abspath(__file__))), 'tmp') if file_path is None else file_path
-    if not path.exists(file_path):
-        makedirs(file_path)
-
-    msa_file_path = create_file(file_path, msa, 'msa_file.msa')
-    tree_file_path = create_file(file_path, newick_tree, 'tree_file.tree')
-
-    return msa_file_path, tree_file_path
+def del_file(file_path: Union[str, Path]) -> None:
+    file_path = get_path(file_path)
+    if file_path.is_file():
+        file_path.unlink(missing_ok=True)
 
 
-def del_file(file_path: str) -> None:
-    if path.isfile(file_path):
-        remove(file_path)
-
-
-def read_file(file_path: str) -> Optional[str]:
-    if path.isfile(file_path):
-        with open(file_path, 'r') as f:
+def read_file(file_path: Union[str, Path], mode: str = 'r') -> str:
+    file_path = get_path(file_path)
+    if file_path.is_file():
+        with open(file_path, mode) as f:
             return f.read()
     return ''
+
+
+def save_file(file_path: Union[str, Path], data: Union[str, Any], mode: str = 'w') -> None:
+    with open(file_path, mode) as f:
+        if isinstance(data, str):
+            f.write(data)
+        else:
+            f.write(dumps_json(data))
 
 
 def loads_json(data: str) -> Any:
@@ -80,26 +82,12 @@ def dumps_json(data: Any) -> str:
     return json.dumps(data)
 
 
-def del_files(files: Union[str, Tuple[str, ...]]) -> None:
-    if isinstance(files, str):
-        del_file(files)
+def del_files(file_list: Union[Union[str, Path], Tuple[Union[str, Path], ...]]) -> None:
+    if isinstance(file_list, (str, Path)):
+        del_file(file_list)
     else:
-        for file in files:
+        for file in file_list:
             del_file(file)
-
-
-def get_log_file(data: Any, file_path: str, num: int = 1) -> int:
-    log_name = path.basename(path.abspath(file_path))
-    new_path = path.join(path.join(path.dirname(path.dirname(path.dirname(path.abspath(file_path)))), 'tmp'),
-                         f'{log_name}_{num}.log')
-    with open(new_path, 'a') as f:
-        f.write(f"\n\n--- {log_name}_{num} str---\n")
-        f.write(str(data))
-        if not isinstance(data, str):
-            f.write(f"\n\n--- {log_name}_{num} data---\n")
-            f.write(json.dumps(data))
-    num += 1
-    return num
 
 
 def get_result_data(data: Union[Dict[str, Union[str, int, float, ndarray, List[Union[float, ndarray]]]],
@@ -125,11 +113,11 @@ def check_tree_data(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], st
     return newick_tree, msa, alphabet
 
 
-def execute_all_actions(newick_tree: Union[str, Tree], file_path: str, create_new_file: bool = False,
+def execute_all_actions(newick_tree: Union[str, Tree], file_path: Union[str, Path], create_new_file: bool = False,
                         form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
                         log_file: Optional[str] = None, with_internal_nodes: bool = True,
                         actions: Optional[Dict[str, bool]] = None, selected_files: Optional[Dict[str, bool]] = None
-                        ) -> Union[Dict[str, str], str]:
+                        ) -> Union[Dict[str, str], Path]:
     result_data = {}
     if actions is None or actions.get('draw_tree', False):
         result_data.update({'draw_tree': draw_tree(newick_tree)})
@@ -139,6 +127,7 @@ def execute_all_actions(newick_tree: Union[str, Tree], file_path: str, create_ne
         result_data.update({'create_all_file_types': create_all_file_types(newick_tree, file_path, log_file,
                                                                            with_internal_nodes, selected_files)})
     if create_new_file:
+        file_path = file_path.joinpath('result.json') if isinstance(file_path, Path) else f'{file_path}/result.json'
         return create_file(file_path, get_result_data(result_data, 'execute_all_actions', form_data), 'result.json')
 
     return result_data
@@ -152,7 +141,8 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree]) -> Union[List[Unio
     return result
 
 
-def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, log_file: Optional[str] = None,
+def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, Path],
+                          log_file: Optional[Union[str, Path]] = None,
                           with_internal_nodes: Optional[bool] = True, selected_files: Optional[Dict[str, bool]] = None
                           ) -> Union[Dict[str, str], str]:
     selected_files = ({'file_interactive_tree_html': True,
@@ -167,6 +157,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, log_fil
     # result.update({'Newick text (tree)': newick_tree.tree_to_newick_file(f'{file_path}/newick_tree.tree', True)})
     # table = newick_tree.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float)
     # result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
+    print(file_path)
     if selected_files.get('file_interactive_tree_html', False):
         result.update({'Interactive tree (html)':
                        newick_tree.tree_to_interactive_html(f'{file_path}/interactive_tree.html')})
@@ -187,14 +178,14 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: str, log_fil
                        newick_tree.attributes_to_tsv(f'{file_path}/tree_attributes.tsv')})
 
     if result:
-        archive_path = path.join(path.dirname(file_path), path.basename(file_path))
-        archive_name = make_archive(archive_path, 'zip', file_path, '.')
-        new_archive_name = path.join(file_path, path.basename(archive_name))
+        file_path = get_path(file_path)
+        archive_name = Path(make_archive(f'{file_path}', 'zip', f'{file_path}', '.'))
+        new_archive_name = file_path.joinpath(archive_name.name)
         move(archive_name, new_archive_name)
-        result.update({'Archive (zip)': new_archive_name})
+        result.update({'Archive (zip)': f'{new_archive_name}'})
 
-    if log_file:
-        result.update({'Log-File (log)': log_file})
+    if log_file is not None:
+        result.update({'Log-File (log)': f'{log_file}'})
 
     return result
 
@@ -378,7 +369,7 @@ def get_function_parameters(func: Callable) -> Tuple[str, ...]:
     return tuple(inspect.signature(func).parameters.keys())
 
 
-def recompile_json(output_file: str, process_id: int, create_link: bool) -> str:
+def recompile_json(output_file: Union[str, Path], process_id: int, create_link: bool) -> str:
     file_contents = read_file(file_path=output_file)
     json_object = loads_json(file_contents)
     action_name = json_object.pop('action_name')
@@ -398,8 +389,8 @@ def recompile_json(output_file: str, process_id: int, create_link: bool) -> str:
     return '; '.join(data.keys())
 
 
-def get_response_design(json_object: Optional[Any], action_name: str, create_link: bool, output_file: str = ''
-                        ) -> Optional[Any]:
+def get_response_design(json_object: Optional[Any], action_name: str, create_link: bool,
+                        output_file:  Union[str, Path] = '') -> Optional[Any]:
     if 'create_all_file_types' in action_name and create_link:
         if output_file:
             json_object.update({'json response file (json)': output_file})

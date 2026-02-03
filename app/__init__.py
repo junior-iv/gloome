@@ -4,7 +4,11 @@ from app.http_utils import *
 @app.route('/')
 @app.route('/index', methods=['GET'])
 def index():
-    return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("name")}'), **DEFAULT_FORM_ARGUMENTS)
+    if UNDER_CONSTRUCTION:
+        return render_template('under_construction.html', title=(':', f'  the site is under construction'))
+    else:
+        return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("name")}'),
+                               **DEFAULT_FORM_ARGUMENTS)
 
 
 @app.route('/results/<process_id>', methods=['GET'])
@@ -14,7 +18,7 @@ def get_results(process_id):
 
 @app.route('/logs/<process_id>', methods=['GET'])
 def get_logs(process_id):
-    return send_file(path.join(SERVERS_LOGS_DIR, f'{process_id}.log'), as_attachment=False, mimetype='text/html')
+    return send_file(LOGS_DIR.joinpath(f'{process_id}.log'), as_attachment=False, mimetype='text/html')
 
 
 @app.route('/job_status/<process_id>', methods=['GET'])
@@ -79,9 +83,9 @@ def get_exemple():
 @app.route('/get_file', methods=['GET'])
 def get_file():
     if request.method == 'GET':
-        file_path = request.args.get('file_path', '')
+        file_path = Path(request.args.get('file_path', ''))
         if request.args.get('mode', 'view') == 'view':
-            file_extension = path.splitext(file_path)[1][1:]
+            file_extension = file_path.suffix[1:]
             if file_extension in ('html', 'htm'):
                 return send_file(file_path, as_attachment=False, mimetype='text/html')
             elif file_extension in ('txt', 'nwk', 'tree', 'dot', 'fasta', 'log', 'csv', 'tsv'):

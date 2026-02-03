@@ -1,13 +1,13 @@
 import traceback
 import multiprocessing as mp
 
-from app.flask_app import *
+from app.app import *
 from app.config import *
-from gloome.service_functions import get_variables, check_data, get_error, loads_json, read_file
+from gloome.services.service_functions import get_variables, check_data, get_error, loads_json, read_file
 
 
-def write_end_file(process_id: Union[int, str], completed: bool, result_dir: str) -> str:
-    file_path = path.join(result_dir, f'GLOOME_{process_id}.END_{"OK" if completed else "FAIL"}')
+def write_end_file(process_id: Union[int, str], completed: bool, result_dir: Path) -> Path:
+    file_path = result_dir.joinpath(f'GLOOME_{process_id}.END_{"OK" if completed else "FAIL"}')
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write('')
 
@@ -16,15 +16,15 @@ def write_end_file(process_id: Union[int, str], completed: bool, result_dir: str
 
 def get_job_status(process_id: Union[int, str]) -> Dict[str, Any]:
     conf = WebConfig(PROCESS_ID=process_id)
-    if not path.exists(conf.OUT_DIR):
+    if not conf.OUT_DIR.exists():
         return {'error': 'unknown job'}
-    ok_file_path = path.join(conf.OUT_DIR, f'GLOOME_{process_id}.END_OK')
-    fail_file_path = path.join(conf.OUT_DIR, f'GLOOME_{process_id}.END_FAIL')
-    if path.exists(ok_file_path) and not path.exists(fail_file_path):
+    ok_file_path = conf.OUT_DIR.joinpath(f'GLOOME_{process_id}.END_OK')
+    fail_file_path = conf.OUT_DIR.joinpath(f'GLOOME_{process_id}.END_FAIL')
+    if ok_file_path.exists() and not fail_file_path.exists():
         return {'status': 'finished', 'result': loads_json(read_file(file_path=conf.OUTPUT_FILE))}
-    if not path.exists(ok_file_path) and not path.exists(fail_file_path):
+    if not ok_file_path.exists() and not fail_file_path.exists():
         return {'status': 'running'}
-    if not path.exists(ok_file_path) and path.exists(fail_file_path):
+    if not ok_file_path.exists() and fail_file_path.exists():
         return {'status': 'failed'}
 
 
@@ -44,22 +44,22 @@ def run_job(process_id, kwargs, mode):
         f'\n\tCURRENT_JOB: {conf.CURRENT_JOB}'
         f'\n\tPROCESS_ID: {conf.PROCESS_ID}\n'
         conf.JOB_LOGGER.info(f'{header}{exception_text}')
-        write_log(file_path=path.join(TMP_DIR, f'execute_request_{conf.PROCESS_ID}_route_debug.log'), header=header,
+        write_log(file_path=TMP_DIR.joinpath(f'execute_request_{conf.PROCESS_ID}_route_debug.log'), header=header,
                   exception_text=exception_text)
         write_end_file(process_id, False, conf.OUT_DIR)
         raise  # Re-raise to still return 500
 
 
 def start_background_job(kwargs, mode):
-    process_id = WebConfig.get_new_process_id()
+    process_id = get_new_process_id()
 
     p = mp.Process(target=run_job, args=(process_id, kwargs, mode))
     p.start()
     return process_id
 
 
-def write_log(file_path: str, header: str = '', exception_text: str = '') -> None:
-    if path.exists(file_path):
+def write_log(file_path: Path, header: str = '', exception_text: str = '') -> None:
+    if file_path.exists():
         with open(file_path, 'r', encoding='utf-8') as file:
             old_content = file.read()
     else:
@@ -74,7 +74,7 @@ def read_json(json_string: str) -> Any:
     try:
         result = loads_json(json_string)
     except Exception:
-        write_log(file_path=path.join(TMP_DIR, f'read_json_route_debug.log'),
+        write_log(file_path=TMP_DIR.joinpath(f'read_json_route_debug.log'),
                   header=f'\n\n--- [{current_time()}] Exception at execute_request ---\n',
                   exception_text=traceback.format_exc())
         raise  # Re-raise to still return 500
@@ -94,7 +94,7 @@ def get_response(process_id: int) -> Any:
         f'\n\tCURRENT_TIME: {current_time()}'
         f'\n\tPROCESS_ID: {conf.PROCESS_ID}\n'
         conf.JOB_LOGGER.info(f'{header}{exception_text}')
-        write_log(file_path=path.join(TMP_DIR, f'get_response_{conf.PROCESS_ID}_route_debug.log'),
+        write_log(file_path=TMP_DIR.joinpath(f'get_response_{conf.PROCESS_ID}_route_debug.log'),
                   header=header, exception_text=exception_text)
         raise  # Re-raise to still return 500
 
