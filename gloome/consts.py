@@ -29,17 +29,17 @@ WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
 MODULE_LOAD = 'module load mamba/mamba-1.5.8'
 
 GLOOME = Path('/gloome')
+GLOOME = GLOOME if GLOOME.exists() else Path.cwd().parent
 BIN_DIR = GLOOME.parent
 RESULTS_DIR = BIN_DIR.joinpath('results')
 IN_DIR = RESULTS_DIR.joinpath('in')
 OUT_DIR = RESULTS_DIR.joinpath('out')
 LOGS_DIR = BIN_DIR.joinpath('logs')
 TMP_DIR = BIN_DIR.joinpath('tmp')
-APP_DIR = BIN_DIR.joinpath('app')
-TEMPLATES_DIR = APP_DIR.joinpath('templates')
-STATIC_DIR = APP_DIR.joinpath('static')
-ERROR_TEMPLATE = TEMPLATES_DIR.joinpath('404.html')
-# ENV = BIN_DIR.joinpath('.env')
+# APP_DIR = BIN_DIR.joinpath('app')
+# TEMPLATES_DIR = APP_DIR.joinpath('templates')
+# STATIC_DIR = APP_DIR.joinpath('static')
+# ERROR_TEMPLATE = TEMPLATES_DIR.joinpath('404.html')
 ENV = GLOOME.joinpath('.env')
 
 ENVIRONMENT_DIR = BIN_DIR.joinpath('gloome_env2')
