@@ -30,7 +30,7 @@ MODULE_LOAD = 'module load mamba/mamba-1.5.8'
 
 GLOOME = Path('/gloome')
 GLOOME = GLOOME if GLOOME.exists() else Path.cwd().parent
-BIN_DIR = GLOOME.parent
+BIN_DIR = GLOOME
 RESULTS_DIR = BIN_DIR.joinpath('results')
 IN_DIR = RESULTS_DIR.joinpath('in')
 OUT_DIR = RESULTS_DIR.joinpath('out')
@@ -41,6 +41,7 @@ TMP_DIR = BIN_DIR.joinpath('tmp')
 # STATIC_DIR = APP_DIR.joinpath('static')
 # ERROR_TEMPLATE = TEMPLATES_DIR.joinpath('404.html')
 ENV = GLOOME.joinpath('.env')
+print(ENV)
 
 ENVIRONMENT_DIR = BIN_DIR.joinpath('gloome_env2')
 ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
