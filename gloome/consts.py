@@ -40,7 +40,7 @@ TEMPLATES_DIR = APP_DIR.joinpath('templates')
 STATIC_DIR = APP_DIR.joinpath('static')
 ERROR_TEMPLATE = TEMPLATES_DIR.joinpath('404.html')
 # ENV = BIN_DIR.joinpath('.env')
-ENV = '/gloome/.env'
+ENV = Path('/gloome/.env')
 print(ENV)
 
 ENVIRONMENT_DIR = BIN_DIR.joinpath('gloome_env2')
