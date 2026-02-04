@@ -63,8 +63,7 @@ class Config:
 
         self.CALCULATED_ARGS.file_path = self.OUT_DIR
 
-        self.RESULTS_URL = parse.urljoin(self.RESULTS_URL, 'results')
-        self.RESULTS_URL = parse.urljoin(self.RESULTS_URL, self.PROCESS_ID)
+        self.RESULTS_URL = f'{self.RESULTS_URL}/{self.PROCESS_ID}'
         self.LOG_URL = (f'{WEBSERVER_URL}/get_file?file_path='
                         f'{str(self.LOGS_DIR.joinpath(self.PROCESS_ID + ".log")).replace("/", "%2F")}'
                         f'&mode=view')

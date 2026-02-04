@@ -23,7 +23,7 @@ WEBSERVER_NAME_CAPITAL = 'Gloome'
 WEBSERVER_NAME = 'gloome.tau.ac.il'
 WEBSERVER_URL = f'{PREFERRED_URL_SCHEME}://{WEBSERVER_NAME}'
 RESULTS_URL = parse.urljoin(WEBSERVER_URL, 'results')
-LOG_URL = parse.urljoin(WEBSERVER_URL, 'logs')
+LOG_URL = WEBSERVER_URL
 
 WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
 MODULE_LOAD = 'module load mamba/mamba-1.5.8'
