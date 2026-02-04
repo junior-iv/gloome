@@ -63,9 +63,11 @@ class Config:
 
         self.CALCULATED_ARGS.file_path = self.OUT_DIR
 
-        self.RESULTS_URL = parse.urljoin(parse.urljoin(self.RESULTS_URL, 'results'), self.PROCESS_ID)
+        self.RESULTS_URL = parse.urljoin(self.RESULTS_URL, 'results')
+        self.RESULTS_URL = parse.urljoin(self.RESULTS_URL, self.PROCESS_ID)
         self.LOG_URL = (f'{WEBSERVER_URL}/get_file?file_path='
-                        f'{str(self.LOGS_DIR.joinpath(self.PROCESS_ID + ".log")).replace("/", "%2F")}')
+                        f'{str(self.LOGS_DIR.joinpath(self.PROCESS_ID + ".log")).replace("/", "%2F")}'
+                        f'&mode=view')
         # self.LOG_URL = parse.urljoin(self.LOG_URL, self.PROCESS_ID)
         self.JOB_LOGGER = get_job_logger(f'{process_id}', self.LOGS_DIR)
 

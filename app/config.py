@@ -72,10 +72,11 @@ class WebConfig:
 
         self.CALCULATED_ARGS.file_path = self.OUT_DIR
 
-        self.RESULTS_URL = parse.urljoin(parse.urljoin(self.RESULTS_URL, 'results'), self.PROCESS_ID)
+        self.RESULTS_URL = parse.urljoin(self.RESULTS_URL, 'results')
+        self.RESULTS_URL = parse.urljoin(self.RESULTS_URL, self.PROCESS_ID)
         self.LOG_URL = (f'{WEBSERVER_URL}/get_file?file_path='
-                        f'{str(self.LOGS_DIR.joinpath(self.PROCESS_ID + ".log")).replace("/", "%2F")}')
-        # self.LOG_URL = parse.urljoin(self.LOG_URL, self.PROCESS_ID)
+                        f'{str(self.LOGS_DIR.joinpath(self.PROCESS_ID + ".log")).replace("/", "%2F")}'
+                        f'&mode=view')
         self.JOB_LOGGER = get_job_logger(f'{self.PROCESS_ID}', self.LOGS_DIR)
         self.JOB_LOGGER.info(f'\n\tcreate a new instance of the WebConfig class'
                              f'\n\tPROCESS ID: {self.PROCESS_ID}'
