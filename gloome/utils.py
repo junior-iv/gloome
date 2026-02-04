@@ -19,8 +19,7 @@ formatter = logging.Formatter('%(asctime)s[%(levelname)s][%(filename)s][%(funcNa
 #
 #
 def init_dir_path():
-    path2change = LOGS_DIR
-    chdir(path2change)
+    chdir(LOGS_DIR)
 
 
 def current_time() -> str:
