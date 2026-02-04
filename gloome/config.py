@@ -63,8 +63,10 @@ class Config:
 
         self.CALCULATED_ARGS.file_path = self.OUT_DIR
 
-        self.RESULTS_URL = parse.urljoin(self.RESULTS_URL, self.PROCESS_ID)
-        self.LOG_URL = parse.urljoin(self.LOG_URL, self.PROCESS_ID)
+        self.RESULTS_URL = parse.urljoin(parse.urljoin(self.RESULTS_URL, 'results'), self.PROCESS_ID)
+        self.LOG_URL = (f'{WEBSERVER_URL}/get_file?file_path='
+                        f'{str(self.LOGS_DIR.joinpath(self.PROCESS_ID + ".log")).replace("/", "%2F")}')
+        # self.LOG_URL = parse.urljoin(self.LOG_URL, self.PROCESS_ID)
         self.JOB_LOGGER = get_job_logger(f'{process_id}', self.LOGS_DIR)
 
     def check_and_set_input_and_output_variables(self):
