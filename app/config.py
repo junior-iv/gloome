@@ -150,7 +150,7 @@ class WebConfig:
         else:
             e_mail = is_do_not_use_e_mail = ''
         self.COMMAND_LINE = (
-            f'python -m gloome '
+            f'python {Path("gloome").joinpath("__main__.py")} '
             f'--process_id {self.PROCESS_ID} '
             f'--msa_file {self.MSA_FILE} '
             f'--tree_file {self.TREE_FILE} '
