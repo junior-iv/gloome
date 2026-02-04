@@ -79,7 +79,7 @@ def main():
                       'file_table_of_attributes_tsv': True}
     create_all_file_types(newick_tree, file_path=file_path, log_file=log_file, with_internal_nodes=True,
                           selected_files=selected_files)
-    newick_tree.print_args('END')
+    # newick_tree.print_args('END')
 
 
 use_line_profiler = False

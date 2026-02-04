@@ -130,7 +130,7 @@ class Tree:
                       is_optimize_pi_average: Optional[bool] = None,
                       is_optimize_alpha: Optional[bool] = None,
                       is_optimize_bl: Optional[bool] = None) -> None:
-        self.print_args('start')
+        # self.print_args('start')
         if isinstance(msa, str):
             self.msa = self.get_msa_dict(msa)
         elif isinstance(msa, dict):
@@ -139,18 +139,18 @@ class Tree:
             self.alphabet = Tree.get_alphabet_from_dict(self.msa)
 
         self.set_all(categories_quantity, alpha, beta, pi_0, pi_1, coefficient_bl)
-        self.print_args('beginning')
+        # self.print_args('beginning')
 
         self.optimize_coefficient_bl(is_optimize_bl)
-        self.print_args('optimize_coefficient_bl')
+        # self.print_args('optimize_coefficient_bl')
         self.optimize_pi(is_optimize_pi, is_optimize_pi_average)
-        self.print_args('optimize_pi')
+        # self.print_args('optimize_pi')
         self.optimize_alpha(is_optimize_alpha)
-        self.print_args('optimize_alpha')
+        # self.print_args('optimize_alpha')
 
         if (is_optimize_alpha or is_optimize_pi or is_optimize_pi_average) and is_optimize_bl:
             self.optimize_coefficient_bl(is_optimize_bl)
-            self.print_args('optimize_coefficient_bl 2')
+            # self.print_args('optimize_coefficient_bl 2')
 
     def print_node_list(self, with_additional_details: bool = False, mode: Optional[str] = None,
                         filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None) -> None:

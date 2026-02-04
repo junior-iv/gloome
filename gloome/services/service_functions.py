@@ -157,7 +157,6 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     # result.update({'Newick text (tree)': newick_tree.tree_to_newick_file(f'{file_path}/newick_tree.tree', True)})
     # table = newick_tree.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float)
     # result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
-    print(file_path)
     if selected_files.get('file_interactive_tree_html', False):
         result.update({'Interactive tree (html)':
                        newick_tree.tree_to_interactive_html(f'{file_path}/interactive_tree.html')})

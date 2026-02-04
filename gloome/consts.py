@@ -28,7 +28,7 @@ LOG_URL = parse.urljoin(WEBSERVER_URL, 'logs')
 WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
 MODULE_LOAD = 'module load mamba/mamba-1.5.8'
 
-BIN_DIR = Path.cwd().parent
+BIN_DIR = Path.cwd()
 RESULTS_DIR = BIN_DIR.joinpath('results')
 IN_DIR = RESULTS_DIR.joinpath('in')
 OUT_DIR = RESULTS_DIR.joinpath('out')
