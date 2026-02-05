@@ -233,6 +233,8 @@ class WebConfig:
                 ]
         }
         body = {'SlurmSubmiter': job_slurm, 'SawSubmiter': job_saw}
+        self.JOB_LOGGER.info(f'\n\tcreate a request body: '
+                             f'\n\trequest_body: {body}\n')
 
         return body.get(self.SUBMITER.get_name())
     #

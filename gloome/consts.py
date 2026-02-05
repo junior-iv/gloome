@@ -41,7 +41,6 @@ TMP_DIR = BIN_DIR.joinpath('tmp')
 # STATIC_DIR = APP_DIR.joinpath('static')
 # ERROR_TEMPLATE = TEMPLATES_DIR.joinpath('404.html')
 ENV = GLOOME.joinpath('.env')
-print(ENV)
 
 ENVIRONMENT_DIR = BIN_DIR.joinpath('gloome_env2')
 ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
