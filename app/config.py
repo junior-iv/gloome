@@ -76,16 +76,6 @@ class WebConfig:
         log_file_for_url = str(self.LOGS_DIR.joinpath(self.PROCESS_ID + '.log')).replace('/', '%2F')
         self.LOG_URL = parse.urljoin(self.LOG_URL, f'get_file?file_path={log_file_for_url}&mode=view')
         self.JOB_LOGGER = get_job_logger(f'{self.PROCESS_ID}', self.LOGS_DIR)
-        # self.JOB_LOGGER.info(f'\n\tcreate a new instance of the WebConfig class'
-        #                      f'\n\tPROCESS ID: {self.PROCESS_ID}'
-        #                      f'\n\tOUT_DIR: {self.OUT_DIR}'
-        #                      f'\n\tIN_DIR: {self.IN_DIR}'
-        #                      f'\n\tOUTPUT_FILE: {self.OUTPUT_FILE}'
-        #                      f'\n\tMSA_FILE: {self.MSA_FILE}'
-        #                      f'\n\tTREE_FILE: {self.TREE_FILE}'
-        #                      f'\n\tSUBMITER: {self.SUBMITER}'
-        #                      f'\n\tRESULTS_URL: {self.RESULTS_URL}'
-        #                      f'\n\tLOG_URL: {self.LOG_URL}\n')
         if process_id is None:
             self.JOB_LOGGER.info(f'\n\tcreate a new instance of the WebConfig class'
                                  f'\n\tPROCESS ID: {self.PROCESS_ID}'
@@ -161,8 +151,8 @@ class WebConfig:
         else:
             e_mail = is_do_not_use_e_mail = ''
         self.COMMAND_LINE = (
-            f'python {self.BIN_DIR.joinpath("gloome").joinpath("__main__.py")} '
-            # f'python -m gloome '
+            # f'python {self.BIN_DIR.joinpath("gloome").joinpath("__main__.py")} '
+            f'python -m gloome '
             f'--process_id {self.PROCESS_ID} '
             f'--msa_file {self.MSA_FILE} '
             f'--tree_file {self.TREE_FILE} '
