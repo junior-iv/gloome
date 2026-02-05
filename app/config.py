@@ -73,20 +73,19 @@ class WebConfig:
         self.CALCULATED_ARGS.file_path = self.OUT_DIR
 
         self.RESULTS_URL = f'{self.RESULTS_URL}/{self.PROCESS_ID}'
-        self.LOG_URL = (f'{WEBSERVER_URL}/get_file?file_path='
-                        f'{str(self.LOGS_DIR.joinpath(self.PROCESS_ID + ".log")).replace("/", "%2F")}'
-                        f'&mode=view')
+        log_file_for_url = str(self.LOGS_DIR.joinpath(self.PROCESS_ID + '.log')).replace('/', '%2F')
+        self.LOG_URL = parse.urljoin(self.LOG_URL, f'get_file?file_path={log_file_for_url}&mode=view')
         self.JOB_LOGGER = get_job_logger(f'{self.PROCESS_ID}', self.LOGS_DIR)
-        self.JOB_LOGGER.info(f'\n\tcreate a new instance of the WebConfig class'
-                             f'\n\tPROCESS ID: {self.PROCESS_ID}'
-                             f'\n\tOUT_DIR: {self.OUT_DIR}'
-                             f'\n\tIN_DIR: {self.IN_DIR}'
-                             f'\n\tOUTPUT_FILE: {self.OUTPUT_FILE}'
-                             f'\n\tMSA_FILE: {self.MSA_FILE}'
-                             f'\n\tTREE_FILE: {self.TREE_FILE}'
-                             f'\n\tSUBMITER: {self.SUBMITER}'
-                             f'\n\tRESULTS_URL: {self.RESULTS_URL}'
-                             f'\n\tLOG_URL: {self.LOG_URL}\n')
+        # self.JOB_LOGGER.info(f'\n\tcreate a new instance of the WebConfig class'
+        #                      f'\n\tPROCESS ID: {self.PROCESS_ID}'
+        #                      f'\n\tOUT_DIR: {self.OUT_DIR}'
+        #                      f'\n\tIN_DIR: {self.IN_DIR}'
+        #                      f'\n\tOUTPUT_FILE: {self.OUTPUT_FILE}'
+        #                      f'\n\tMSA_FILE: {self.MSA_FILE}'
+        #                      f'\n\tTREE_FILE: {self.TREE_FILE}'
+        #                      f'\n\tSUBMITER: {self.SUBMITER}'
+        #                      f'\n\tRESULTS_URL: {self.RESULTS_URL}'
+        #                      f'\n\tLOG_URL: {self.LOG_URL}\n')
         if process_id is None:
             self.JOB_LOGGER.info(f'\n\tcreate a new instance of the WebConfig class'
                                  f'\n\tPROCESS ID: {self.PROCESS_ID}'

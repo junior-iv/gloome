@@ -11,6 +11,11 @@ def index():
                                **DEFAULT_FORM_ARGUMENTS)
 
 
+@app.route('/testing', methods=['GET'])
+def testing():
+    return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("name")}'), **DEFAULT_FORM_ARGUMENTS)
+
+
 @app.route('/results/<process_id>', methods=['GET'])
 def get_results(process_id):
     return render_template('index.html', menu=MENU, title=(':', ), data=get_response(process_id=process_id))
