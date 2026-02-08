@@ -4,7 +4,7 @@ from time import sleep
 from typing import Set
 
 from gloome.services.service_functions import read_file, loads_json, create_file
-from app.mail import *
+from mail.mail import *
 
 
 class WebConfig:

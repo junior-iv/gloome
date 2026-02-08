@@ -1,4 +1,4 @@
-from app.mail import *
+from mail.mail import *
 
 mail = MailSenderSMTPLib(name='execution reports runs')
 date = datetime.date.today() - datetime.timedelta(days=1)
