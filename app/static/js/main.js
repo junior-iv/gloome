@@ -448,6 +448,7 @@ async function makeRequest(absolutePath, formData, mode) {
             const processID = data.data.processID;
             const interval = setInterval(async () => {
                 let jobResult = await getJobResult(processID);
+                console.log(jobResult.status)
                 if ([`failed`, `finished`].includes(jobResult.status)) {
                     setVisibilityLoader(false);
                     setAccessibility(``, false);
