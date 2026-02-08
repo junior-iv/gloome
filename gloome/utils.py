@@ -1,7 +1,6 @@
 import datetime
 import logging
 
-from os import chdir
 from time import time
 from random import randint
 

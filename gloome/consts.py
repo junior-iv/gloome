@@ -1,4 +1,4 @@
-from os import getenv
+from os import getenv, chdir
 from sys import argv
 from typing import List, Tuple, Union
 from dotenv import load_dotenv
@@ -31,6 +31,7 @@ MODULE_LOAD = 'module load mamba/mamba-1.5.8'
 GLOOME = Path('/gloome')
 GLOOME = GLOOME if GLOOME.exists() else Path.cwd().parent
 BIN_DIR = GLOOME
+chdir(BIN_DIR)
 RESULTS_DIR = BIN_DIR.joinpath('results')
 IN_DIR = RESULTS_DIR.joinpath('in')
 OUT_DIR = RESULTS_DIR.joinpath('out')
