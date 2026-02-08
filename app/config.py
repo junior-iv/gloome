@@ -173,6 +173,7 @@ class WebConfig:
             f'--file_log_likelihood_tsv {int(self.CURRENT_ARGS.file_log_likelihood_tsv)} '
             f'--file_table_of_attributes_tsv {int(self.CURRENT_ARGS.file_table_of_attributes_tsv)} '
             f'--mode {self.MODE}')
+        print(self.COMMAND_LINE)
         self.JOB_LOGGER.info(f'\n\tcreate a command line: '
                              f'\n\tCOMMAND_LINE: {self.COMMAND_LINE}\n')
 

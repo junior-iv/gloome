@@ -29,9 +29,7 @@ WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
 MODULE_LOAD = 'module load mamba/mamba-1.5.8'
 
 GLOOME = Path('/gloome')
-GLOOME = GLOOME if GLOOME.exists() else Path.cwd().parent
-BIN_DIR = GLOOME
-chdir(BIN_DIR)
+BIN_DIR = GLOOME if GLOOME.exists() else Path.cwd().parent
 RESULTS_DIR = BIN_DIR.joinpath('results')
 IN_DIR = RESULTS_DIR.joinpath('in')
 OUT_DIR = RESULTS_DIR.joinpath('out')
@@ -41,7 +39,7 @@ TMP_DIR = BIN_DIR.joinpath('tmp')
 # TEMPLATES_DIR = APP_DIR.joinpath('templates')
 # STATIC_DIR = APP_DIR.joinpath('static')
 # ERROR_TEMPLATE = TEMPLATES_DIR.joinpath('404.html')
-ENV = GLOOME.joinpath('.env')
+ENV = BIN_DIR.joinpath('.env')
 
 ENVIRONMENT_DIR = BIN_DIR.joinpath('gloome_env2')
 ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
@@ -49,6 +47,9 @@ ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
 GLOOME_DIR = files('gloome')
 DATA_DIR = GLOOME_DIR.joinpath('data')
 INITIAL_DATA_DIR = DATA_DIR.joinpath('initial_data')
+
+HTTPDOCS_DIR = Path('/var/www/vhosts/gloome.tau.ac.il/httpdocs/')
+chdir(HTTPDOCS_DIR if HTTPDOCS_DIR.exists() else BIN_DIR)
 
 MSA_FILE_NAME = 'msa_file.msa'
 TREE_FILE_NAME = 'tree_file.tree'

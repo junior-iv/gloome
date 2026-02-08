@@ -432,6 +432,7 @@ function showResponse(jsonData, mode = 0) {
 
 async function getJobResult(processID) {
     const response = await fetch(`/job_status/${processID}`, {method: `GET`});
+    console.log(response)
     return await response.json();
 }
 
