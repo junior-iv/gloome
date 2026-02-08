@@ -1,5 +1,6 @@
 from app.mail import *
 
+chdir(BIN_DIR)
 mail = MailSenderSMTPLib(name='execution reports runs')
 date = datetime.date.today() - datetime.timedelta(days=1)
 start_datetime = datetime.datetime(date.year, date.month, date.day, 0, 0, 0, 0).timestamp()
