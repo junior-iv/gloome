@@ -173,7 +173,6 @@ class WebConfig:
             f'--file_log_likelihood_tsv {int(self.CURRENT_ARGS.file_log_likelihood_tsv)} '
             f'--file_table_of_attributes_tsv {int(self.CURRENT_ARGS.file_table_of_attributes_tsv)} '
             f'--mode {self.MODE}')
-        print(self.COMMAND_LINE)
         self.JOB_LOGGER.info(f'\n\tcreate a command line: '
                              f'\n\tCOMMAND_LINE: {self.COMMAND_LINE}\n')
 
@@ -202,9 +201,9 @@ class WebConfig:
                          'cpus_per_task': 1,
                          'memory_per_node': {'number': 6144, 'set': True},
                          'time_limit': {'number': 10080, 'set': True},
-                         'current_working_directory': self.BIN_DIR,
-                         'standard_output': TMP_DIR.joinpath(f'{prefix}output.txt'),
-                         'standard_error': TMP_DIR.joinpath(f'{prefix}error.txt'),
+                         'current_working_directory': f'{self.BIN_DIR}',
+                         'standard_output': f'{TMP_DIR.joinpath(f"{prefix}output.txt")}',
+                         'standard_error': f'{TMP_DIR.joinpath(f"{prefix}error.txt")}',
                          'environment': [
                              f'PATH={self.ENVIRONMENT_DIR}/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:'
                              f'mamba/condabin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
@@ -222,9 +221,9 @@ class WebConfig:
                 'cpus_per_task': 1,
                 'memory_per_node': 6144,
                 'time_limit': 10080,
-                'current_working_directory': self.BIN_DIR,
-                'standard_output': TMP_DIR.joinpath(f'{prefix}output.txt'),
-                'standard_error': TMP_DIR.joinpath(f'{prefix}error.txt'),
+                'current_working_directory': f'{self.BIN_DIR}',
+                'standard_output': f'{TMP_DIR.joinpath(f"{prefix}output.txt")}',
+                'standard_error': f'{TMP_DIR.joinpath(f"{prefix}error.txt")}',
                 'environment': [
                     f'PATH={self.ENVIRONMENT_DIR}/bin:/powerapps/share/rocky8/mamba/mamba-1.5.8/condabin:'
                     f'mamba/condabin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:'
@@ -488,7 +487,7 @@ class SlurmSubmiter:
 
         return self.exec_request(url)
 
-    def get_job_state(self, job_id):
+    def get_job(self, job_id):
         url = f'{self.api}/slurm/{self.version}/job/{job_id}'
 
         return self.exec_request(url)
@@ -519,7 +518,7 @@ class SlurmSubmiter:
                         count: int = 50, waiting_time: int = 10) -> str:
         while count:
             try:
-                job_info = self.get_job_state(conf.CURRENT_JOB)
+                job_info = self.get_job(conf.CURRENT_JOB)
             except Exception:
                 sleep(waiting_time)
                 continue

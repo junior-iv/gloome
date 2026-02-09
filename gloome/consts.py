@@ -48,8 +48,8 @@ GLOOME_DIR = files('gloome')
 DATA_DIR = GLOOME_DIR.joinpath('data')
 INITIAL_DATA_DIR = DATA_DIR.joinpath('initial_data')
 
-HTTPDOCS_DIR = Path('/var/www/vhosts/gloome.tau.ac.il/httpdocs/')
-chdir(HTTPDOCS_DIR if HTTPDOCS_DIR.exists() else BIN_DIR)
+# HTTPDOCS_DIR = Path('/var/www/vhosts/gloome.tau.ac.il/httpdocs/')
+# chdir(HTTPDOCS_DIR if HTTPDOCS_DIR.exists() else BIN_DIR)
 
 MSA_FILE_NAME = 'msa_file.msa'
 TREE_FILE_NAME = 'tree_file.tree'

@@ -14,21 +14,25 @@ def write_end_file(process_id: Union[int, str], completed: bool, result_dir: Pat
     return file_path
 
 
-def get_job_status(process_id: Union[int, str]) -> Dict[str, Any]:
+def get_job_status(process_id: Union[int, str], result: bool = True) -> Dict[str, Any]:
     conf = WebConfig(PROCESS_ID=process_id)
     if not conf.OUT_DIR.exists():
-        return {'error': 'unknown job'}
-    ok_file_path = conf.OUT_DIR.joinpath(f'GLOOME_{process_id}.END_OK')
-    fail_file_path = conf.OUT_DIR.joinpath(f'GLOOME_{process_id}.END_FAIL')
-    if ok_file_path.exists() and not fail_file_path.exists():
-        return {'status': 'finished', 'result': loads_json(read_file(file_path=conf.OUTPUT_FILE))}
-    if not ok_file_path.exists() and not fail_file_path.exists():
-        return {'status': 'running'}
-    if not ok_file_path.exists() and fail_file_path.exists():
-        return {'status': 'failed'}
+        job_status = {'error': 'unknown job'}
+    else:
+        ok_file_path = conf.OUT_DIR.joinpath(f'GLOOME_{process_id}.END_OK')
+        fail_file_path = conf.OUT_DIR.joinpath(f'GLOOME_{process_id}.END_FAIL')
+        if ok_file_path.exists() and not fail_file_path.exists():
+            job_status = {'status': 'finished'}
+            if result:
+                job_status.update(result=loads_json(read_file(file_path=conf.OUTPUT_FILE)))
+        elif not ok_file_path.exists() and fail_file_path.exists():
+            job_status = {'status': 'failed'}
+        else:
+            job_status = {'status': 'running'}
+    return job_status
 
 
-def run_job(process_id, kwargs, mode):
+def run_job(process_id, mode, **kwargs):
     conf = WebConfig(PROCESS_ID=process_id)
     conf.JOB_LOGGER.info(f'\n\ttry to run request\n')
 
@@ -50,7 +54,7 @@ def run_job(process_id, kwargs, mode):
         raise  # Re-raise to still return 500
 
 
-def start_background_job(kwargs, mode):
+def start_background_job(mode, **kwargs):
     process_id = get_new_process_id()
 
     p = mp.Process(target=run_job, args=(process_id, kwargs, mode))
