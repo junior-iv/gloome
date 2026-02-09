@@ -183,7 +183,6 @@ class WebConfig:
         job_name = f'gloome_{self.PROCESS_ID}'
         # prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{self.PROCESS_ID}_'
         prefix = f'{self.PROCESS_ID}_'
-        tmp_dir = TMP_DIR
         cmd = (f'#!/bin/bash\n'
                f'source ~/.bashrc\n'
                f'cd {self.BIN_DIR}\n'
@@ -203,7 +202,7 @@ class WebConfig:
                          'cpus_per_task': 1,
                          'memory_per_node': {'number': 6144, 'set': True},
                          'time_limit': {'number': 10080, 'set': True},
-                         'current_working_directory': tmp_dir,
+                         'current_working_directory': self.BIN_DIR,
                          'standard_output': TMP_DIR.joinpath(f'{prefix}output.txt'),
                          'standard_error': TMP_DIR.joinpath(f'{prefix}error.txt'),
                          'environment': [
@@ -223,7 +222,7 @@ class WebConfig:
                 'cpus_per_task': 1,
                 'memory_per_node': 6144,
                 'time_limit': 10080,
-                'current_working_directory': tmp_dir,
+                'current_working_directory': self.BIN_DIR,
                 'standard_output': TMP_DIR.joinpath(f'{prefix}output.txt'),
                 'standard_error': TMP_DIR.joinpath(f'{prefix}error.txt'),
                 'environment': [

@@ -29,7 +29,7 @@ WEBSERVER_TITLE = '<b>GLOOME Server - Gain Loss Mapping Engine</b>'
 MODULE_LOAD = 'module load mamba/mamba-1.5.8'
 
 GLOOME = Path('/gloome')
-BIN_DIR = GLOOME if GLOOME.exists() else Path.cwd().parent
+BIN_DIR = GLOOME if GLOOME.exists() else Path.cwd()
 RESULTS_DIR = BIN_DIR.joinpath('results')
 IN_DIR = RESULTS_DIR.joinpath('in')
 OUT_DIR = RESULTS_DIR.joinpath('out')
