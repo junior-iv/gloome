@@ -141,9 +141,10 @@ class MailSenderSMTPLib:
     def add_attachment_to_list(entry: Path, attachments: List[Path],
                                excluded: Optional[Union[Tuple[str, ...], List[str], str]] = None,
                                included: Optional[Union[Tuple[str, ...], List[str], str]] = None) -> None:
-        includ = any((included is None, entry.name in included, entry.suffix in included, entry.suffix[1:] in included))
-        exclud = all((excluded is not None, any((entry.name in excluded, entry.suffix in excluded, entry.suffix[1:] in
-                                                 excluded))))
+        includ = (included is None or entry.name in included or entry.suffix in included
+                  or entry.suffix[1:] in included)
+        exclud = (excluded is not None and (entry.name in excluded or entry.suffix in excluded
+                                            or entry.suffix[1:] in excluded))
         if entry.is_file() and not exclud and includ:
             attachments.append(entry)
 
