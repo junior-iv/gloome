@@ -57,7 +57,7 @@ def run_job(process_id, mode, **kwargs):
 def start_background_job(mode, **kwargs):
     process_id = get_new_process_id()
 
-    p = mp.Process(target=run_job, args=(process_id, kwargs, mode))
+    p = mp.Process(target=run_job, args=(process_id, mode, kwargs))
     p.start()
     return process_id
 
@@ -122,7 +122,7 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
             return Response(response=jsonify(set_response_structure(get_error(err_list), False)).response, status=400,
                             mimetype='application/json')
 
-        process_id = start_background_job(kwargs, mode)
+        process_id = start_background_job(mode, **kwargs)
 
         return Response(response=jsonify(set_response_structure({"processID": process_id}, True)).response, status=202,
                         mimetype='application/json')
