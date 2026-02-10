@@ -1,6 +1,6 @@
 import re
 
-from typing import Any, Optional, Dict
+from typing import Optional, Dict
 from smtplib import SMTP, SMTP_SSL
 from ssl import create_default_context
 from email.mime.multipart import MIMEMultipart
@@ -22,7 +22,8 @@ class MailSenderSMTPLib:
     log_files_dir: Path
     out_dir: Path
     results: Path
-    sender_logger: Any
+    sender_logger: Optional[logging.Logger]
+    mail_logger: logging.Logger
 
     def __init__(self, **attributes):
         self.sender = ADMIN_EMAIL
@@ -35,9 +36,10 @@ class MailSenderSMTPLib:
         self.results = RESULTS_URL
         self.receiver = ''
         self.name = ''
+        self.sender_logger = None
 
         self.set_attributes(**attributes)
-        self.sender_logger = get_job_logger(f'{self.name} {self.sender}', LOGS_DIR)
+        self.mail_logger = get_job_logger(f'general mail log', LOGS_DIR)
 
     def set_attributes(self, **attributes) -> None:
         if attributes:
@@ -53,18 +55,11 @@ class MailSenderSMTPLib:
             suffixes = ('txt', 'csv', 'tsv', 'nwk', 'tree', 'dot', 'fasta', 'log', 'png', 'svg', 'jpeg', 'jpg', 'html',
                         'htm', 'json', 'zip', 'rar', '7z', 'gz', 'tgz', 'tar', 'pdf', 'doc', 'dot', 'wiz', 'docx',
                         'xls', 'xlt', 'xla', 'xlsx', 'ppt', 'pps', 'pps', 'pptx', 'ppsx')
-            self.sender_logger.info(f'{attachment_path.suffix}\n'
-                                    f'{type(attachment_path.suffix)}\n'
-                                    f'{attachment_path}\n'
-                                    f'{type(attachment_path)}\n')
-            print(attachment_path.suffix)
-            print(type(attachment_path.suffix))
-            print(type(attachment_path))
             mode = 'view' if attachment_path.suffix[1:] in suffixes else 'download'
             return (f'\n<a href="{WEBSERVER_URL}/get_file?file_path={str(attachment_path).replace("/", "%2F")}'
                     f'&mode={mode}" target="_blank">{attachment_path}</a>')
 
-    def send_email(self, subject: str, attachments: Union[List[Path], Dict[str, List[Path]], str],
+    def send_email(self, subject: str, attachments: Union[List[Path], Dict[str, List[Path]]],
                    body: str, use_attachments: bool = False,
                    receiver: Optional[str] = None) -> None:
         message = MIMEMultipart()
@@ -86,9 +81,9 @@ class MailSenderSMTPLib:
                     else:
                         attachment_path = self.create_attachments(attachment_path, message, use_attachments)
                     body += f'<br>{attachment_path}'
-        elif isinstance(attachments, str):
-            body += f'<br>{self.create_attachments(Path(attachments), message, use_attachments)}'
-        self.sender_logger.info(body)
+        if self.sender_logger is not None:
+            self.sender_logger.info(f'{self.name}\n{self.sender}\n{body}')
+        self.mail_logger.info(f'{self.name}\n{self.sender}\n{body}')
         message.attach(MIMEText(body, 'html'))
 
         if self.smtp_port == 587:
@@ -134,7 +129,7 @@ class MailSenderSMTPLib:
                 if self.out_dir.joinpath(process_id).joinpath(f'GLOOME_{process_id}.END_FAIL').exists():
                     self.add_attachment_to_list(entry, attachments.get('failed runs'), excluded, included)
                 elif self.out_dir.joinpath(process_id).joinpath(f'GLOOME_{process_id}.END_OK').exists():
-                    attachments.get('successful runs').append(self.results.joinpath(process_id))
+                    attachments.get('successful runs').append(f'{self.results}/{process_id}')
                 else:
                     self.add_attachment_to_list(entry, attachments.get('incomplete runs'), excluded, included)
         for receiver in self.report_receivers:

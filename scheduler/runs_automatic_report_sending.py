@@ -1,6 +1,6 @@
 from mail.mail import *
 
-mail = MailSenderSMTPLib(name='execution reports runs')
+mail = MailSenderSMTPLib(name='Report on the execution of "launches"')
 date = datetime.date.today() - datetime.timedelta(days=1)
 start_datetime = datetime.datetime(date.year, date.month, date.day, 0, 0, 0, 0).timestamp()
 end_datetime = datetime.datetime(date.year, date.month, date.day, 23, 59, 59, 999999).timestamp()

@@ -1,7 +1,7 @@
 import requests
 
 from time import sleep
-from typing import Set
+from typing import Set, Any
 
 from gloome.services.service_functions import read_file, loads_json, create_file
 from mail.mail import *
@@ -283,7 +283,7 @@ class WebConfig:
 
         job_state = self.SUBMITER.check_job_state(self, count=REQUESTS_NUMBER, waiting_time=REQUEST_WAITING_TIME)
 
-        mail_sender = MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL)
+        mail_sender = MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL, sender_logger=self.JOB_LOGGER)
         if job_state == 'COMPLETED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
             mail_sender.send_results_email(results_files=self.OUT_DIR, use_attachments=self.USE_ATTACHMENTS,
                                            is_error=False, log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),

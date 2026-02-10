@@ -82,7 +82,7 @@ def main():
     # newick_tree.print_args('END')
 
 
-use_line_profiler = False
+use_line_profiler = True
 
 if use_line_profiler:
     lp = LineProfiler()
