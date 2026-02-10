@@ -39,7 +39,7 @@ class MailSenderSMTPLib:
         self.sender_logger = None
 
         self.set_attributes(**attributes)
-        self.mail_logger = get_job_logger(f'general mail log', LOGS_DIR)
+        self.mail_logger = get_job_logger(f'general_mail_log', LOGS_DIR)
 
     def set_attributes(self, **attributes) -> None:
         if attributes:
@@ -82,8 +82,12 @@ class MailSenderSMTPLib:
                         attachment_path = self.create_attachments(attachment_path, message, use_attachments)
                     body += f'<br>{attachment_path}'
         if self.sender_logger is not None:
-            self.sender_logger.info(f'{self.name}\n{self.sender}\n{body}')
-        self.mail_logger.info(f'{self.name}\n{self.sender}\n{body}')
+            self.sender_logger.info(f'\n\t{self.name}'
+                                    f'\n\t{self.sender}'
+                                    f'\n\t{body}\n')
+        self.mail_logger.info(f'\n\t{self.name}'
+                                f'\n\t{self.sender}'
+                                f'\n\t{body}\n')
         message.attach(MIMEText(body, 'html'))
 
         if self.smtp_port == 587:
