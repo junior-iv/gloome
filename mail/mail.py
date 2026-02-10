@@ -53,6 +53,10 @@ class MailSenderSMTPLib:
             suffixes = ('txt', 'csv', 'tsv', 'nwk', 'tree', 'dot', 'fasta', 'log', 'png', 'svg', 'jpeg', 'jpg', 'html',
                         'htm', 'json', 'zip', 'rar', '7z', 'gz', 'tgz', 'tar', 'pdf', 'doc', 'dot', 'wiz', 'docx',
                         'xls', 'xlt', 'xla', 'xlsx', 'ppt', 'pps', 'pps', 'pptx', 'ppsx')
+            self.sender_logger.info(f'{attachment_path.suffix}\n'
+                                    f'{type(attachment_path.suffix)}\n'
+                                    f'{attachment_path}\n'
+                                    f'{type(attachment_path)}\n')
             print(attachment_path.suffix)
             print(type(attachment_path.suffix))
             print(type(attachment_path))
