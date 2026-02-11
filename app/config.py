@@ -507,9 +507,9 @@ class SlurmSubmiter:
 
         return self.exec_request(url)
 
-    def submit_job(self, json, **kwargs):
+    def submit_job(self, **kwargs):
         url = f'{self.api}/slurm/{self.version}/job/submit'
-        response = self.exec_request(url, method='POST', json=json, **kwargs)
+        response = self.exec_request(url, method='POST', **kwargs)
         if response.status_code == 200:
             return response.json()  # Assuming the token is returned in JSON format
         else:
@@ -528,7 +528,7 @@ class SlurmSubmiter:
             state_filter = ['FAILED']
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
             if job_state in state_filter:
-                conf.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
+                # conf.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
                 return job_state
             count -= 1
             sleep(waiting_time)
