@@ -122,8 +122,8 @@ class Config:
             self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'{func.__name__}\'', format_exc))
 
     def execute_calculation(self):
-        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_tree_for_fasta', False):
-            self.execute_action(self.ACTIONS.calculate_tree_for_fasta, self.CALCULATED_ARGS.newick_tree)
+        if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_tree', False):
+            self.execute_action(self.ACTIONS.calculate_tree, self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_ancestral_sequence', False):
             self.execute_action(self.ACTIONS.calculate_ancestral_sequence, self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
@@ -222,7 +222,7 @@ class Config:
 
     def enable_default_actions(self):
         self.DEFAULT_ACTIONS.update({
-            'calculate_tree_for_fasta': False,
+            'calculate_tree': False,
             'calculate_ancestral_sequence': False,
             'execute_all_actions': False
         })
@@ -236,17 +236,17 @@ class Config:
             self.DEFAULT_ACTIONS.update({'execute_all_actions': True})
             self.MAIN_ACTIONS.update({'compute_likelihood_of_tree': True})
         if 'draw_tree' in self.MODE:
-            self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
+            self.DEFAULT_ACTIONS.update({'calculate_tree': True,
                                          'calculate_ancestral_sequence': True,
                                          'execute_all_actions': True})
             self.MAIN_ACTIONS.update({'draw_tree': True})
         if 'create_all_file_types' in self.MODE:
-            self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
+            self.DEFAULT_ACTIONS.update({'calculate_tree': True,
                                          'calculate_ancestral_sequence': True,
                                          'execute_all_actions': True})
             self.MAIN_ACTIONS.update({'create_all_file_types': True})
         if 'execute_all_actions' in self.MODE:
-            self.DEFAULT_ACTIONS.update({'calculate_tree_for_fasta': True,
+            self.DEFAULT_ACTIONS.update({'calculate_tree': True,
                                          'calculate_ancestral_sequence': True,
                                          'execute_all_actions': True})
             self.MAIN_ACTIONS.update({'compute_likelihood_of_tree': True,

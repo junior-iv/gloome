@@ -177,7 +177,7 @@ ACTIONS = Actions(**{
                      'check_tree': Tree.rename_nodes,
                      'set_tree_data': Tree.set_tree_data,
                      # 'compute_likelihood_of_tree': compute_likelihood_of_tree,
-                     'calculate_tree_for_fasta': Tree.calculate_tree_for_fasta,
+                     'calculate_tree': Tree.calculate_tree,
                      'calculate_ancestral_sequence': Tree.calculate_ancestral_sequence,
                      # 'draw_tree': draw_tree,
                      # 'create_all_file_types': create_all_file_types,
@@ -192,7 +192,7 @@ VALIDATION_ACTIONS = {
 
 DEFAULT_ACTIONS = {
     'set_tree_data': True,
-    'calculate_tree_for_fasta': False,
+    'calculate_tree': False,
     # 'compute_likelihood_of_tree': False,
     'calculate_ancestral_sequence': False,
     # 'draw_tree': False,

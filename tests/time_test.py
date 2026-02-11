@@ -71,7 +71,7 @@ def main():
                               is_optimize_pi_average=is_optimize_pi_average,
                               is_optimize_alpha=is_optimize_alpha,
                               is_optimize_bl=is_optimize_bl)
-    newick_tree.calculate_tree_for_fasta()
+    newick_tree.calculate_tree()
     newick_tree.calculate_ancestral_sequence()
     draw_tree(newick_tree)
     compute_likelihood_of_tree(newick_tree)

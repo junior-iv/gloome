@@ -29,7 +29,7 @@ class Tree:
     log_likelihood: Optional[Union[float, np.ndarray]] = None
     likelihood: Optional[Union[float, np.ndarray]] = None
     calculated_ancestor_sequence: bool = False
-    calculated_tree_for_fasta: bool = False
+    calculated_tree: bool = False
     calculated_likelihood: bool = False
 
     def __init__(self, data: Optional[Union[str, Node]] = None, node_name: Optional[str] = None, **kwargs) -> None:
@@ -70,7 +70,7 @@ class Tree:
         self.rate_vector = (1.0,)
         self.pi_1, self.coefficient_bl = None, 1
         self.log_likelihood_vector, self.log_likelihood, self.likelihood = None, None, None
-        self.calculated_ancestor_sequence = self.calculated_tree_for_fasta = self.calculated_likelihood = False
+        self.calculated_ancestor_sequence = self.calculated_tree = self.calculated_likelihood = False
 
         if any(kwargs.values()):
             self.set_tree_data(**kwargs)
@@ -83,7 +83,23 @@ class Tree:
     def __dir__(self) -> list:
         return ['root', 'alphabet', 'msa', 'rate_vector', 'alpha', 'categories_quantity', 'pi_1', 'coefficient_bl',
                 'log_likelihood_vector', 'log_likelihood', 'likelihood', 'calculated_ancestor_sequence',
-                'calculated_tree_for_fasta', 'calculated_likelihood']
+                'calculated_tree', 'calculated_likelihood']
+
+    def __dict__(self) -> dict:
+        return {'root': self.root,
+                'alphabet': self.alphabet,
+                'msa': self.msa,
+                'rate_vector': self.rate_vector,
+                'alpha': self.alpha,
+                'categories_quantity': self.categories_quantity,
+                'pi_1': self.pi_1,
+                'coefficient_bl': self.coefficient_bl,
+                'log_likelihood_vector': self.log_likelihood_vector,
+                'log_likelihood': self.log_likelihood,
+                'likelihood': self.likelihood,
+                'calculated_ancestor_sequence': self.calculated_ancestor_sequence,
+                'calculated_tree': self.calculated_tree,
+                'calculated_likelihood': self.calculated_likelihood}
 
     def __len__(self) -> int:
         return self.get_node_count()
@@ -106,18 +122,14 @@ class Tree:
     def __ge__(self, other) -> bool:
         return self > other or self == other or len(str(self)) > len(str(other))
 
-    def print_args(self, state: str = ''):
-        print(f'\n\t\t>\t>\t>')
-        print(f'state:\t{state}')
-        print(f'alphabet:\t{self.alphabet}')
-        print(f'rate_vector:\t{self.rate_vector}')
-        print(f'alpha:\t{self.alpha}')
-        print(f'categories_quantity:\t{self.categories_quantity}')
-        print(f'pi_1:\t{self.pi_1}')
-        print(f'coefficient_bl:\t{self.coefficient_bl}')
-        print(f'log_likelihood_vector:\t{self.log_likelihood_vector}')
-        print(f'log_likelihood:\t{self.log_likelihood}')
-        print(f'likelihood:\t{self.likelihood}')
+    def print_args(self, prefix_name: str = '', prefix: str = ''):
+        if all((prefix_name, prefix)):
+            print(f'{prefix_name}:\t{prefix}')
+        for key, value in dict(sorted(vars(self).items())).items():
+            print(f'{key}:\t{value}')
+        # attributes = dict(vars(self).items())
+        # for key in dir(self):
+        #     print(f'{key}:\t{attributes.get(key, "")}')
 
     def set_tree_data(self, msa: Optional[Union[Dict[str, str], str]] = None,
                       categories_quantity: Optional[int] = None,
@@ -130,7 +142,6 @@ class Tree:
                       is_optimize_pi_average: Optional[bool] = None,
                       is_optimize_alpha: Optional[bool] = None,
                       is_optimize_bl: Optional[bool] = None) -> None:
-        # self.print_args('start')
         if isinstance(msa, str):
             self.msa = self.get_msa_dict(msa)
         elif isinstance(msa, dict):
@@ -139,18 +150,13 @@ class Tree:
             self.alphabet = Tree.get_alphabet_from_dict(self.msa)
 
         self.set_all(categories_quantity, alpha, beta, pi_0, pi_1, coefficient_bl)
-        # self.print_args('beginning')
 
         self.optimize_coefficient_bl(is_optimize_bl)
-        # self.print_args('optimize_coefficient_bl')
         self.optimize_pi(is_optimize_pi, is_optimize_pi_average)
-        # self.print_args('optimize_pi')
         self.optimize_alpha(is_optimize_alpha)
-        # self.print_args('optimize_alpha')
 
         if (is_optimize_alpha or is_optimize_pi or is_optimize_pi_average) and is_optimize_bl:
             self.optimize_coefficient_bl(is_optimize_bl)
-            # self.print_args('optimize_coefficient_bl 2')
 
     def print_node_list(self, with_additional_details: bool = False, mode: Optional[str] = None,
                         filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None) -> None:
@@ -482,10 +488,9 @@ class Tree:
 
         return msa_dict
 
-    def calculate_tree_for_fasta(self) -> Dict[str, Union[float, np.ndarray, int]]:
-        if self.msa and not self.calculated_tree_for_fasta:
+    def calculate_tree(self) -> Dict[str, Union[float, np.ndarray, int]]:
+        if self.msa and not self.calculated_tree:
             self.clean_all()
-            # self.set_pmatrix()
 
             leaves = self.get_list_nodes_info(filters={'node_type': ['leaf']}, only_node_list=True)
             len_seq = len(min(list(self.msa.values())))
@@ -495,7 +500,7 @@ class Tree:
                 self.calculate_marginal()
                 self.calculate_gl_probability()
             self.log_likelihood, self.log_likelihood_vector = self.root.log_likelihood, self.root.log_likelihood_vector
-            self.calculated_tree_for_fasta = True
+            self.calculated_tree = True
             self.calculated_likelihood = True
 
         return {'likelihood': self.likelihood, 'log_likelihood': self.log_likelihood,
@@ -504,7 +509,6 @@ class Tree:
     def calculate_likelihood(self) -> None:
         if self.msa and self.alphabet and not self.calculated_likelihood:
             self.clean_all()
-            # self.set_pmatrix()
             self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
                 self.root.calculate_likelihood(self.msa))
             self.calculated_likelihood = True
@@ -633,7 +637,7 @@ class Tree:
 
     def tree_to_interactive_html(self, file_name: str = 'interactive_tree.svg') -> str:
 
-        self.calculate_tree_for_fasta()
+        self.calculate_tree()
         self.calculate_ancestral_sequence()
         size_factor = min(1 + self.get_node_count({'node_type': ['leaf']}) // 9, 6)
 

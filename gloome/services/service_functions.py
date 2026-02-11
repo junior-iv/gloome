@@ -12,7 +12,12 @@ from flask import url_for
 from gloome.tree.tree import Tree
 from gloome.services.design_functions import *
 
-number = 0
+SELECTED_FILES = {'file_interactive_tree_html': True,
+                  'file_newick_tree_png': True,
+                  'file_table_of_nodes_tsv': True,
+                  'file_table_of_branches_tsv': True,
+                  'file_log_likelihood_tsv': True,
+                  'file_table_of_attributes_tsv': True}
 
 
 def get_digit(data: str) -> Union[int, float, str]:
@@ -145,12 +150,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                           log_file: Optional[Union[str, Path]] = None,
                           with_internal_nodes: Optional[bool] = True, selected_files: Optional[Dict[str, bool]] = None
                           ) -> Union[Dict[str, str], str]:
-    selected_files = ({'file_interactive_tree_html': True,
-                       'file_newick_tree_png': True,
-                       'file_table_of_nodes_tsv': True,
-                       'file_table_of_branches_tsv': True,
-                       'file_log_likelihood_tsv': True,
-                       'file_table_of_attributes_tsv': True} if selected_files is None else selected_files)
+    selected_files = (SELECTED_FILES if selected_files is None else selected_files)
     result = {}
     # result.update(newick_tree.tree_to_graph(f'{file_path}/graph.txt', ('dot', 'png', 'svg')))
     # result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', True, ('txt', 'png', 'svg')))
