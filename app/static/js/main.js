@@ -1,7 +1,8 @@
 let jsonTreeData = null
 let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`,
-                      `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfNodesTsv`, `fileTableOfBranchesTsv`,
-                      `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`];
+                      `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfNodesTsv`,
+                      `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`,
+                      `fileTableOfAttributesTsv`];
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
     'newickText': {'dependence': '', 'value': ''},
@@ -18,6 +19,7 @@ let objectsDependence = {
     'fileInteractiveTreeHtml': {'dependence': '', 'value': ''},
     'fileNewickTreePng': {'dependence': '', 'value': ''},
     'fileTableOfNodesTsv': {'dependence': '', 'value': ''},
+    'fileProbabilityPerPosPerBranchesTsv': {'dependence': '', 'value': ''},
     'fileTableOfBranchesTsv': {'dependence': '', 'value': ''},
     'fileLogLikelihoodTsv': {'dependence': '', 'value': ''},
     'fileTableOfAttributesTsv': {'dependence': '', 'value': ''}
@@ -496,6 +498,7 @@ function makeTree(mode = 0) {
     const fileInteractiveTreeHtml = document.getElementById(`fileInteractiveTreeHtml`)
     const fileNewickTreePng = document.getElementById(`fileNewickTreePng`)
     const fileTableOfNodesTsv = document.getElementById(`fileTableOfNodesTsv`)
+    const fileProbabilityPerPosPerBranchesTsv = document.getElementById(`fileProbabilityPerPosPerBranchesTsv`)
     const fileTableOfBranchesTsv = document.getElementById(`fileTableOfBranchesTsv`)
     const fileLogLikelihoodTsv = document.getElementById(`fileLogLikelihoodTsv`)
     const fileTableOfAttributesTsv = document.getElementById(`fileTableOfAttributesTsv`)
@@ -515,6 +518,7 @@ function makeTree(mode = 0) {
     formData.append(`fileInteractiveTreeHtml`, +fileInteractiveTreeHtml.checked);
     formData.append(`fileNewickTreePng`, +fileNewickTreePng.checked);
     formData.append(`fileTableOfNodesTsv`, +fileTableOfNodesTsv.checked);
+    formData.append(`fileProbabilityPerPosPerBranchesTsv`, +fileProbabilityPerPosPerBranchesTsv.checked);
     formData.append(`fileTableOfBranchesTsv`, +fileTableOfBranchesTsv.checked);
     formData.append(`fileLogLikelihoodTsv`, +fileLogLikelihoodTsv.checked);
     formData.append(`fileTableOfAttributesTsv`, +fileTableOfAttributesTsv.checked);
@@ -580,8 +584,8 @@ function gedIdentifiers(id = ``) {
         return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`, `newickText`,
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `eMail`, `isOptimizePi`,
             `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`, `fileInteractiveTreeHtml`,
-            `fileNewickTreePng`, `fileTableOfNodesTsv`, `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`,
-            `fileTableOfAttributesTsv`];
+            `fileNewickTreePng`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`,
+            `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`];
     }
 }
 

@@ -160,6 +160,7 @@ DEFAULT_FORM_ARGUMENTS = {
     'file_interactive_tree_html': False,
     'file_newick_tree_png': False,
     'file_table_of_nodes_tsv': True,
+    'file_probability_per_pos_per_branches_tsv': True,
     'file_table_of_branches_tsv': True,
     'file_log_likelihood_tsv': True,
     'file_table_of_attributes_tsv': True
@@ -246,8 +247,10 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify file_interactive_tree_html. Default is 0.
 \t\t--file_newick_tree_png <type=int> 
 \t\t\tSpecify file_newick_tree_png. Default is 0.
-\t\t--file_table_of_nodes_tsv <type=int> 
+\t\t--file_table_of_nodes_tsv <type=int>
 \t\t\tSpecify file_table_of_nodes_tsv. Default is 1.
+\t\t--file_probability_per_pos_per_branches_tsv 
+\t\t\tSpecify file_probability_per_pos_per_branches_tsv. Default is 1.
 \t\t--file_table_of_branches_tsv <type=int> 
 \t\t\tSpecify file_table_of_branches_tsv. Default is 1.
 \t\t--file_log_likelihood_tsv <type=int> 

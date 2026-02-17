@@ -12,7 +12,13 @@ class Node:
     father: Optional['Node']
     children: List['Node']
     name: str
+    node_type: str
     distance_to_father: Union[float, np.ndarray]
+    distance_to_root: Union[float, np.ndarray]
+    distance_to_root_vector: List[Union[float, np.ndarray]]
+    distance_to_nearest: Union[float, np.ndarray]
+    level: int
+    levels_to_nearest: int
     alphabet: Tuple[str, ...]
     alphabet_size: int
     rate_vector_size: int
@@ -40,7 +46,13 @@ class Node:
         self.father = None
         self.children = []
         self.name = name
+        self.node_type = ''
         self.distance_to_father = 0.0
+        self.distance_to_root = 0.0
+        self.distance_to_root_vector = []
+        self.distance_to_nearest = 0.0
+        self.level = 0
+        self.levels_to_nearest = 0
         self.alphabet = ('0', '1')
         self.alphabet_size = 2
         self.rate_vector_size = 1
@@ -140,35 +152,21 @@ class Node:
         return list_result
 
     def get_nodes_info(self) -> Dict[str, Union[float, np.ndarray, bool, str, List[float], List[np.ndarray]]]:
-        lavel = 1
-        full_distance = [self.distance_to_father]
-        father = self.father
-        if father:
-            father_name = father.name
-            node_type = 'node'
-            while father:
-                full_distance.append(father.distance_to_father)
-                lavel += 1
-                father = father.father
-        else:
-            father_name = ''
-            node_type = 'root'
+        father_name = self.father.name if self.father else ''
 
-        if not self.children:
-            node_type = 'leaf'
-
-        return {'node': self.name, 'distance': full_distance[0], 'lavel': lavel, 'node_type': node_type, 'father_name':
-                father_name, 'full_distance': full_distance, 'children': [i.name for i in self.children], 'up_vector':
-                self.up_vector, 'down_vector': self.down_vector, 'likelihood': self.likelihood, 'sequence_likelihood':
-                self.sequence_likelihood, 'log_likelihood': self.log_likelihood, 'log_likelihood_vector':
-                self.log_likelihood_vector, 'marginal_vector': self.marginal_vector, 'probability_vector':
-                self.probability_vector, 'probable_character': self.probable_character, 'sequence': self.sequence,
-                'probabilities_sequence_characters': self.probabilities_sequence_characters, 'ancestral_sequence':
-                self.ancestral_sequence, 'branch_probability_vector': self.branch_probability_vector,
-                'probability_vector_gain': self.probability_vector_gain, 'probability_vector_loss':
-                self.probability_vector_loss, 'alphabet': self.alphabet, 'alphabet_size': self.alphabet_size,
-                'rate_vector_size': self.rate_vector_size, 'pi_1': self.pi_1, 'frequency': self.frequency,
-                'coefficient_bl': self.coefficient_bl, 'pmatrix': self.pmatrix}
+        return {'node': self.name, 'distance': self.distance_to_father, 'level': self.level, 'distance_to_nearest':
+                self.distance_to_nearest,'levels_to_nearest': self.levels_to_nearest, 'node_type': self.node_type,
+                'father_name': father_name, 'full_distance': self.distance_to_root_vector, 'children':
+                [i.name for i in self.children], 'up_vector': self.up_vector, 'down_vector': self.down_vector,
+                'likelihood': self.likelihood, 'sequence_likelihood': self.sequence_likelihood, 'log_likelihood':
+                self.log_likelihood, 'log_likelihood_vector': self.log_likelihood_vector, 'marginal_vector':
+                self.marginal_vector, 'probability_vector': self.probability_vector, 'probable_character':
+                self.probable_character, 'sequence': self.sequence, 'probabilities_sequence_characters':
+                self.probabilities_sequence_characters, 'ancestral_sequence': self.ancestral_sequence,
+                'branch_probability_vector': self.branch_probability_vector, 'probability_vector_gain':
+                self.probability_vector_gain, 'probability_vector_loss': self.probability_vector_loss, 'alphabet':
+                self.alphabet, 'alphabet_size': self.alphabet_size, 'rate_vector_size': self.rate_vector_size, 'pi_1':
+                self.pi_1, 'frequency': self.frequency, 'coefficient_bl': self.coefficient_bl, 'pmatrix': self.pmatrix}
 
     def get_node_by_name(self, node_name: str) -> Optional['Node']:
         if node_name == self.name:
@@ -195,8 +193,8 @@ class Node:
             current_marginal_bl_vector = []
             for j in range(self.alphabet_size):
                 for i in range(self.alphabet_size):
-                    current_marginal_bl_vector.append(self.frequency[i] * self.up_vector[r][i] *
-                                                      self.pmatrix[r][i, j] * self.down_vector[r][j])
+                    current_marginal_bl_vector.append(self.frequency[j] * self.up_vector[r][j] *
+                                                      self.pmatrix[r][i, j] * self.down_vector[r][i])
             marginal_bl_vector.append(current_marginal_bl_vector)
 
         likelihood = np.sum([1 / self.rate_vector_size * np.sum(self.father.marginal_vector[r]) for r in
@@ -220,7 +218,7 @@ class Node:
             for i in range(self.alphabet_size):
                 marg = 0
                 for j in range(self.alphabet_size):
-                    marg += self.pmatrix[r][i, j] * self.down_vector[r][j]
+                    marg += self.pmatrix[r][j, i] * self.down_vector[r][j]
                 current_marginal_vector.append(self.frequency[i] * self.up_vector[r][i] * marg)
             self.marginal_vector.append(current_marginal_vector)
 
@@ -299,7 +297,7 @@ class Node:
                                  probabilities.get(brother.name, 0) + (brother.pmatrix[r][j, i] *
                                                                        brother.up_vector[r][i])})
                         probabilities.update(
-                            {father.name: probabilities.get(father.name, 0) + (father.pmatrix[r][j, i] *
+                            {father.name: probabilities.get(father.name, 0) + (father.pmatrix[r][i, j] *
                                                                                father.down_vector[r][i])})
 
                     current_down_vector.append(prod(probabilities.values()))
@@ -413,16 +411,15 @@ class Node:
         result = [i['distance'] for i in list_result]
         return result if return_list else sum(result)
 
-    def get_full_distance_to_leaves(self, return_list: bool = False) -> Union[List[float], float]:
-        list_result = []
-        children = [self]
-        while children:
-            child = children.pop(0)
-            list_result.append({'node': child, 'distance': child.distance_to_father})
-            for ch in child.children:
-                children.append(ch)
-        result = [i['distance'] for i in list_result]
-        return result if return_list else sum(result)
+    def set_levels_and_distance_to_nearest(self) -> None:
+        nodes_info_list = self.get_list_nodes_info(filters={'node_type': ['leaf']}, only_node_list=True)
+        levels_list = []
+        distance_list = []
+        for newick_node in nodes_info_list:
+            levels_list.append(round(newick_node.level - self.level))
+            distance_list.append(round(newick_node.distance_to_root - self.distance_to_root, 14))
+        self.levels_to_nearest = min(levels_list)
+        self.distance_to_nearest = min(distance_list)
 
     @staticmethod
     def get_integer(data: Union[str, int, float]) -> int:

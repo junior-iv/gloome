@@ -80,12 +80,16 @@ class Tree:
     def __str__(self) -> str:
         return self.get_newick()
 
-    def __dir__(self) -> list:
+    def __dir__(self) -> List[str]:
         return ['root', 'alphabet', 'msa', 'rate_vector', 'alpha', 'categories_quantity', 'pi_1', 'coefficient_bl',
                 'log_likelihood_vector', 'log_likelihood', 'likelihood', 'calculated_ancestor_sequence',
                 'calculated_tree', 'calculated_likelihood']
 
-    def __dict__(self) -> dict:
+    def __dict__(self) -> [Optional[Node], Optional[Tuple[str, ...]], Optional[Dict[str, str]],
+                           Tuple[Union[float, np.ndarray, int], ...], Optional[Union[float, np.ndarray, int]],
+                           Optional[int], Optional[Union[float, np.ndarray, int]],
+                           Optional[Union[float, np.ndarray, int]], Optional[List[Union[float, np.ndarray]]],
+                           Optional[Union[float, np.ndarray]], Optional[Union[float, np.ndarray]], bool, bool, bool]:
         return {'root': self.root,
                 'alphabet': self.alphabet,
                 'msa': self.msa,
@@ -122,14 +126,12 @@ class Tree:
     def __ge__(self, other) -> bool:
         return self > other or self == other or len(str(self)) > len(str(other))
 
-    def print_args(self, prefix_name: str = '', prefix: str = ''):
+    def print_args(self, prefix_name: str = '', prefix: str = '', sort: bool = False) -> None:
         if all((prefix_name, prefix)):
-            print(f'{prefix_name}:\t{prefix}')
-        for key, value in dict(sorted(vars(self).items())).items():
+            print(f'{prefix_name}\t\t>\t>\t>\t\t{prefix}')
+        items = dict(sorted(self.__dict__().items())).items() if sort else self.__dict__().items()
+        for key, value in items:
             print(f'{key}:\t{value}')
-        # attributes = dict(vars(self).items())
-        # for key in dir(self):
-        #     print(f'{key}:\t{attributes.get(key, "")}')
 
     def set_tree_data(self, msa: Optional[Union[Dict[str, str], str]] = None,
                       categories_quantity: Optional[int] = None,
@@ -287,7 +289,6 @@ class Tree:
                                       'visibility': visibility})
 
             list_children.sort(key=lambda x: len(x.get('children')), reverse=True)
-
             for i in range(len(list_children)):
                 for j in range(i + 1, len(list_children)):
                     node_name = list_children[j].get('node') if list_children[j].get('visibility') else ''
@@ -296,14 +297,16 @@ class Tree:
             for dict_children in list_children:
                 if list_children.index(dict_children):
                     newick_node = self.get_node_by_name(dict_children.get('node'))
-                    newick_node = newick_node if newick_node else self.__set_node(
-                        f'{dict_children.get("node")}{dict_children.get("distance_to_father")}', num)
                 else:
                     newick_node = self.__set_node(
                         f'{dict_children.get("node")}{dict_children.get("distance_to_father")}', num)
+                    newick_node.distance_to_root_vector = [0.0]
+                    newick_node.level = 1
                     self.root = newick_node
 
                 self.__set_children_list_from_string(dict_children.get('children'), newick_node, num)
+            for current_node in self.get_list_nodes_info(only_node_list=True):
+                current_node.set_levels_and_distance_to_nearest()
 
             return self
 
@@ -339,21 +342,27 @@ class Tree:
 
         return list_result
 
-    def __set_children_list_from_string(self, str_children: str, father: Optional[Node], num) -> None:
+    def __set_children_list_from_string(self, str_children: str, father: Node, num) -> None:
         """This method is for internal use only."""
         str_children = str_children[1:-1] if str_children.startswith('(') and str_children.endswith(
             ')') else str_children
         lst_nodes = str_children.split(',')
+        father.node_type = 'node' if father.father else 'root'
         for str_node in lst_nodes:
             newick_node = self.__set_node(str_node.strip(), num)
+            newick_node.node_type = 'leaf'
             newick_node.father = father
+            newick_node.distance_to_root_vector = father.distance_to_root_vector.copy()
+            newick_node.level = father.level + 1
+            newick_node.distance_to_root_vector.append(newick_node.distance_to_father)
+            newick_node.distance_to_root = round(sum(newick_node.distance_to_root_vector), 14)
             father.add_child(newick_node)
 
     def check_tree_for_binary(self) -> bool:
         nodes_list = self.get_list_nodes_info(True)
-        for newick_node in nodes_list:
-            for key in newick_node.keys():
-                if key == 'children' and len(newick_node.get(key)) > 2:
+        for current_node in nodes_list:
+            for key in current_node.keys():
+                if key == 'children' and len(current_node.get(key)) > 2:
                     return False
         return True
 
@@ -362,17 +371,30 @@ class Tree:
                       None, distance_type: type = str, list_type: type = str, lists: Optional[Tuple[str, ...]] = None
                       ) -> pd.DataFrame:
         nodes_info = self.get_list_nodes_info(True, None, filters)
-        columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to parent',
-                                           'children': 'Children', 'lavel': 'Lavel', 'node_type': 'Node type',
-                                           'full_distance': 'Full distance', 'up_vector': 'Up', 'down_vector': 'Down',
-                                           'likelihood': 'Likelihood', 'sequence_likelihood': 'Likelihood of sequence',
-                                           'log_likelihood': 'Log-likelihood', 'log_likelihood_vector':
-                                           'Vector of log-likelihood', 'marginal_vector': 'Marginal vector',
-                                           'probability_vector': 'Probability vector', 'probable_character':
-                                           'Probable character', 'sequence': 'Sequence', 'ancestral_sequence':
-                                           'Ancestral Comparison', 'probabilities_sequence_characters':
-                                           'Probabilities sequence characters', 'probability_vector_gain':
-                                           'Gain probability', 'probability_vector_loss': 'Loss probability'}
+        columns = columns if columns else {'node': 'Name',
+                                           'father_name': 'Parent',
+                                           'distance': 'Distance to parent',
+                                           'children': 'Children',
+                                           'level': 'Level',
+                                           'node_type': 'Node type',
+                                           'distance_to_nearest': 'Distance to nearest leaf',
+                                           'levels_to_nearest': 'Levels to nearest leaf',
+                                           'full_distance': 'Full distance',
+                                           'up_vector': 'Up',
+                                           'down_vector': 'Down',
+                                           'likelihood': 'Likelihood',
+                                           'sequence_likelihood': 'Likelihood of sequence',
+                                           'log_likelihood': 'Log-likelihood',
+                                           'log_likelihood_vector': 'Vector of log-likelihood',
+                                           'marginal_vector': 'Marginal vector',
+                                           'probability_vector': 'Probability vector',
+                                           'probable_character': 'Probable character',
+                                           'sequence': 'Sequence',
+                                           'ancestral_sequence': 'Ancestral Comparison',
+                                           'probabilities_sequence_characters':
+                                           'Probabilities sequence characters',
+                                           'probability_vector_gain': 'Gain probability',
+                                           'probability_vector_loss': 'Loss probability'}
         lists = lists if lists else ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector',
                                      'probability_vector', 'probabilities_sequence_characters', 'log_likelihood_vector',
                                      'ancestral_sequence', 'probability_vector_gain', 'probability_vector_loss',
@@ -553,6 +575,45 @@ class Tree:
 
         return self.write_file(file_name, fasta_text)
 
+    def probability_to_tsv(self, file_name: str = 'tree_attributes.tsv', sep: str = '\t') -> str:
+        ancestral_comparison = ['Absent', 'Loss', 'Gain', 'Persistent']
+        probability_limit = 0.05
+        rows = []
+
+        list_nodes = self.get_list_nodes_info(only_node_list=True)
+        for current_node in list_nodes:
+            probability_vector = current_node.branch_probability_vector
+            for pos, value in enumerate(probability_vector, start=1):
+                max_value = max(value)
+                index = value.index(max_value)
+                row = {
+                    'G/L': ancestral_comparison[index],
+                    'POS': pos,
+                    'branch': current_node.name,
+                    'branchLength': current_node.distance_to_father,
+                    'distance2root': current_node.distance_to_root,
+                    'distance2NearestOTU': current_node.distance_to_nearest,
+                    'numOfNodes2NearestOTU': current_node.levels_to_nearest,
+                    'probability': max(value)
+                }
+                rows.append(row)
+
+        df = pd.DataFrame(rows)
+        df['G/L'] = df['G/L'].astype(pd.api.types.CategoricalDtype(categories=ancestral_comparison, ordered=True))
+        df['POS'] = df['POS'].astype(int)
+        df['branch'] = df['branch'].astype(pd.api.types.CategoricalDtype(categories=self.get_list_nodes_info(),
+                                                                         ordered=True))
+        df['branchLength'] = df['branchLength'].astype(float)
+        df['distance2root'] = df['distance2root'].astype(float)
+        df['distance2NearestOTU'] = df['distance2NearestOTU'].astype(float)
+        df['numOfNodes2NearestOTU'] = df['numOfNodes2NearestOTU'].astype(int)
+        df['probability'] = df['probability'].astype(float)
+        df = df.sort_values(by=['POS', 'branch'])
+        df = df.query(f'probability > {probability_limit} and `G/L` in {ancestral_comparison[1:3]}')
+        df.to_csv(file_name, sep=sep, index=False)
+
+        return file_name
+
     def attributes_to_tsv(self, file_name: str = 'tree_attributes.tsv', sep: str = '\t') -> str:
 
         Tree.make_dir(file_name)
@@ -560,9 +621,9 @@ class Tree:
                 'number of rate categories': self.categories_quantity, 'coefficient of branch lengths':
                 self.coefficient_bl, 'rate vector': self.rate_vector, 'alphabet': self.alphabet, 'log_likelihood':
                 self.log_likelihood}
-        tree_table = pd.DataFrame({k: ((v, ) if isinstance(v, (set, tuple, list)) else v) for k, v in data.items()
-                                   if v is not None})
-        tree_table.to_csv(file_name, sep=sep, index=False)
+        df = pd.DataFrame({k: ((v, ) if isinstance(v, (set, tuple, list)) else v) for k, v in data.items()
+                           if v is not None})
+        df.to_csv(file_name, sep=sep, index=False)
 
         return file_name
 
@@ -570,9 +631,9 @@ class Tree:
 
         Tree.make_dir(file_name)
         self.calculate_likelihood()
-        tree_table = pd.DataFrame({'POS': range(len(self.log_likelihood_vector)),
-                                   'log-likelihood': self.log_likelihood_vector})
-        tree_table.to_csv(file_name, sep=sep, index=False)
+        df = pd.DataFrame({'POS': range(len(self.log_likelihood_vector)),
+                           'log-likelihood': self.log_likelihood_vector})
+        df.to_csv(file_name, sep=sep, index=False)
 
         return file_name
 

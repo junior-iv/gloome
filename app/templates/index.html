@@ -336,6 +336,19 @@
                                 </div>
                                 <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
+                                        <label for="fileProbabilityPerPosPerBranchesTsv" class="h6 text-start text-success-emphasis ms-3">Probability per positions per branches (tsv)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="fileProbabilityPerPosPerBranchesTsv" name="fileProbabilityPerPosPerBranchesTsv"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_probability_per_pos_per_branches_tsv -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
                                         <label for="fileTableOfBranchesTsv" class="h6 text-start text-success-emphasis ms-3">Table of branches (tsv)</label>
                                     </div>
                                     <div class="w-48 text-start">

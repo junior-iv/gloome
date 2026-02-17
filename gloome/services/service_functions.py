@@ -15,6 +15,7 @@ from gloome.services.design_functions import *
 SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_newick_tree_png': True,
                   'file_table_of_nodes_tsv': True,
+                  'file_probability_per_pos_per_branches_tsv': True,
                   'file_table_of_branches_tsv': True,
                   'file_log_likelihood_tsv': True,
                   'file_table_of_attributes_tsv': True}
@@ -166,6 +167,9 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     if selected_files.get('file_table_of_nodes_tsv', False):
         result.update({'Table of nodes (tsv)':
                        newick_tree.tree_to_tsv(f'{file_path}/node_results.tsv', mode='node_tsv')})
+    if selected_files.get('file_probability_per_pos_per_branches_tsv', False):
+        result.update({'Probability per positions per branches (tsv)':
+                       newick_tree.probability_to_tsv(f'{file_path}/probability_results.tsv')})
     if selected_files.get('file_table_of_branches_tsv', False):
         result.update({'Table of branches (tsv)':
                        newick_tree.tree_to_tsv(f'{file_path}/branch_results.tsv', mode='branch_tsv')})
@@ -227,9 +231,10 @@ def check_data(*args) -> List[Tuple[str, str]]:
     file_interactive_tree_html = bool(args[12])
     file_newick_tree_png = bool(args[13])
     file_table_of_nodes_tsv = bool(args[14])
-    file_table_of_branches_tsv = bool(args[15])
-    file_log_likelihood_tsv = bool(args[16])
-    file_table_of_attributes_tsv = bool(args[17])
+    file_probability_per_pos_per_branches_tsv = bool(args[15])
+    file_table_of_branches_tsv = bool(args[16])
+    file_log_likelihood_tsv = bool(args[17])
+    file_table_of_attributes_tsv = bool(args[18])
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -278,6 +283,10 @@ def check_data(*args) -> List[Tuple[str, str]]:
     if not isinstance(file_table_of_nodes_tsv, bool):
         err_list.append((f'Table of nodes (tsv) value error [ {file_table_of_nodes_tsv} ]',
                          f'The value must be boolean type.'))
+
+    if not isinstance(file_probability_per_pos_per_branches_tsv, bool):
+        err_list.append((f'Probability per positions per branches (tsv) value error [ '
+                         f'{file_probability_per_pos_per_branches_tsv} ]', f'The value must be boolean type.'))
 
     if not isinstance(file_table_of_branches_tsv, bool):
         err_list.append((f'Table of branches (tsv) value error [ {file_table_of_branches_tsv} ]',

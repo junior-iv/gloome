@@ -85,6 +85,8 @@ class Config:
         selected_files = {'file_interactive_tree_html': self.CURRENT_ARGS.file_interactive_tree_html,
                           'file_newick_tree_png': self.CURRENT_ARGS.file_newick_tree_png,
                           'file_table_of_nodes_tsv': self.CURRENT_ARGS.file_table_of_nodes_tsv,
+                          'file_probability_per_pos_per_branches_tsv':
+                              self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv,
                           'file_table_of_branches_tsv': self.CURRENT_ARGS.file_table_of_branches_tsv,
                           'file_log_likelihood_tsv': self.CURRENT_ARGS.file_log_likelihood_tsv,
                           'file_table_of_attributes_tsv': self.CURRENT_ARGS.file_table_of_attributes_tsv}
@@ -101,6 +103,8 @@ class Config:
                      'fileInteractiveTreeHtml': int(self.CURRENT_ARGS.file_interactive_tree_html),
                      'fileNewickTreePng': int(self.CURRENT_ARGS.file_newick_tree_png),
                      'fileTableOfNodesTsv': int(self.CURRENT_ARGS.file_table_of_nodes_tsv),
+                     'fileProbabilityPerPosPerBranchesTsv':
+                         int(self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv),
                      'fileTableOfBranchesTsv': int(self.CURRENT_ARGS.file_table_of_branches_tsv),
                      'fileLogLikelihoodTsv': int(self.CURRENT_ARGS.file_log_likelihood_tsv),
                      'fileTableOfAttributesTsv': int(self.CURRENT_ARGS.file_table_of_attributes_tsv),
@@ -167,6 +171,7 @@ class Config:
                                                                      self.CURRENT_ARGS.file_interactive_tree_html,
                                                                      self.CURRENT_ARGS.file_newick_tree_png,
                                                                      self.CURRENT_ARGS.file_table_of_nodes_tsv,
+                                                                     self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv,
                                                                      self.CURRENT_ARGS.file_table_of_branches_tsv,
                                                                      self.CURRENT_ARGS.file_log_likelihood_tsv,
                                                                      self.CURRENT_ARGS.file_table_of_attributes_tsv)
@@ -314,6 +319,11 @@ class Config:
                             help=f'Specify file_table_of_nodes_tsv (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_table_of_nodes_tsv)}.',
                             default=int(self.CURRENT_ARGS.file_table_of_nodes_tsv))
+        parser.add_argument('--file_probability_per_pos_per_branches_tsv', type=int, required=False,
+                            dest='file_probability_per_pos_per_branches_tsv', help=f'Specify '
+                            f'file_probability_per_pos_per_branches_tsv (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv)}.',
+                            default=int(self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv))
         parser.add_argument('--file_table_of_branches_tsv', dest='file_table_of_branches_tsv', type=int, required=False,
                             help=f'Specify file_table_of_branches_tsv (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_table_of_branches_tsv)}.',
@@ -341,8 +351,8 @@ class Config:
                 elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
                                   'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_e_mail',
                                   'file_interactive_tree_html', 'file_newick_tree_png', 'file_table_of_nodes_tsv',
-                                  'file_table_of_branches_tsv', 'file_log_likelihood_tsv',
-                                  'file_table_of_attributes_tsv'):
+                                  'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv',
+                                  'file_log_likelihood_tsv', 'file_table_of_attributes_tsv'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))
                 else:
