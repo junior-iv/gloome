@@ -575,7 +575,7 @@ class Tree:
         return self.write_file(file_name, fasta_text)
 
     def probability_to_tsv(self, file_name: str = 'ProbabilityPerPositionsPerBranches.tsv', sep: str = '\t') -> str:
-        ancestral_comparison = ['Absent', 'Loss', 'Gain', 'Persistent']
+        ancestral_comparison = ['Absence', 'Loss', 'Gain', 'Presence']
         probability_limit = 0.05
         rows = []
 

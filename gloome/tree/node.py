@@ -208,8 +208,8 @@ class Node:
             current_marginal_bl_vector = []
             for j in range(self.alphabet_size):
                 for i in range(self.alphabet_size):
-                    current_marginal_bl_vector.append(self.frequency[i] * self.up_vector[r][i] *
-                                                      self.pmatrix[r][i, j] * self.down_vector[r][j])
+                    current_marginal_bl_vector.append(self.frequency[j] * self.up_vector[r][j] *
+                                                      self.pmatrix[r][i, j] * self.down_vector[r][i])
             marginal_bl_vector.append(current_marginal_bl_vector)
 
         likelihood = np.sum([1 / self.rate_vector_size * np.sum(self.father.marginal_vector[r]) for r in
