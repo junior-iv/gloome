@@ -33,11 +33,10 @@ class Node:
     up_vector: List[List[Union[float, np.ndarray]]]
     down_vector: List[List[Union[float, np.ndarray]]]
     marginal_vector: List[List[Union[float, np.ndarray]]]
-    probability_vector: List[Union[float, np.ndarray]]
+    probability_vector: List[List[Union[float, np.ndarray]]]
     branch_probability_vector: List[List[Union[float, np.ndarray]]]
     probability_vector_gain: List[Union[float, np.ndarray]]
     probability_vector_loss: List[Union[float, np.ndarray]]
-    probable_character: str
     sequence: str
     probabilities_sequence_characters: List[Union[float, np.ndarray]]
     ancestral_sequence: str
@@ -71,7 +70,6 @@ class Node:
         self.branch_probability_vector = []
         self.probability_vector_gain = []
         self.probability_vector_loss = []
-        self.probable_character = ''
         self.sequence = ''
         self.probabilities_sequence_characters = []
         self.ancestral_sequence = ''
@@ -84,7 +82,7 @@ class Node:
                 'pi_1', 'frequency', 'coefficient_bl', 'pmatrix', 'log_likelihood_vector', 'log_likelihood',
                 'sequence_likelihood', 'likelihood', 'up_vector', 'down_vector', 'marginal_vector',
                 'probability_vector', 'branch_probability_vector', 'probability_vector_gain', 'probability_vector_loss',
-                'probable_character', 'sequence', 'probabilities_sequence_characters', 'ancestral_sequence']
+                'sequence', 'probabilities_sequence_characters', 'ancestral_sequence']
 
     def get_list_nodes_info(self, with_additional_details: bool = False, mode: Optional[str] = None, filters:
                             Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None, only_node_list:
@@ -154,19 +152,36 @@ class Node:
     def get_nodes_info(self) -> Dict[str, Union[float, np.ndarray, bool, str, List[float], List[np.ndarray]]]:
         father_name = self.father.name if self.father else ''
 
-        return {'node': self.name, 'distance': self.distance_to_father, 'level': self.level, 'distance_to_nearest':
-                self.distance_to_nearest,'levels_to_nearest': self.levels_to_nearest, 'node_type': self.node_type,
-                'father_name': father_name, 'full_distance': self.distance_to_root_vector, 'children':
-                [i.name for i in self.children], 'up_vector': self.up_vector, 'down_vector': self.down_vector,
-                'likelihood': self.likelihood, 'sequence_likelihood': self.sequence_likelihood, 'log_likelihood':
-                self.log_likelihood, 'log_likelihood_vector': self.log_likelihood_vector, 'marginal_vector':
-                self.marginal_vector, 'probability_vector': self.probability_vector, 'probable_character':
-                self.probable_character, 'sequence': self.sequence, 'probabilities_sequence_characters':
-                self.probabilities_sequence_characters, 'ancestral_sequence': self.ancestral_sequence,
-                'branch_probability_vector': self.branch_probability_vector, 'probability_vector_gain':
-                self.probability_vector_gain, 'probability_vector_loss': self.probability_vector_loss, 'alphabet':
-                self.alphabet, 'alphabet_size': self.alphabet_size, 'rate_vector_size': self.rate_vector_size, 'pi_1':
-                self.pi_1, 'frequency': self.frequency, 'coefficient_bl': self.coefficient_bl, 'pmatrix': self.pmatrix}
+        return {'node': self.name,
+                'distance': self.distance_to_father,
+                'level': self.level,
+                'distance_to_nearest': self.distance_to_nearest,
+                'levels_to_nearest': self.levels_to_nearest,
+                'node_type': self.node_type,
+                'father_name': father_name,
+                'full_distance': self.distance_to_root_vector,
+                'children': [i.name for i in self.children],
+                'up_vector': self.up_vector,
+                'down_vector': self.down_vector,
+                'likelihood': self.likelihood,
+                'sequence_likelihood': self.sequence_likelihood,
+                'log_likelihood': self.log_likelihood,
+                'log_likelihood_vector': self.log_likelihood_vector,
+                'marginal_vector': self.marginal_vector,
+                'probability_vector': self.probability_vector,
+                'sequence': self.sequence,
+                'probabilities_sequence_characters': self.probabilities_sequence_characters,
+                'ancestral_sequence': self.ancestral_sequence,
+                'branch_probability_vector': self.branch_probability_vector,
+                'probability_vector_gain': self.probability_vector_gain,
+                'probability_vector_loss': self.probability_vector_loss,
+                'alphabet': self.alphabet,
+                'alphabet_size': self.alphabet_size,
+                'rate_vector_size': self.rate_vector_size,
+                'pi_1': self.pi_1,
+                'frequency': self.frequency,
+                'coefficient_bl': self.coefficient_bl,
+                'pmatrix': self.pmatrix}
 
     def get_node_by_name(self, node_name: str) -> Optional['Node']:
         if node_name == self.name:
@@ -193,8 +208,8 @@ class Node:
             current_marginal_bl_vector = []
             for j in range(self.alphabet_size):
                 for i in range(self.alphabet_size):
-                    current_marginal_bl_vector.append(self.frequency[j] * self.up_vector[r][j] *
-                                                      self.pmatrix[r][i, j] * self.down_vector[r][i])
+                    current_marginal_bl_vector.append(self.frequency[i] * self.up_vector[r][i] *
+                                                      self.pmatrix[r][i, j] * self.down_vector[r][j])
             marginal_bl_vector.append(current_marginal_bl_vector)
 
         likelihood = np.sum([1 / self.rate_vector_size * np.sum(self.father.marginal_vector[r]) for r in
@@ -206,8 +221,8 @@ class Node:
             branch_probability_vector.append(np.sum([marginal_bl_vector[r][i] for r in range(self.rate_vector_size)]) /
                                              self.rate_vector_size / likelihood)
         self.branch_probability_vector.append(branch_probability_vector)
-        self.probability_vector_gain.append(branch_probability_vector[1])
-        self.probability_vector_loss.append(branch_probability_vector[2])
+        self.probability_vector_loss.append(branch_probability_vector[1])
+        self.probability_vector_gain.append(branch_probability_vector[2])
 
     def calculate_marginal(self) -> Tuple[Union[Union[List[List[np.ndarray]], List[List[float]]], float],
                                           Union[np.ndarray, float]]:
@@ -215,24 +230,25 @@ class Node:
 
         for r in range(self.rate_vector_size):
             current_marginal_vector = []
-            for i in range(self.alphabet_size):
+            for j in range(self.alphabet_size):
                 marg = 0
-                for j in range(self.alphabet_size):
-                    marg += self.pmatrix[r][j, i] * self.down_vector[r][j]
-                current_marginal_vector.append(self.frequency[i] * self.up_vector[r][i] * marg)
+                for i in range(self.alphabet_size):
+                    marg += self.pmatrix[r][i, j] * self.down_vector[r][i]
+                current_marginal_vector.append(self.frequency[j] * self.up_vector[r][j] * marg)
             self.marginal_vector.append(current_marginal_vector)
 
         likelihood = np.sum([1 / self.rate_vector_size * np.sum(self.marginal_vector[r]) for r in
                              range(self.rate_vector_size)])
         likelihood = max(likelihood, eps)
 
-        self.probability_vector = []
+        probability_vector = []
         for i in range(self.alphabet_size):
-            self.probability_vector.append(np.sum([self.marginal_vector[r][i] for r in range(self.rate_vector_size)]) /
-                                           self.rate_vector_size / likelihood)
-        self.probable_character = self.alphabet[self.probability_vector.index(max(self.probability_vector))]
-        self.sequence = f'{self.sequence}{self.probable_character}'
-        self.probabilities_sequence_characters += [max(self.probability_vector)]
+            probability_vector.append(np.sum([self.marginal_vector[r][i] for r in range(self.rate_vector_size)]) /
+                                      self.rate_vector_size / likelihood)
+        self.probability_vector.append(probability_vector)
+        probability = max(self.probability_vector[-1])
+        self.sequence = f'{self.sequence}{self.alphabet[self.probability_vector[-1].index(probability)]}'
+        self.probabilities_sequence_characters += [probability]
 
         return self.marginal_vector, likelihood
 
@@ -245,8 +261,8 @@ class Node:
             up_vector = list(nodes_dict.get(self.name))
             self.likelihood = np.sum([self.frequency[up_vector.index(max(up_vector))] * 1 /
                                       self.rate_vector_size * i for i in up_vector])
-            self.probable_character = self.alphabet[up_vector.index(max(up_vector))]
-            self.sequence = f'{self.sequence}{self.probable_character}'
+            probable_character = self.alphabet[up_vector.index(max(up_vector))]
+            self.sequence = f'{self.sequence}{probable_character}'
             self.probabilities_sequence_characters += [max(up_vector)]
             self.up_vector = [up_vector for _ in range(self.rate_vector_size)]
 
@@ -323,7 +339,6 @@ class Node:
             current_node.branch_probability_vector = []
             current_node.probability_vector_gain = []
             current_node.probability_vector_loss = []
-            current_node.probable_character = ''
             current_node.sequence = ''
             current_node.probabilities_sequence_characters = []
             current_node.ancestral_sequence = ''

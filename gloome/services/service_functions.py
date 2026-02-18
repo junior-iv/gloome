@@ -160,25 +160,25 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     # result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
     if selected_files.get('file_interactive_tree_html', False):
         result.update({'Interactive tree (html)':
-                       newick_tree.tree_to_interactive_html(f'{file_path}/interactive_tree.html')})
+                       newick_tree.tree_to_interactive_html(f'{file_path}/InteractiveTree.html')})
     if selected_files.get('file_newick_tree_png', False):
-        result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', with_internal_nodes,
+        result.update(newick_tree.tree_to_visual_format(f'{file_path}/VisualTree.svg', with_internal_nodes,
                                                         ('png', )))
     if selected_files.get('file_table_of_nodes_tsv', False):
         result.update({'Table of nodes (tsv)':
-                       newick_tree.tree_to_tsv(f'{file_path}/node_results.tsv', mode='node_tsv')})
+                       newick_tree.tree_to_tsv(f'{file_path}/Nodes.tsv', mode='node_tsv')})
     if selected_files.get('file_probability_per_pos_per_branches_tsv', False):
         result.update({'Probability per positions per branches (tsv)':
-                       newick_tree.probability_to_tsv(f'{file_path}/probability_results.tsv')})
+                       newick_tree.probability_to_tsv(f'{file_path}/ProbabilityPerPositionsPerBranches.tsv')})
     if selected_files.get('file_table_of_branches_tsv', False):
         result.update({'Table of branches (tsv)':
-                       newick_tree.tree_to_tsv(f'{file_path}/branch_results.tsv', mode='branch_tsv')})
+                       newick_tree.tree_to_tsv(f'{file_path}/Branches.tsv', mode='branch_tsv')})
     if selected_files.get('file_log_likelihood_tsv', False):
         result.update({'Log-likelihood (tsv)':
-                       newick_tree.likelihood_to_tsv(f'{file_path}/log_likelihood.tsv')})
+                       newick_tree.likelihood_to_tsv(f'{file_path}/LogLikelihood.tsv')})
     if selected_files.get('file_table_of_attributes_tsv', False):
         result.update({'Tree attributes (tsv)':
-                       newick_tree.attributes_to_tsv(f'{file_path}/tree_attributes.tsv')})
+                       newick_tree.attributes_to_tsv(f'{file_path}/TreeAttributes.tsv')})
 
     if result:
         file_path = get_path(file_path)

@@ -388,11 +388,9 @@ class Tree:
                                            'log_likelihood_vector': 'Vector of log-likelihood',
                                            'marginal_vector': 'Marginal vector',
                                            'probability_vector': 'Probability vector',
-                                           'probable_character': 'Probable character',
                                            'sequence': 'Sequence',
                                            'ancestral_sequence': 'Ancestral Comparison',
-                                           'probabilities_sequence_characters':
-                                           'Probabilities sequence characters',
+                                           'probabilities_sequence_characters': 'Probabilities sequence characters',
                                            'probability_vector_gain': 'Gain probability',
                                            'probability_vector_loss': 'Loss probability'}
         lists = lists if lists else ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector',
@@ -555,7 +553,8 @@ class Tree:
         """
         if return_table:
             columns, lists = self.get_columns(mode, columns)
-            column_name = 'Name' if mode == 'node' else 'Child node'
+            columns_names = {'node': 'Name', 'branch': 'Child node'}
+            column_name = columns_names.get(mode, 'Name')
 
             table = self.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float)
             dict_json = dict()
@@ -575,15 +574,15 @@ class Tree:
 
         return self.write_file(file_name, fasta_text)
 
-    def probability_to_tsv(self, file_name: str = 'tree_attributes.tsv', sep: str = '\t') -> str:
+    def probability_to_tsv(self, file_name: str = 'ProbabilityPerPositionsPerBranches.tsv', sep: str = '\t') -> str:
         ancestral_comparison = ['Absent', 'Loss', 'Gain', 'Persistent']
         probability_limit = 0.05
         rows = []
 
         list_nodes = self.get_list_nodes_info(only_node_list=True)
         for current_node in list_nodes:
-            probability_vector = current_node.branch_probability_vector
-            for pos, value in enumerate(probability_vector, start=1):
+            branch_probability_vector = current_node.branch_probability_vector
+            for pos, value in enumerate(branch_probability_vector, start=1):
                 max_value = max(value)
                 index = value.index(max_value)
                 row = {
@@ -594,7 +593,7 @@ class Tree:
                     'distance2root': current_node.distance_to_root,
                     'distance2NearestOTU': current_node.distance_to_nearest,
                     'numOfNodes2NearestOTU': current_node.levels_to_nearest,
-                    'probability': max(value)
+                    'probability': max_value
                 }
                 rows.append(row)
 
@@ -614,7 +613,7 @@ class Tree:
 
         return file_name
 
-    def attributes_to_tsv(self, file_name: str = 'tree_attributes.tsv', sep: str = '\t') -> str:
+    def attributes_to_tsv(self, file_name: str = 'TreeAttributes.tsv', sep: str = '\t') -> str:
 
         Tree.make_dir(file_name)
         data = {'π1 value': self.pi_1, 'Γ distribution α value': self.alpha,
@@ -627,7 +626,7 @@ class Tree:
 
         return file_name
 
-    def likelihood_to_tsv(self, file_name: str = 'log_likelihood.tsv', sep: str = '\t') -> str:
+    def likelihood_to_tsv(self, file_name: str = 'LogLikelihood.tsv', sep: str = '\t') -> str:
 
         Tree.make_dir(file_name)
         self.calculate_likelihood()
@@ -637,7 +636,7 @@ class Tree:
 
         return file_name
 
-    def tree_to_tsv(self, file_name: str = 'node_results.tsv', sep: str = '\t', mode: str = 'node', **kwargs) -> str:
+    def tree_to_tsv(self, file_name: str = 'Nodes.tsv', sep: str = '\t', mode: str = 'node', **kwargs) -> str:
 
         Tree.make_dir(file_name)
         columns, lists = kwargs.get('columns', None), kwargs.get('lists', None)
@@ -664,7 +663,7 @@ class Tree:
 
         return self.write_file(file_name, newick_text)
 
-    def tree_to_visual_format(self, file_name: str = 'tree_file.svg', with_internal_nodes: bool = False,
+    def tree_to_visual_format(self, file_name: str = 'VisualTree.svg', with_internal_nodes: bool = False,
                               file_extensions: Optional[Union[str, Tuple[str, ...]]] = None, show_axes: bool = False
                               ) -> Dict[str, str]:
         file_extensions = Tree.check_file_extensions_tuple(file_extensions, 'svg')
@@ -696,7 +695,7 @@ class Tree:
 
         return file_names
 
-    def tree_to_interactive_html(self, file_name: str = 'interactive_tree.svg') -> str:
+    def tree_to_interactive_html(self, file_name: str = 'InteractiveTree.svg') -> str:
 
         self.calculate_tree()
         self.calculate_ancestral_sequence()
