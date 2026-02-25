@@ -387,16 +387,17 @@ class Tree:
                                            'log_likelihood': 'Log-likelihood',
                                            'log_likelihood_vector': 'Vector of log-likelihood',
                                            'marginal_vector': 'Marginal vector',
+                                           'marginal_bl_vector': 'Marginal branch vector',
                                            'probability_vector': 'Probability vector',
                                            'sequence': 'Sequence',
                                            'ancestral_sequence': 'Ancestral Comparison',
-                                           'probabilities_sequence_characters': 'Probabilities sequence characters',
+                                           'probabilities_sequence_characters': 'character sequence probabilities',
                                            'probability_vector_gain': 'Gain probability',
                                            'probability_vector_loss': 'Loss probability'}
         lists = lists if lists else ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector',
-                                     'probability_vector', 'probabilities_sequence_characters', 'log_likelihood_vector',
-                                     'ancestral_sequence', 'probability_vector_gain', 'probability_vector_loss',
-                                     'sequence')
+                                     'marginal_bl_vector', 'probability_vector', 'probabilities_sequence_characters',
+                                     'log_likelihood_vector', 'ancestral_sequence', 'probability_vector_gain',
+                                     'probability_vector_loss', 'sequence')
 
         for node_info in nodes_info:
             for i in set(node_info.keys()) - set(columns.keys()):
@@ -442,6 +443,8 @@ class Tree:
             for current_node in node_list:
                 current_node.ancestral_sequence = ''
                 if current_node.father:
+                    if current_node.name in ('N6',):
+                        print(current_node.name)
                     for i in range(len(current_node.sequence)):
                         if current_node.sequence[i] == current_node.father.sequence[i] == self.alphabet[0]:
                             current_node.ancestral_sequence += ancestral_alphabet[0]
@@ -916,9 +919,9 @@ class Tree:
     @staticmethod
     def get_columns(mode: str = 'node', columns: Optional[Dict[str, str]] = None
                     ) -> Tuple[Dict[str, str], Tuple[str, ...]]:
-        lists = ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector', 'probability_vector',
-                 'probabilities_sequence_characters', 'log_likelihood_vector', 'sequence', 'ancestral_sequence',
-                 'probability_vector_gain', 'probability_vector_loss')
+        lists = ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector', 'marginal_bl_vector',
+                 'probability_vector', 'probabilities_sequence_characters', 'log_likelihood_vector', 'sequence',
+                 'ancestral_sequence', 'probability_vector_gain', 'probability_vector_loss')
         if mode == 'node':
             columns = columns if columns else {'node': 'Name', 'node_type': 'Node type', 'distance':
                                                'Distance to parent', 'sequence': 'Sequence',

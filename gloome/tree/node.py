@@ -33,6 +33,7 @@ class Node:
     up_vector: List[List[Union[float, np.ndarray]]]
     down_vector: List[List[Union[float, np.ndarray]]]
     marginal_vector: List[List[Union[float, np.ndarray]]]
+    marginal_bl_vector: List[List[Union[float, np.ndarray]]]
     probability_vector: List[List[Union[float, np.ndarray]]]
     branch_probability_vector: List[List[Union[float, np.ndarray]]]
     probability_vector_gain: List[Union[float, np.ndarray]]
@@ -66,6 +67,7 @@ class Node:
         self.up_vector = []
         self.down_vector = []
         self.marginal_vector = []
+        self.marginal_bl_vector = []
         self.probability_vector = []
         self.branch_probability_vector = []
         self.probability_vector_gain = []
@@ -80,7 +82,7 @@ class Node:
     def __dir__(self) -> list:
         return ['father', 'children', 'name', 'distance_to_father', 'alphabet', 'alphabet_size', 'rate_vector_size',
                 'pi_1', 'frequency', 'coefficient_bl', 'pmatrix', 'log_likelihood_vector', 'log_likelihood',
-                'sequence_likelihood', 'likelihood', 'up_vector', 'down_vector', 'marginal_vector',
+                'sequence_likelihood', 'likelihood', 'up_vector', 'down_vector', 'marginal_vector', 'marginal_bl_vector'
                 'probability_vector', 'branch_probability_vector', 'probability_vector_gain', 'probability_vector_loss',
                 'sequence', 'probabilities_sequence_characters', 'ancestral_sequence']
 
@@ -168,6 +170,7 @@ class Node:
                 'log_likelihood': self.log_likelihood,
                 'log_likelihood_vector': self.log_likelihood_vector,
                 'marginal_vector': self.marginal_vector,
+                'marginal_bl_vector': self.marginal_bl_vector,
                 'probability_vector': self.probability_vector,
                 'sequence': self.sequence,
                 'probabilities_sequence_characters': self.probabilities_sequence_characters,
@@ -202,7 +205,7 @@ class Node:
         self.log_likelihood_vector.append(log(max(self.likelihood, eps)))
 
     def calculate_gl_probability(self) -> None:
-        marginal_bl_vector = []
+        self.marginal_bl_vector = []
 
         for r in range(self.rate_vector_size):
             current_marginal_bl_vector = []
@@ -210,16 +213,16 @@ class Node:
                 for i in range(self.alphabet_size):
                     current_marginal_bl_vector.append(self.frequency[j] * self.up_vector[r][j] *
                                                       self.pmatrix[r][i, j] * self.down_vector[r][i])
-            marginal_bl_vector.append(current_marginal_bl_vector)
+            self.marginal_bl_vector.append(current_marginal_bl_vector)
 
-        likelihood = np.sum([1 / self.rate_vector_size * np.sum(self.father.marginal_vector[r]) for r in
-                             range(self.rate_vector_size)])
+        likelihood = (np.sum([np.sum(self.marginal_bl_vector[r]) for r in range(self.rate_vector_size)]) /
+                      self.rate_vector_size)
         likelihood = max(likelihood, eps)
 
         branch_probability_vector = []
         for i in range(self.alphabet_size * self.alphabet_size):
-            branch_probability_vector.append(np.sum([marginal_bl_vector[r][i] for r in range(self.rate_vector_size)]) /
-                                             self.rate_vector_size / likelihood)
+            branch_probability_vector.append(np.sum([self.marginal_bl_vector[r][i] for r in
+                                             range(self.rate_vector_size)]) / self.rate_vector_size / likelihood)
         self.branch_probability_vector.append(branch_probability_vector)
         self.probability_vector_loss.append(branch_probability_vector[1])
         self.probability_vector_gain.append(branch_probability_vector[2])
@@ -237,8 +240,8 @@ class Node:
                 current_marginal_vector.append(self.frequency[j] * self.up_vector[r][j] * marg)
             self.marginal_vector.append(current_marginal_vector)
 
-        likelihood = np.sum([1 / self.rate_vector_size * np.sum(self.marginal_vector[r]) for r in
-                             range(self.rate_vector_size)])
+        likelihood = (np.sum([np.sum(self.marginal_vector[r]) for r in range(self.rate_vector_size)]) /
+                      self.rate_vector_size)
         likelihood = max(likelihood, eps)
 
         probability_vector = []
@@ -248,7 +251,7 @@ class Node:
         self.probability_vector.append(probability_vector)
         probability = max(self.probability_vector[-1])
         self.sequence = f'{self.sequence}{self.alphabet[self.probability_vector[-1].index(probability)]}'
-        self.probabilities_sequence_characters += [probability]
+        self.probabilities_sequence_characters.append(probability)
 
         return self.marginal_vector, likelihood
 
@@ -259,11 +262,12 @@ class Node:
 
         if not self.children:
             up_vector = list(nodes_dict.get(self.name))
-            self.likelihood = np.sum([self.frequency[up_vector.index(max(up_vector))] * 1 /
+            max_up_vector = max(up_vector)
+            self.likelihood = np.sum([self.frequency[up_vector.index(max_up_vector)] * 1 /
                                       self.rate_vector_size * i for i in up_vector])
-            probable_character = self.alphabet[up_vector.index(max(up_vector))]
+            probable_character = self.alphabet[up_vector.index(max_up_vector)]
             self.sequence = f'{self.sequence}{probable_character}'
-            self.probabilities_sequence_characters += [max(up_vector)]
+            self.probabilities_sequence_characters.append(max_up_vector)
             self.up_vector = [up_vector for _ in range(self.rate_vector_size)]
 
             self.calculate_sequence_likelihood()
@@ -335,6 +339,7 @@ class Node:
             current_node.up_vector = []
             current_node.down_vector = []
             current_node.marginal_vector = []
+            current_node.marginal_bl_vector = []
             current_node.probability_vector = []
             current_node.branch_probability_vector = []
             current_node.probability_vector_gain = []

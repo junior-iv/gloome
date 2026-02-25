@@ -63,6 +63,7 @@ def main():
     print(msa_file, tree_file, form_data)
 
     newick_tree = Tree(form_data.get('newickText'))
+    Tree.rename_nodes(newick_tree)
     newick_tree.set_tree_data(msa=form_data.get('msaText'),
                               categories_quantity=categories_quantity,
                               alpha=alpha, pi_1=pi_1,
@@ -75,7 +76,9 @@ def main():
     newick_tree.calculate_ancestral_sequence()
     draw_tree(newick_tree)
     compute_likelihood_of_tree(newick_tree)
-    selected_files = {'file_log_likelihood_tsv': True,
+    selected_files = {'file_probability_per_pos_per_branches_tsv': True,
+                      'file_table_of_branches_tsv': True,
+                      'file_log_likelihood_tsv': True,
                       'file_table_of_attributes_tsv': True}
     create_all_file_types(newick_tree, file_path=file_path, log_file=log_file, with_internal_nodes=True,
                           selected_files=selected_files)
