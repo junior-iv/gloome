@@ -443,8 +443,6 @@ class Tree:
             for current_node in node_list:
                 current_node.ancestral_sequence = ''
                 if current_node.father:
-                    if current_node.name in ('N6',):
-                        print(current_node.name)
                     for i in range(len(current_node.sequence)):
                         if current_node.sequence[i] == current_node.father.sequence[i] == self.alphabet[0]:
                             current_node.ancestral_sequence += ancestral_alphabet[0]
@@ -581,24 +579,24 @@ class Tree:
         ancestral_comparison = ['Absence', 'Loss', 'Gain', 'Presence']
         probability_limit = 0.05
         rows = []
+        indexes = (1, 2)
 
         list_nodes = self.get_list_nodes_info(only_node_list=True)
         for current_node in list_nodes:
             branch_probability_vector = current_node.branch_probability_vector
             for pos, value in enumerate(branch_probability_vector, start=1):
-                max_value = max(value)
-                index = value.index(max_value)
-                row = {
-                    'G/L': ancestral_comparison[index],
-                    'POS': pos,
-                    'branch': current_node.name,
-                    'branchLength': current_node.distance_to_father,
-                    'distance2root': current_node.distance_to_root,
-                    'distance2NearestOTU': current_node.distance_to_nearest,
-                    'numOfNodes2NearestOTU': current_node.levels_to_nearest,
-                    'probability': max_value
-                }
-                rows.append(row)
+                for i in indexes:
+                    row = {
+                        'G/L': ancestral_comparison[i],
+                        'POS': pos,
+                        'branch': current_node.name,
+                        'branchLength': current_node.distance_to_father,
+                        'distance2root': current_node.distance_to_root,
+                        'distance2NearestOTU': current_node.distance_to_nearest,
+                        'numOfNodes2NearestOTU': current_node.levels_to_nearest,
+                        'probability': value[i]
+                    }
+                    rows.append(row)
 
         df = pd.DataFrame(rows)
         df['G/L'] = df['G/L'].astype(pd.api.types.CategoricalDtype(categories=ancestral_comparison, ordered=True))
@@ -610,7 +608,7 @@ class Tree:
         df['distance2NearestOTU'] = df['distance2NearestOTU'].astype(float)
         df['numOfNodes2NearestOTU'] = df['numOfNodes2NearestOTU'].astype(int)
         df['probability'] = df['probability'].astype(float)
-        df = df.sort_values(by=['POS', 'branch'])
+        df = df.sort_values(by=['POS', 'branch', 'G/L'])
         df = df.query(f'probability > {probability_limit} and `G/L` in {ancestral_comparison[1:3]}')
         df.to_csv(file_name, sep=sep, index=False)
 
