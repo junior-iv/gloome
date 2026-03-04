@@ -79,7 +79,8 @@ def main():
     selected_files = {'file_probability_per_pos_per_branches_tsv': True,
                       'file_table_of_branches_tsv': True,
                       'file_log_likelihood_tsv': True,
-                      'file_table_of_attributes_tsv': True}
+                      'file_table_of_attributes_tsv': True,
+                      'file_phylogenetic_tree_nwk': True}
     create_all_file_types(newick_tree, file_path=file_path, log_file=log_file, with_internal_nodes=True,
                           selected_files=selected_files)
     # newick_tree.print_args('END')

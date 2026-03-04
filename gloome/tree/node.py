@@ -263,8 +263,8 @@ class Node:
         if not self.children:
             up_vector = list(nodes_dict.get(self.name))
             max_up_vector = max(up_vector)
-            self.likelihood = np.sum([self.frequency[up_vector.index(max_up_vector)] * 1 /
-                                      self.rate_vector_size * i for i in up_vector])
+            self.likelihood = (np.sum([self.frequency[s] * up_vector[s] for s in range(self.alphabet_size)]) /
+                               self.rate_vector_size)
             probable_character = self.alphabet[up_vector.index(max_up_vector)]
             self.sequence = f'{self.sequence}{probable_character}'
             self.probabilities_sequence_characters.append(max_up_vector)

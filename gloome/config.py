@@ -89,7 +89,8 @@ class Config:
                               self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv,
                           'file_table_of_branches_tsv': self.CURRENT_ARGS.file_table_of_branches_tsv,
                           'file_log_likelihood_tsv': self.CURRENT_ARGS.file_log_likelihood_tsv,
-                          'file_table_of_attributes_tsv': self.CURRENT_ARGS.file_table_of_attributes_tsv}
+                          'file_table_of_attributes_tsv': self.CURRENT_ARGS.file_table_of_attributes_tsv,
+                          'file_phylogenetic_tree_nwk': self.CURRENT_ARGS.file_phylogenetic_tree_nwk}
         return selected_files
 
     def get_form_data(self) -> Dict[str, Union[str, int]]:
@@ -108,6 +109,7 @@ class Config:
                      'fileTableOfBranchesTsv': int(self.CURRENT_ARGS.file_table_of_branches_tsv),
                      'fileLogLikelihoodTsv': int(self.CURRENT_ARGS.file_log_likelihood_tsv),
                      'fileTableOfAttributesTsv': int(self.CURRENT_ARGS.file_table_of_attributes_tsv),
+                     'filePhylogeneticTreeNwk': int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk),
                      'coefficientBL': self.CURRENT_ARGS.coefficient_bl,
                      'pi1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
@@ -174,7 +176,8 @@ class Config:
                                                                      self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv,
                                                                      self.CURRENT_ARGS.file_table_of_branches_tsv,
                                                                      self.CURRENT_ARGS.file_log_likelihood_tsv,
-                                                                     self.CURRENT_ARGS.file_table_of_attributes_tsv)
+                                                                     self.CURRENT_ARGS.file_table_of_attributes_tsv,
+                                                                     self.CURRENT_ARGS.file_phylogenetic_tree_nwk)
 
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
             try:
@@ -336,6 +339,10 @@ class Config:
                             required=False, help=f'Specify file_table_of_attributes_tsv (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_table_of_attributes_tsv)}.',
                             default=int(self.CURRENT_ARGS.file_table_of_attributes_tsv))
+        parser.add_argument('--file_phylogenetic_tree_nwk', dest='file_phylogenetic_tree_nwk', type=int,
+                            required=False, help=f'Specify file_phylogenetic_tree_nwk (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk)}.',
+                            default=int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk))
 
         args = parser.parse_args()
 
@@ -352,7 +359,8 @@ class Config:
                                   'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_e_mail',
                                   'file_interactive_tree_html', 'file_newick_tree_png', 'file_table_of_nodes_tsv',
                                   'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv',
-                                  'file_log_likelihood_tsv', 'file_table_of_attributes_tsv'):
+                                  'file_log_likelihood_tsv', 'file_table_of_attributes_tsv',
+                                  'file_phylogenetic_tree_nwk'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))
                 else:

@@ -104,6 +104,8 @@ Optional parameters:
         Specify file_log_likelihood_tsv. Default is 1.
     --file_table_of_attributes_tsv <type=int> 
         Specify file_table_of_attributes_tsv. Default is 1.
+    --file_phylogenetic_tree_nwk <type=int> 
+        Specify file_phylogenetic_tree_nwk. Default is 1.
     --e_mail <type=str> 
         Specify e_mail (technical parameter, do not change).
     --is_do_not_use_e_mail <type=int> 

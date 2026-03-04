@@ -576,16 +576,15 @@ class Tree:
         return self.write_file(file_name, fasta_text)
 
     def probability_to_tsv(self, file_name: str = 'ProbabilityPerPositionsPerBranches.tsv', sep: str = '\t') -> str:
-        ancestral_comparison = ['Absence', 'Loss', 'Gain', 'Presence']
+        ancestral_comparison = ['absence', 'loss', 'gain', 'presence']
         probability_limit = 0.05
         rows = []
-        indexes = (1, 2)
 
         list_nodes = self.get_list_nodes_info(only_node_list=True)
         for current_node in list_nodes:
             branch_probability_vector = current_node.branch_probability_vector
             for pos, value in enumerate(branch_probability_vector, start=1):
-                for i in indexes:
+                for i in range(1, 3):
                     row = {
                         'G/L': ancestral_comparison[i],
                         'POS': pos,
@@ -1063,16 +1062,12 @@ class Tree:
     def rename_nodes(newick_tree: Union[str, 'Tree'], node_name: str = 'N', fill_character: str = '0', number_length:
                      int = 0) -> 'Tree':
         newick_tree = Tree.check_tree(newick_tree)
-        num = newick_tree.__counter()
-
-        nodes_list = [newick_tree.root]
-        while nodes_list:
-            newick_node = nodes_list.pop(0)
-
-            if newick_node.children:
-                newick_node.name = f'{node_name}{str(num()).rjust(number_length, fill_character)}'
-                for nodes_child in newick_node.children:
-                    nodes_list.append(nodes_child)
+        nodes_list = newick_tree.get_list_nodes_info(filters={'node_type': ['root', 'node']}, only_node_list=True,
+                                                     mode='pre-order')
+        if nodes_list[-1].name == 'nd0001':
+            num = newick_tree.__counter()
+            for current_node in nodes_list:
+                current_node.name = f'{node_name}{str(num()).rjust(number_length, fill_character)}'
 
         return newick_tree
 

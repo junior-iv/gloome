@@ -386,6 +386,19 @@
                                         />
                                     </div>
                                 </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="filePhylogeneticTreeNwk" class="h6 text-start text-success-emphasis ms-3">Phylogenetic tree (nwk)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="filePhylogeneticTreeNwk" name="filePhylogeneticTreeNwk"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_phylogenetic_tree_nwk -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
                             </details>
                         </div>
                     </div>

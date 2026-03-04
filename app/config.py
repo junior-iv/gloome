@@ -88,15 +88,15 @@ class WebConfig:
                    'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseEMail',
                    'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileTableOfNodesTsv',
                    'fileProbabilityPerPosPerBranchesTsv', 'fileTableOfBranchesTsv', 'fileLogLikelihoodTsv',
-                   'fileTableOfAttributesTsv'),
+                   'fileTableOfAttributesTsv', 'filePhylogeneticTreeNwk'),
                   ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'e_mail', 'is_optimize_pi',
                    'is_optimize_pi_average', 'is_optimize_bl', 'is_optimize_alpha', 'is_do_not_use_e_mail',
                    'file_interactive_tree_html', 'file_newick_tree_png', 'file_table_of_nodes_tsv',
                    'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv', 'file_log_likelihood_tsv',
-                   'file_table_of_attributes_tsv'),
+                   'file_table_of_attributes_tsv', 'file_phylogenetic_tree_nwk'),
                   ((int, ), (float, ), (float, ), (float, ), (str, ), (int, bool), (int, bool), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
-                   (int, bool), (int, bool)))
+                   (int, bool), (int, bool), (int, bool)))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -128,6 +128,7 @@ class WebConfig:
                              f'\n\tfile_table_of_branches_tsv: {self.CURRENT_ARGS.file_table_of_branches_tsv}'
                              f'\n\tfile_log_likelihood_tsv: {self.CURRENT_ARGS.file_log_likelihood_tsv}'
                              f'\n\tfile_table_of_attributes_tsv: {self.CURRENT_ARGS.file_table_of_attributes_tsv}'
+                             f'\n\tfile_phylogenetic_tree_nwk: {self.CURRENT_ARGS.file_phylogenetic_tree_nwk}'
                              f'\n\tnewick_text: {self.CALCULATED_ARGS.newick_text}'
                              f'\n\tmsa: {self.CALCULATED_ARGS.msa}\n')
 
@@ -178,6 +179,7 @@ class WebConfig:
             f'--file_table_of_branches_tsv {int(self.CURRENT_ARGS.file_table_of_branches_tsv)} '
             f'--file_log_likelihood_tsv {int(self.CURRENT_ARGS.file_log_likelihood_tsv)} '
             f'--file_table_of_attributes_tsv {int(self.CURRENT_ARGS.file_table_of_attributes_tsv)} '
+            f'--file_phylogenetic_tree_nwk {int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk)} '
             f'--mode {self.MODE}')
         self.JOB_LOGGER.info(f'\n\tcreate a command line: '
                              f'\n\tCOMMAND_LINE: {self.COMMAND_LINE}\n')

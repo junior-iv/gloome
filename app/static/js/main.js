@@ -2,7 +2,7 @@ let jsonTreeData = null
 let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`,
                       `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfNodesTsv`,
                       `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`,
-                      `fileTableOfAttributesTsv`];
+                      `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk'];
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
     'newickText': {'dependence': '', 'value': ''},
@@ -22,7 +22,8 @@ let objectsDependence = {
     'fileProbabilityPerPosPerBranchesTsv': {'dependence': '', 'value': ''},
     'fileTableOfBranchesTsv': {'dependence': '', 'value': ''},
     'fileLogLikelihoodTsv': {'dependence': '', 'value': ''},
-    'fileTableOfAttributesTsv': {'dependence': '', 'value': ''}
+    'fileTableOfAttributesTsv': {'dependence': '', 'value': ''},
+    'filePhylogeneticTreeNwk': {'dependence': '', 'value': ''}
 };
 
 function validateInputEMail(id) {
@@ -502,6 +503,7 @@ function makeTree(mode = 0) {
     const fileTableOfBranchesTsv = document.getElementById(`fileTableOfBranchesTsv`)
     const fileLogLikelihoodTsv = document.getElementById(`fileLogLikelihoodTsv`)
     const fileTableOfAttributesTsv = document.getElementById(`fileTableOfAttributesTsv`)
+    const filePhylogeneticTreeNwk = document.getElementById(`filePhylogeneticTreeNwk`)
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`msaText`, msaText.value.trim());
@@ -522,6 +524,7 @@ function makeTree(mode = 0) {
     formData.append(`fileTableOfBranchesTsv`, +fileTableOfBranchesTsv.checked);
     formData.append(`fileLogLikelihoodTsv`, +fileLogLikelihoodTsv.checked);
     formData.append(`fileTableOfAttributesTsv`, +fileTableOfAttributesTsv.checked);
+    formData.append(`filePhylogeneticTreeNwk`, +filePhylogeneticTreeNwk.checked);
 
     jsonTreeData = null
 
@@ -585,7 +588,7 @@ function gedIdentifiers(id = ``) {
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `eMail`, `isOptimizePi`,
             `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`, `fileInteractiveTreeHtml`,
             `fileNewickTreePng`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`,
-            `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`];
+            `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk'];
     }
 }
 

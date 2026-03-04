@@ -18,7 +18,8 @@ SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_probability_per_pos_per_branches_tsv': True,
                   'file_table_of_branches_tsv': True,
                   'file_log_likelihood_tsv': True,
-                  'file_table_of_attributes_tsv': True}
+                  'file_table_of_attributes_tsv': True,
+                  'file_phylogenetic_tree_nwk': True}
 
 
 def get_digit(data: str) -> Union[int, float, str]:
@@ -179,6 +180,9 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     if selected_files.get('file_table_of_attributes_tsv', False):
         result.update({'Tree attributes (tsv)':
                        newick_tree.attributes_to_tsv(f'{file_path}/TreeAttributes.tsv')})
+    if selected_files.get('file_phylogenetic_tree_nwk', False):
+        result.update({'Phylogenetic tree (nwk)':
+                       newick_tree.tree_to_newick_file(f'{file_path}/PhylogeneticTree.nwk', True)})
 
     if result:
         file_path = get_path(file_path)
@@ -235,6 +239,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
     file_table_of_branches_tsv = bool(args[16])
     file_log_likelihood_tsv = bool(args[17])
     file_table_of_attributes_tsv = bool(args[18])
+    file_phylogenetic_tree_nwk = bool(args[19])
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -298,6 +303,10 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not isinstance(file_table_of_attributes_tsv, bool):
         err_list.append((f'Table of attributes (tsv) value error [ {file_table_of_attributes_tsv} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_phylogenetic_tree_nwk, bool):
+        err_list.append((f'Phylogenetic tree (nwk) value error [ {file_phylogenetic_tree_nwk} ]',
                          f'The value must be boolean type.'))
 
     if not msa:
