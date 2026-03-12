@@ -154,6 +154,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                           ) -> Union[Dict[str, str], str]:
     selected_files = (SELECTED_FILES if selected_files is None else selected_files)
     result = {}
+    newick_tree = Tree.check_tree(newick_tree)
+    taking_into_coefficient = newick_tree.coefficient_bl != 1
     # result.update(newick_tree.tree_to_graph(f'{file_path}/graph.txt', ('dot', 'png', 'svg')))
     # result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', True, ('txt', 'png', 'svg')))
     # result.update({'Newick text (tree)': newick_tree.tree_to_newick_file(f'{file_path}/newick_tree.tree', True)})
@@ -161,19 +163,24 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     # result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
     if selected_files.get('file_interactive_tree_html', False):
         result.update({'Interactive tree (html)':
-                       newick_tree.tree_to_interactive_html(f'{file_path}/InteractiveTree.html')})
+                       newick_tree.tree_to_interactive_html(f'{file_path}/InteractiveTree.html',
+                                                            taking_into_coefficient=taking_into_coefficient)})
     if selected_files.get('file_newick_tree_png', False):
         result.update(newick_tree.tree_to_visual_format(f'{file_path}/VisualTree.svg', with_internal_nodes,
-                                                        ('png', )))
+                                                        ('png', ),
+                                                        taking_into_coefficient=taking_into_coefficient))
     if selected_files.get('file_table_of_nodes_tsv', False):
         result.update({'Table of nodes (tsv)':
-                       newick_tree.tree_to_tsv(f'{file_path}/Nodes.tsv', mode='node_tsv')})
+                       newick_tree.tree_to_tsv(f'{file_path}/Nodes.tsv', mode='node_tsv',
+                                               taking_into_coefficient=taking_into_coefficient)})
     if selected_files.get('file_probability_per_pos_per_branches_tsv', False):
         result.update({'Probability per positions per branches (tsv)':
-                       newick_tree.probability_to_tsv(f'{file_path}/ProbabilityPerPositionsPerBranches.tsv')})
+                       newick_tree.probability_to_tsv(f'{file_path}/ProbabilityPerPositionsPerBranches.tsv',
+                                                      taking_into_coefficient=taking_into_coefficient)})
     if selected_files.get('file_table_of_branches_tsv', False):
         result.update({'Table of branches (tsv)':
-                       newick_tree.tree_to_tsv(f'{file_path}/Branches.tsv', mode='branch_tsv')})
+                       newick_tree.tree_to_tsv(f'{file_path}/Branches.tsv', mode='branch_tsv',
+                                               taking_into_coefficient=taking_into_coefficient)})
     if selected_files.get('file_log_likelihood_tsv', False):
         result.update({'Log-likelihood (tsv)':
                        newick_tree.likelihood_to_tsv(f'{file_path}/LogLikelihood.tsv')})
@@ -182,7 +189,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                        newick_tree.attributes_to_tsv(f'{file_path}/TreeAttributes.tsv')})
     if selected_files.get('file_phylogenetic_tree_nwk', False):
         result.update({'Phylogenetic tree (nwk)':
-                       newick_tree.tree_to_newick_file(f'{file_path}/PhylogeneticTree.nwk', True)})
+                       newick_tree.tree_to_newick_file(f'{file_path}/PhylogeneticTree.nwk', True, 0,
+                                                       taking_into_coefficient=taking_into_coefficient)})
 
     if result:
         file_path = get_path(file_path)
@@ -356,7 +364,8 @@ def check_data(*args) -> List[Tuple[str, str]]:
                     current_node.distance_to_father = float(f'{current_node.distance_to_father:.4f}1')
                 edges_distances_list = current_tree.tree_to_table(filters={'node_type': ['leaf', 'node']},
                                                                   columns={'distance': 'distance'},
-                                                                  distance_type=float).T.values[0].tolist()
+                                                                  distance_type=float,
+                                                                  taking_into_coefficient=False).T.values[0].tolist()
                 if not all(edges_distances_list):
                     err_list.append((f'TREE error', f'One or more branches in the tree have zero length.\n'
                                                     f'{edges_distances_list}'))
@@ -366,8 +375,8 @@ def check_data(*args) -> List[Tuple[str, str]]:
                                      f'A discrepancy exists between the number of leaves in the phylogenetic tree and '
                                      f'the number of sequences present in the MSA data.'))
 
-                tree_taxa_info = current_tree.tree_to_table(filters={'node_type': ['leaf']},
-                                                            columns={'node': 'node'}).T.values[0].tolist()
+                tree_taxa_info = current_tree.tree_to_table(filters={'node_type': ['leaf']}, columns={'node': 'node'},
+                                                            taking_into_coefficient=False).T.values[0].tolist()
 
                 if len(tree_taxa_info) != len(set(tree_taxa_info)):
                     err_list.append((f'TREE error', f'Duplicate taxa names found.'))

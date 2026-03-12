@@ -160,6 +160,18 @@ class Tree:
         if (is_optimize_alpha or is_optimize_pi or is_optimize_pi_average) and is_optimize_bl:
             self.optimize_coefficient_bl(is_optimize_bl)
 
+        self.set_distance_taking_into_coefficient()
+
+    def set_distance_taking_into_coefficient(self):
+        for current_node in self.root.get_list_nodes_info(only_node_list=True):
+            current_node.distance_to_father_taking_into_coefficient = (current_node.distance_to_father *
+                                                                       self.coefficient_bl)
+            current_node.distance_to_nearest_taking_into_coefficient = (current_node.distance_to_nearest *
+                                                                        self.coefficient_bl)
+            current_node.distance_to_root_taking_into_coefficient = current_node.distance_to_root * self.coefficient_bl
+            current_node.distance_to_root_vector_taking_into_coefficient = [i * self.coefficient_bl for i in
+                                                                            current_node.distance_to_root_vector]
+
     def print_node_list(self, with_additional_details: bool = False, mode: Optional[str] = None,
                         filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None) -> None:
         """
@@ -211,7 +223,8 @@ class Tree:
 
         return self.root.get_node_by_name(name)
 
-    def get_newick(self, with_internal_nodes: bool = False, decimal_length: int = 0) -> str:
+    def get_newick(self, with_internal_nodes: bool = False, decimal_length: int = 0,
+                   taking_into_coefficient: bool = False) -> str:
 
         """
         Convert the current tree structure to a Newick formatted string.
@@ -222,11 +235,12 @@ class Tree:
         Args:
             with_internal_nodes (bool, optional):
             decimal_length (int, optional):
+            taking_into_coefficient (bool, optional):
 
         Returns:
             str: A Newick formatted string representing the tree structure.
         """
-        return f'{self.root.subtree_to_newick(with_internal_nodes, decimal_length)};'
+        return f'{self.root.subtree_to_newick(with_internal_nodes, decimal_length, taking_into_coefficient)};'
 
     def find_node_by_name(self, name: str) -> bool:
         """
@@ -368,18 +382,24 @@ class Tree:
 
     def tree_to_table(self, sort_values_by: Optional[Tuple[str, ...]] = None, decimal_length: int = 8, columns: Optional
                       [Dict[str, str]] = None, filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] =
-                      None, distance_type: type = str, list_type: type = str, lists: Optional[Tuple[str, ...]] = None
-                      ) -> pd.DataFrame:
+                      None, distance_type: type = str, list_type: type = str, lists: Optional[Tuple[str, ...]] = None,
+                      taking_into_coefficient: bool = True) -> pd.DataFrame:
         nodes_info = self.get_list_nodes_info(True, None, filters)
+
+        suffix = '_taking_into_coefficient' if taking_into_coefficient else ''
+        distance_name = f'distance{suffix}'
+        full_distance_name = f'full_distance{suffix}'
+        distance_to_nearest_name = f'distance_to_nearest{suffix}'
+
         columns = columns if columns else {'node': 'Name',
                                            'father_name': 'Parent',
-                                           'distance': 'Distance to parent',
+                                           distance_name: 'Distance to parent',
                                            'children': 'Children',
                                            'level': 'Level',
                                            'node_type': 'Node type',
-                                           'distance_to_nearest': 'Distance to nearest leaf',
+                                           distance_to_nearest_name: 'Distance to nearest leaf',
                                            'levels_to_nearest': 'Levels to nearest leaf',
-                                           'full_distance': 'Full distance',
+                                           full_distance_name: 'Full distance',
                                            'up_vector': 'Up',
                                            'down_vector': 'Down',
                                            'likelihood': 'Likelihood',
@@ -394,22 +414,24 @@ class Tree:
                                            'probabilities_sequence_characters': 'character sequence probabilities',
                                            'probability_vector_gain': 'Gain probability',
                                            'probability_vector_loss': 'Loss probability'}
-        lists = lists if lists else ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector',
-                                     'marginal_bl_vector', 'probability_vector', 'probabilities_sequence_characters',
-                                     'log_likelihood_vector', 'ancestral_sequence', 'probability_vector_gain',
-                                     'probability_vector_loss', 'sequence')
+        lists = lists if lists else ('children', 'full_distance', 'full_distance_taking_into_coefficient', 'up_vector',
+                                     'down_vector', 'marginal_vector', 'marginal_bl_vector', 'probability_vector',
+                                     'probabilities_sequence_characters', 'log_likelihood_vector', 'sequence',
+                                     'ancestral_sequence', 'probability_vector_gain', 'probability_vector_loss')
 
         for node_info in nodes_info:
             for i in set(node_info.keys()) - set(columns.keys()):
                 node_info.pop(i)
             if not node_info.get('father_name'):
                 node_info.update({'father_name': 'root'})
-            if columns.get('distance'):
+            if columns.get(distance_name):
+                distance_value = node_info.pop(distance_name)
                 if distance_type is str:
-                    node_info.update({'distance': ' ' * decimal_length if not node_info.get('distance') else
-                                     f'{node_info.pop("distance"):.10f}'.ljust(decimal_length, "0")})
+                    distance_value = f'{distance_value:.10f}'.ljust(decimal_length, "0"
+                                                                    ) if distance_value else ' ' * decimal_length
                 else:
-                    node_info.update({'distance': distance_type(node_info.get('distance'))})
+                    distance_value = distance_type(distance_value)
+                node_info.update({distance_name: distance_value})
             for i in lists:
                 if columns.get(i):
                     if list_type in (list, tuple, set):
@@ -542,22 +564,25 @@ class Tree:
         return fasta_text[:-1]
 
     def get_json_structure(self, return_table: bool = False, columns: Optional[Dict[str, str]] = None,
-                           mode: str = 'node') -> Dict[str, Union[List[str], str]]:
+                           mode: str = 'node', taking_into_coefficient: bool = True
+                           ) -> Dict[str, Union[List[str], str]]:
         """
         Args:
             return_table (bool, optional): `False` (default).
             columns (dict, optional): `None` (default).
             mode (str, optional): 'node' (default), 'branch'.
+            taking_into_coefficient (bool, optional): `True` (default).
 
         Returns:
             Dict: An dictionary representing the tree structure.
         """
         if return_table:
-            columns, lists = self.get_columns(mode, columns)
+            columns, lists = self.get_columns(mode, columns, taking_into_coefficient)
             columns_names = {'node': 'Name', 'branch': 'Child node'}
             column_name = columns_names.get(mode, 'Name')
 
-            table = self.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float)
+            table = self.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float,
+                                       taking_into_coefficient=taking_into_coefficient)
             dict_json = dict()
             for row in table.T:
                 dict_row = dict()
@@ -575,10 +600,16 @@ class Tree:
 
         return self.write_file(file_name, fasta_text)
 
-    def probability_to_tsv(self, file_name: str = 'ProbabilityPerPositionsPerBranches.tsv', sep: str = '\t') -> str:
+    def probability_to_tsv(self, file_name: str = 'ProbabilityPerPositionsPerBranches.tsv', sep: str = '\t',
+                           taking_into_coefficient: bool = True) -> str:
         ancestral_comparison = ['absence', 'loss', 'gain', 'presence']
         probability_limit = 0.05
         rows = []
+
+        suffix = '_taking_into_coefficient' if taking_into_coefficient else ''
+        distance_to_father = f'distance_to_father{suffix}'
+        distance_to_root = f'distance_to_root{suffix}'
+        distance_to_nearest = f'distance_to_nearest{suffix}'
 
         list_nodes = self.get_list_nodes_info(only_node_list=True)
         for current_node in list_nodes:
@@ -589,9 +620,9 @@ class Tree:
                         'G/L': ancestral_comparison[i],
                         'POS': pos,
                         'branch': current_node.name,
-                        'branchLength': current_node.distance_to_father,
-                        'distance2root': current_node.distance_to_root,
-                        'distance2NearestOTU': current_node.distance_to_nearest,
+                        'branchLength': getattr(current_node, distance_to_father),
+                        'distance2root': getattr(current_node, distance_to_root),
+                        'distance2NearestOTU': getattr(current_node, distance_to_nearest),
                         'numOfNodes2NearestOTU': current_node.levels_to_nearest,
                         'probability': value[i]
                     }
@@ -636,12 +667,13 @@ class Tree:
 
         return file_name
 
-    def tree_to_tsv(self, file_name: str = 'Nodes.tsv', sep: str = '\t', mode: str = 'node', **kwargs) -> str:
+    def tree_to_tsv(self, file_name: str = 'Nodes.tsv', sep: str = '\t', mode: str = 'node',
+                    taking_into_coefficient: bool = True, **kwargs) -> str:
 
         Tree.make_dir(file_name)
         columns, lists = kwargs.get('columns', None), kwargs.get('lists', None)
         if columns is None or lists is None:
-            columns, lists = self.get_columns(mode, columns)
+            columns, lists = self.get_columns(mode, columns, taking_into_coefficient)
 
         if kwargs.get('columns', None) is None:
             kwargs.update(columns=columns)
@@ -651,28 +683,28 @@ class Tree:
             kwargs.update(list_type=list)
         if kwargs.get('distance_type', None) is None:
             kwargs.update(distance_type=float)
-        table = self.tree_to_table(**kwargs)
+        table = self.tree_to_table(taking_into_coefficient=taking_into_coefficient, **kwargs)
         table.to_csv(file_name, index=False, sep=sep)
 
         return file_name
 
     def tree_to_newick_file(self, file_name: str = 'tree_file.tree', with_internal_nodes: bool = False,
-                            decimal_length: int = 0) -> str:
+                            decimal_length: int = 0, taking_into_coefficient: bool = True) -> str:
 
-        newick_text = self.get_newick(with_internal_nodes, decimal_length)
+        newick_text = self.get_newick(with_internal_nodes, decimal_length, taking_into_coefficient)
 
         return self.write_file(file_name, newick_text)
 
     def tree_to_visual_format(self, file_name: str = 'VisualTree.svg', with_internal_nodes: bool = False,
-                              file_extensions: Optional[Union[str, Tuple[str, ...]]] = None, show_axes: bool = False
-                              ) -> Dict[str, str]:
+                              file_extensions: Optional[Union[str, Tuple[str, ...]]] = None, show_axes: bool = False,
+                              taking_into_coefficient: bool = True) -> Dict[str, str]:
         file_extensions = Tree.check_file_extensions_tuple(file_extensions, 'svg')
 
         Tree.make_dir(file_name)
         tmp_dir = Path(file_name).parent.joinpath('tmp')
         tmp_file = f'{tmp_dir.joinpath(f"{Tree.get_random_name()}.tree")}'
         Tree.make_dir(tmp_file)
-        self.tree_to_newick_file(tmp_file, with_internal_nodes)
+        self.tree_to_newick_file(tmp_file, with_internal_nodes, taking_into_coefficient)
         phylogenetic_tree = Phylo.read(tmp_file, 'newick')
 
         j = file_name[::-1].find('.')
@@ -695,16 +727,15 @@ class Tree:
 
         return file_names
 
-    def tree_to_interactive_html(self, file_name: str = 'InteractiveTree.svg') -> str:
+    def tree_to_interactive_html(self, file_name: str = 'InteractiveTree.svg', taking_into_coefficient: bool = True
+                                 ) -> str:
 
         self.calculate_tree()
         self.calculate_ancestral_sequence()
         size_factor = min(1 + self.get_node_count({'node_type': ['leaf']}) // 9, 6)
-
-        df = self.tree_to_table(columns={'node': 'target', 'father_name': 'source', 'distance': 'weight', 'sequence':
-                                         'sequence', 'probabilities_sequence_characters': 'prob_characters',
-                                         'node_type': 'node_type', 'ancestral_sequence': 'ancestral_sequence'},
-                                distance_type=float, filters={'node_type': ['leaf', 'node', 'root']}, list_type=list)
+        columns, lists = self.get_columns(mode='tree_html', taking_into_coefficient=taking_into_coefficient)
+        df = self.tree_to_table(columns=columns, distance_type=float, filters={'node_type': ['leaf', 'node', 'root']},
+                                list_type=list, taking_into_coefficient=taking_into_coefficient, lists=lists)
         df_copy = df.copy()
         del df['sequence'], df['node_type'], df['prob_characters']
         df = df.iloc[1:]
@@ -914,24 +945,29 @@ class Tree:
         return gamma.ppf(probability_vector, a=self.alpha, scale=1/self.alpha)
 
     @staticmethod
-    def get_columns(mode: str = 'node', columns: Optional[Dict[str, str]] = None
-                    ) -> Tuple[Dict[str, str], Tuple[str, ...]]:
-        lists = ('children', 'full_distance', 'up_vector', 'down_vector', 'marginal_vector', 'marginal_bl_vector',
-                 'probability_vector', 'probabilities_sequence_characters', 'log_likelihood_vector', 'sequence',
-                 'ancestral_sequence', 'probability_vector_gain', 'probability_vector_loss')
+    def get_columns(mode: str = 'node', columns: Optional[Dict[str, str]] = None,
+                    taking_into_coefficient: bool = True) -> Tuple[Dict[str, str], Tuple[str, ...]]:
+
+        suffix = '_taking_into_coefficient' if taking_into_coefficient else ''
+        distance_name = f'distance{suffix}'
+
+        lists = ('children', 'full_distance', 'full_distance_taking_into_coefficient', 'up_vector', 'down_vector',
+                 'marginal_vector', 'marginal_bl_vector', 'probability_vector', 'probabilities_sequence_characters',
+                 'log_likelihood_vector', 'probability_vector_gain', 'probability_vector_loss', 'ancestral_sequence',
+                 'sequence')
         if mode == 'node':
-            columns = columns if columns else {'node': 'Name', 'node_type': 'Node type', 'distance':
+            columns = columns if columns else {'node': 'Name', 'node_type': 'Node type', distance_name:
                                                'Distance to parent', 'sequence': 'Sequence',
                                                'probabilities_sequence_characters': 'Probability coefficient',
                                                'ancestral_sequence': 'Ancestral Comparison'}
             lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
         elif mode == 'branch':
-            columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', 'distance':
+            columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', distance_name:
                                                'Branch length', 'probability_vector_gain': 'Gain probability',
                                                'probability_vector_loss': 'Loss probability'}
             lists = ('probability_vector_gain', 'probability_vector_loss')
         elif mode == 'node_tsv':
-            columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', 'distance':
+            columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', distance_name:
                                                'Distance to parent', 'children': 'Children', 'sequence': 'Sequence',
                                                'probabilities_sequence_characters': 'Probability coefficient',
                                                'ancestral_sequence': 'Ancestral comparison', 'sequence_likelihood':
@@ -940,10 +976,16 @@ class Tree:
             lists = ('children', 'probabilities_sequence_characters', 'sequence', 'ancestral_sequence',
                      'log_likelihood_vector')
         elif mode == 'branch_tsv':
-            columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', 'distance':
+            columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', distance_name:
                                                'Branch length', 'branch_probability_vector':
                                                'Branch probability vector'}
             lists = ('branch_probability_vector', )
+        elif mode == 'tree_html':
+            columns = columns if columns else {'node': 'target', 'father_name': 'source', distance_name: 'weight',
+                                               'sequence': 'sequence', 'probabilities_sequence_characters':
+                                               'prob_characters', 'node_type': 'node_type', 'ancestral_sequence':
+                                               'ancestral_sequence'}
+            lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
 
         return columns, lists
 

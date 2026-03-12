@@ -17,6 +17,10 @@ class Node:
     distance_to_root: Union[float, np.ndarray]
     distance_to_root_vector: List[Union[float, np.ndarray]]
     distance_to_nearest: Union[float, np.ndarray]
+    distance_to_father_taking_into_coefficient: Union[float, np.ndarray]
+    distance_to_root_taking_into_coefficient: Union[float, np.ndarray]
+    distance_to_root_vector_taking_into_coefficient: List[Union[float, np.ndarray]]
+    distance_to_nearest_taking_into_coefficient: Union[float, np.ndarray]
     level: int
     levels_to_nearest: int
     alphabet: Tuple[str, ...]
@@ -51,6 +55,10 @@ class Node:
         self.distance_to_root = 0.0
         self.distance_to_root_vector = []
         self.distance_to_nearest = 0.0
+        self.distance_to_father_taking_into_coefficient = 0.0
+        self.distance_to_root_taking_into_coefficient = 0.0
+        self.distance_to_root_vector_taking_into_coefficient = []
+        self.distance_to_nearest_taking_into_coefficient = 0.0
         self.level = 0
         self.levels_to_nearest = 0
         self.alphabet = ('0', '1')
@@ -80,11 +88,34 @@ class Node:
         return self.get_name(True)
 
     def __dir__(self) -> list:
-        return ['father', 'children', 'name', 'distance_to_father', 'alphabet', 'alphabet_size', 'rate_vector_size',
-                'pi_1', 'frequency', 'coefficient_bl', 'pmatrix', 'log_likelihood_vector', 'log_likelihood',
-                'sequence_likelihood', 'likelihood', 'up_vector', 'down_vector', 'marginal_vector', 'marginal_bl_vector'
-                'probability_vector', 'branch_probability_vector', 'probability_vector_gain', 'probability_vector_loss',
-                'sequence', 'probabilities_sequence_characters', 'ancestral_sequence']
+        '''
+        father, children, name, node_type, distance_to_father, distance_to_root, distance_to_root_vector,
+        distance_to_nearest, distance_to_father_taking_into_coefficient, distance_to_root_taking_into_coefficient,
+        distance_to_root_vector_taking_into_coefficient, distance_to_nearest_taking_into_coefficient, level,
+        levels_to_nearest, alphabet, alphabet_size, rate_vector_size, pi_1, frequency, coefficient_bl, pmatrix,
+        log_likelihood_vector, log_likelihood, sequence_likelihood, likelihood, up_vector, down_vector, marginal_vector,
+        marginal_bl_vector, probability_vector, branch_probability_vector, probability_vector_gain,
+        probability_vector_loss, sequence, probabilities_sequence_characters, ancestral_sequence
+        '''
+        '''
+        'father', 'children', 'name', 'node_type', 'distance_to_father', 'distance_to_root', 'distance_to_root_vector', 
+        'distance_to_nearest', 'distance_to_father_taking_into_coefficient', 'distance_to_root_taking_into_coefficient', 
+        'distance_to_root_vector_taking_into_coefficient', 'distance_to_nearest_taking_into_coefficient', 'level', 
+        'levels_to_nearest', 'alphabet', 'alphabet_size', 'rate_vector_size', 'pi_1', 'frequency', 'coefficient_bl', 
+        'pmatrix', 'log_likelihood_vector', 'log_likelihood', 'sequence_likelihood', 'likelihood', 'up_vector', 
+        'down_vector', 'marginal_vector', 'marginal_bl_vector', 'probability_vector', 'branch_probability_vector', 
+        'probability_vector_gain', 'probability_vector_loss', 'sequence', 'probabilities_sequence_characters', 
+        'ancestral_sequence'
+        '''
+        return ['father', 'children', 'name', 'distance_to_father', 'distance_to_root', 'distance_to_root_vector',
+                'distance_to_nearest', 'distance_to_father_taking_into_coefficient',
+                'distance_to_root_taking_into_coefficient', 'distance_to_root_vector_taking_into_coefficient',
+                'distance_to_nearest_taking_into_coefficient', 'level', 'levels_to_nearest', 'alphabet',
+                'alphabet_size', 'rate_vector_size', 'pi_1', 'frequency', 'coefficient_bl', 'pmatrix',
+                'log_likelihood_vector', 'log_likelihood', 'sequence_likelihood', 'likelihood', 'up_vector',
+                'down_vector', 'marginal_vector', 'marginal_bl_vector' 'probability_vector',
+                'branch_probability_vector', 'probability_vector_gain', 'probability_vector_loss', 'sequence',
+                'probabilities_sequence_characters', 'ancestral_sequence']
 
     def get_list_nodes_info(self, with_additional_details: bool = False, mode: Optional[str] = None, filters:
                             Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None, only_node_list:
@@ -152,16 +183,20 @@ class Node:
         return list_result
 
     def get_nodes_info(self) -> Dict[str, Union[float, np.ndarray, bool, str, List[float], List[np.ndarray]]]:
-        father_name = self.father.name if self.father else ''
 
         return {'node': self.name,
                 'distance': self.distance_to_father,
-                'level': self.level,
+                'distance_taking_into_coefficient': self.distance_to_father_taking_into_coefficient,
+                'distance_to_root': self.distance_to_root,
+                'distance_to_root_taking_into_coefficient': self.distance_to_root_taking_into_coefficient,
                 'distance_to_nearest': self.distance_to_nearest,
+                'distance_to_nearest_taking_into_coefficient': self.distance_to_nearest_taking_into_coefficient,
+                'level': self.level,
                 'levels_to_nearest': self.levels_to_nearest,
                 'node_type': self.node_type,
-                'father_name': father_name,
+                'father_name': self.father.name if self.father else '',
                 'full_distance': self.distance_to_root_vector,
+                'full_distance_taking_into_coefficient': self.distance_to_root_vector_taking_into_coefficient,
                 'children': [i.name for i in self.children],
                 'up_vector': self.up_vector,
                 'down_vector': self.down_vector,
@@ -396,20 +431,27 @@ class Node:
 
         return dict_json
 
-    def subtree_to_newick(self, with_internal_nodes: bool = False, decimal_length: int = 0) -> str:
+    def get_distance_to_father(self, taking_into_coefficient: bool) -> Union[float, np.ndarray]:
+        return self.distance_to_father * self.coefficient_bl if taking_into_coefficient else self.distance_to_father
+
+    def subtree_to_newick(self, with_internal_nodes: bool = False, decimal_length: int = 0,
+                          taking_into_coefficient: bool = False) -> str:
         """This method is for internal use only."""
         node_list = self.children
         if node_list:
             result = '('
             for child in node_list:
+                distance = child.get_distance_to_father(taking_into_coefficient)
                 if child.children:
-                    child_name = child.subtree_to_newick(with_internal_nodes, decimal_length)
+                    child_name = child.subtree_to_newick(with_internal_nodes, decimal_length,
+                                                         taking_into_coefficient)
                 else:
                     child_name = child.name
-                result += f'{child_name}:' + f'{child.distance_to_father:.10f}'.ljust(decimal_length, '0') + ','
+                result += f'{child_name}:' + f'{distance:.10f}'.ljust(decimal_length, '0') + ','
             result = f'{result[:-1]}){self.name if with_internal_nodes else ""}'
         else:
-            result = f'{self.name}:' + f'{self.distance_to_father}'.ljust(decimal_length, '0')
+            distance = self.get_distance_to_father(taking_into_coefficient)
+            result = f'{self.name}:' + f'{distance}'.ljust(decimal_length, '0')
         return result
 
     def get_name(self, is_full_name: bool = False) -> str:
