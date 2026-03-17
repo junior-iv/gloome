@@ -266,21 +266,21 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify is_do_not_use_e_mail (technical parameter, do not change).'''
 
 MENU = ({'name': 'Home', 'url': 'index',
-         'submenu': ()
+         'submenu': (), 'title': 'Gain Loss Mapping Engine'
          },
         {'name': 'Overview', 'url': 'overview',
-         'submenu': ()
+         'submenu': (), 'title': 'Overview'
          },
         {'name': 'Faq', 'url': 'faq',
-         'submenu': ()
+         'submenu': (), 'title': 'Faq'
          },
         {'name': 'Gallery', 'url': 'gallery',
-         'submenu': ()
+         'submenu': (), 'title': 'Gallery'
          },
         {'name': 'Source code', 'url': 'source_code',
-         'submenu': ()
+         'submenu': (), 'title': 'Source code'
          },
         {'name': 'Citing & credits', 'url': 'citing_and_credits',
-         'submenu': ()
+         'submenu': (), 'title': 'Citing & credits'
          }
         )

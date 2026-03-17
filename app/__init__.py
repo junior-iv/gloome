@@ -7,13 +7,13 @@ def index():
     if UNDER_CONSTRUCTION:
         return render_template('under_construction.html', title=(':', f'  the site is under construction'))
     else:
-        return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("name")}'),
+        return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("title")}'),
                                **DEFAULT_FORM_ARGUMENTS)
 
 
 @app.route('/testing', methods=['GET'])
 def testing():
-    return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("name")}'), **DEFAULT_FORM_ARGUMENTS)
+    return render_template('index.html', menu=MENU, title=(':', f'  {MENU[0].get("title")}'), **DEFAULT_FORM_ARGUMENTS)
 
 
 @app.route('/results/<process_id>', methods=['GET'])
@@ -42,27 +42,27 @@ def read_json_file():
 
 @app.route('/overview', methods=['GET'])
 def overview():
-    return render_template('overview.html', menu=MENU, title=(':', f'  {MENU[1].get("name")}'))
+    return render_template('overview.html', menu=MENU, title=(':', f'  {MENU[1].get("title")}'))
 
 
 @app.route('/faq', methods=['GET'])
 def faq():
-    return render_template('faq.html', menu=MENU, title=(':', f'  {MENU[2].get("name")}'))
+    return render_template('faq.html', menu=MENU, title=(':', f'  {MENU[2].get("title")}'))
 
 
 @app.route('/gallery', methods=['GET'])
 def gallery():
-    return render_template('gallery.html', menu=MENU, title=(':', f'  {MENU[3].get("name")}'))
+    return render_template('gallery.html', menu=MENU, title=(':', f'  {MENU[3].get("title")}'))
 
 
 @app.route('/source_code', methods=['GET'])
 def source_code():
-    return render_template('source_code.html', menu=MENU, title=(':', f'  {MENU[4].get("name")}'))
+    return render_template('source_code.html', menu=MENU, title=(':', f'  {MENU[4].get("title")}'))
 
 
 @app.route('/citing_and_credits', methods=['GET'])
 def citing_and_credits():
-    return render_template('citing_and_credits.html', menu=MENU, title=(':', f'  {MENU[5].get("name")}'))
+    return render_template('citing_and_credits.html', menu=MENU, title=(':', f'  {MENU[5].get("title")}'))
 
 
 @app.route('/get_exemple', methods=['GET'])

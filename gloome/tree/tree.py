@@ -4,7 +4,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 from shutil import rmtree
-from json import loads
+from json import loads, dumps
 from pathlib import Path
 from d3blocks import D3Blocks
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
@@ -14,6 +14,7 @@ from scipy.special import gammainc
 from scipy.optimize import minimize_scalar
 
 from gloome.tree.node import Node
+from gloome.jsonNpEncoder.npencoder import NpEncoder as npEncode
 
 
 class Tree:
@@ -383,7 +384,7 @@ class Tree:
     def tree_to_table(self, sort_values_by: Optional[Tuple[str, ...]] = None, decimal_length: int = 8, columns: Optional
                       [Dict[str, str]] = None, filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] =
                       None, distance_type: type = str, list_type: type = str, lists: Optional[Tuple[str, ...]] = None,
-                      taking_into_coefficient: bool = True) -> pd.DataFrame:
+                      taking_into_coefficient: bool = True, decimals: int = 4) -> pd.DataFrame:
         nodes_info = self.get_list_nodes_info(True, None, filters)
 
         suffix = '_taking_into_coefficient' if taking_into_coefficient else ''
@@ -434,14 +435,7 @@ class Tree:
                 node_info.update({distance_name: distance_value})
             for i in lists:
                 if columns.get(i):
-                    if list_type in (list, tuple, set):
-                        # info = list_type(map(lambda x: f'{x:.3f}' if (isinstance(x, (int, float)) and
-                        #                                               change_content_type) else x, node_info.get(i)))
-                        info = list_type(map(lambda x: np.round(x, 4) if (isinstance(x, (int, float))
-                                                                          ) else x, node_info.get(i)))
-                    else:
-                        info = ' '.join(map(str, node_info.get(i)))
-                    node_info.update({i: info})
+                    node_info.update({i: self.get_list_decimals(node_info.get(i), list_type, decimals)})
 
         tree_table = pd.DataFrame([i for i in nodes_info], index=None)
         tree_table = tree_table.rename(columns=columns)
@@ -452,6 +446,24 @@ class Tree:
             sort_values_by = tuple([i for i in sort_values_by if i not in lists_names])
 
         return tree_table.sort_values(by=list(sort_values_by)) if sort_values_by else tree_table
+
+    @staticmethod
+    def get_round(obj: Union[int, float, np.ndarray], decimals: int = 4) -> float:
+        return float(np.round(obj, decimals))
+
+    @staticmethod
+    def get_list_decimals(obj: Union[int, float, np.ndarray], list_type: type = str, decimals: int = 4) -> Any:
+        if list_type in (list, tuple, set):
+            if isinstance(obj, (list, tuple, set)):
+                return list_type(map(lambda x: Tree.get_round(x, decimals) if (isinstance(x, (int, float, np.ndarray))
+                                                                               ) else Tree.get_list_decimals(x,
+                                                                                                             list_type,
+                                                                                                             decimals),
+                                     obj))
+            else:
+                return obj
+        else:
+            return ' '.join(map(str, obj))
 
     def calculate_ancestral_sequence(self, newick_node: Optional[Union[Node, str]] = None) -> str:
         if self.alphabet and not self.calculated_ancestor_sequence:
@@ -577,12 +589,12 @@ class Tree:
             Dict: An dictionary representing the tree structure.
         """
         if return_table:
-            columns, lists = self.get_columns(mode, columns, taking_into_coefficient)
+            columns, lists, decimals = self.get_columns(mode, columns, taking_into_coefficient)
             columns_names = {'node': 'Name', 'branch': 'Child node'}
             column_name = columns_names.get(mode, 'Name')
 
             table = self.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float,
-                                       taking_into_coefficient=taking_into_coefficient)
+                                       taking_into_coefficient=taking_into_coefficient, decimals=decimals)
             dict_json = dict()
             for row in table.T:
                 dict_row = dict()
@@ -592,7 +604,7 @@ class Tree:
         else:
             dict_json = self.root.node_to_json()
 
-        return loads(str(dict_json).replace(f'\'', r'"'))
+        return loads(dumps(dict_json, cls=npEncode).replace(f'\'', r'"'))
 
     def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
 
@@ -646,11 +658,14 @@ class Tree:
 
     def attributes_to_tsv(self, file_name: str = 'TreeAttributes.tsv', sep: str = '\t') -> str:
 
-        Tree.make_dir(file_name)
-        data = {'π1 value': self.pi_1, 'Γ distribution α value': self.alpha,
-                'number of rate categories': self.categories_quantity, 'coefficient of branch lengths':
-                self.coefficient_bl, 'rate vector': self.rate_vector, 'alphabet': self.alphabet, 'log_likelihood':
-                self.log_likelihood}
+        self.make_dir(file_name)
+        data = loads(dumps({'π1 value': self.pi_1,
+                            'Γ distribution α value': self.alpha,
+                            'number of rate categories': self.categories_quantity,
+                            'coefficient of branch lengths': self.coefficient_bl,
+                            'rate vector': self.rate_vector,
+                            'alphabet': self.alphabet,
+                            'log_likelihood': self.log_likelihood}, cls=npEncode))
         df = pd.DataFrame({k: ((v, ) if isinstance(v, (set, tuple, list)) else v) for k, v in data.items()
                            if v is not None})
         df.to_csv(file_name, sep=sep, index=False)
@@ -659,7 +674,7 @@ class Tree:
 
     def likelihood_to_tsv(self, file_name: str = 'LogLikelihood.tsv', sep: str = '\t') -> str:
 
-        Tree.make_dir(file_name)
+        self.make_dir(file_name)
         self.calculate_likelihood()
         df = pd.DataFrame({'POS': range(len(self.log_likelihood_vector)),
                            'log-likelihood': self.log_likelihood_vector})
@@ -670,10 +685,10 @@ class Tree:
     def tree_to_tsv(self, file_name: str = 'Nodes.tsv', sep: str = '\t', mode: str = 'node',
                     taking_into_coefficient: bool = True, **kwargs) -> str:
 
-        Tree.make_dir(file_name)
-        columns, lists = kwargs.get('columns', None), kwargs.get('lists', None)
+        self.make_dir(file_name)
+        columns, lists, decimals = kwargs.get('columns', None), kwargs.get('lists', None), kwargs.get('decimals', None)
         if columns is None or lists is None:
-            columns, lists = self.get_columns(mode, columns, taking_into_coefficient)
+            columns, lists, decimals = self.get_columns(mode, columns, taking_into_coefficient)
 
         if kwargs.get('columns', None) is None:
             kwargs.update(columns=columns)
@@ -683,6 +698,8 @@ class Tree:
             kwargs.update(list_type=list)
         if kwargs.get('distance_type', None) is None:
             kwargs.update(distance_type=float)
+        if kwargs.get('decimals', None) is None:
+            kwargs.update(decimals=decimals)
         table = self.tree_to_table(taking_into_coefficient=taking_into_coefficient, **kwargs)
         table.to_csv(file_name, index=False, sep=sep)
 
@@ -700,10 +717,10 @@ class Tree:
                               taking_into_coefficient: bool = True) -> Dict[str, str]:
         file_extensions = Tree.check_file_extensions_tuple(file_extensions, 'svg')
 
-        Tree.make_dir(file_name)
+        self.make_dir(file_name)
         tmp_dir = Path(file_name).parent.joinpath('tmp')
         tmp_file = f'{tmp_dir.joinpath(f"{Tree.get_random_name()}.tree")}'
-        Tree.make_dir(tmp_file)
+        self.make_dir(tmp_file)
         self.tree_to_newick_file(tmp_file, with_internal_nodes, taking_into_coefficient)
         phylogenetic_tree = Phylo.read(tmp_file, 'newick')
 
@@ -733,9 +750,10 @@ class Tree:
         self.calculate_tree()
         self.calculate_ancestral_sequence()
         size_factor = min(1 + self.get_node_count({'node_type': ['leaf']}) // 9, 6)
-        columns, lists = self.get_columns(mode='tree_html', taking_into_coefficient=taking_into_coefficient)
+        columns, lists, decimals = self.get_columns(mode='tree_html', taking_into_coefficient=taking_into_coefficient)
         df = self.tree_to_table(columns=columns, distance_type=float, filters={'node_type': ['leaf', 'node', 'root']},
-                                list_type=list, taking_into_coefficient=taking_into_coefficient, lists=lists)
+                                list_type=list, taking_into_coefficient=taking_into_coefficient, lists=lists,
+                                decimals=decimals)
         df_copy = df.copy()
         del df['sequence'], df['node_type'], df['prob_characters']
         df = df.iloc[1:]
@@ -797,9 +815,9 @@ class Tree:
         file_extensions = Tree.check_file_extensions_tuple(file_extensions, 'png')
 
         size_factor = min(1 + self.get_node_count({'node_type': ['leaf']}) // 9, 6)
-        Tree.make_dir(file_name)
+        self.make_dir(file_name)
         columns = {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to parent'}
-        table = self.tree_to_table(None, 0, columns)
+        table = self.tree_to_table(decimal_length=0, columns=columns)
         table = table.drop(0)
         j = file_name[::-1].find('.')
         file_name_sm = f'{file_name[:-j]}' if len(file_name) > j > -1 else f'{file_name}.'
@@ -946,7 +964,7 @@ class Tree:
 
     @staticmethod
     def get_columns(mode: str = 'node', columns: Optional[Dict[str, str]] = None,
-                    taking_into_coefficient: bool = True) -> Tuple[Dict[str, str], Tuple[str, ...]]:
+                    taking_into_coefficient: bool = True) -> Tuple[Dict[str, str], Tuple[str, ...], int]:
 
         suffix = '_taking_into_coefficient' if taking_into_coefficient else ''
         distance_name = f'distance{suffix}'
@@ -955,6 +973,7 @@ class Tree:
                  'marginal_vector', 'marginal_bl_vector', 'probability_vector', 'probabilities_sequence_characters',
                  'log_likelihood_vector', 'probability_vector_gain', 'probability_vector_loss', 'ancestral_sequence',
                  'sequence')
+        decimals = 4
         if mode == 'node':
             columns = columns if columns else {'node': 'Name', 'node_type': 'Node type', distance_name:
                                                'Distance to parent', 'sequence': 'Sequence',
@@ -973,13 +992,14 @@ class Tree:
                                                'ancestral_sequence': 'Ancestral comparison', 'sequence_likelihood':
                                                'Likelihood of sequence', 'log_likelihood': 'Log-likelihood',
                                                'log_likelihood_vector': 'Vector of log-likelihood'}
-            lists = ('children', 'probabilities_sequence_characters', 'sequence', 'ancestral_sequence',
-                     'log_likelihood_vector')
+            lists = ('children', 'probabilities_sequence_characters')
+            decimals = 8
         elif mode == 'branch_tsv':
             columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', distance_name:
                                                'Branch length', 'branch_probability_vector':
                                                'Branch probability vector'}
             lists = ('branch_probability_vector', )
+            decimals = 8
         elif mode == 'tree_html':
             columns = columns if columns else {'node': 'target', 'father_name': 'source', distance_name: 'weight',
                                                'sequence': 'sequence', 'probabilities_sequence_characters':
@@ -987,7 +1007,7 @@ class Tree:
                                                'ancestral_sequence'}
             lists = ('probabilities_sequence_characters', 'sequence', 'ancestral_sequence')
 
-        return columns, lists
+        return columns, lists, decimals
 
     @staticmethod
     def write_file(file_name: str, file_text: str) -> str:
@@ -1019,7 +1039,7 @@ class Tree:
             result = {'List for sorting': ['Parent node', 'Child node', 'Branch length', 'Gain probability',
                                            'Loss probability']}
 
-        return loads(str(result).replace(f'\'', r'"'))
+        return loads(dumps(result, cls=npEncode).replace(f'\'', r'"'))
 
     @staticmethod
     def get_random_name(lenght: int = 24) -> str:

@@ -4,6 +4,9 @@ import numpy as np
 from typing import Optional, Dict, Union, List, Tuple, Any
 from scipy.linalg import expm
 from math import log, prod
+from json import loads, dumps
+
+from gloome.jsonNpEncoder.npencoder import NpEncoder as npEncode
 
 eps = 5e-324
 
@@ -88,25 +91,6 @@ class Node:
         return self.get_name(True)
 
     def __dir__(self) -> list:
-        '''
-        father, children, name, node_type, distance_to_father, distance_to_root, distance_to_root_vector,
-        distance_to_nearest, distance_to_father_taking_into_coefficient, distance_to_root_taking_into_coefficient,
-        distance_to_root_vector_taking_into_coefficient, distance_to_nearest_taking_into_coefficient, level,
-        levels_to_nearest, alphabet, alphabet_size, rate_vector_size, pi_1, frequency, coefficient_bl, pmatrix,
-        log_likelihood_vector, log_likelihood, sequence_likelihood, likelihood, up_vector, down_vector, marginal_vector,
-        marginal_bl_vector, probability_vector, branch_probability_vector, probability_vector_gain,
-        probability_vector_loss, sequence, probabilities_sequence_characters, ancestral_sequence
-        '''
-        '''
-        'father', 'children', 'name', 'node_type', 'distance_to_father', 'distance_to_root', 'distance_to_root_vector', 
-        'distance_to_nearest', 'distance_to_father_taking_into_coefficient', 'distance_to_root_taking_into_coefficient', 
-        'distance_to_root_vector_taking_into_coefficient', 'distance_to_nearest_taking_into_coefficient', 'level', 
-        'levels_to_nearest', 'alphabet', 'alphabet_size', 'rate_vector_size', 'pi_1', 'frequency', 'coefficient_bl', 
-        'pmatrix', 'log_likelihood_vector', 'log_likelihood', 'sequence_likelihood', 'likelihood', 'up_vector', 
-        'down_vector', 'marginal_vector', 'marginal_bl_vector', 'probability_vector', 'branch_probability_vector', 
-        'probability_vector_gain', 'probability_vector_loss', 'sequence', 'probabilities_sequence_characters', 
-        'ancestral_sequence'
-        '''
         return ['father', 'children', 'name', 'distance_to_father', 'distance_to_root', 'distance_to_root_vector',
                 'distance_to_nearest', 'distance_to_father_taking_into_coefficient',
                 'distance_to_root_taking_into_coefficient', 'distance_to_root_vector_taking_into_coefficient',
@@ -184,42 +168,44 @@ class Node:
 
     def get_nodes_info(self) -> Dict[str, Union[float, np.ndarray, bool, str, List[float], List[np.ndarray]]]:
 
-        return {'node': self.name,
-                'distance': self.distance_to_father,
-                'distance_taking_into_coefficient': self.distance_to_father_taking_into_coefficient,
-                'distance_to_root': self.distance_to_root,
-                'distance_to_root_taking_into_coefficient': self.distance_to_root_taking_into_coefficient,
-                'distance_to_nearest': self.distance_to_nearest,
-                'distance_to_nearest_taking_into_coefficient': self.distance_to_nearest_taking_into_coefficient,
-                'level': self.level,
-                'levels_to_nearest': self.levels_to_nearest,
-                'node_type': self.node_type,
-                'father_name': self.father.name if self.father else '',
-                'full_distance': self.distance_to_root_vector,
-                'full_distance_taking_into_coefficient': self.distance_to_root_vector_taking_into_coefficient,
-                'children': [i.name for i in self.children],
-                'up_vector': self.up_vector,
-                'down_vector': self.down_vector,
-                'likelihood': self.likelihood,
-                'sequence_likelihood': self.sequence_likelihood,
-                'log_likelihood': self.log_likelihood,
-                'log_likelihood_vector': self.log_likelihood_vector,
-                'marginal_vector': self.marginal_vector,
-                'marginal_bl_vector': self.marginal_bl_vector,
-                'probability_vector': self.probability_vector,
-                'sequence': self.sequence,
-                'probabilities_sequence_characters': self.probabilities_sequence_characters,
-                'ancestral_sequence': self.ancestral_sequence,
-                'branch_probability_vector': self.branch_probability_vector,
-                'probability_vector_gain': self.probability_vector_gain,
-                'probability_vector_loss': self.probability_vector_loss,
-                'alphabet': self.alphabet,
-                'alphabet_size': self.alphabet_size,
-                'rate_vector_size': self.rate_vector_size,
-                'pi_1': self.pi_1,
-                'frequency': self.frequency,
-                'coefficient_bl': self.coefficient_bl,
-                'pmatrix': self.pmatrix}
+        result = {'node': self.name,
+                  'distance': self.distance_to_father,
+                  'distance_taking_into_coefficient': self.distance_to_father_taking_into_coefficient,
+                  'distance_to_root': self.distance_to_root,
+                  'distance_to_root_taking_into_coefficient': self.distance_to_root_taking_into_coefficient,
+                  'distance_to_nearest': self.distance_to_nearest,
+                  'distance_to_nearest_taking_into_coefficient': self.distance_to_nearest_taking_into_coefficient,
+                  'level': self.level,
+                  'levels_to_nearest': self.levels_to_nearest,
+                  'node_type': self.node_type,
+                  'father_name': self.father.name if self.father else '',
+                  'full_distance': self.distance_to_root_vector,
+                  'full_distance_taking_into_coefficient': self.distance_to_root_vector_taking_into_coefficient,
+                  'children': [i.name for i in self.children],
+                  'up_vector': self.up_vector,
+                  'down_vector': self.down_vector,
+                  'likelihood': self.likelihood,
+                  'sequence_likelihood': self.sequence_likelihood,
+                  'log_likelihood': self.log_likelihood,
+                  'log_likelihood_vector': self.log_likelihood_vector,
+                  'marginal_vector': self.marginal_vector,
+                  'marginal_bl_vector': self.marginal_bl_vector,
+                  'probability_vector': self.probability_vector,
+                  'sequence': self.sequence,
+                  'probabilities_sequence_characters': self.probabilities_sequence_characters,
+                  'ancestral_sequence': self.ancestral_sequence,
+                  'branch_probability_vector': self.branch_probability_vector,
+                  'probability_vector_gain': self.probability_vector_gain,
+                  'probability_vector_loss': self.probability_vector_loss,
+                  'alphabet': self.alphabet,
+                  'alphabet_size': self.alphabet_size,
+                  'rate_vector_size': self.rate_vector_size,
+                  'pi_1': self.pi_1,
+                  'frequency': self.frequency,
+                  'coefficient_bl': self.coefficient_bl,
+                  'pmatrix': self.pmatrix}
+
+        return loads(dumps(result, cls=npEncode))
 
     def get_node_by_name(self, node_name: str) -> Optional['Node']:
         if node_name == self.name:
@@ -422,7 +408,7 @@ class Node:
     def node_to_json(self) -> Dict[str, Union[str, List[Any], float, np.ndarray]]:
         dict_json = dict()
         dict_json.update({'name': self.name})
-        dict_json.update({'distance': str(self.distance_to_father)})
+        dict_json.update({'distance': f'{float(self.distance_to_father)}'})
 
         if self.children:
             dict_json.update({'children': []})
