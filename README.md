@@ -17,7 +17,8 @@ Advanced optimization options
 Likelihood and parsimony-based output
 
 ### Project structure
-```
+
+```Project structure
 gloome
 ├── app
 │   ├── static
@@ -85,9 +86,9 @@ This manual provides comprehensive Gloome on input formats, command-line usage, 
 ### Program Execution
 To get the project working, you need to run the command "python -m gloome" in the terminal with the following parameters:
 
-Required parameters:
+#### Required parameters:
 
-```
+```Required parameters
     --msa_file <type=str>
         Specify the msa filepath.
 
@@ -95,9 +96,9 @@ Required parameters:
         Specify the newick filepath.
 ```
 
-Optional parameters:
+#### Optional parameters:
 
-```
+```Optional parameters
     --out_dir <type=str>
         Specify the outdir path.
 
@@ -105,8 +106,8 @@ Optional parameters:
         Specify a process ID, otherwise it will be generated automatically.
 
     --mode <type=str>
-        Execution mode style. 
-        Possible options: ('draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions'). 
+        Execution mode style. Possible options: 
+        ('draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions'). 
         Default is 'execute_all_actions'.
 
     --with_internal_nodes <type=int> 
@@ -175,6 +176,4 @@ Proper citation helps support the development and maintenance of this tool.
 
 ### Contact
 For questions, issues, or contributions, please open an issue on the repository or contact the maintainer directly.
-
-
 
