@@ -59,17 +59,16 @@ class MailSenderSMTPLib:
             return (f'\n<a href="{WEBSERVER_URL}/get_file?file_path={str(attachment_path).replace("/", "%2F")}'
                     f'&mode={mode}" target="_blank">{attachment_path}</a>')
 
-    def send_email(self, subject: str, attachments: Union[List[Path], Dict[str, List[Path]]],
-                   body: str, use_attachments: bool = False,
-                   receiver: Optional[str] = None) -> None:
+    def send_email(self, subject: str, attachments: Optional[Union[List[Path], Dict[str, List[Path]]]],
+                   body: str, use_attachments: bool = False, receiver: Optional[str] = None) -> None:
         message = MIMEMultipart()
         message["From"] = self.sender
         message["To"] = self.receiver if receiver is None else receiver
         message["Subject"] = subject
 
         if isinstance(attachments, (tuple, list)):
-            body += (f'<br>Link:<br>{self.create_link_to_results(f"{self.results}/{self.name}")}'
-                     f'<br>Result files:<br>')
+            body += (f'<br><br>Link:<br>{self.create_link_to_results(f"{self.results}/{self.name}")}'
+                     f'<br><br>Result files:')
             for attachment_path in attachments:
                 body += f'<br>{self.create_attachments(attachment_path, message, use_attachments)}'
         elif isinstance(attachments, dict):
@@ -86,8 +85,8 @@ class MailSenderSMTPLib:
                                     f'\n\t{self.sender}'
                                     f'\n\t{body}\n')
         self.mail_logger.info(f'\n\t{self.name}'
-                                f'\n\t{self.sender}'
-                                f'\n\t{body}\n')
+                              f'\n\t{self.sender}'
+                              f'\n\t{body}\n')
         message.attach(MIMEText(body, 'html'))
 
         if self.smtp_port == 587:
@@ -106,13 +105,19 @@ class MailSenderSMTPLib:
             with SMTP_SSL(self.smtp_server) as server:
                 server.send_message(message)
 
-    def send_results_email(self, results_files: Path, log_file: Path,
-                           excluded: Optional[Union[Tuple[str, ...], List[str], str]] = None,
-                           included: Optional[Union[Tuple[str, ...], List[str], str]] = None,
-                           is_error: bool = False, use_attachments: bool = False, **kwargs) -> None:
+    def send_info_by_email(self, **kwargs) -> None:
+        self.set_attributes(**kwargs)
+        subject = f'{WEBSERVER_NAME_CAPITAL} job {self.name} by {self.receiver} has started at {current_time()}'
+        body = f'{subject}\n'
+        self.send_email(subject, None, body, False)
+
+    def send_results_by_email(self, results_files: Path, log_file: Path,
+                              excluded: Optional[Union[Tuple[str, ...], List[str], str]] = None,
+                              included: Optional[Union[Tuple[str, ...], List[str], str]] = None,
+                              is_error: bool = False, use_attachments: bool = False, **kwargs) -> None:
         self.set_attributes(**kwargs)
         status = 'failed!' if is_error else 'completed'
-        subject = f'{WEBSERVER_NAME_CAPITAL} job {self.name} by {self.receiver} has {status}'
+        subject = f'{WEBSERVER_NAME_CAPITAL} job {self.name} by {self.receiver} has {status} at {current_time()}'
         body = f'{subject}\n'
         attachments = [log_file]
         for entry in results_files.iterdir():

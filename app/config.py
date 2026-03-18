@@ -283,6 +283,9 @@ class WebConfig:
         self.create_command_line()
         request_body = self.get_request_body()
 
+        mail_sender = MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL, sender_logger=self.JOB_LOGGER)
+        mail_sender.send_info_by_email(receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
+
         self.CURRENT_JOB = self.SUBMITER.submit_job(json=request_body).get('job_id', self.JOBS_NUMBER.value)
         self.HISTORY.append(self.CURRENT_JOB)
         self.JOB_LOGGER.info(f'\n\tregarding the request being processed'
@@ -291,17 +294,16 @@ class WebConfig:
 
         job_state = self.SUBMITER.check_job_state(self, count=REQUESTS_NUMBER, waiting_time=REQUEST_WAITING_TIME)
 
-        mail_sender = MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL, sender_logger=self.JOB_LOGGER)
         if job_state == 'COMPLETED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
-            mail_sender.send_results_email(results_files=self.OUT_DIR, use_attachments=self.USE_ATTACHMENTS,
-                                           is_error=False, log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
-                                           included=('.json', '.zip', '.log', '.html', '.png', 'tsv'),
-                                           receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
+            mail_sender.send_results_by_email(results_files=self.OUT_DIR, use_attachments=self.USE_ATTACHMENTS,
+                                              is_error=False, log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
+                                              included=('.json', '.zip', '.log', '.html', '.png', 'tsv'),
+                                              receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
         if job_state == 'FAILED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
-            mail_sender.send_results_email(results_files=self.OUT_DIR, is_error=True, name=self.PROCESS_ID,
-                                           log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
-                                           included=('.log', ), receiver=self.CURRENT_ARGS.e_mail,
-                                           use_attachments=self.USE_ATTACHMENTS)
+            mail_sender.send_results_by_email(results_files=self.OUT_DIR, is_error=True, name=self.PROCESS_ID,
+                                              log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
+                                              included=('.log', ), receiver=self.CURRENT_ARGS.e_mail,
+                                              use_attachments=self.USE_ATTACHMENTS)
         if job_state:
             self.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
             if job_state == 'COMPLETED':
