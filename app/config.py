@@ -284,7 +284,8 @@ class WebConfig:
         request_body = self.get_request_body()
 
         mail_sender = MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL, sender_logger=self.JOB_LOGGER)
-        mail_sender.send_info_by_email(receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
+        if self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
+            mail_sender.send_info_by_email(receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
 
         self.CURRENT_JOB = self.SUBMITER.submit_job(json=request_body).get('job_id', self.JOBS_NUMBER.value)
         self.HISTORY.append(self.CURRENT_JOB)

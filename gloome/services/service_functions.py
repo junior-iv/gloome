@@ -1,12 +1,13 @@
 import inspect
 import json
+import re
 
 from pathlib import Path
 from typing import Callable, Any
 from datetime import timedelta
 from shutil import make_archive, move
 from numpy import ndarray
-from validate_email import validate_email
+# from validate_email import validate_email
 from flask import url_for
 
 from gloome.tree.tree import Tree
@@ -389,6 +390,12 @@ def check_data(*args) -> List[Tuple[str, str]]:
                                  f'Wrong Phylogenetic tree format. Please provide a tree in Newick format.'))
 
     return err_list
+
+
+def validate_email(e_mail: str) -> bool:
+    regex = r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}'
+
+    return bool(re.fullmatch(regex, e_mail))
 
 
 def get_function_parameters(func: Callable) -> Tuple[str, ...]:
