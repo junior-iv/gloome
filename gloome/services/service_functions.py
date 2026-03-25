@@ -356,6 +356,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
         else:
             try:
                 current_tree = Tree(newick_text)
+                Tree.rename_nodes(current_tree)
             except ValueError:
                 current_tree = None
 
