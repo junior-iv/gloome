@@ -428,6 +428,7 @@ class Tree:
                                      'down_vector', 'marginal_vector', 'marginal_bl_vector', 'probability_vector',
                                      'probabilities_sequence_characters', 'log_likelihood_vector', 'sequence',
                                      'ancestral_sequence', 'probability_vector_gain', 'probability_vector_loss')
+        exceptions = ('sequence', 'ancestral_sequence')
 
         for node_info in nodes_info:
             for i in set(node_info.keys()) - set(columns.keys()):
@@ -444,7 +445,8 @@ class Tree:
                 node_info.update({distance_name: distance_value})
             for i in lists:
                 if columns.get(i):
-                    node_info.update({i: self.get_list_decimals(node_info.get(i), list_type, decimals)})
+                    node_info.update({i: self.get_list_decimals(node_info.get(i), list_type, decimals,
+                                                                i in exceptions)})
 
         tree_table = pd.DataFrame([i for i in nodes_info], index=None)
         tree_table = tree_table.rename(columns=columns)
@@ -955,14 +957,16 @@ class Tree:
         return float(np.round(obj, decimals))
 
     @staticmethod
-    def get_list_decimals(obj: Union[int, float, np.ndarray], list_type: type = str, decimals: int = 4) -> Any:
+    def get_list_decimals(obj: Union[int, float, np.ndarray], list_type: type = str, decimals: int = 4,
+                          return_list: bool = False) -> Any:
         if list_type in (list, tuple, set):
-            if isinstance(obj, (list, tuple, set)):
+            if return_list:
                 return list_type(map(lambda x: Tree.get_round(x, decimals) if (isinstance(x, (int, float, np.ndarray))
-                                                                               ) else Tree.get_list_decimals(x,
-                                                                                                             list_type,
-                                                                                                             decimals),
-                                     obj))
+                                                                               ) else x, obj))
+            if isinstance(obj, (list, tuple, set)):
+                return list_type(map(lambda x: Tree.get_round(x, decimals)
+                                     if isinstance(x, (int, float, np.ndarray))
+                                     else Tree.get_list_decimals(x, list_type, decimals), obj))
             else:
                 return obj
         else:
