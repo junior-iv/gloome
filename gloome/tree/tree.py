@@ -174,7 +174,8 @@ class Tree:
             current_node.distance_to_root_vector_taking_into_coefficient = [i * self.coefficient_bl for i in
                                                                             current_node.distance_to_root_vector]
 
-    def print_node_list(self, with_additional_details: bool = False, mode: Optional[str] = None,
+    def print_node_list(self, with_additional_details: bool = False,
+                        mode: Optional[str] = None,
                         filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None) -> None:
         """
         Print a list of nodes.
@@ -206,26 +207,32 @@ class Tree:
                             bool = False) -> List[Union[Dict[str, Union[float, np.ndarray, bool, str, List[float],
                                                   List[np.ndarray]]], 'Node']]:
         """
+        Retrieve a list of all nodes of the tree.
+
+        This function collects all nodes of the tree. The function returns a list of nodes or a list of 
+        dictionaries with information about these nodes.
+
         Args:
             with_additional_details (bool, optional): `False` (default).
-            mode (Optional[str]): `None` (default), 'pre-order', 'in-order', 'post-order', 'level-order'.
-            filters (Dict, optional): `None` (default).
+            mode (str, optional): `pre-order` (default), 'pre-order', 'in-order', 'post-order', 'level-order'.
+            filters (Dict, optional):
             only_node_list (Dict, optional): `False` (default).
+        Returns:
+            list: A list of all nodes of the tree or a list of dictionaries with information about these nodes.
         """
+
         return self.root.get_list_nodes_info(with_additional_details, mode, filters, only_node_list)
 
     def get_node_count(self, filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None) -> int:
-        """
-        Args:
-            filters (Dict, optional):
-        """
+
         return len(self.get_list_nodes_info(True, None, filters))
 
     def get_node_by_name(self, name: str) -> Optional[Node]:
 
         return self.root.get_node_by_name(name)
 
-    def get_newick(self, with_internal_nodes: bool = False, decimal_length: int = 0,
+    def get_newick(self, with_internal_nodes: bool = False,
+                   decimal_length: int = 0,
                    taking_into_coefficient: bool = False) -> str:
 
         """
@@ -328,11 +335,11 @@ class Tree:
             return self
 
     def get_html_tree(self, style: str = '', status: str = '') -> str:
-        """This method is for internal use only."""
+
         return self.structure_to_html_tree(self.tree_to_structure(), style, status)
 
     def tree_to_structure(self) -> Dict[str, str]:
-        """This method is for internal use only."""
+
         return self.subtree_to_structure(self.root)
 
     def add_distance_to_father(self, distance_to_father: float = 0) -> None:
@@ -360,7 +367,6 @@ class Tree:
         return list_result
 
     def __set_children_list_from_string(self, str_children: str, father: Node, num) -> None:
-        """This method is for internal use only."""
         str_children = str_children[1:-1] if str_children.startswith('(') and str_children.endswith(
             ')') else str_children
         lst_nodes = str_children.split(',')
@@ -381,6 +387,7 @@ class Tree:
             for key in current_node.keys():
                 if key == 'children' and len(current_node.get(key)) > 2:
                     return False
+
         return True
 
     def tree_to_table(self, sort_values_by: Optional[Tuple[str, ...]] = None, decimal_length: int = 8, columns: Optional
@@ -442,30 +449,11 @@ class Tree:
         tree_table = pd.DataFrame([i for i in nodes_info], index=None)
         tree_table = tree_table.rename(columns=columns)
         tree_table = tree_table.reindex(columns=columns.values())
-        # tree_table = tree_table.fillna(0)
         if isinstance(list_type, (list, tuple, set)):
             lists_names = [v for k, v in columns.items() if k in lists]
             sort_values_by = tuple([i for i in sort_values_by if i not in lists_names])
 
         return tree_table.sort_values(by=list(sort_values_by)) if sort_values_by else tree_table
-
-    @staticmethod
-    def get_round(obj: Union[int, float, np.ndarray], decimals: int = 4) -> float:
-        return float(np.round(obj, decimals))
-
-    @staticmethod
-    def get_list_decimals(obj: Union[int, float, np.ndarray], list_type: type = str, decimals: int = 4) -> Any:
-        if list_type in (list, tuple, set):
-            if isinstance(obj, (list, tuple, set)):
-                return list_type(map(lambda x: Tree.get_round(x, decimals) if (isinstance(x, (int, float, np.ndarray))
-                                                                               ) else Tree.get_list_decimals(x,
-                                                                                                             list_type,
-                                                                                                             decimals),
-                                     obj))
-            else:
-                return obj
-        else:
-            return ' '.join(map(str, obj))
 
     def calculate_ancestral_sequence(self, newick_node: Optional[Union[Node, str]] = None) -> str:
         if self.alphabet and not self.calculated_ancestor_sequence:
@@ -491,6 +479,7 @@ class Tree:
                         elif current_node.sequence[i] == current_node.father.sequence[i] == self.alphabet[1]:
                             current_node.ancestral_sequence += ancestral_alphabet[3]
             self.calculated_ancestor_sequence = True
+
         return 'OK' if self.calculated_ancestor_sequence else ''
 
     def calculate_gl_probability(self) -> None:
@@ -517,7 +506,6 @@ class Tree:
         return self.root.calculate_up(self.get_msa_dict(msa, self.alphabet))
 
     def calculate_down(self) -> None:
-
         self.root.calculate_down(self.get_tree_info())
 
     def get_msa_dict(self, msa: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None, only_leaves: bool = True
@@ -577,8 +565,10 @@ class Tree:
 
         return fasta_text[:-1]
 
-    def get_json_structure(self, return_table: bool = False, columns: Optional[Dict[str, str]] = None,
-                           mode: str = 'node', taking_into_coefficient: bool = True
+    def get_json_structure(self, return_table: bool = False,
+                           columns: Optional[Dict[str, str]] = None,
+                           mode: str = 'node',
+                           taking_into_coefficient: bool = True
                            ) -> Dict[str, Union[List[str], str]]:
         """
         Args:
@@ -609,7 +599,6 @@ class Tree:
         return loads(dumps(dict_json, cls=npEncode).replace(f'\'', r'"'))
 
     def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
-
         fasta_text = self.get_fasta_text()
 
         return self.write_file(file_name, fasta_text)
@@ -686,9 +675,9 @@ class Tree:
 
     def tree_to_tsv(self, file_name: str = 'Nodes.tsv', sep: str = '\t', mode: str = 'node',
                     taking_into_coefficient: bool = True, **kwargs) -> str:
-
         self.make_dir(file_name)
         columns, lists, decimals = kwargs.get('columns', None), kwargs.get('lists', None), kwargs.get('decimals', None)
+
         if columns is None or lists is None:
             columns, lists, decimals = self.get_columns(mode, columns, taking_into_coefficient)
 
@@ -702,6 +691,7 @@ class Tree:
             kwargs.update(distance_type=float)
         if kwargs.get('decimals', None) is None:
             kwargs.update(decimals=decimals)
+
         table = self.tree_to_table(taking_into_coefficient=taking_into_coefficient, **kwargs)
         table.to_csv(file_name, index=False, sep=sep)
 
@@ -709,7 +699,6 @@ class Tree:
 
     def tree_to_newick_file(self, file_name: str = 'tree_file.tree', with_internal_nodes: bool = False,
                             decimal_length: int = 0, taking_into_coefficient: bool = True) -> str:
-
         newick_text = self.get_newick(with_internal_nodes, decimal_length, taking_into_coefficient)
 
         return self.write_file(file_name, newick_text)
@@ -748,7 +737,6 @@ class Tree:
 
     def tree_to_interactive_html(self, file_name: str = 'InteractiveTree.svg', taking_into_coefficient: bool = True
                                  ) -> str:
-
         self.calculate_tree()
         self.calculate_ancestral_sequence()
         size_factor = min(1 + self.get_node_count({'node_type': ['leaf']}) // 9, 6)
@@ -843,9 +831,6 @@ class Tree:
     def optimize(self, func: Union[Callable, str], bracket: Tuple[Union[float, np.ndarray], ...] = (0.5,),
                  bounds: Tuple[Union[float, np.ndarray], ...] = (0.001, 0.999), args: Optional[Tuple[Any, ...]] = None,
                  result_fild: Optional[str] = None):
-        """
-            result_fild: `str` (default), message, success, status, fun, x, nit, nfev
-        """
         func = self.__getattribute__(func) if isinstance(func, str) else func
         min_scalar = minimize_scalar(func, bracket=bracket, bounds=bounds) if args is None else (
             minimize_scalar(func, args=args, bracket=bracket, bounds=bounds))
@@ -965,6 +950,25 @@ class Tree:
         return gamma.ppf(probability_vector, a=self.alpha, scale=1/self.alpha)
 
     @staticmethod
+    def get_round(obj: Union[int, float, np.ndarray], decimals: int = 4) -> float:
+
+        return float(np.round(obj, decimals))
+
+    @staticmethod
+    def get_list_decimals(obj: Union[int, float, np.ndarray], list_type: type = str, decimals: int = 4) -> Any:
+        if list_type in (list, tuple, set):
+            if isinstance(obj, (list, tuple, set)):
+                return list_type(map(lambda x: Tree.get_round(x, decimals) if (isinstance(x, (int, float, np.ndarray))
+                                                                               ) else Tree.get_list_decimals(x,
+                                                                                                             list_type,
+                                                                                                             decimals),
+                                     obj))
+            else:
+                return obj
+        else:
+            return ' '.join(map(str, obj))
+
+    @staticmethod
     def is_bootstrap_value(number_str: str, lower: Union[float, np.ndarray, int] = 0,
                            upper: Union[float, np.ndarray, int] = 100) -> bool:
         re_result = bool(re.fullmatch(r'^-?\d+(\.\d+)?$', number_str)) if len(number_str.strip()) else False
@@ -1020,7 +1024,6 @@ class Tree:
 
     @staticmethod
     def write_file(file_name: str, file_text: str) -> str:
-
         try:
             Tree.make_dir(file_name)
             with open(file_name, 'w') as f:
@@ -1110,11 +1113,11 @@ class Tree:
     @staticmethod
     def check_newick(newick_text: str) -> bool:
         newick_text = newick_text.strip()
+
         return newick_text and newick_text.startswith('(') and newick_text.endswith(';')
 
     @staticmethod
-    def __set_node(node_str: str, num) -> Node:
-        """This method is for internal use only."""
+    def __set_node(node_str: str, num: Callable) -> Node:
         if node_str.find(':') > -1:
             node_data: List[Union[str, int, float]] = node_str.split(':')
             node_data[0] = node_data[0] if node_data[0] else 'nd' + str(num()).rjust(4, '0')
@@ -1127,6 +1130,7 @@ class Tree:
 
         newick_node = Node(node_data[0])
         newick_node.distance_to_father = float(node_data[1])
+
         return newick_node
 
     @staticmethod
@@ -1144,7 +1148,6 @@ class Tree:
 
     @staticmethod
     def __counter():
-        """This method is for internal use only."""
         count = 0
 
         def sub_function():
@@ -1156,7 +1159,6 @@ class Tree:
 
     @classmethod
     def __get_html_tree(cls, structure: dict, status: str) -> str:
-        """This method is for internal use only."""
         tags = (f'<details {status}>', '</details>', '<summary>', '</summary>') if structure['children'] else ('', '',
                                                                                                                '', '')
         str_html = (f'<li> {tags[0]}{tags[2]}{structure["name"].strip()} \t ({structure["distance_to_father"]}) '
@@ -1165,11 +1167,11 @@ class Tree:
             str_html += f'<ul>{cls.__get_html_tree(child, status)}</ul>\n' if child[
                 'children'] else f'{cls.__get_html_tree(child, status)}'
         str_html += f'{tags[1]}</li>'
+
         return str_html
 
     @classmethod
     def get_robinson_foulds_distance(cls, tree1: Union['Tree', str], tree2: Union['Tree', str]) -> float:
-        """This method is for internal use only."""
         tree1 = Tree(tree1) if type(tree1) is str else tree1
         tree2 = Tree(tree2) if type(tree2) is str else tree2
 
@@ -1186,13 +1188,12 @@ class Tree:
 
     @classmethod
     def structure_to_html_tree(cls, structure: dict, styleclass: str = '', status: str = '') -> str:
-        """This method is for internal use only."""
+
         return (f'<ul {f" class = {chr(34)}{styleclass}{chr(34)}" if styleclass else ""}>'
                 f'{cls.__get_html_tree(structure, status)}</ul>')
 
     @classmethod
     def subtree_to_structure(cls, newick_node: Node) -> Dict[str, str]:
-        """This method is for internal use only."""
         dict_node = {'name': newick_node.name.strip(), 'distance_to_father': newick_node.distance_to_father}
         list_children = []
         if newick_node.children:

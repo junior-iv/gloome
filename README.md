@@ -52,10 +52,17 @@ gloome
 │   │   └── initial_data
 │   │       ├── tree
 │   │       │   ├── newickTree0.tree
-│   │       │   └── newickTree1.tree
+│   │       │   ├── newickTree1.tree
+│   │       │   ├── newickTree10.nwk
+│   │       │   └── newickTree11.nwk
 │   │       └── msa
 │   │           ├── patternMSA0.msa
-│   │           └── patternMSA1.msa
+│   │           ├── patternMSA1.msa
+│   │           ├── patternMSA10.fasta
+│   │           └── patternMSA11.fasta
+│   ├── jsonNpEncoder
+│   │   ├── __init__.py
+│   │   └── npencoder.py
 │   ├── services
 │   │   ├── __init__.py
 │   │   ├── design_functions.py
