@@ -13,6 +13,7 @@ from Bio import Phylo
 from scipy.stats import gamma
 from scipy.special import gammainc
 from scipy.optimize import minimize_scalar
+from io import StringIO
 
 from gloome.tree.node import Node
 from gloome.jsonNpEncoder.npencoder import NpEncoder as npEncode
@@ -950,6 +951,16 @@ class Tree:
         probability_vector = np.linspace(0, 1, self.categories_quantity + 1)
 
         return gamma.ppf(probability_vector, a=self.alpha, scale=1/self.alpha)
+
+    @staticmethod
+    def get_root_at_midpoint(tree_data: str) -> str:
+
+        phylo_tree = Phylo.read(StringIO(tree_data), "newick")
+        if len(phylo_tree.root.clades) > 2:
+            phylo_tree.root_at_midpoint()
+            phylo_tree.rooted = True
+
+        return phylo_tree.format("newick").strip()
 
     @staticmethod
     def get_round(obj: Union[int, float, np.ndarray], decimals: int = 4) -> float:

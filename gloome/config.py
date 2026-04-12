@@ -182,6 +182,12 @@ class Config:
                                                                      self.CURRENT_ARGS.file_table_of_attributes_tsv,
                                                                      self.CURRENT_ARGS.file_phylogenetic_tree_nwk)
 
+        if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('set_root', False):
+            try:
+                self.CALCULATED_ARGS.newick_text = self.ACTIONS.set_root(self.CALCULATED_ARGS.newick_text)
+            except ValueError:
+                self.CALCULATED_ARGS.err_list.append((f'TREE error', f'Failed to set root.'))
+
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_tree', False):
             try:
                 self.CALCULATED_ARGS.newick_tree = self.ACTIONS.check_tree(self.CALCULATED_ARGS.newick_text)

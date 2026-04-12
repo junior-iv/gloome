@@ -123,6 +123,8 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
         if err_list:
             return Response(response=jsonify(set_response_structure(get_error(err_list), False)).response, status=400,
                             mimetype='application/json')
+        else:
+            kwargs.update({'newickText': Tree.get_root_at_midpoint(kwargs.get('newickText', ''))})
 
         process_id = start_background_job(mode=mode, **kwargs)
 

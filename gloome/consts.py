@@ -177,6 +177,7 @@ DEFAULT_ARGUMENTS.update(DEFAULT_FORM_ARGUMENTS)
 ACTIONS = Actions(**{
                      'del_bootstrap_values': del_bootstrap_values,
                      'check_data': check_data,
+                     'set_root': Tree.get_root_at_midpoint,
                      'check_tree': Tree.rename_nodes,
                      'set_tree_data': Tree.set_tree_data,
                      # 'compute_likelihood_of_tree': compute_likelihood_of_tree,
@@ -191,6 +192,7 @@ ACTIONS = Actions(**{
 VALIDATION_ACTIONS = {
     'del_bootstrap_values': True,
     'check_data': True,
+    'set_root': True,
     'check_tree': True
     }
 
