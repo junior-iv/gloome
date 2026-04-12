@@ -227,6 +227,23 @@ def get_error(err_list: List[Tuple[str, str]]) -> str:
                     f'{value_design(error, True, 14)}\n' for error_type, error in err_list])
 
 
+def del_bootstrap_values(newick_text: str) -> str:
+    pattern = r'\)([0-9]|[1-9][0-9]|100)\b'
+    matches_list = re.findall(pattern, newick_text)
+    matches_list.sort()
+    matches_set = set(matches_list)
+    list_length = len(matches_list)
+    set_length = len(matches_set)
+
+    if any((list_length != set_length,
+            all((matches_list != list(range(1, list_length + 1)),
+                 matches_list != list(range(0, list_length)))))):
+        for i in matches_set:
+            newick_text = newick_text.replace(f'){i}', ')')
+
+    return newick_text
+
+
 def check_data(*args) -> List[Tuple[str, str]]:
     err_list = []
     newick_text = args[0].strip()

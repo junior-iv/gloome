@@ -3,7 +3,8 @@ import multiprocessing as mp
 
 from app.app import *
 from app.config import *
-from gloome.services.service_functions import get_variables, check_data, get_error, loads_json, read_file
+from gloome.services.service_functions import (get_variables, check_data, get_error, loads_json, read_file,
+                                               del_bootstrap_values)
 
 
 def write_end_file(process_id: Union[int, str], completed: bool, result_dir: Path) -> Path:
@@ -114,9 +115,10 @@ def set_response_structure(data: Any, success: bool) -> Any:
 
 def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
     if request.method == 'POST':
-        args = get_variables(dict(request.form))
-        err_list = check_data(*args)
         kwargs = dict(request.form)
+        kwargs.update({'newickText': del_bootstrap_values(kwargs.get('newickText', ''))})
+        args = get_variables(kwargs)
+        err_list = check_data(*args)
 
         if err_list:
             return Response(response=jsonify(set_response_structure(get_error(err_list), False)).response, status=400,
