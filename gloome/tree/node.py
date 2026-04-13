@@ -6,7 +6,7 @@ from scipy.linalg import expm
 from math import log, prod
 from json import loads, dumps
 
-from gloome.jsonNpEncoder.npencoder import NpEncoder as npEncode
+from .npencoder import NpEncoder
 
 eps = 5e-324
 
@@ -205,7 +205,7 @@ class Node:
                   'coefficient_bl': self.coefficient_bl,
                   'pmatrix': self.pmatrix}
 
-        return loads(dumps(result, cls=npEncode))
+        return loads(dumps(result, cls=NpEncoder))
 
     def get_node_by_name(self, node_name: str) -> Optional['Node']:
         if node_name == self.name:

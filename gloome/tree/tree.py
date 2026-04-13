@@ -15,8 +15,8 @@ from scipy.special import gammainc
 from scipy.optimize import minimize_scalar
 from io import StringIO
 
-from gloome.tree.node import Node
-from gloome.jsonNpEncoder.npencoder import NpEncoder as npEncode
+from .node import Node
+from .npencoder import NpEncoder
 
 
 class Tree:
@@ -599,7 +599,7 @@ class Tree:
         else:
             dict_json = self.root.node_to_json()
 
-        return loads(dumps(dict_json, cls=npEncode).replace(f'\'', r'"'))
+        return loads(dumps(dict_json, cls=NpEncoder).replace(f'\'', r'"'))
 
     def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
         fasta_text = self.get_fasta_text()
@@ -659,7 +659,7 @@ class Tree:
                             'coefficient of branch lengths': self.coefficient_bl,
                             'rate vector': self.rate_vector,
                             'alphabet': self.alphabet,
-                            'log_likelihood': self.log_likelihood}, cls=npEncode))
+                            'log_likelihood': self.log_likelihood}, cls=NpEncoder))
         df = pd.DataFrame({k: ((v, ) if isinstance(v, (set, tuple, list)) else v) for k, v in data.items()
                            if v is not None})
         df.to_csv(file_name, sep=sep, index=False)
@@ -1066,7 +1066,7 @@ class Tree:
             result = {'List for sorting': ['Parent node', 'Child node', 'Branch length', 'Gain probability',
                                            'Loss probability']}
 
-        return loads(dumps(result, cls=npEncode).replace(f'\'', r'"'))
+        return loads(dumps(result, cls=NpEncoder).replace(f'\'', r'"'))
 
     @staticmethod
     def get_random_name(lenght: int = 24) -> str:
