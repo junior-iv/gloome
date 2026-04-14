@@ -37,22 +37,21 @@ class Tree:
 
     def __init__(self, data: Optional[Union[str, Node]] = None, node_name: Optional[str] = None, **kwargs) -> None:
         """
-        Parameters
-        ----------
-            data: Optional[Union[str, Node]] = None
-            node_name: Optional[str] = None
-            msa: Optional[Union[Dict[str, str], str]] = None
-            categories_quantity: Optional[float] = None
-            alpha: Optional[float] = None
-            beta: Optional[float] = None
-            pi_0: Optional[Union[float, np.ndarray, int]] = None
-            pi_1: Optional[Union[float, np.ndarray, int]] = None
-            coefficient_bl: Optional[Union[float, np.ndarray, int]] = None
-            is_optimize_pi: Optional[bool] = None,
-            is_optimize_pi_average: Optional[bool] = None
-            is_optimize_alpha: Optional[bool] = None
-            is_optimize_bl: Optional[bool] = None
-    """
+         Args:
+            data (str, Node, optional): `None` (default)
+            node_name (str, optional): `None` (default)
+            msa (Dict, str, optional): `None` (default)
+            categories_quantity (float, optional): `None` (default)
+            alpha (float, optional): `None` (default)
+            beta (float, optional): `None` (default)
+            pi_0 (float, np.ndarray, int, optional): `None` (default)
+            pi_1 (float, np.ndarray, int, optional): `None` (default)
+            coefficient_bl (float, np.ndarray, int, optional): `None` (default)
+            is_optimize_pi (bool, optional): `None` (default)
+            is_optimize_pi_average (bool, optional): `None` (default)
+            is_optimize_alpha (bool, optional): `None` (default)
+            is_optimize_bl (bool, optional): `None` (default)
+        """
         available_parameters = {'data', 'node_name', 'msa', 'categories_quantity', 'alpha', 'beta', 'pi_0', 'pi_1',
                                 'coefficient_bl', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_alpha',
                                 'is_optimize_bl'}
@@ -185,7 +184,7 @@ class Tree:
 
         Args:
             with_additional_details (bool, optional): `False` (default)
-            mode (str, optional): `None` (default), 'pre-order', 'in-order', 'post-order', 'level-order'.
+            mode (str, optional): `None` (default), 'pre-order', 'in-order', 'post-order', 'level-order'
             filters (Dict, optional): `None` (default)
         Returns:
             None: This function does not return any value; it only prints the nodes to the standard output.
@@ -953,7 +952,64 @@ class Tree:
         return gamma.ppf(probability_vector, a=self.alpha, scale=1/self.alpha)
 
     @staticmethod
-    def get_root_at_midpoint(tree_data: str) -> str:
+    def get_root_by_outgroup(tree_data: str, leaf: Union[str, Node]) -> str:
+        phylo_tree = Phylo.read(StringIO(tree_data), "newick")
+        phylo_tree.root_with_outgroup(leaf)
+
+        return phylo_tree.format("newick").strip()
+
+    @staticmethod
+    def get_score(phylo_tree: Phylo, mode: str) -> float:
+        if mode == 'variance':
+            return np.var([phylo_tree.distance(phylo_tree.root, t) for t in phylo_tree.get_terminals()])
+
+        terminals = phylo_tree.get_terminals()
+        n = len(terminals)
+        deviations = []
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                d_root_i = phylo_tree.distance(phylo_tree.root, terminals[i])
+                d_root_j = phylo_tree.distance(phylo_tree.root, terminals[j])
+                d_ij = phylo_tree.distance(terminals[i], terminals[j])
+
+                if d_ij > 0:
+                    dev = abs(d_root_i - d_root_j) / d_ij
+                    deviations.append(dev ** 2)
+
+        return np.sqrt(np.mean(deviations))
+
+    @classmethod
+    def get_root_by_minimum(cls, tree_data: str, mode: str = 'mean-square') -> str:
+        """
+        Args:
+            tree_data (str)
+            mode (str, optional): `mean-square` (default), `variance`
+
+        Returns:
+            float: An dictionary representing the tree structure.
+        """
+        phylo_tree = Phylo.read(StringIO(tree_data), "newick")
+        best_var = float('inf')
+        best_clade = None
+
+        all_clades = phylo_tree.get_nonterminals() + phylo_tree.get_terminals()
+
+        for clade in all_clades:
+            if clade != phylo_tree.root:
+                phylo_tree.root_with_outgroup(clade)
+                current_var = cls.get_score(phylo_tree, mode)
+
+                if current_var < best_var:
+                    best_var = current_var
+                    best_clade = clade
+
+        phylo_tree.root_with_outgroup(best_clade)
+
+        return phylo_tree.format("newick").strip()
+
+    @staticmethod
+    def get_root_by_midpoint(tree_data: str) -> str:
 
         phylo_tree = Phylo.read(StringIO(tree_data), "newick")
         if len(phylo_tree.root.clades) > 2:
@@ -1016,11 +1072,12 @@ class Tree:
         elif mode == 'node_tsv':
             columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', distance_name:
                                                'Distance to parent', 'children': 'Children', 'sequence': 'Sequence',
+                                               'marginal_vector': 'Marginal vector',
                                                'probabilities_sequence_characters': 'Probability coefficient',
                                                'ancestral_sequence': 'Ancestral comparison', 'sequence_likelihood':
                                                'Likelihood of sequence', 'log_likelihood': 'Log-likelihood',
                                                'log_likelihood_vector': 'Vector of log-likelihood'}
-            lists = ('children', 'probabilities_sequence_characters')
+            lists = ('children', 'marginal_vector', 'probabilities_sequence_characters')
             decimals = 8
         elif mode == 'branch_tsv':
             columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', distance_name:
