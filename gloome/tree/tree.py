@@ -1072,6 +1072,7 @@ class Tree:
         elif mode == 'node_tsv':
             columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', distance_name:
                                                'Distance to parent', 'children': 'Children', 'sequence': 'Sequence',
+                                               'pmatrix': 'P matrix',
                                                'up_vector': 'Up vector',
                                                'down_vector': 'Down vector',
                                                'marginal_vector': 'Marginal vector',
@@ -1079,7 +1080,8 @@ class Tree:
                                                'ancestral_sequence': 'Ancestral comparison', 'sequence_likelihood':
                                                'Likelihood of sequence', 'log_likelihood': 'Log-likelihood',
                                                'log_likelihood_vector': 'Vector of log-likelihood'}
-            lists = ('children', 'up_vector', 'down_vector', 'marginal_vector', 'probabilities_sequence_characters')
+            lists = ('children', 'pmatrix', 'up_vector', 'down_vector', 'marginal_vector',
+                     'probabilities_sequence_characters')
             decimals = 8
         elif mode == 'branch_tsv':
             columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', distance_name:
