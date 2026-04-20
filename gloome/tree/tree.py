@@ -1079,8 +1079,8 @@ class Tree:
                                                'probabilities_sequence_characters': 'Probability coefficient',
                                                'ancestral_sequence': 'Ancestral comparison',
                                                'sequence_likelihood':
-                                               'current conditional likelihood (subtree) of sequence',
-                                               'log_likelihood': 'current conditional Log-likelihood (ln, subtree)',
+                                               'Current conditional likelihood (subtree) of sequence',
+                                               'log_likelihood': 'Current conditional log-likelihood (ln, subtree)',
                                                'log_likelihood_vector':
                                                'Vector of current conditional log-likelihood (ln, subtree)'}
             lists = ('children', 'pmatrix', 'up_vector', 'down_vector', 'marginal_vector',
