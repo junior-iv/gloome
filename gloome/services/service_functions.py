@@ -142,7 +142,6 @@ def execute_all_actions(newick_tree: Union[str, Tree], file_path: Union[str, Pat
 
 
 def compute_likelihood_of_tree(newick_tree: Union[str, Tree]) -> Union[List[Union[float, ndarray]], str]:
-
     newick_tree.calculate_likelihood()
     result = [newick_tree.log_likelihood]
 

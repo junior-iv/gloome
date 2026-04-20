@@ -337,9 +337,10 @@ class Node:
                                 {brother.name:
                                  probabilities.get(brother.name, 0) + (brother.pmatrix[r][j, i] *
                                                                        brother.up_vector[r][i])})
-                        probabilities.update(
-                            {father.name: probabilities.get(father.name, 0) + (father.pmatrix[r][i, j] *
-                                                                               father.down_vector[r][i])})
+                        if father.father:
+                            probabilities.update(
+                                {father.name: probabilities.get(father.name, 0) + (father.pmatrix[r][j, i] *
+                                                                                   father.down_vector[r][i])})
 
                     current_down_vector.append(prod(probabilities.values()))
                 self.down_vector.append(current_down_vector)
