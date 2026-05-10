@@ -157,6 +157,7 @@ class WebConfig:
             is_do_not_use_e_mail = f'--is_do_not_use_e_mail {int(self.CURRENT_ARGS.is_do_not_use_e_mail)} '
         else:
             e_mail = is_do_not_use_e_mail = ''
+        leaf = f'--leaf {self.CURRENT_ARGS.leaf}' if self.CURRENT_ARGS.leaf else ''
         self.COMMAND_LINE = (
             # f'python {self.BIN_DIR.joinpath("gloome").joinpath("__main__.py")} '
             f'python -m gloome '
@@ -184,7 +185,7 @@ class WebConfig:
             f'--file_phylogenetic_tree_nwk {int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk)} '
             f'--mode {self.MODE} '
             f'--rooting_method {self.CURRENT_ARGS.rooting_method} '
-            f'--leaf {self.CURRENT_ARGS.leaf}')
+            f' {leaf}')
         self.JOB_LOGGER.info(f'\n\tcreate a command line: '
                              f'\n\tCOMMAND_LINE: {self.COMMAND_LINE}\n')
 
