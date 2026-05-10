@@ -173,7 +173,7 @@ class WebConfig:
             f'--is_optimize_pi_average {int(self.CURRENT_ARGS.is_optimize_pi_average)} '
             f'--is_optimize_alpha {int(self.CURRENT_ARGS.is_optimize_alpha)} '
             f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
-            f' {is_do_not_use_e_mail} '
+            f'{is_do_not_use_e_mail} '
             f'--file_interactive_tree_html {int(self.CURRENT_ARGS.file_interactive_tree_html)} '
             f'--file_newick_tree_png {int(self.CURRENT_ARGS.file_newick_tree_png)} '
             f'--file_table_of_nodes_tsv {int(self.CURRENT_ARGS.file_table_of_nodes_tsv)} '
@@ -185,7 +185,7 @@ class WebConfig:
             f'--file_phylogenetic_tree_nwk {int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk)} '
             f'--mode {self.MODE} '
             f'--rooting_method {self.CURRENT_ARGS.rooting_method} '
-            f' {leaf}')
+            f'{leaf}')
         self.JOB_LOGGER.info(f'\n\tcreate a command line: '
                              f'\n\tCOMMAND_LINE: {self.COMMAND_LINE}\n')
 
