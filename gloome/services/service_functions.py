@@ -7,7 +7,6 @@ from typing import Callable, Any
 from datetime import timedelta
 from shutil import make_archive, move
 from numpy import ndarray
-# from validate_email import validate_email
 from flask import url_for
 
 from gloome.tree.tree import Tree
@@ -21,6 +20,8 @@ SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_log_likelihood_tsv': True,
                   'file_table_of_attributes_tsv': True,
                   'file_phylogenetic_tree_nwk': True}
+
+ROOTING_METHOD = {'mad', 'mvr', 'midpoint', 'outgroup'}
 
 
 def get_digit(data: str) -> Union[int, float, str]:
@@ -209,7 +210,7 @@ def draw_tree(newick_tree: Tree) -> Union[List[Any], str]:
     result = [newick_tree.get_json_structure(),
               newick_tree.get_json_structure(return_table=True),
               newick_tree.get_columns_list_for_sorting(),
-              {'Size factor': min(1 + newick_tree.get_node_count({'node_type': ['leaf']}) // 9, 6)},
+              {'Size factor': min(1 + newick_tree.get_leaves_count() // 9, 6)},
               newick_tree.get_json_structure(return_table=True, mode='branch'),
               newick_tree.get_columns_list_for_sorting(mode='branch'),
               {'Sequence length': len(tuple(newick_tree.msa.values())[0])}]
@@ -242,6 +243,11 @@ def del_bootstrap_values(newick_text: str) -> str:
     return newick_text
 
 
+def get_leaves(data) -> List[str]:
+
+    return Tree(data).get_leaves(only_node_list=False)
+
+
 def check_data(*args) -> List[Tuple[str, str]]:
     err_list = []
     newick_text = args[0].strip()
@@ -264,6 +270,8 @@ def check_data(*args) -> List[Tuple[str, str]]:
     file_log_likelihood_tsv = bool(args[17])
     file_table_of_attributes_tsv = bool(args[18])
     file_phylogenetic_tree_nwk = bool(args[19])
+    rooting_method = args[20].strip()
+    leaf = args[21].strip()
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -279,7 +287,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'Branch lengths (BL) coefficient value error [ {coefficient_bl} ]',
                          f'The value must be between 0.1 and 10.'))
 
-    if (not isinstance(e_mail, str) or not validate_email(e_mail)) and not is_do_not_use_e_mail:
+    if ((not isinstance(e_mail, str) or not e_mail) or not validate_email(e_mail)) and not is_do_not_use_e_mail:
         err_list.append((f'Invalid email address [ {e_mail} ]', f'Must be valid email address.'))
 
     if not isinstance(is_optimize_pi, bool):
@@ -333,6 +341,12 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'Phylogenetic tree (nwk) value error [ {file_phylogenetic_tree_nwk} ]',
                          f'The value must be boolean type.'))
 
+    if not isinstance(rooting_method, str):
+        err_list.append((f'Rooting method value error [ {rooting_method} ]', f'The value must be string type.'))
+
+    if (not isinstance(leaf, str) or not leaf) and rooting_method == 'outgroup':
+        err_list.append((f'Leaf value error [ {leaf} ]', f'The value must be a non-empty string.'))
+
     if not msa:
         err_list.append(('MSA error', 'No MSA was provided.'))
     elif not msa.startswith('>'):
@@ -384,10 +398,10 @@ def check_data(*args) -> List[Tuple[str, str]]:
                                                                   distance_type=float,
                                                                   taking_into_coefficient=False).T.values[0].tolist()
                 if not all(edges_distances_list):
-                    err_list.append((f'TREE error', f'One or more branches in the tree have zero length.\n'
-                                                    f'{edges_distances_list}'))
-                if not (current_tree.get_node_count({'node_type': ['leaf']}) == len(msa.split('\n')) / 2 ==
-                        msa.count('>')):
+                    err_list.append((f'TREE error',
+                                     f'One or more branches in the tree have zero length.\n'
+                                     f'{edges_distances_list}'))
+                if not (current_tree.get_leaves_count() == len(msa.split('\n')) / 2 == msa.count('>')):
                     err_list.append((f'MSA error',
                                      f'A discrepancy exists between the number of leaves in the phylogenetic tree and '
                                      f'the number of sequences present in the MSA data.'))
@@ -401,6 +415,8 @@ def check_data(*args) -> List[Tuple[str, str]]:
                 if set(tree_taxa_info).difference(set(msa_taxa_info)):
                     err_list.append((f'DATA MISMATCH error',
                                      f'Taxa names in the MSA and phylogenetic tree do not match.'))
+                if not current_tree.all_nodes.get(leaf) and rooting_method == 'outgroup':
+                    err_list.append((f'TREE error', f'Leaf {leaf} not found.'))
             else:
                 err_list.append((f'TREE error',
                                  f'Wrong Phylogenetic tree format. Please provide a tree in Newick format.'))

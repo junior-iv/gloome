@@ -88,15 +88,15 @@ class WebConfig:
                    'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseEMail',
                    'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileTableOfNodesTsv',
                    'fileProbabilityPerPosPerBranchesTsv', 'fileTableOfBranchesTsv', 'fileLogLikelihoodTsv',
-                   'fileTableOfAttributesTsv', 'filePhylogeneticTreeNwk'),
+                   'fileTableOfAttributesTsv', 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'),
                   ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'e_mail', 'is_optimize_pi',
                    'is_optimize_pi_average', 'is_optimize_bl', 'is_optimize_alpha', 'is_do_not_use_e_mail',
                    'file_interactive_tree_html', 'file_newick_tree_png', 'file_table_of_nodes_tsv',
                    'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv', 'file_log_likelihood_tsv',
-                   'file_table_of_attributes_tsv', 'file_phylogenetic_tree_nwk'),
+                   'file_table_of_attributes_tsv', 'file_phylogenetic_tree_nwk', 'rooting_method', 'leaf'),
                   ((int, ), (float, ), (float, ), (float, ), (str, ), (int, bool), (int, bool), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
-                   (int, bool), (int, bool), (int, bool)))
+                   (int, bool), (int, bool), (int, bool), (str, ), (str, )))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -130,7 +130,9 @@ class WebConfig:
                              f'\n\tfile_table_of_attributes_tsv: {self.CURRENT_ARGS.file_table_of_attributes_tsv}'
                              f'\n\tfile_phylogenetic_tree_nwk: {self.CURRENT_ARGS.file_phylogenetic_tree_nwk}'
                              f'\n\tnewick_text: {self.CALCULATED_ARGS.newick_text}'
-                             f'\n\tmsa: {self.CALCULATED_ARGS.msa}\n')
+                             f'\n\tmsa: {self.CALCULATED_ARGS.msa}'
+                             f'\n\trooting_method: {self.CURRENT_ARGS.rooting_method}'
+                             f'\n\tleaf: {self.CURRENT_ARGS.leaf}\n')
 
     def texts_filling(self) -> None:
         with open(self.TREE_FILE, 'r') as f:
@@ -180,7 +182,9 @@ class WebConfig:
             f'--file_log_likelihood_tsv {int(self.CURRENT_ARGS.file_log_likelihood_tsv)} '
             f'--file_table_of_attributes_tsv {int(self.CURRENT_ARGS.file_table_of_attributes_tsv)} '
             f'--file_phylogenetic_tree_nwk {int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk)} '
-            f'--mode {self.MODE}')
+            f'--mode {self.MODE} '
+            f'--rooting_method {self.CURRENT_ARGS.rooting_method} '
+            f'--leaf {self.CURRENT_ARGS.leaf}')
         self.JOB_LOGGER.info(f'\n\tcreate a command line: '
                              f'\n\tCOMMAND_LINE: {self.COMMAND_LINE}\n')
 
@@ -244,34 +248,6 @@ class WebConfig:
                              f'\n\trequest_body: {body}\n')
 
         return body.get(self.SUBMITER.get_name())
-    #
-    # def get_response_design(self, json_object: Optional[Any], action_name: str) -> Optional[Any]:
-    #     if 'create_all_file_types' in action_name:
-    #         json_object = self.link_design(json_object)
-    #     # if 'draw_tree' not in action_name:
-    #         json_object = result_design(json_object, change_value='compute_likelihood_of_tree' in action_name,
-    #                                     change_value_style=False, change_key=True, change_key_style=False)
-    #     return json_object
-    #
-    # def create_response(self) -> Any:
-    #     file_contents = read_file(file_path=self.OUTPUT_FILE)
-    #     json_object = loads_json(file_contents)
-    #     action_name = json_object.pop('action_name')
-    #     data = json_object.pop('data')
-    #
-    #     if 'execute_all_actions' in action_name:
-    #         for key, value in data.items():
-    #             data.update({key: get_response_design(value, key)})
-    #         pass
-    #     else:
-    #         data = get_response_design(data, action_name)
-    #
-    #     data.update({'title': self.PROCESS_ID})
-    #     data.update({'form_data': json_object.pop('form_data')})
-    #     data.update({'action_name': action_name})
-    #     create_file(file_path=self.OUTPUT_FILE, data=data)
-    #
-    #     return data
 
     def read_response(self) -> Any:
         file_contents = read_file(file_path=self.OUTPUT_FILE)

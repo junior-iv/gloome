@@ -4,7 +4,7 @@ import multiprocessing as mp
 from app.app import *
 from app.config import *
 from gloome.services.service_functions import (get_variables, check_data, get_error, loads_json, read_file,
-                                               del_bootstrap_values)
+                                               del_bootstrap_values, get_leaves)
 
 
 def write_end_file(process_id: Union[int, str], completed: bool, result_dir: Path) -> Path:
@@ -75,6 +75,20 @@ def write_log(file_path: Path, header: str = '', exception_text: str = '') -> No
         file.write(old_content)
 
 
+def get_all_leaves(data: str) -> Any:
+    try:
+        leaves = get_leaves(data) if data else []
+        result = set_response_structure(leaves, True)
+        status = 200
+    except Exception:
+        result = set_response_structure(
+            get_error([(f'TREE error', f'Wrong Phylogenetic tree format. Please provide a tree in Newick format.')]),
+            False)
+        status = 400
+
+    return Response(response=jsonify(message=result).response, status=status, mimetype='application/json')
+
+
 def read_json(json_string: str) -> Any:
     try:
         result = loads_json(json_string)
@@ -124,7 +138,7 @@ def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
             return Response(response=jsonify(set_response_structure(get_error(err_list), False)).response, status=400,
                             mimetype='application/json')
         else:
-            kwargs.update({'newickText': Tree.get_root_by_midpoint(kwargs.get('newickText', ''))})
+            kwargs.update({'newickText': Tree.set_root(kwargs.get('newickText', ''))})
 
         process_id = start_background_job(mode=mode, **kwargs)
 

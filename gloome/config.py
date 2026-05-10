@@ -114,7 +114,9 @@ class Config:
                      'pi1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
                      'categoriesQuantity': self.CURRENT_ARGS.categories_quantity,
-                     'eMail': self.CURRENT_ARGS.e_mail}
+                     'eMail': self.CURRENT_ARGS.e_mail,
+                     'rootingMethod': self.CURRENT_ARGS.rooting_method,
+                     'leaf': self.CURRENT_ARGS.leaf}
         return form_data
 
     def execute_action(self, func, *args, **kwargs):
@@ -180,11 +182,15 @@ class Config:
                                                                      self.CURRENT_ARGS.file_table_of_branches_tsv,
                                                                      self.CURRENT_ARGS.file_log_likelihood_tsv,
                                                                      self.CURRENT_ARGS.file_table_of_attributes_tsv,
-                                                                     self.CURRENT_ARGS.file_phylogenetic_tree_nwk)
+                                                                     self.CURRENT_ARGS.file_phylogenetic_tree_nwk,
+                                                                     self.CURRENT_ARGS.rooting_method,
+                                                                     self.CURRENT_ARGS.leaf)
 
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('set_root', False):
             try:
-                self.CALCULATED_ARGS.newick_text = self.ACTIONS.set_root(self.CALCULATED_ARGS.newick_text)
+                self.CALCULATED_ARGS.newick_text = self.ACTIONS.set_root(self.CALCULATED_ARGS.newick_text,
+                                                                         self.CURRENT_ARGS.rooting_method,
+                                                                         self.CURRENT_ARGS.leaf)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'TREE error', f'Failed to set root.'))
 
@@ -283,7 +289,7 @@ class Config:
         parser.add_argument('--process_id', dest='process_id', type=str, required=False, default=self.PROCESS_ID,
                             help=f'Specify a process ID or it will be generated automatically (optional).')
         parser.add_argument('--mode', dest='mode', required=False, action="extend", nargs="+", type=str,
-                            help=f'Execution mode style (optional). Possible options: ("draw_tree", '
+                            help=f'Specify execution mode (optional). Possible options: ("draw_tree", '
                             f'"compute_likelihood_of_tree", "create_all_file_types", "execute_all_actions"). '
                             f'Default is {self.MODE[3:4]}.')
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=int, required=False,
@@ -300,8 +306,14 @@ class Config:
                             help=f'Specify coefficient_bl (optional). Default is {self.CURRENT_ARGS.coefficient_bl}.',
                             default=self.CURRENT_ARGS.coefficient_bl)
         parser.add_argument('--e_mail', dest='e_mail', type=str, required=False,
-                            help=f'Specify e_mail (technical parameter, do not change).',
+                            help=f'Specify e_mail (technical parameter, do not change) .',
                             default=self.CURRENT_ARGS.e_mail)
+        parser.add_argument('--rooting_method', dest='rooting_method', type=str, required=False,
+                            default=self.CURRENT_ARGS.rooting_method, help=f'Specify tree rooting method (optional). '
+                            f'Possible options: ("mad", "mvr", "midpoint", "outgroup"). '
+                            f'Default is "{self.CURRENT_ARGS.rooting_method}"')
+        parser.add_argument('--leaf', dest='leaf', type=str, required=False, default=self.CURRENT_ARGS.leaf,
+                            help=f'Specify leaf for outgroup rooting (optional). Default is "{self.CURRENT_ARGS.leaf}"')
         parser.add_argument('--is_optimize_pi', dest='is_optimize_pi', type=int, required=False,
                             help=f'Specify is_optimize_pi (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_optimize_pi)}.', default=int(self.CURRENT_ARGS.is_optimize_pi))

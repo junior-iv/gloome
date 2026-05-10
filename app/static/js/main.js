@@ -23,7 +23,9 @@ let objectsDependence = {
     'fileTableOfBranchesTsv': {'dependence': '', 'value': ''},
     'fileLogLikelihoodTsv': {'dependence': '', 'value': ''},
     'fileTableOfAttributesTsv': {'dependence': '', 'value': ''},
-    'filePhylogeneticTreeNwk': {'dependence': '', 'value': ''}
+    'filePhylogeneticTreeNwk': {'dependence': '', 'value': ''},
+    'rootingMethod': {'dependence': '', 'value': ''},
+    'leaf': {'dependence': '', 'value': ''}
 };
 
 function validateInputEMail(id) {
@@ -141,6 +143,7 @@ function loadExample(mode = 0) {
         .then(data => {
             msaText.value = data.message[0];
             newickText.value = data.message[1];
+            getLeaves('newickText');
         })
         .catch(error => {
             console.error(`Error:`, error);
@@ -166,9 +169,9 @@ function getNodeStyle(d, nodeType, mode = 0, sizeFactor = 1){
 function reDrawPhylogeneticTree() {
     if (jsonTreeData !== null){
         setVisibility(`result`, true);
-        setLoader('result', false)
+        setLoader(`result`, false)
         showMessage(``, -1);
-        document.getElementById('tree').innerText = ``;
+        document.getElementById(`tree`).innerText = ``;
         drawPhylogeneticTree(jsonTreeData);
     }
 }
@@ -181,7 +184,7 @@ function drawPhylogeneticTree(jsonData) {
     const cy = height * .5;
     const radius = Math.min(cx, cy);
     let scale = .9;
-    const sizeFactor = jsonData[3]["Size factor"]
+    const sizeFactor = jsonData[3][`Size factor`]
     const isRadial = document.getElementById(`isRadialTree`);
     const showDistance = document.getElementById(`showDistanceToParent`);
     const isRadialTree = isRadial.checked;
@@ -199,109 +202,109 @@ function drawPhylogeneticTree(jsonData) {
     const root = tree(d3.hierarchy(jsonData[0])
         .sort((a, b) => d3.ascending(a.data.name, b.data.name)));
 
-    const svg =  d3.select("#tree")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .attr("viewBox", isRadialTree ? [-cx, -cy, width, height] : [0, 0, width, height])
-        .attr("style", `width: 100%; height: 100%;`)
-        .call(d3.zoom().on("zoom", function (event) {
-            svg.attr("transform", event.transform);
+    const svg =  d3.select(`#tree`)
+        .append(`svg`)
+        .attr(`width`, width + margin.left + margin.right)
+        .attr(`height`, height + margin.top + margin.bottom)
+        .attr(`viewBox`, isRadialTree ? [-cx, -cy, width, height] : [0, 0, width, height])
+        .attr(`style`, `width: 100%; height: 100%;`)
+        .call(d3.zoom().on(`zoom`, function (event) {
+            svg.attr(`transform`, event.transform);
         }))
-        .append("g")
-        .attr("transform", `translate(${margin.left}, ${margin.top}) scale(${scale})`);
+        .append(`g`)
+        .attr(`transform`, `translate(${margin.left}, ${margin.top}) scale(${scale})`);
 
-    const links = svg.selectAll(".link")
+    const links = svg.selectAll(`.link`)
         .data(root.links())
-        .enter().append("path")
-        .attr("class", "link");
+        .enter().append(`path`)
+        .attr(`class`, `link`);
     links
-        .attr("d", isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
-        .style("fill", "none")
-        .style("stroke", "silver")
-        .style("stroke-width", 1.5)
-        .on("mouseover", function(event, d) {
+        .attr(`d`, isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
+        .style(`fill`, `none`)
+        .style(`stroke`, `silver`)
+        .style(`stroke-width`, 1.5)
+        .on(`mouseover`, function(event, d) {
             d3.select(this)
-                .style("stroke", "maroon")
-            d3.select("#tooltip")
-                .style("left", `${event.pageX + 10}px`)
-                .style("top", `${event.pageY - 20}px`)
-                .style("opacity", .9)
-                .style("visibility",  "visible")
-                .html(drawInformation(jsonData[4][d.target.data.name], jsonData[5]["List for sorting"], false, 1, jsonData[6]["Sequence length"]));
+                .style(`stroke`, `maroon`)
+            d3.select(`#tooltip`)
+                .style(`left`, `${event.pageX + 10}px`)
+                .style(`top`, `${event.pageY - 20}px`)
+                .style(`opacity`, .9)
+                .style(`visibility`,  `visible`)
+                .html(drawInformation(jsonData[4][d.target.data.name], jsonData[5][`List for sorting`], false, 1, jsonData[6][`Sequence length`]));
         })
-        .on("mouseout", function() {
+        .on(`mouseout`, function() {
             d3.select(this)
-                .style("stroke", "silver")
-            d3.select("#tooltip")
-                .style("opacity", 0)
-                .style("visibility",  "hidden");
+                .style(`stroke`, `silver`)
+            d3.select(`#tooltip`)
+                .style(`opacity`, 0)
+                .style(`visibility`,  `hidden`);
         })
-        .on("click", function(event, d) {
-            document.getElementById('branchInfo').innerHTML = drawInformation(jsonData[4][d.target.data.name], jsonData[5]["List for sorting"], true, 1, jsonData[6]["Sequence length"]);
+        .on(`click`, function(event, d) {
+            document.getElementById('branchInfo').innerHTML = drawInformation(jsonData[4][d.target.data.name], jsonData[5][`List for sorting`], true, 1, jsonData[6][`Sequence length`]);
             delayedWrapper();
         });
-    const nodes = svg.selectAll(".node")
+    const nodes = svg.selectAll(`.node`)
         .data(root.descendants())
-        .enter().append("g")
-        .attr("class", "node")
-        .attr("transform", isRadialTree ? d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)` : d => `translate(${d.y}, ${d.x})`);
+        .enter().append(`g`)
+        .attr(`class`, `node`)
+        .attr(`transform`, isRadialTree ? d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)` : d => `translate(${d.y}, ${d.x})`);
 
     nodes
-        .append("circle")
-        .attr("r", d => getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 2, sizeFactor))
-        .style("fill", d => getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 0, sizeFactor))
-        .style("stroke", "steelblue")
-        .style("stroke-width", 2)
-        .on("mouseover", function(event, d) {
+        .append(`circle`)
+        .attr(`r`, d => getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 2, sizeFactor))
+        .style(`fill`, d => getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 0, sizeFactor))
+        .style(`stroke`, `steelblue`)
+        .style(`stroke-width`, 2)
+        .on(`mouseover`, function(event, d) {
             d3.select(this)
-                .style("fill", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 1, sizeFactor))
-                .attr("r", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 3, sizeFactor))
-            d3.select("#tooltip")
-                .style("left", `${event.pageX + 10}px`)
-                .style("top", `${event.pageY - 20}px`)
-                .style("opacity", .9)
-                .style("visibility",  "visible")
-                .html(drawInformation(jsonData[1][d.data.name], jsonData[2]["List for sorting"], false, 0, jsonData[6]["Sequence length"]));
+                .style(`fill`, getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 1, sizeFactor))
+                .attr(`r`, getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 3, sizeFactor))
+            d3.select(`#tooltip`)
+                .style(`left`, `${event.pageX + 10}px`)
+                .style(`top`, `${event.pageY - 20}px`)
+                .style(`opacity`, .9)
+                .style(`visibility`,  `visible`)
+                .html(drawInformation(jsonData[1][d.data.name], jsonData[2][`List for sorting`], false, 0, jsonData[6][`Sequence length`]));
         })
-        .on("mouseout", function(event, d) {
+        .on(`mouseout`, function(event, d) {
             d3.select(this)
-                .style("fill", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 0, sizeFactor))
-                .attr("r", getNodeStyle(d, jsonData[1][d.data.name]["Node type"], 2, sizeFactor))
-            d3.select("#tooltip")
-                .style("opacity", 0)
-                .style("visibility",  "hidden");
+                .style(`fill`, getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 0, sizeFactor))
+                .attr(`r`, getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 2, sizeFactor))
+            d3.select(`#tooltip`)
+                .style(`opacity`, 0)
+                .style(`visibility`,  `hidden`);
         })
-        .on("click", function(event, d) {
-            document.getElementById('nodeInfo').innerHTML = drawInformation(jsonData[1][d.data.name], jsonData[2]["List for sorting"], true, 0, jsonData[6]["Sequence length"]);
+        .on(`click`, function(event, d) {
+            document.getElementById('nodeInfo').innerHTML = drawInformation(jsonData[1][d.data.name], jsonData[2][`List for sorting`], true, 0, jsonData[6][`Sequence length`]);
             delayedWrapper();
         });
 
     nodes
-        .append("text")
-        .style("font-size", d => !d.children ? parseInt(12 / sizeFactor) : parseInt(16 / sizeFactor))
-        .style("font-family", "Verdana")
-        .style("text-anchor", d => d.children ? "start" : "start")
-        .style("font-weight", d => !d.children ? "normal" : "bold")
-        .style("fill", function(d) {
-            if (jsonData[1][d.data.name]["Node type"] === "root") { return "maroon" }
-            else if (jsonData[1][d.data.name]["Node type"] === "node") { return "navy" }
-            else { return "black" }
+        .append(`text`)
+        .style(`font-size`, d => !d.children ? parseInt(12 / sizeFactor) : parseInt(16 / sizeFactor))
+        .style(`font-family`, `Verdana`)
+        .style(`text-anchor`, d => d.children ? `start` : `start`)
+        .style(`font-weight`, d => !d.children ? `normal` : `bold`)
+        .style(`fill`, function(d) {
+            if (jsonData[1][d.data.name][`Node type`] === `root`) { return `maroon` }
+            else if (jsonData[1][d.data.name][`Node type`] === `node`) { return `navy` }
+            else { return `black` }
         })
-        .attr("dy", d => !d.children ? parseInt(3 / sizeFactor) : parseInt(6 / sizeFactor))
-        .attr("dx", d => !d.children ? parseInt(18 / sizeFactor) : parseInt(24 / sizeFactor))
+        .attr(`dy`, d => !d.children ? parseInt(3 / sizeFactor) : parseInt(6 / sizeFactor))
+        .attr(`dx`, d => !d.children ? parseInt(18 / sizeFactor) : parseInt(24 / sizeFactor))
         .text(d => d.data.name);
     if (showDistanceToParent) {
         nodes
-            .append("text")
-            .style("font-size", parseInt(10 / sizeFactor))
-            .style("font-family", "sans-serif")
-            .style("text-anchor", "end")
-            .style("font-weight", "normal")
-            .style("fill", "darkcyan")
-            .attr("dy", d => !d.children ? parseInt(3 / sizeFactor) : parseInt(6 / sizeFactor))
-            .attr("dx", d => !d.children ? -parseInt(18 / sizeFactor) : -parseInt(24 / sizeFactor))
-            .text(d => jsonData[1][d.data.name]["Node type"] !== "root" ? `[${parseFloat(d.data.distance)}]` : ``);
+            .append(`text`)
+            .style(`font-size`, parseInt(10 / sizeFactor))
+            .style(`font-family`, `sans-serif`)
+            .style(`text-anchor`, `end`)
+            .style(`font-weight`, `normal`)
+            .style(`fill`, `darkcyan`)
+            .attr(`dy`, d => !d.children ? parseInt(3 / sizeFactor) : parseInt(6 / sizeFactor))
+            .attr(`dx`, d => !d.children ? -parseInt(18 / sizeFactor) : -parseInt(24 / sizeFactor))
+            .text(d => jsonData[1][d.data.name][`Node type`] !== `root` ? `[${parseFloat(d.data.distance)}]` : ``);
     }
 }
 
@@ -504,6 +507,8 @@ function makeTree(mode = 0) {
     const fileLogLikelihoodTsv = document.getElementById(`fileLogLikelihoodTsv`)
     const fileTableOfAttributesTsv = document.getElementById(`fileTableOfAttributesTsv`)
     const filePhylogeneticTreeNwk = document.getElementById(`filePhylogeneticTreeNwk`)
+    const rootingMethod = document.getElementById(`rootingMethod`);
+    const leaf = document.getElementById(`leaf`);
     const formData = new FormData();
     formData.append(`newickText`, newickText.value.trim());
     formData.append(`msaText`, msaText.value.trim());
@@ -525,6 +530,8 @@ function makeTree(mode = 0) {
     formData.append(`fileLogLikelihoodTsv`, +fileLogLikelihoodTsv.checked);
     formData.append(`fileTableOfAttributesTsv`, +fileTableOfAttributesTsv.checked);
     formData.append(`filePhylogeneticTreeNwk`, +filePhylogeneticTreeNwk.checked);
+    formData.append(`rootingMethod`, rootingMethod.value.trim());
+    formData.append(`leaf`, leaf.value.trim());
 
     jsonTreeData = null
 
@@ -535,14 +542,17 @@ function makeTree(mode = 0) {
         .catch(error => console.error(error));
 }
 
-function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`) {
-    let textFile = document.getElementById(textFileName).files[0];
-    let textArea = document.getElementById(textAreaName);
+function uploadFile(textAreaId = `newickText`, textFileId = `newickTextFile`) {
+    let textFile = document.getElementById(textFileId).files[0];
+    let textArea = document.getElementById(textAreaId);
     if (textFile) {
         let reader = new FileReader();
 
         reader.onload = function(event) {
             textArea.value = event.target.result.trim();
+            if (textAreaId === `newickText`){
+                getLeaves(textAreaId);
+            }
         };
         reader.readAsText(textFile);
     }
@@ -551,7 +561,7 @@ function uploadFile(textAreaName = `newickText`, textFileName = `newickTextFile`
 function readJson(id = `jsonFile`) {
     let jsonFile = document.getElementById(id).files[0];
     let actions = ['execute_all_actions', 'draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types'];
-    const formData = new FormData();
+    // const formData = new FormData();
     const promise = new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = function () {
@@ -588,7 +598,7 @@ function gedIdentifiers(id = ``) {
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `eMail`, `isOptimizePi`,
             `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`, `fileInteractiveTreeHtml`,
             `fileNewickTreePng`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`,
-            `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk'];
+            `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
     }
 }
 
@@ -604,6 +614,39 @@ function completeFormFilling(formData) {
         Object.entries(info['dependence']).forEach((checkboxId) => formData[checkboxId[1]] ? disabled += 1 : disabled += 0);
         element.disabled = Boolean(disabled)
     });
+}
+
+function getLeaves(id = `newickText`) {
+    let leaves = document.getElementById(`leaves`);
+    let leavesText = ``;
+    let element = document.getElementById(id);
+    const formData = new FormData();
+    formData.append(id, element.value.trim());
+    showMessage(``, -1);
+
+    fetch(`/get_leaves`, {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => data.message.data)
+        .then(data => {
+            for (let i = 0; i < data.length; i++) {
+                leavesText += `<option value="${data[i]}">`;
+            }
+            leaves.innerHTML = leavesText;
+        })
+        .catch(error => {
+            // console.error(`Error:`, error.message);
+            leaves.innerHTML = leavesText;
+            showAlert(error.message, 8000);
+        });
+
+}
+
+function onChangingRootingMethod() {
+    let element = document.getElementById('rootingMethod');
+    setAccessibility("leaf", element.value !== 'outgroup');
 }
 
 function onChangingCheckbox(id, value) {

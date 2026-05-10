@@ -103,7 +103,7 @@
                            class="form-control rounded-pill" onchange="uploadFile('newickText', this.id)"/>
                 </div>
                 <textarea spellcheck="false" id="newickText" name="newickText" autocomplete="on" rows="auto" class="form-control btn-light font-verdana"
-                          placeholder="please provide a phylogenetic tree here"></textarea>
+                          placeholder="please provide a phylogenetic tree here" onchange="getLeaves(this.id)"></textarea>
             </div>
             <div class="box flex-row text-center w-100 justify-content-center">
                 <div class="d-flex w-50 flex-column m-2">
@@ -287,6 +287,62 @@
                                         />
                                     </div>
                                 </div>
+                            </details>
+                        </div>
+                        <div class="box flex-column h-auto w-100 p-2">
+                            <details class="subdetails">
+                                <summary class="text-start w-100 form-control btn btn-outline-secondary bg-secondary-subtle border-1 rounded-5">
+                                <span class="subarrow">▽</span>
+                                    Rooting method
+                                </summary>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="rootingMethod" class="h6 text-start text-success-emphasis ms-3">rooting method</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input value="{{rooting_method}}" id="rootingMethod" name="rootingMethod"
+                                               title="Rooting method" type="text" required placeholder="Select or type.."
+                                               class="form-control rounded-pill" list="rootingMethods"
+                                                onchange="onChangingRootingMethod()"
+                                        />
+                                        <datalist id="rootingMethods">
+                                            {%- for method in rooting_methods -%}
+                                              <option value="{{method}}">
+                                            {% endfor -%}
+                                        </datalist>
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="leaf" class="h6 text-start text-success-emphasis ms-3">leaf</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input value="{{leaf}}" id="leaf" name="leaf"
+                                               title="Leaf" type="text" required placeholder="Select or type.."
+                                               class="form-control rounded-pill" list="leaves"
+                                            {%- if rooting_method != "outgroup" -%}
+                                                disabled
+                                            {% endif -%}
+                                        />
+                                        <datalist id="leaves">
+{#                                            <option value="{{method}}">#}
+                                        </datalist>
+                                    </div>
+                                </div>
+
+{#                                <div class="box flex-row h-auto w-100 m-2">#}
+{#                                    <div class="w-48 text-start">#}
+{#                                        <label for="isDoNotUseEMail" class="h6 text-start text-success-emphasis ms-3">don`t use e-mail</label>#}
+{#                                    </div>#}
+{#                                    <div class="w-48 text-start">#}
+{#                                        <input id="isDoNotUseEMail" name="isDoNotUseEMail" onchange="onChangingCheckbox(this.id, this.checked)"#}
+{#                                               type="checkbox" class="form-check-input rounded-1"#}
+{#                                               {%- if is_do_not_use_e_mail -%}#}
+{#                                                   checked#}
+{#                                               {% endif -%}#}
+{#                                        />#}
+{#                                    </div>#}
+{#                                </div>#}
                             </details>
                         </div>
                         <div class="box flex-column h-auto w-100 p-2">

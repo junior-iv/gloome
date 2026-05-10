@@ -76,13 +76,13 @@ def get_exemple():
                 result.append(f.read().strip())
 
         return jsonify(message=result)
-#
-#
-# @app.route('/send_reports', methods=['GET'])
-# def send_reports():
-#     if request.method == 'GET':
-#
-#         return send_report()
+
+
+@app.route('/get_leaves', methods=['POST'])
+def get_leaves():
+    if request.method == 'POST':
+
+        return get_all_leaves(request.form.get('newickText'))
 
 
 @app.route('/get_file', methods=['GET'])

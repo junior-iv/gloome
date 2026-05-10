@@ -34,6 +34,7 @@ class Tree:
     calculated_ancestor_sequence: bool = False
     calculated_tree: bool = False
     calculated_likelihood: bool = False
+    all_nodes: Dict[str, Node]
 
     def __init__(self, data: Optional[Union[str, Node]] = None, node_name: Optional[str] = None, **kwargs) -> None:
         """
@@ -67,6 +68,8 @@ class Tree:
             self.root = data
         else:
             self.root = Node('root')
+
+        self.all_nodes = {current_node.name: current_node for current_node in self.get_all_nodes()}
 
         self.msa, self.alphabet, self.categories_quantity, self.alpha = None, None, None, None
         self.rate_vector = (1.0,)
@@ -186,6 +189,7 @@ class Tree:
             with_additional_details (bool, optional): `False` (default)
             mode (str, optional): `None` (default), 'pre-order', 'in-order', 'post-order', 'level-order'
             filters (Dict, optional): `None` (default)
+
         Returns:
             None: This function does not return any value; it only prints the nodes to the standard output.
         """
@@ -217,15 +221,37 @@ class Tree:
             mode (str, optional): `pre-order` (default), 'pre-order', 'in-order', 'post-order', 'level-order'.
             filters (Dict, optional):
             only_node_list (Dict, optional): `False` (default).
+        
         Returns:
             list: A list of all nodes of the tree or a list of dictionaries with information about these nodes.
         """
 
         return self.root.get_list_nodes_info(with_additional_details, mode, filters, only_node_list)
 
+    def get_leaves(self, only_node_list: bool = True, mode: Optional[str] = None) -> List[Union[Node, str]]:
+
+        return self.get_list_nodes_info(filters={'node_type': ['leaf']}, only_node_list=only_node_list, mode=mode)
+
+    def get_nodes(self, only_node_list: bool = True, mode: Optional[str] = None) -> List[Node]:
+
+        return self.get_list_nodes_info(filters={'node_type': ['node', 'root']}, only_node_list=only_node_list,
+                                        mode=mode)
+
+    def get_all_nodes(self, only_node_list: bool = True, mode: Optional[str] = None) -> List[Node]:
+
+        return self.get_list_nodes_info(only_node_list=only_node_list, mode=mode)
+
+    def get_leaves_count(self) -> int:
+
+        return self.get_node_count(filters={'node_type': ['leaf']})
+
+    def get_nodes_count(self) -> int:
+
+        return self.get_node_count(filters={'node_type': ['node', 'root']})
+
     def get_node_count(self, filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None) -> int:
 
-        return len(self.get_list_nodes_info(True, None, filters))
+        return len(self.get_list_nodes_info(filters=filters, only_node_list=True))
 
     def get_node_by_name(self, name: str) -> Optional[Node]:
 
@@ -492,7 +518,7 @@ class Tree:
 
     def calculate_marginal(self, newick_node: Optional[Union[Node, str]] = None) -> None:
         if not newick_node:
-            node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'root']}, only_node_list=True)
+            node_list = self.get_nodes()
         else:
             node_list = []
             if isinstance(newick_node, str):
@@ -539,7 +565,7 @@ class Tree:
         if self.msa and not self.calculated_tree:
             self.clean_all()
 
-            leaves = self.get_list_nodes_info(filters={'node_type': ['leaf']}, only_node_list=True)
+            leaves = self.get_leaves()
             len_seq = len(min(list(self.msa.values())))
             for i in range(len_seq):
                 self.likelihood *= self.calculate_up(msa=''.join([self.msa.get(leaf.name)[i] for leaf in leaves]))
@@ -741,7 +767,7 @@ class Tree:
                                  ) -> str:
         self.calculate_tree()
         self.calculate_ancestral_sequence()
-        size_factor = min(1 + self.get_node_count({'node_type': ['leaf']}) // 9, 6)
+        size_factor = min(1 + self.get_leaves_count() // 9, 6)
         columns, lists, decimals = self.get_columns(mode='tree_html', taking_into_coefficient=taking_into_coefficient)
         df = self.tree_to_table(columns=columns, distance_type=float, filters={'node_type': ['leaf', 'node', 'root']},
                                 list_type=list, taking_into_coefficient=taking_into_coefficient, lists=lists,
@@ -750,7 +776,7 @@ class Tree:
         del df['sequence'], df['node_type'], df['prob_characters']
         df = df.iloc[1:]
 
-        d3 = D3Blocks(verbose=100, chart='tree', frame=False)
+        d3 = D3Blocks(verbose=60, chart='tree', frame=False)
         d3.set_node_properties(df)
 
         d3.font = {'size': 12}
@@ -806,7 +832,7 @@ class Tree:
                       ) -> Union[str, Dict[str, str]]:
         file_extensions = Tree.check_file_extensions_tuple(file_extensions, 'png')
 
-        size_factor = min(1 + self.get_node_count({'node_type': ['leaf']}) // 9, 6)
+        size_factor = min(1 + self.get_leaves_count() // 9, 6)
         self.make_dir(file_name)
         columns = {'node': 'Name', 'father_name': 'Parent', 'distance': 'Distance to parent'}
         table = self.tree_to_table(decimal_length=0, columns=columns)
@@ -951,70 +977,183 @@ class Tree:
 
         return gamma.ppf(probability_vector, a=self.alpha, scale=1/self.alpha)
 
+    @classmethod
+    def set_root(cls, tree_data: str, rooting_method: str = 'mad', leaf: Optional[Union[str, Node]] = None) -> str:
+        """
+        Args:
+            tree_data (str)
+            rooting_method (str, optional): `mad` (Minimal Ancestor Deviation, default),
+                `mvr`(Minimum Variance Rooting), `midpoint`, `outgroup`
+            leaf (str, Node, optional): `None` (default)
+
+        Returns:
+            str: A Newick formatted string representing the tree structure.
+        """
+        rooting_method = rooting_method.strip().lower()
+        if leaf and rooting_method == 'outgroup':
+            current_tree_data = cls.set_root_by_outgroup(tree_data, leaf.name if isinstance(leaf, Node) else leaf)
+        else:
+            if rooting_method in ('mad', 'mvr'):
+                current_tree_data = cls.set_root_by_minimum(tree_data, rooting_method)
+            else:
+                current_tree_data = cls.set_root_by_midpoint(tree_data)
+        current_tree = cls(current_tree_data)
+        for current_node in current_tree.get_list_nodes_info(only_node_list=True,
+                                                             filters={'node_type': ['node', 'leaf']}):
+            if current_node.distance_to_father == 0:
+                current_node.distance_to_father = 1e-10
+
+        return current_tree.get_newick()
+
     @staticmethod
-    def get_root_by_outgroup(tree_data: str, leaf: Union[str, Node]) -> str:
+    def set_root_by_outgroup(tree_data: str, leaf: str) -> str:
         phylo_tree = Phylo.read(StringIO(tree_data), "newick")
         phylo_tree.root_with_outgroup(leaf)
 
         return phylo_tree.format("newick").strip()
 
     @staticmethod
-    def get_score(phylo_tree: Phylo, mode: str) -> float:
-        if mode == 'variance':
-            return np.var([phylo_tree.distance(phylo_tree.root, t) for t in phylo_tree.get_terminals()])
+    def calculate_mad_x(clade, dists: Dict[Any, Dict[Any, float]]) -> float:
+        clade_leaves = clade.get_terminals()
+        all_leaves = list(dists.keys())
+        different_leaves = [Leaf for Leaf in all_leaves if Leaf not in clade_leaves]
 
-        terminals = phylo_tree.get_terminals()
-        n = len(terminals)
+        branch_length = clade.branch_length or 0
+
+        numerator = 0
+        denominator = 0
+
+        for i in clade_leaves:
+            d_in = clade.distance(i)
+
+            for j in different_leaves:
+                d_ij = dists[i][j]
+
+                if d_ij != 0:
+                    numerator += (d_ij - 2 * d_in) / (d_ij ** 2)
+                    denominator += 2 / (d_ij ** 2)
+
+        if denominator == 0:
+            return branch_length / 2
+
+        x = numerator / denominator
+
+        return max(0, min(branch_length, x))
+
+    @staticmethod
+    def calculate_mad_score(clade, x: float, dists: Dict[Any, Dict[Any, float]]) -> float:
+        clade_leaves = clade.get_terminals()
+        all_leaves = list(dists.keys())
+        different_leaves = [Leaf for Leaf in all_leaves if Leaf not in clade_leaves]
+
         deviations = []
 
-        for i in range(n):
-            for j in range(i + 1, n):
-                d_root_i = phylo_tree.distance(phylo_tree.root, terminals[i])
-                d_root_j = phylo_tree.distance(phylo_tree.root, terminals[j])
-                d_ij = phylo_tree.distance(terminals[i], terminals[j])
+        for i in clade_leaves:
+            d_node_i = clade.distance(i)
+            d_root_i = d_node_i + x
 
-                if d_ij > 0:
-                    dev = abs(d_root_i - d_root_j) / d_ij
+            for j in different_leaves:
+                d_ij = dists[i][j]
+
+                if d_ij != 0:
+                    dev = (2 * d_root_i / d_ij) - 1
                     deviations.append(dev ** 2)
+
+        if not deviations:
+            return float('inf')
 
         return np.sqrt(np.mean(deviations))
 
+    @staticmethod
+    def calculate_mvr_x(phylo_tree, clade, dists: Dict[Any, Dict[Any, float]]) -> float:
+        clade_leaves = clade.get_terminals()
+        all_leaves = list(dists.keys())
+        different_leaves = [Leaf for Leaf in all_leaves if Leaf not in clade_leaves]
+
+        branch_length = clade.branch_length or 0
+
+        n = len(all_leaves)
+        n1 = len(clade_leaves)
+
+        mu1 = np.mean([clade.distance(Leaf) for Leaf in clade_leaves])
+        mu2 = np.mean([phylo_tree.distance(clade, Leaf) for Leaf in different_leaves])
+
+        beta = n1 / n
+
+        x = (mu2 - mu1 + branch_length * (1 - 2 * beta)) / (2 * (1 - beta))
+
+        return max(0, min(branch_length, x))
+
+    @staticmethod
+    def calculate_mvr_score(phylo_tree, clade, x: float, dists: Dict[Any, Dict[Any, float]]) -> float:
+        clade_leaves = clade.get_terminals()
+        all_leaves = list(dists.keys())
+
+        ref_leaf = clade_leaves[0]
+
+        root_distances = []
+
+        for leaf in all_leaves:
+            if leaf in clade_leaves:
+                d_root = clade.distance(leaf) + x
+            else:
+                d_root = phylo_tree.distance(ref_leaf, leaf) - x
+            root_distances.append(d_root)
+
+        return np.var(root_distances)
+
     @classmethod
-    def get_root_by_minimum(cls, tree_data: str, mode: str = 'mean-square') -> str:
+    def set_root_by_minimum(cls, tree_data: str, rooting_method: str) -> str:
         """
         Args:
             tree_data (str)
-            mode (str, optional): `mean-square` (default), `variance`
+            rooting_method (str): `mad` (Minimal Ancestor Deviation), `mvr`(Minimum Variance Rooting)
 
         Returns:
-            float: An dictionary representing the tree structure.
+            str: A Newick formatted string representing the tree structure.
         """
         phylo_tree = Phylo.read(StringIO(tree_data), "newick")
-        best_var = float('inf')
+        all_leaves = phylo_tree.get_terminals()
+        dists = {Leaf: {Leaf2: phylo_tree.distance(Leaf, Leaf2) for Leaf2 in all_leaves} for Leaf in all_leaves}
+
+        best_score = float('inf')
         best_clade = None
+        best_x = 0
+        remaining_dist = 0
 
-        all_clades = phylo_tree.get_nonterminals() + phylo_tree.get_terminals()
-
-        for clade in all_clades:
+        for clade in phylo_tree.find_clades():
             if clade != phylo_tree.root:
-                phylo_tree.root_with_outgroup(clade)
-                current_var = cls.get_score(phylo_tree, mode)
+                if rooting_method == 'mad':
+                    x_opt = cls.calculate_mad_x(clade, dists)
+                    score = cls.calculate_mad_score(clade, x_opt, dists)
+                else:
+                    x_opt = cls.calculate_mvr_x(phylo_tree, clade, dists)
+                    score = cls.calculate_mvr_score(phylo_tree, clade, x_opt, dists)
 
-                if current_var < best_var:
-                    best_var = current_var
+                if score < best_score:
+                    best_score = score
                     best_clade = clade
+                    best_x = x_opt
+                    remaining_dist = best_clade.branch_length - best_x
 
-        phylo_tree.root_with_outgroup(best_clade)
+        if best_clade:
+            outgroup_leaves = best_clade.get_terminals()
+            phylo_tree.root_with_outgroup(outgroup_leaves)
+            new_best_clade = phylo_tree.common_ancestor(outgroup_leaves)
+            new_best_clade.branch_length = best_x
+
+            for clade in phylo_tree.root.clades:
+                if clade != new_best_clade:
+                    clade.branch_length = remaining_dist
 
         return phylo_tree.format("newick").strip()
 
     @staticmethod
-    def get_root_by_midpoint(tree_data: str) -> str:
+    def set_root_by_midpoint(tree_data: str) -> str:
 
         phylo_tree = Phylo.read(StringIO(tree_data), "newick")
         if len(phylo_tree.root.clades) > 2:
             phylo_tree.root_at_midpoint()
-            phylo_tree.rooted = True
 
         return phylo_tree.format("newick").strip()
 
@@ -1216,12 +1355,13 @@ class Tree:
     def rename_nodes(newick_tree: Union[str, 'Tree'], node_name: str = 'N', fill_character: str = '0', number_length:
                      int = 0) -> 'Tree':
         newick_tree = Tree.check_tree(newick_tree)
-        nodes_list = newick_tree.get_list_nodes_info(filters={'node_type': ['root', 'node']}, only_node_list=True,
-                                                     mode='pre-order')
+        nodes_list = newick_tree.get_nodes()
         num = newick_tree.__counter()
         for current_node in nodes_list:
             if re.fullmatch(r'^nd\d{4}$', current_node.name):
                 current_node.name = f'{node_name}{str(num()).rjust(number_length, fill_character)}'
+
+        newick_tree.all_nodes = {current_node.name: current_node for current_node in newick_tree.get_all_nodes()}
 
         return newick_tree
 
