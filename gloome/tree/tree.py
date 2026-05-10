@@ -990,18 +990,20 @@ class Tree:
             str: A Newick formatted string representing the tree structure.
         """
         rooting_method = rooting_method.strip().lower()
-        if leaf and rooting_method == 'outgroup':
-            current_tree_data = cls.set_root_by_outgroup(tree_data, leaf.name if isinstance(leaf, Node) else leaf)
-        else:
-            if rooting_method in ('mad', 'mvr'):
-                current_tree_data = cls.set_root_by_minimum(tree_data, rooting_method)
+        current_tree = cls(tree_data)
+        if len(current_tree.root.children) > 2:
+            if leaf and rooting_method == 'outgroup':
+                current_tree_data = cls.set_root_by_outgroup(tree_data, leaf.name if isinstance(leaf, Node) else leaf)
             else:
-                current_tree_data = cls.set_root_by_midpoint(tree_data)
-        current_tree = cls(current_tree_data)
-        for current_node in current_tree.get_list_nodes_info(only_node_list=True,
-                                                             filters={'node_type': ['node', 'leaf']}):
-            if current_node.distance_to_father == 0:
-                current_node.distance_to_father = 1e-10
+                if rooting_method in ('mad', 'mvr'):
+                    current_tree_data = cls.set_root_by_minimum(tree_data, rooting_method)
+                else:
+                    current_tree_data = cls.set_root_by_midpoint(tree_data)
+            current_tree = cls(current_tree_data)
+            for current_node in current_tree.get_list_nodes_info(only_node_list=True,
+                                                                 filters={'node_type': ['node', 'leaf']}):
+                if current_node.distance_to_father == 0:
+                    current_node.distance_to_father = 1e-10
 
         return current_tree.get_newick()
 
