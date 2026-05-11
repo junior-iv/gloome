@@ -444,8 +444,9 @@ async function getJobResult(processID) {
 
 async function makeRequest(absolutePath, formData, mode) {
     setVisibilityLoader(true);
-    setAccessibility();
-    setAccessibility(`leaf`, false);
+    setAccessibility(``, false);
+    // setAccessibility();
+    // setAccessibility(`leaf`, false);
     setVisibility(`result`, false);
 
     try {
@@ -458,7 +459,6 @@ async function makeRequest(absolutePath, formData, mode) {
                 console.log(jobResult.status)
                 if ([`failed`, `finished`].includes(jobResult.status)) {
                     setVisibilityLoader(false);
-                    setAccessibility(``, false);
                     clearInterval(interval);
                     showResponse(jobResult.result, mode);
                 }
@@ -599,7 +599,7 @@ function gedIdentifiers(id = ``) {
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `eMail`, `isOptimizePi`,
             `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`, `fileInteractiveTreeHtml`,
             `fileNewickTreePng`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`,
-            `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk', 'rootingMethod'];
+            `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
     }
 }
 
