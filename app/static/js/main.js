@@ -24,8 +24,7 @@ let objectsDependence = {
     'fileLogLikelihoodTsv': {'dependence': '', 'value': ''},
     'fileTableOfAttributesTsv': {'dependence': '', 'value': ''},
     'filePhylogeneticTreeNwk': {'dependence': '', 'value': ''},
-    'rootingMethod': {'dependence': '', 'value': ''},
-    'leaf': {'dependence': '', 'value': ''}
+    'rootingMethod': {'dependence': '', 'value': ''}
 };
 
 function validateInputEMail(id) {
@@ -434,6 +433,7 @@ function showResponse(jsonData, mode = 0) {
     }
 
     setVisibility(`result`, true);
+    onChangingRootingMethod(false)
 }
 
 async function getJobResult(processID) {
@@ -445,6 +445,7 @@ async function getJobResult(processID) {
 async function makeRequest(absolutePath, formData, mode) {
     setVisibilityLoader(true);
     setAccessibility();
+    setAccessibility(`leaf`, false);
     setVisibility(`result`, false);
 
     try {
@@ -598,7 +599,7 @@ function gedIdentifiers(id = ``) {
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `eMail`, `isOptimizePi`,
             `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`, `fileInteractiveTreeHtml`,
             `fileNewickTreePng`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`,
-            `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
+            `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk', 'rootingMethod'];
     }
 }
 
@@ -646,9 +647,11 @@ function getLeaves(id = `newickText`) {
         });
 }
 
-function onChangingRootingMethod() {
-    let element = document.getElementById(`rootingMethod`);
-    setAccessibility(`leaf`, element.value !== `outgroup`);
+function onChangingRootingMethod(delLeaf = true) {
+    if (delLeaf) {
+        document.getElementById(`leaf`).value = ``;
+    }
+    setAccessibility(`leaf`, document.getElementById(`rootingMethod`).value !== `outgroup`);
 }
 
 function onChangingCheckbox(id, value) {
