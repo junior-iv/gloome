@@ -618,14 +618,17 @@ function completeFormFilling(formData) {
 
 function getLeaves(id = `newickText`) {
     let leaves = document.getElementById(`leaves`);
+    let leaf = document.getElementById(`leaf`);
     let leavesText = ``;
     let element = document.getElementById(id);
     const formData = new FormData();
     formData.append(id, element.value.trim());
+    leaf.value = ``;
+    leaves.innerHTML = ``;
     showMessage(``, -1);
 
     fetch(`/get_leaves`, {
-        method: 'POST',
+        method: `POST`,
         body: formData
     })
         .then(response => response.json())
@@ -635,18 +638,17 @@ function getLeaves(id = `newickText`) {
                 leavesText += `<option value="${data[i]}">`;
             }
             leaves.innerHTML = leavesText;
+            onChangingRootingMethod();
         })
         .catch(error => {
-            // console.error(`Error:`, error.message);
-            leaves.innerHTML = leavesText;
             showAlert(error.message, 8000);
+            onChangingRootingMethod();
         });
-
 }
 
 function onChangingRootingMethod() {
-    let element = document.getElementById('rootingMethod');
-    setAccessibility("leaf", element.value !== 'outgroup');
+    let element = document.getElementById(`rootingMethod`);
+    setAccessibility(`leaf`, element.value !== `outgroup`);
 }
 
 function onChangingCheckbox(id, value) {
@@ -696,7 +698,8 @@ function showMessage(message = null, variant = 1) {
 }
 
 function formCleaning(args) {
-    let elementNames = {'value': [`newickText`, `msaText`], 'innerHTML': [`tree`, 'branchInfo', `nodeInfo`, `logLikelihood`, `fileList`],
+    let elementNames = {'value': [`newickText`, `msaText`, `leaf`],
+        'innerHTML': [`tree`, 'branchInfo', `nodeInfo`, `logLikelihood`, `fileList`, `leaves`],
         'setDefault': [`pi1`, `alpha`, `categoriesQuantity`, `coefficientBL`]};
     for (let i = 0; i < elementNames.value.length; i++) {
         document.getElementById(elementNames.value[i]).value = ``;
