@@ -444,9 +444,7 @@ async function getJobResult(processID) {
 
 async function makeRequest(absolutePath, formData, mode) {
     setVisibilityLoader(true);
-    setAccessibility(``, false);
-    // setAccessibility();
-    // setAccessibility(`leaf`, false);
+    setAccessibility(``, true);
     setVisibility(`result`, false);
 
     try {
@@ -459,6 +457,7 @@ async function makeRequest(absolutePath, formData, mode) {
                 console.log(jobResult.status)
                 if ([`failed`, `finished`].includes(jobResult.status)) {
                     setVisibilityLoader(false);
+                    setAccessibility(``, false);
                     clearInterval(interval);
                     showResponse(jobResult.result, mode);
                 }
