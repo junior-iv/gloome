@@ -1116,12 +1116,11 @@ class Tree:
         """
         phylo_tree = Phylo.read(StringIO(tree_data), "newick")
         all_leaves = phylo_tree.get_terminals()
-        dists = {Leaf: {Leaf2: phylo_tree.distance(Leaf, Leaf2) for Leaf2 in all_leaves} for Leaf in all_leaves}
+        dists = {leaf1: {leaf2: phylo_tree.distance(leaf1, leaf2) for leaf2 in all_leaves} for leaf1 in all_leaves}
 
         best_score = float('inf')
         best_clade = None
         best_x = 0
-        remaining_dist = 0
 
         for clade in phylo_tree.find_clades():
             if clade != phylo_tree.root:
@@ -1136,16 +1135,14 @@ class Tree:
                     best_score = score
                     best_clade = clade
                     best_x = x_opt
-                    remaining_dist = best_clade.branch_length - best_x
 
-        if best_clade:
+        if best_clade and best_clade != phylo_tree.root:
+            remaining_dist = max(0.0, (best_clade.branch_length or 0.0) - best_x)
             outgroup_leaves = best_clade.get_terminals()
-            phylo_tree.root_with_outgroup(outgroup_leaves)
-            new_best_clade = phylo_tree.common_ancestor(outgroup_leaves)
-            new_best_clade.branch_length = best_x
-
+            og = outgroup_leaves if len(outgroup_leaves) > 1 else outgroup_leaves[0]
+            phylo_tree.root_with_outgroup(og, outgroup_branch_length=best_x)
             for clade in phylo_tree.root.clades:
-                if clade != new_best_clade:
+                if clade != best_clade:
                     clade.branch_length = remaining_dist
 
         return phylo_tree.format("newick").strip()
