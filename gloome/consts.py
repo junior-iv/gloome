@@ -12,7 +12,8 @@ from gloome.services.service_functions import check_data, execute_all_actions, r
 
 load_dotenv()
 MODE = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions']
-ROOTING_METHOD = ['mad', 'mvr', 'midpoint', 'outgroup']
+ROOTING_METHOD = [('mad', 'Minimal Ancestor Deviation'), ('mvr', 'Minimum Variance Rooting'),
+                  ('midpoint', 'Midpoint Rooting'), ('outgroup', 'Outgroup Rooting')]
 IS_PRODUCTION = True
 MAX_CONTENT_LENGTH = 16 * 1000 * 1000 * 1000
 PREFIX = '/'
@@ -153,7 +154,7 @@ DEFAULT_FORM_ARGUMENTS = {
     'pi_1': 0.5,
     'coefficient_bl': 1.0,
     'e_mail': '',
-    'rooting_method': ROOTING_METHOD[0],
+    'rooting_method': ROOTING_METHOD[2][0],
     'rooting_methods': ROOTING_METHOD,
     'leaf': '',
     'is_optimize_pi': True,
@@ -270,8 +271,12 @@ USAGE = '''\tRequired parameters:
 \t\t--file_phylogenetic_tree_nwk <type=int> 
 \t\t\tSpecify file_phylogenetic_tree_nwk. Default is 1.
 \t\t--rooting_method <type=str> 
-\t\t\tSpecify tree rooting method. Possible options: ('mad', 'mvr', 'midpoint', 'outgroup').  
-\t\t\tDefault is 'mad'.
+\t\t\tSpecify tree rooting method. Possible options: ('mad', 'mvr', 'midpoint', 'outgroup').
+\t\t\tmad - Minimal Ancestor Deviation
+\t\t\tmvr - Minimum Variance Rooting
+\t\t\tmidpoint - Midpoint Rooting
+\t\t\toutgroup - Outgroup Rooting
+\t\t\tDefault is 'midpoint'.
 \t\t--leaf <type=str> 
 \t\t\tSpecify leaf for outgroup rooting. Default is ''.
 \t\t--e_mail <type=str> 

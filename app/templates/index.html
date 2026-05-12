@@ -307,7 +307,7 @@
                                         />
                                         <datalist id="rootingMethods">
                                             {%- for method in rooting_methods -%}
-                                              <option value="{{method}}">
+                                              <option value="{{method[0]}}">{{method[1]}}</option>
                                             {% endfor -%}
                                         </datalist>
                                     </div>

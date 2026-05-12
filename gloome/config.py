@@ -311,6 +311,10 @@ class Config:
         parser.add_argument('--rooting_method', dest='rooting_method', type=str, required=False,
                             default=self.CURRENT_ARGS.rooting_method, help=f'Specify tree rooting method (optional). '
                             f'Possible options: ("mad", "mvr", "midpoint", "outgroup"). '
+                            f'mad - Minimal Ancestor Deviation; '
+                            f'mvr - Minimum Variance Rooting; '
+                            f'midpoint - Midpoint Rooting; '
+                            f'outgroup - Outgroup Rooting; '
                             f'Default is "{self.CURRENT_ARGS.rooting_method}"')
         parser.add_argument('--leaf', dest='leaf', type=str, required=False, default=self.CURRENT_ARGS.leaf,
                             help=f'Specify leaf for outgroup rooting (optional). Default is "{self.CURRENT_ARGS.leaf}"')

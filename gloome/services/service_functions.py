@@ -21,8 +21,6 @@ SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_table_of_attributes_tsv': True,
                   'file_phylogenetic_tree_nwk': True}
 
-ROOTING_METHOD = {'mad', 'mvr', 'midpoint', 'outgroup'}
-
 
 def get_digit(data: str) -> Union[int, float, str]:
     try:

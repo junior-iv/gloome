@@ -164,8 +164,12 @@ To get the project working, you need to run the command "gloome" or "python3 -m 
         Specify file_phylogenetic_tree_nwk. Default is 1.
 
     --rooting_method <type=str> 
-        Specify tree rooting method. Possible options: ('mad', 'mvr', 'midpoint', 'outgroup'). 
-        Default is 'mad'.
+        Specify tree rooting method. Possible options: ('mad', 'mvr', 'midpoint', 'outgroup').
+        mad - Minimal Ancestor Deviation
+        mvr - Minimum Variance Rooting
+        midpoint - Midpoint Rooting
+        outgroup - Outgroup Rooting
+        Default is 'midpoint'.
     
     --leaf <type=str> 
         Specify leaf for outgroup rooting. Default is ''.
