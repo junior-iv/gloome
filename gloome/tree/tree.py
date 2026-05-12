@@ -978,12 +978,12 @@ class Tree:
         return gamma.ppf(probability_vector, a=self.alpha, scale=1/self.alpha)
 
     @classmethod
-    def set_root(cls, tree_data: str, rooting_method: str = 'mad', leaf: Optional[Union[str, Node]] = None) -> str:
+    def set_root(cls, tree_data: str, rooting_method: str = 'midpoint', leaf: Optional[Union[str, Node]] = None) -> str:
         """
         Args:
             tree_data (str)
-            rooting_method (str, optional): `mad` (Minimal Ancestor Deviation, default),
-                `mvr`(Minimum Variance Rooting), `midpoint`, `outgroup`
+            rooting_method (str, optional): `mad` (Minimal Ancestor Deviation), `mvr`(Minimum Variance Rooting),
+            `midpoint` (Midpoint Rooting, default), `outgroup` (Outgroup Rooting)
             leaf (str, Node, optional): `None` (default)
 
         Returns:
