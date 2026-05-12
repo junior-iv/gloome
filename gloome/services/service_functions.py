@@ -244,6 +244,7 @@ def del_bootstrap_values(newick_text: str) -> str:
 
 
 def get_leaves(data) -> List[str]:
+    data = del_bootstrap_values(data)
 
     return Tree(data).get_leaves(only_node_list=False)
 
