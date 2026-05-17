@@ -610,11 +610,11 @@ function completeFormFilling(formData) {
     Object.entries(objectsDependence).forEach(([id, info]) => {
         let element = document.getElementById(id);
         if (checkboxes.includes(id)) {
-            element.checked = Boolean(formData[id]);
+            element.checked = Boolean(formData[id]) ?? false;
         } else if (lists.includes(id)) {
             let htmlContent = '';
-            let formDataList = formData[id] ?? [];
-            formDataList.forEach(listItem => {
+            let formDataElement = formData[id] ?? [];
+            formDataElement.forEach(listItem => {
               if (Array.isArray(listItem)) {
                 htmlContent += `<option value="${listItem[0]}">${listItem[1]}</option>`;
               } else {
@@ -623,7 +623,7 @@ function completeFormFilling(formData) {
             });
             element.innerHTML = htmlContent
         } else {
-            element.value = formData[id];
+            element.value = formData[id] ?? '';
         }
         let disabled = 0
         Object.entries(info['dependence']).forEach((checkboxId) => formData[checkboxId[1]] ? disabled += 1 : disabled += 0);
