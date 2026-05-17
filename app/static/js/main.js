@@ -613,7 +613,8 @@ function completeFormFilling(formData) {
             element.checked = Boolean(formData[id]);
         } else if (lists.includes(id)) {
             let htmlContent = '';
-            formData[id].forEach(listItem => {
+            let formDataList = formData[id] ?? [];
+            formDataList.forEach(listItem => {
               if (Array.isArray(listItem)) {
                 htmlContent += `<option value="${listItem[0]}">${listItem[1]}</option>`;
               } else {
