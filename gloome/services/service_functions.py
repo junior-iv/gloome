@@ -226,23 +226,11 @@ def get_error(err_list: List[Tuple[str, str]]) -> str:
 
 
 def del_bootstrap_values(newick_text: str) -> str:
-    pattern = r'\)(100|[1-9]\d|\d)(?=[;:, \)])'
-    matches_list = re.findall(pattern, newick_text)
-    matches_list.sort()
-    matches_set = set(matches_list)
-    list_length = len(matches_list)
-    set_length = len(matches_set)
 
-    if any((list_length != set_length,
-            all((matches_list != list(range(1, list_length + 1)),
-                 matches_list != list(range(0, list_length)))))):
-        newick_text = re.sub(pattern, lambda x: ')', newick_text)
-
-    return newick_text
+    return Tree.del_bootstrap_values(newick_text)
 
 
 def get_leaves(data) -> List[str]:
-    data = del_bootstrap_values(data)
 
     return Tree(data).get_leaves(only_node_list=False)
 

@@ -24,7 +24,8 @@ let objectsDependence = {
     'fileLogLikelihoodTsv': {'dependence': '', 'value': ''},
     'fileTableOfAttributesTsv': {'dependence': '', 'value': ''},
     'filePhylogeneticTreeNwk': {'dependence': '', 'value': ''},
-    'rootingMethod': {'dependence': '', 'value': ''}
+    'rootingMethod': {'dependence': '', 'value': ''},
+    'leaf': {'dependence': '', 'value': ''}
 };
 
 function validateInputEMail(id) {

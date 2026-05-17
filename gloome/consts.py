@@ -8,7 +8,7 @@ from urllib import parse
 from importlib.resources import files
 
 from gloome.tree.tree import Tree
-from gloome.services.service_functions import check_data, execute_all_actions, recompile_json, del_bootstrap_values
+from gloome.services.service_functions import check_data, execute_all_actions, recompile_json
 
 load_dotenv()
 MODE = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions']
@@ -157,6 +157,7 @@ DEFAULT_FORM_ARGUMENTS = {
     'rooting_method': ROOTING_METHOD[2][0],
     'rooting_methods': ROOTING_METHOD,
     'leaf': '',
+    'leaves': [],
     'is_optimize_pi': True,
     'is_optimize_pi_average': False,
     'is_optimize_alpha': True,
@@ -180,7 +181,7 @@ DEFAULT_ARGUMENTS = DefaultArgs(**{
 DEFAULT_ARGUMENTS.update(DEFAULT_FORM_ARGUMENTS)
 
 ACTIONS = Actions(**{
-                     'del_bootstrap_values': del_bootstrap_values,
+                     'del_bootstrap_values': Tree.del_bootstrap_values,
                      'check_data': check_data,
                      'set_root': Tree.set_root,
                      'check_tree': Tree.rename_nodes,

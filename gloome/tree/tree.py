@@ -61,6 +61,7 @@ class Tree:
             del kwargs[key]
 
         if isinstance(data, str):
+            data = self.del_bootstrap_values(data)
             self.newick_to_tree(data)
             if node_name and isinstance(node_name, str):
                 Tree.rename_nodes(self, node_name)
@@ -220,7 +221,7 @@ class Tree:
             with_additional_details (bool, optional): `False` (default).
             mode (str, optional): `pre-order` (default), 'pre-order', 'in-order', 'post-order', 'level-order'.
             filters (Dict, optional):
-            only_node_list (Dict, optional): `False` (default).
+            only_node_list (bool, optional): `False` (default).
         
         Returns:
             list: A list of all nodes of the tree or a list of dictionaries with information about these nodes.
@@ -1006,6 +1007,22 @@ class Tree:
                     current_node.distance_to_father = 1e-10
 
         return current_tree.get_newick()
+
+    @staticmethod
+    def del_bootstrap_values(newick_text: str) -> str:
+        pattern = r'\)(100|[1-9]\d|\d)(?=[;:, \)])'
+        matches_list = re.findall(pattern, newick_text)
+        matches_list.sort()
+        matches_set = set(matches_list)
+        list_length = len(matches_list)
+        set_length = len(matches_set)
+
+        if any((list_length != set_length,
+                all((matches_list != list(range(1, list_length + 1)),
+                     matches_list != list(range(0, list_length)))))):
+            newick_text = re.sub(pattern, lambda x: ')', newick_text)
+
+        return newick_text
 
     @staticmethod
     def set_root_by_outgroup(tree_data: str, leaf: str) -> str:
