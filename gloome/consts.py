@@ -12,7 +12,7 @@ from gloome.services.service_functions import check_data, execute_all_actions, r
 
 load_dotenv()
 MODE = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions']
-ROOTING_METHOD = [('mad', 'Minimal Ancestor Deviation'), ('mvr', 'Minimum Variance Rooting'),
+ROOTING_METHODS = [('mad', 'Minimal Ancestor Deviation'), ('mvr', 'Minimum Variance Rooting'),
                   ('midpoint', 'Midpoint Rooting'), ('outgroup', 'Outgroup Rooting')]
 IS_PRODUCTION = True
 MAX_CONTENT_LENGTH = 16 * 1000 * 1000 * 1000
@@ -37,10 +37,7 @@ IN_DIR = RESULTS_DIR.joinpath('in')
 OUT_DIR = RESULTS_DIR.joinpath('out')
 LOGS_DIR = BIN_DIR.joinpath('logs')
 TMP_DIR = BIN_DIR.joinpath('tmp')
-# APP_DIR = BIN_DIR.joinpath('app')
-# TEMPLATES_DIR = APP_DIR.joinpath('templates')
-# STATIC_DIR = APP_DIR.joinpath('static')
-# ERROR_TEMPLATE = TEMPLATES_DIR.joinpath('404.html')
+
 ENV = BIN_DIR.joinpath('.env')
 
 ENVIRONMENT_DIR = BIN_DIR.joinpath('gloome_env2')
@@ -49,9 +46,6 @@ ENVIRONMENT_ACTIVATE = f'mamba activate {ENVIRONMENT_DIR}'
 GLOOME_DIR = files('gloome')
 DATA_DIR = GLOOME_DIR.joinpath('data')
 INITIAL_DATA_DIR = DATA_DIR.joinpath('initial_data')
-
-# HTTPDOCS_DIR = Path('/var/www/vhosts/gloome.tau.ac.il/httpdocs/')
-# chdir(HTTPDOCS_DIR if HTTPDOCS_DIR.exists() else BIN_DIR)
 
 MSA_FILE_NAME = 'msa_file.msa'
 TREE_FILE_NAME = 'tree_file.tree'
@@ -154,8 +148,8 @@ DEFAULT_FORM_ARGUMENTS = {
     'pi_1': 0.5,
     'coefficient_bl': 1.0,
     'e_mail': '',
-    'rooting_method': ROOTING_METHOD[2][0],
-    'rooting_methods': ROOTING_METHOD,
+    'rooting_method': ROOTING_METHODS[2][0],
+    'rooting_methods': ROOTING_METHODS,
     'leaf': '',
     'leaves': [],
     'is_optimize_pi': True,
@@ -186,11 +180,8 @@ ACTIONS = Actions(**{
                      'set_root': Tree.set_root,
                      'check_tree': Tree.rename_nodes,
                      'set_tree_data': Tree.set_tree_data,
-                     # 'compute_likelihood_of_tree': compute_likelihood_of_tree,
                      'calculate_tree': Tree.calculate_tree,
                      'calculate_ancestral_sequence': Tree.calculate_ancestral_sequence,
-                     # 'draw_tree': draw_tree,
-                     # 'create_all_file_types': create_all_file_types,
                      'execute_all_actions': execute_all_actions,
                      'recompile_json': recompile_json
                      })
@@ -205,10 +196,7 @@ VALIDATION_ACTIONS = {
 DEFAULT_ACTIONS = {
     'set_tree_data': True,
     'calculate_tree': False,
-    # 'compute_likelihood_of_tree': False,
     'calculate_ancestral_sequence': False,
-    # 'draw_tree': False,
-    # 'create_all_file_types': False,
     'execute_all_actions': False
     }
 

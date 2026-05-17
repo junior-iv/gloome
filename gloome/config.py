@@ -117,7 +117,7 @@ class Config:
                      'eMail': self.CURRENT_ARGS.e_mail,
                      'rootingMethod': self.CURRENT_ARGS.rooting_method,
                      'leaf': self.CURRENT_ARGS.leaf,
-                     'rootingMethods': ROOTING_METHOD,
+                     'rootingMethods': ROOTING_METHODS,
                      'leaves': (self.CALCULATED_ARGS.newick_tree.get_leaves(only_node_list=False)
                                 if self.CURRENT_ARGS.rooting_method == 'outgroup' else [])}
         return form_data
