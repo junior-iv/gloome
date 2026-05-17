@@ -3,6 +3,7 @@ let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isO
                       `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfNodesTsv`,
                       `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`,
                       `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk'];
+let lists = [`rootingMethods`, `leaves`]
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
     'newickText': {'dependence': '', 'value': ''},
@@ -25,7 +26,9 @@ let objectsDependence = {
     'fileTableOfAttributesTsv': {'dependence': '', 'value': ''},
     'filePhylogeneticTreeNwk': {'dependence': '', 'value': ''},
     'rootingMethod': {'dependence': '', 'value': ''},
-    'leaf': {'dependence': '', 'value': ''}
+    'leaf': {'dependence': '', 'value': ''},
+    'rootingMethods': {'dependence': '', 'value': ''},
+    'leaves': {'dependence': '', 'value': ''}
 };
 
 function validateInputEMail(id) {
@@ -608,6 +611,16 @@ function completeFormFilling(formData) {
         let element = document.getElementById(id);
         if (checkboxes.includes(id)) {
             element.checked = Boolean(formData[id]);
+        } else if (lists.includes(id)) {
+            let htmlContent = '';
+            formData[id].forEach(listItem => {
+              if (Array.isArray(listItem)) {
+                htmlContent += `<option value="${listItem[0]}">${listItem[1]}</option>`;
+              } else {
+                htmlContent += `<option value="${listItem}"></option>`;
+              }
+            });
+            element.innerHTML = htmlContent
         } else {
             element.value = formData[id];
         }

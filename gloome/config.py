@@ -116,7 +116,10 @@ class Config:
                      'categoriesQuantity': self.CURRENT_ARGS.categories_quantity,
                      'eMail': self.CURRENT_ARGS.e_mail,
                      'rootingMethod': self.CURRENT_ARGS.rooting_method,
-                     'leaf': self.CURRENT_ARGS.leaf}
+                     'leaf': self.CURRENT_ARGS.leaf,
+                     'rootingMethods': ROOTING_METHOD,
+                     'leaves': (self.CALCULATED_ARGS.newick_tree.get_leaves(only_node_list=False)
+                                if self.CURRENT_ARGS.rooting_method == 'outgroup' else [])}
         return form_data
 
     def execute_action(self, func, *args, **kwargs):
