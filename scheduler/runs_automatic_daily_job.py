@@ -8,7 +8,6 @@ def read_file(file_path: str) -> str:
         return f.read().strip()
 
 
-e_mail = REPORT_RECEIVERS.split()
 mode = MODE[3]
 file_numbe = 1
 kwargs = {'msaText': read_file(f'msa/patternMSA{file_numbe}.msa'),
@@ -31,7 +30,7 @@ kwargs = {'msaText': read_file(f'msa/patternMSA{file_numbe}.msa'),
           'pi1': DEFAULT_ARGUMENTS.pi_1,
           'alpha': DEFAULT_ARGUMENTS.alpha,
           'categoriesQuantity': DEFAULT_ARGUMENTS.categories_quantity,
-          'eMail': e_mail[-1] if e_mail else '',
+          'eMail': REPORT_RECEIVERS[-1] if REPORT_RECEIVERS else '',
           'rootingMethod': DEFAULT_ARGUMENTS.rooting_method,
           'leaf': DEFAULT_ARGUMENTS.leaf,
           'rootingMethods': DEFAULT_ARGUMENTS.rooting_methods,
