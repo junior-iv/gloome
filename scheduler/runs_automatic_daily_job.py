@@ -36,5 +36,4 @@ kwargs = {'msaText': read_file(f'msa/patternMSA{file_numbe}.msa'),
           'leaf': DEFAULT_ARGUMENTS.leaf,
           'rootingMethods': DEFAULT_ARGUMENTS.rooting_methods,
           'leaves': DEFAULT_ARGUMENTS.leaves}
-print(kwargs)
-# start_background_job(mode=mode, **kwargs)
+start_background_job(mode=mode, **kwargs)
