@@ -7,7 +7,6 @@ from typing import Callable, Any
 from datetime import timedelta
 from shutil import make_archive, move
 from numpy import ndarray
-from flask import url_for
 
 from gloome.tree.tree import Tree
 from gloome.services.design_functions import *
@@ -20,6 +19,9 @@ SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_log_likelihood_tsv': True,
                   'file_table_of_attributes_tsv': True,
                   'file_phylogenetic_tree_nwk': True}
+PREFERRED_URL_SCHEME = 'https'
+WEBSERVER_NAME = 'gloome.tau.ac.il'
+WEBSERVER_URL = f'{PREFERRED_URL_SCHEME}://{WEBSERVER_NAME}'
 
 
 def get_digit(data: str) -> Union[int, float, str]:
@@ -452,14 +454,17 @@ def get_response_design(json_object: Optional[Any], action_name: str, create_lin
     return json_object
 
 
+def create_url(file_path: Path, mode: str = 'view'):
+    return f'{WEBSERVER_URL}/get_file?file_path={str(file_path).replace("/", "%2F")}&mode={mode}'
+
+
 def link_design(json_object: Any) -> Any:
     for key, value in json_object.items():
         if key == 'execution_time':
             continue
         json_object.update(
             {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="'
-                        f'{url_for("get_file", file_path=value, mode="download")}" '
-                        f'target="_blank">download</a>',
+                        f'{create_url(file_path=value, mode="download")}" target="_blank">download</a>',
                         f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="'
-                        f'{url_for("get_file", file_path=value, mode="view")}" target="_blank">view</a>']})
+                        f'{create_url(file_path=value, mode="view")}" target="_blank">view</a>']})
     return json_object
