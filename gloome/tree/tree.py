@@ -10,6 +10,7 @@ from pathlib import Path
 from d3blocks import D3Blocks
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
+from Bio.Phylo.NewickIO import Writer
 from scipy.stats import gamma
 from scipy.special import gammainc
 from scipy.optimize import minimize_scalar
@@ -788,7 +789,7 @@ class Tree:
         d3.showfig, d3.overwrite, d3.reset_properties, d3.save_button = True, True, True, True
         d3.notebook = False
         d3.config = d3.chart.set_config(config=d3.config, filepath=d3.filepath, font=d3.font, title=d3.title,
-                                        margin={"top": 20, "right": 40, "bottom": 20, "left": 40},
+                                        margin={'top': 20, 'right': 40, 'bottom': 20, 'left': 40},
                                         showfig=d3.showfig, overwrite=d3.overwrite, figsize=d3.figsize,
                                         reset_properties=d3.reset_properties, notebook=d3.notebook,
                                         hierarchy=d3.hierarchy, save_button=d3.save_button)
@@ -801,18 +802,18 @@ class Tree:
             sequence = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], j)
                                 for j in df_copy['sequence'][i]])
             sequence = Node.draw_row_html_table('Sequence', sequence)
-            if df_copy["node_type"][i] != 'root':
+            if df_copy['node_type'][i] != 'root':
                 ancestral_sequence = ''.join([Node.draw_cell_html_table(colors_as[j], j)
                                               for j in df_copy['ancestral_sequence'][i]])
                 ancestral_sequence = Node.draw_row_html_table('Ancestral Comparison', ancestral_sequence)
-            if df_copy["node_type"][i] != 'leaf':
+            if df_copy['node_type'][i] != 'leaf':
                 probability_coefficient = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], f'{j:.3f}')
                                                   for j in df_copy['prob_characters'][i]])
                 probability_coefficient = Node.draw_row_html_table('Probability coefficient', probability_coefficient)
-                if df_copy["node_type"][i] == 'node':
+                if df_copy['node_type'][i] == 'node':
                     d3.node_properties.get(df_copy['target'][i])['color'] = 'darkorange'
                     d3.node_properties.get(df_copy['target'][i])['size'] = 15 / size_factor
-                if df_copy["node_type"][i] == 'root':
+                if df_copy['node_type'][i] == 'root':
                     d3.node_properties.get(df_copy['target'][i])['color'] = 'firebrick'
                     d3.node_properties.get(df_copy['target'][i])['size'] = 20 / size_factor
             else:
@@ -1026,10 +1027,10 @@ class Tree:
 
     @staticmethod
     def set_root_by_outgroup(tree_data: str, leaf: str) -> str:
-        phylo_tree = Phylo.read(StringIO(tree_data), "newick")
+        phylo_tree = Phylo.read(StringIO(tree_data), 'newick')
         phylo_tree.root_with_outgroup(leaf)
 
-        return phylo_tree.format("newick").strip()
+        return ''.join(Writer((phylo_tree, )).to_strings(format_branch_length='%1.10f'))
 
     @staticmethod
     def calculate_mad_x(clade, dists: Dict[Any, Dict[Any, float]]) -> float:
@@ -1131,7 +1132,7 @@ class Tree:
         Returns:
             str: A Newick formatted string representing the tree structure.
         """
-        phylo_tree = Phylo.read(StringIO(tree_data), "newick")
+        phylo_tree = Phylo.read(StringIO(tree_data), 'newick')
         all_leaves = phylo_tree.get_terminals()
         dists = {leaf1: {leaf2: phylo_tree.distance(leaf1, leaf2) for leaf2 in all_leaves} for leaf1 in all_leaves}
 
@@ -1162,16 +1163,16 @@ class Tree:
                 if clade != best_clade:
                     clade.branch_length = remaining_dist
 
-        return phylo_tree.format("newick").strip()
+        return ''.join(Writer((phylo_tree, )).to_strings(format_branch_length='%1.10f'))
 
     @staticmethod
     def set_root_by_midpoint(tree_data: str) -> str:
 
-        phylo_tree = Phylo.read(StringIO(tree_data), "newick")
+        phylo_tree = Phylo.read(StringIO(tree_data), 'newick')
         if len(phylo_tree.root.clades) > 2:
             phylo_tree.root_at_midpoint()
 
-        return phylo_tree.format("newick").strip()
+        return ''.join(Writer((phylo_tree, )).to_strings(format_branch_length='%1.10f'))
 
     @staticmethod
     def get_round(obj: Union[int, float, np.ndarray], decimals: int = 4) -> float:
