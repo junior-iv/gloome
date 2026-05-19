@@ -49,6 +49,7 @@ def get_dict(request_form: Dict[str, str]) -> Tuple[Union[str, int, float], ...]
 def get_path(path: Union[str, Path]) -> Path:
     if path and isinstance(path, str):
         return Path(path)
+
     return path
 
 
@@ -72,6 +73,7 @@ def read_file(file_path: Union[str, Path], mode: str = 'r') -> str:
     if file_path.is_file():
         with open(file_path, mode) as f:
             return f.read()
+
     return ''
 
 
@@ -84,10 +86,12 @@ def save_file(file_path: Union[str, Path], data: Union[str, Any], mode: str = 'w
 
 
 def loads_json(data: str) -> Any:
+
     return json.loads(data)
 
 
 def dumps_json(data: Any) -> str:
+
     return json.dumps(data)
 
 
@@ -119,6 +123,7 @@ def check_tree_data(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], st
         msa = newick_tree.get_msa_dict(msa)
     if alphabet is None:
         alphabet = Tree.get_alphabet_from_dict(msa)
+
     return newick_tree, msa, alphabet
 
 
@@ -219,12 +224,8 @@ def draw_tree(newick_tree: Tree) -> Union[List[Any], str]:
 
 
 def convert_seconds(seconds: float) -> str:
+
     return str(timedelta(seconds=seconds))
-
-
-def get_error(err_list: List[Tuple[str, str]]) -> str:
-    return ''.join([f'{key_design(error_type, True, 14)}'
-                    f'{value_design(error, True, 14)}\n' for error_type, error in err_list])
 
 
 def del_bootstrap_values(newick_text: str) -> str:
@@ -420,6 +421,7 @@ def validate_email(e_mail: str) -> bool:
 
 
 def get_function_parameters(func: Callable) -> Tuple[str, ...]:
+
     return tuple(inspect.signature(func).parameters.keys())
 
 
@@ -451,6 +453,7 @@ def get_response_design(json_object: Optional[Any], action_name: str, create_lin
 
         json_object = result_design(link_design(json_object), change_value='compute_likelihood_of_tree' in action_name,
                                     change_value_style=False, change_key=True, change_key_style=False)
+
     return json_object
 
 
@@ -468,4 +471,11 @@ def link_design(json_object: Any) -> Any:
                         f'{create_url(file_path=value, mode="download")}" target="_blank">download</a>',
                         f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="'
                         f'{create_url(file_path=value, mode="view")}" target="_blank">view</a>']})
+
     return json_object
+
+
+def get_error(err_list: List[Tuple[str, str]]) -> str:
+
+    return ''.join([f'{key_design(error_type, True, 14)}{value_design(error, True, 14)}\n'
+                    for error_type, error in err_list])
