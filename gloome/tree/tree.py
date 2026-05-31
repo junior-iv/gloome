@@ -531,7 +531,7 @@ class Tree:
         for current_node in node_list:
             current_node.calculate_marginal()
 
-    def calculate_up(self, msa: str) -> Union[Tuple[Union[List[np.ndarray], List[float]], float], float]:
+    def calculate_up(self, msa: str) -> Union[float, np.ndarray]:
 
         return self.root.calculate_up(self.get_msa_dict(msa, self.alphabet))
 
