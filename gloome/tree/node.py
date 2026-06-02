@@ -37,10 +37,10 @@ class Node:
     log_likelihood: Union[float, np.ndarray]
     sequence_likelihood: Union[float, np.ndarray]
     likelihood: Union[float, np.ndarray]
-    up_vector: List[List[List[Union[float, np.ndarray]]]]
-    down_vector: List[List[List[Union[float, np.ndarray]]]]
-    marginal_vector: List[List[List[Union[float, np.ndarray]]]]
-    marginal_bl_vector: List[List[List[Union[float, np.ndarray]]]]
+    up_vector: List[List[Union[float, np.ndarray]]]
+    down_vector: List[List[Union[float, np.ndarray]]]
+    marginal_vector: List[List[Union[float, np.ndarray]]]
+    marginal_bl_vector: List[List[Union[float, np.ndarray]]]
     probability_vector: List[List[Union[float, np.ndarray]]]
     branch_probability_vector: List[List[Union[float, np.ndarray]]]
     probability_vector_gain: List[Union[float, np.ndarray]]
@@ -226,48 +226,48 @@ class Node:
         self.log_likelihood_vector.append(log(max(self.likelihood, eps)))
 
     def calculate_gl_probability(self) -> None:
-        self.marginal_bl_vector.append([])
+        self.marginal_bl_vector = []
 
         for r in range(self.rate_vector_size):
             current_marginal_bl_vector = []
             for j in range(self.alphabet_size):
                 for i in range(self.alphabet_size):
-                    current_marginal_bl_vector.append(self.frequency[i] * self.up_vector[-1][r][j] *
-                                                      self.pmatrix[r][i, j] * self.down_vector[-1][r][i])
-            self.marginal_bl_vector[-1].append(current_marginal_bl_vector)
+                    current_marginal_bl_vector.append(self.frequency[i] * self.up_vector[r][j] *
+                                                      self.pmatrix[r][i, j] * self.down_vector[r][i])
+            self.marginal_bl_vector.append(current_marginal_bl_vector)
 
-        likelihood = (np.sum([np.sum(self.marginal_bl_vector[-1][r]) for r in range(self.rate_vector_size)]) /
+        likelihood = (np.sum([np.sum(self.marginal_bl_vector[r]) for r in range(self.rate_vector_size)]) /
                       self.rate_vector_size)
         likelihood = max(likelihood, eps)
 
         branch_probability_vector = []
         for i in range(self.alphabet_size * self.alphabet_size):
-            branch_probability_vector.append(np.sum([self.marginal_bl_vector[-1][r][i] for r in
+            branch_probability_vector.append(np.sum([self.marginal_bl_vector[r][i] for r in
                                              range(self.rate_vector_size)]) / self.rate_vector_size / likelihood)
         self.branch_probability_vector.append(branch_probability_vector)
         self.probability_vector_loss.append(branch_probability_vector[1])
         self.probability_vector_gain.append(branch_probability_vector[2])
 
-    def calculate_marginal(self) -> Tuple[Union[List[List[List[Union[float, np.ndarray]]]], float],
+    def calculate_marginal(self) -> Tuple[Union[Union[List[List[np.ndarray]], List[List[float]]], float],
                                           Union[np.ndarray, float]]:
-        self.marginal_vector.append([])
+        self.marginal_vector = []
 
         for r in range(self.rate_vector_size):
             current_marginal_vector = []
             for j in range(self.alphabet_size):
                 marg = 0
                 for i in range(self.alphabet_size):
-                    marg += self.frequency[i] * self.pmatrix[r][i, j] * self.down_vector[-1][r][i]
-                current_marginal_vector.append(self.up_vector[-1][r][j] * marg)
-            self.marginal_vector[-1].append(current_marginal_vector)
+                    marg += self.frequency[i] * self.pmatrix[r][i, j] * self.down_vector[r][i]
+                current_marginal_vector.append(self.up_vector[r][j] * marg)
+            self.marginal_vector.append(current_marginal_vector)
 
-        likelihood = (np.sum([np.sum(self.marginal_vector[-1][r]) for r in range(self.rate_vector_size)]) /
+        likelihood = (np.sum([np.sum(self.marginal_vector[r]) for r in range(self.rate_vector_size)]) /
                       self.rate_vector_size)
         likelihood = max(likelihood, eps)
 
         probability_vector = []
         for i in range(self.alphabet_size):
-            probability_vector.append(np.sum([self.marginal_vector[-1][r][i] for r in range(self.rate_vector_size)]) /
+            probability_vector.append(np.sum([self.marginal_vector[r][i] for r in range(self.rate_vector_size)]) /
                                       self.rate_vector_size / likelihood)
         self.probability_vector.append(probability_vector)
         probability = max(self.probability_vector[-1])
@@ -276,9 +276,9 @@ class Node:
 
         return self.marginal_vector, likelihood
 
-    def calculate_up(self, nodes_dict: Dict[str, Tuple[int, ...]]) -> Union[List[List[List[Union[float, np.ndarray]]]],
-                                                                            float, np.ndarray]:
-        self.up_vector.append([])
+    def calculate_up(self, nodes_dict: Dict[str, Tuple[int, ...]]
+                     ) -> Union[Union[List[List[np.ndarray]], List[List[float]]], float]:
+        self.up_vector = []
         self.likelihood = 0
 
         if not self.children:
@@ -289,7 +289,7 @@ class Node:
             probable_character = self.alphabet[up_vector.index(max_up_vector)]
             self.sequence = f'{self.sequence}{probable_character}'
             self.probabilities_sequence_characters.append(max_up_vector)
-            self.up_vector[-1] = [up_vector for _ in range(self.rate_vector_size)]
+            self.up_vector = [up_vector for _ in range(self.rate_vector_size)]
 
             self.calculate_sequence_likelihood()
 
@@ -304,11 +304,11 @@ class Node:
                 probabilities = {}
                 for i in range(self.alphabet_size):
                     for child in self.children:
-                        p1 = child.pmatrix[r][j, i] * child.up_vector[-1][r][i]
+                        p1 = child.pmatrix[r][j, i] * child.up_vector[r][i]
                         probabilities.update({child.name: probabilities.get(child.name, 0.0) + p1})
 
                 current_up_vector.append(prod(probabilities.values()))
-            self.up_vector[-1].append(current_up_vector)
+            self.up_vector.append(current_up_vector)
             self.likelihood += np.sum([self.frequency[i] * 1 / self.rate_vector_size * v for i, v in
                                        enumerate(current_up_vector)])
 
@@ -320,7 +320,7 @@ class Node:
             return self.likelihood
 
     def calculate_down(self, tree_info: pd.Series) -> None:
-        self.down_vector.append([])
+        self.down_vector = []
 
         father = self.father
         if father:
@@ -336,19 +336,19 @@ class Node:
                             probabilities.update(
                                 {brother.name:
                                  probabilities.get(brother.name, 0) + (brother.pmatrix[r][j, i] *
-                                                                       brother.up_vector[-1][r][i])})
+                                                                       brother.up_vector[r][i])})
                         if father.father:
                             probabilities.update(
                                 {father.name: probabilities.get(father.name, 0) + (father.pmatrix[r][j, i] *
-                                                                                   father.down_vector[-1][r][i])})
+                                                                                   father.down_vector[r][i])})
 
                     current_down_vector.append(prod(probabilities.values()))
-                self.down_vector[-1].append(current_down_vector)
+                self.down_vector.append(current_down_vector)
 
             for child in self.children:
                 child.calculate_down(tree_info)
         else:
-            self.down_vector[-1] = [[1] * self.alphabet_size for _ in range(self.rate_vector_size)]
+            self.down_vector = [[1] * self.alphabet_size for _ in range(self.rate_vector_size)]
             for child in self.children:
                 child.calculate_down(tree_info)
 
