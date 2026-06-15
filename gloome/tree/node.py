@@ -390,7 +390,7 @@ class Node:
 
         return log_likelihood_list, log_likelihood, likelihood
 
-    def get_one_parameter_pmatrix(self, rate: Union[float, np.ndarray] = 1) -> np.ndarray:
+    def get_one_parameter_pmatrix(self, rate: Union[float, np.float64, np.ndarray] = 1.0) -> np.ndarray:
         qmatrix = np.zeros((2, 2), dtype='float32')
         qmatrix[0, 0] = - 1 / (2 * (1 - self.pi_1))
         qmatrix[0, 1] = 1 / (2 * (1 - self.pi_1))
@@ -399,12 +399,50 @@ class Node:
 
         return expm(qmatrix * (self.distance_to_father * self.coefficient_bl * rate))
 
-    def get_jukes_cantor_pmatrix(self, rate: Union[float, np.ndarray] = 1) -> np.ndarray:
+    def get_jukes_cantor_pmatrix(self, rate: Union[float, np.float64, np.ndarray] = 1) -> np.ndarray:
         qmatrix = np.ones((self.alphabet_size, self.alphabet_size))
         np.fill_diagonal(qmatrix, 1 - self.alphabet_size)
         qmatrix = qmatrix * 1 / (self.alphabet_size - 1)
 
         return expm(qmatrix * (self.distance_to_father * self.coefficient_bl * rate))
+
+    def generate_sequence(self, alpha: Union[float, np.float64, np.ndarray], rates: np.ndarray) -> None:
+
+        size = len(rates)
+        if self.father is None:
+            self.sequence = ''.join(np.random.choice(self.alphabet, size=size))
+        else:
+            self.sequence = ''
+            # random_thresholds = np.random.rand(size)
+            for i in range(size):
+                parent_char = self.father.sequence[i]
+                pmatrix = self.get_jukes_cantor_pmatrix(rates[i])
+                current_char = str(np.random.choice(2, p=pmatrix[int(parent_char)]))
+                self.sequence += current_char
+                # p_identity, p_mutation = self.get_jukes_cantor_transition_probs(rates[i])
+                # if random_thresholds[i] < p_mutation:
+                #     chosen_char = np.random.choice([char for char in self.alphabet if char != parent_char])
+                # else:
+                #     chosen_char = self.father.sequence[i]
+                #
+                # self.sequence += chosen_char
+
+        for child in self.children:
+            child.generate_sequence(alpha, rates)
+
+    def get_jukes_cantor_transition_probs(self, rate: Union[float, np.float64, np.ndarray, Any] = 1.0
+                                          ) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[np.float64, np.float64],
+                                                     Tuple[float, float]]:
+        k = self.alphabet_size
+        other_states = k - 1
+
+        branch_length = self.distance_to_father * self.coefficient_bl * rate
+        exponent = np.exp((-k / other_states) * branch_length)
+
+        p_identity = (1 / k) + (other_states / k) * exponent
+        p_mutation = (1 / k) - (1 / k) * exponent
+
+        return p_identity, p_mutation
 
     def node_to_json(self) -> Dict[str, Union[str, List[Any], float, np.ndarray]]:
         dict_json = dict()

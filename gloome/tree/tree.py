@@ -11,7 +11,7 @@ from d3blocks import D3Blocks
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
 from Bio.Phylo.NewickIO import Writer
-from scipy.stats import gamma
+from scipy.stats import gamma, pearsonr
 from scipy.special import gammainc
 from scipy.optimize import minimize_scalar
 from io import StringIO
@@ -155,8 +155,13 @@ class Tree:
             self.msa = self.get_msa_dict(msa)
         elif isinstance(msa, dict):
             self.msa = msa
+
         if isinstance(self.msa, dict) and self.msa:
             self.alphabet = Tree.get_alphabet_from_dict(self.msa)
+        else:
+            self.set_alpha(alpha, beta)
+            self.alphabet = Tree.get_alphabet()
+            self.generate_sequence(1)
 
         self.set_all(categories_quantity, alpha, beta, pi_0, pi_1, coefficient_bl)
 
@@ -589,11 +594,8 @@ class Tree:
             self.calculated_likelihood = True
 
     def get_fasta_text(self) -> str:
-        fasta_text = ''
-        for k, v in self.msa.items():
-            fasta_text += f'>{k}\n{v}\n'
 
-        return fasta_text[:-1]
+        return ''.join(f'>{k}\n{v}\n' for k, v in self.msa.items()).strip()
 
     def get_json_structure(self, return_table: bool = False,
                            columns: Optional[Dict[str, str]] = None,
@@ -979,6 +981,144 @@ class Tree:
 
         return gamma.ppf(probability_vector, a=self.alpha, scale=1/self.alpha)
 
+    def generate_sequence(self, size: int, seed: Optional[int] = None, fasta_text: bool = True
+                          ) -> Tuple[np.ndarray, Union[Dict[str, str], str]]:
+
+        if seed is not None:
+            np.random.seed(seed)
+        rates = self.generate_site_rates(self.alpha, size)
+        self.root.generate_sequence(self.alpha, rates)
+        self.msa = {leaf.name: leaf.sequence for leaf in self.get_leaves()}
+
+        return rates, self.get_fasta_text() if fasta_text else self.msa
+
+    def compute_posterior_rates(self, prior: np.ndarray = None) -> np.ndarray:
+        """
+        For every site in tree.msa compute the posterior mean rate:
+
+            E(r|D) = sum_i  r_i * P(D|r_i) * P(r_i)
+                   / sum_j  P(D|r_j) * P(r_j)
+
+        prior : array of length K with P(r_i) for each rate category.
+                Defaults to uniform (1/K), but kept explicit so any weighting
+                (e.g. invariable-sites, non-uniform gamma) works without changes.
+
+        P(D|r_i) is extracted from GLOOME's calculate_up():
+            P(D|r_i) = sum_s  frequency[s] * root.up_vector[r_i][s]
+        where root.up_vector[r][s] = P(subtree data | root_state=s, rate=r_i).
+        """
+        length = len(self.rate_vector)
+        n_sites = len(next(iter(self.msa.values())))
+
+        if prior is None:
+            prior = np.ones(length) / length
+        prior = np.asarray(prior, dtype=float)
+        assert len(prior) == length, 'prior length must match number of rate categories'
+
+        leaves = self.get_leaves()
+
+        posterior = np.zeros(n_sites)
+
+        for i in range(n_sites):
+            nodes_dict = {}
+            for leaf in leaves:
+                char = self.msa[leaf.name][i]
+                nodes_dict[leaf.name] = tuple(int(c == char) for c in self.alphabet)
+
+            self.root.calculate_up(nodes_dict)
+
+            p_data_given_rate = np.array([
+                sum(self.root.frequency[s] * self.root.up_vector[r][s] for s in range(2))
+                for r in range(length)
+            ])
+
+            weighted = p_data_given_rate * prior
+            posterior[i] = np.dot(self.rate_vector, weighted) / weighted.sum()
+
+        return posterior
+
+    @classmethod
+    def compute_correlation(cls, n_taxa: int = 8,
+                            sites_quantity: int = 100,
+                            categories_quantity: int = 4,
+                            alpha: float = 0.5,
+                            pi_1: Union[float, np.ndarray, int] = 0.5,
+                            branch_lengths: Union[float, np.ndarray, int] = 0.5,
+                            seed: Optional[int] = None,
+                            newick_text: Optional[str] = None) -> Tuple[float, np.asarray, np.ndarray]:
+        """Run the full pipeline and return (pearson_r, true_rates, estimated_rates)."""
+        if not newick_text:
+            newick_text = Tree.build_symmetric_newick(n_taxa, branch_lengths)
+
+        newick_tree = Tree(newick_text)
+        tree_data = {'pi_1': pi_1,
+                     'alpha': alpha,
+                     'categories_quantity': categories_quantity}
+
+        newick_tree.set_tree_data(**tree_data)
+        true_rates, fasta_text = newick_tree.generate_sequence(sites_quantity, seed)
+        print(f'max(true_rates): {max(true_rates)}')
+        # print(f'true_rates: {true_rates}')
+
+        gloome_tree = Tree(newick_text, msa=fasta_text, **tree_data)
+
+        print(f'  rate_vector (4 Gamma categories): '
+              f'{[round(float(r), 4) for r in gloome_tree.rate_vector]}')
+
+        est_rates = gloome_tree.compute_posterior_rates()
+        print(f'max(est_rates): {max(est_rates)}')
+        # print(f'est_rates: {est_rates}')
+
+        r_corr, p_val = pearsonr(true_rates, est_rates)
+        print(f'  Pearson r = {r_corr:.4f}  (p = {p_val:.3e})')
+
+        return r_corr, true_rates, est_rates
+
+    @classmethod
+    def generate_scatter_plot(cls, taxa_list: Union[List[int], Tuple[int, ...], np.ndarray],
+                              sites_quantity: int = 100,
+                              categories_quantity: int = 4,
+                              alpha: float = 0.5,
+                              pi_1: Union[float, np.ndarray, int] = 0.5,
+                              branch_lengths: Union[float, np.ndarray, int] = 0.5,
+                              seed: Optional[int] = None,
+                              newick_text: Optional[str] = None,
+                              out_path: Optional[str] = None) -> None:
+
+        print(f'Correlation estimation. Args: alpha={alpha}, sites={sites_quantity}, branch lengths={branch_lengths}, '
+              f'pi1={pi_1}, Gamma categories={categories_quantity}, seed for randomizer={seed} \n')
+
+        results = {}
+        for n_taxa in taxa_list:
+            print(f"N = {n_taxa} taxa:")
+            corr, tr, er = cls.compute_correlation(n_taxa, sites_quantity, categories_quantity, alpha, pi_1,
+                                                   branch_lengths, seed, newick_text)
+            results[n_taxa] = (corr, tr, er)
+            print()
+
+        fig, axes = plt.subplots(2, 3, figsize=(10, 8))
+        fig.suptitle(f'True vs. estimated site rates  (alpha={alpha}, {sites_quantity} sites, BL={branch_lengths})',
+                     fontsize=13)
+
+        for ax, n in zip(axes.flat, taxa_list):
+            corr, tr, er = results[n]
+            ax.scatter(tr, er, alpha=0.55, s=25, color='steelblue', edgecolors='none')
+            lim = [0, max(tr.max(), er.max()) * 1.05]
+            ax.plot(lim, lim, 'r--', lw=1, alpha=0.6, label='y = x')
+            ax.set_xlim(lim)
+            ax.set_ylim(lim)
+            ax.set_xlabel('True rate', fontsize=10)
+            ax.set_ylabel('E(r|D)  posterior mean', fontsize=10)
+            ax.set_title(f'{n} taxa  —  Pearson r = {corr:.3f}', fontsize=11)
+            ax.legend(fontsize=8)
+
+        plt.tight_layout()
+        if out_path:
+            plt.savefig(out_path, dpi=150, bbox_inches='tight')
+            print(f"Plot saved → {out_path}")
+        else:
+            plt.show()
+
     @classmethod
     def set_root(cls, tree_data: str, rooting_method: str = 'midpoint', leaf: Optional[Union[str, Node]] = None) -> str:
         """
@@ -1166,6 +1306,37 @@ class Tree:
         return ''.join(Writer((phylo_tree, )).to_strings(format_branch_length='%1.10f'))
 
     @staticmethod
+    def build_symmetric_newick(n_taxa: int, bl: Union[float, np.ndarray, int] = 0.5) -> str:
+        """
+        Recursively build a perfectly symmetric binary Newick tree.
+        If n_taxa is less than 2 or not a power of 2,
+        it will be automatically rounded down to the nearest power of 2 (minimum 2).
+        Every branch (leaf and internal) has length bl
+        """
+        n_taxa = 2 if n_taxa < 2 else 1 << (n_taxa.bit_length() - 1)
+
+        leaves = [f't{i + 1}' for i in range(n_taxa)]
+
+        def build_subtree(taxa):
+            l_taxa = len(taxa)
+            if l_taxa == 1:
+                return f'{taxa[0]}:{bl}'
+
+            mid = l_taxa // 2
+
+            return f'({build_subtree(taxa[:mid])},{build_subtree(taxa[mid:])}):{bl}'
+
+        middle = n_taxa // 2
+
+        return f'({build_subtree(leaves[:middle])},{build_subtree(leaves[middle:])});'
+
+    @staticmethod
+    def generate_site_rates(alpha: Union[float, np.float64, np.ndarray], size: int) -> np.ndarray:
+
+        return np.random.gamma(shape=alpha, scale=1/alpha, size=size)
+        # return gamma.rvs(a=alpha, scale=1/alpha, size=size)
+
+    @staticmethod
     def set_root_by_midpoint(tree_data: str) -> str:
 
         phylo_tree = Phylo.read(StringIO(tree_data), 'newick')
@@ -1300,10 +1471,12 @@ class Tree:
         return 'A', 'L', 'G', 'P'
 
     @staticmethod
-    def get_alphabet(search_argument: Union[Set[str], int, str]) -> Tuple[str, ...]:
+    def get_alphabet(search_argument: Optional[Union[Set[str], int, str]] = None) -> Tuple[str, ...]:
         alphabets = (('0', '1'), ('A', 'C', 'G', 'T'),
                      ('A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y',
                       'V'))
+        if not search_argument:
+            return tuple(alphabets[0])
         if isinstance(search_argument, int):
             return tuple(alphabets[search_argument])
         if isinstance(search_argument, str):
