@@ -55,7 +55,7 @@ def main():
     gloome_tree.set_posterior_rates_vector()
     gloome_tree.posterior_rates_to_tsv(f'{file_path}/PosteriorRates.tsv')
     gloome_tree.tree_to_tsv(f'{file_path}/Branches.tsv', mode='branch_tsv', taking_into_coefficient=True)
-    gloome_tree.set_pearson_correlation_vector(0.7, 1)
+    gloome_tree.set_pearson_correlation_vector(0.7, 2)
     gloome_tree.pearson_correlation_to_tsv(f'{file_path}/PearsonCorrelation.tsv')
     # len_seq = len(next(iter(gloome_tree.msa.values())))
     #
