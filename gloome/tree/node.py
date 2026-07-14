@@ -284,12 +284,14 @@ class Node:
         if not self.children:
             up_vector = list(nodes_dict.get(self.name))
             max_up_vector = max(up_vector)
-            self.likelihood = (np.sum([self.frequency[s] * up_vector[s] for s in range(self.alphabet_size)]) /
-                               self.rate_vector_size)
+            for r in range(self.rate_vector_size):
+                likelihood = np.sum([self.frequency[i] * 1 / self.rate_vector_size * up_vector[i]
+                                     for i in range(len(up_vector))])
+                self.likelihood += likelihood
+                self.up_vector.append(up_vector)
             probable_character = self.alphabet[up_vector.index(max_up_vector)]
             self.sequence = f'{self.sequence}{probable_character}'
             self.probabilities_sequence_characters.append(max_up_vector)
-            self.up_vector = [up_vector for _ in range(self.rate_vector_size)]
 
             self.calculate_sequence_likelihood()
 
@@ -299,7 +301,7 @@ class Node:
             child.calculate_up(nodes_dict)
 
         for r in range(self.rate_vector_size):
-            current_up_vector = []
+            up_vector = []
             for j in range(self.alphabet_size):
                 probabilities = {}
                 for i in range(self.alphabet_size):
@@ -307,10 +309,10 @@ class Node:
                         p1 = child.pmatrix[r][j, i] * child.up_vector[r][i]
                         probabilities.update({child.name: probabilities.get(child.name, 0.0) + p1})
 
-                current_up_vector.append(prod(probabilities.values()))
-            self.up_vector.append(current_up_vector)
-            self.likelihood += np.sum([self.frequency[i] * 1 / self.rate_vector_size * v for i, v in
-                                       enumerate(current_up_vector)])
+                up_vector.append(prod(probabilities.values()))
+            self.up_vector.append(up_vector)
+            self.likelihood += np.sum([self.frequency[i] * 1 / self.rate_vector_size * up_vector[i] for i in
+                                       range(len(up_vector))])
 
         self.calculate_sequence_likelihood()
 
@@ -406,26 +408,21 @@ class Node:
 
         return expm(qmatrix * (self.distance_to_father * self.coefficient_bl * rate))
 
-    def generate_sequence(self, alpha: Union[float, np.float64, np.ndarray], rates: np.ndarray) -> None:
+    def generate_sequence(self, alpha: Union[float, np.float64, np.ndarray], rates: np.ndarray,
+                          seed: Optional[int] = None) -> None:
+        if seed is not None:
+            np.random.seed(seed)
 
         size = len(rates)
         if self.father is None:
             self.sequence = ''.join(np.random.choice(self.alphabet, size=size))
         else:
             self.sequence = ''
-            # random_thresholds = np.random.rand(size)
             for i in range(size):
                 parent_char = self.father.sequence[i]
                 pmatrix = self.get_jukes_cantor_pmatrix(rates[i])
                 current_char = str(np.random.choice(2, p=pmatrix[int(parent_char)]))
                 self.sequence += current_char
-                # p_identity, p_mutation = self.get_jukes_cantor_transition_probs(rates[i])
-                # if random_thresholds[i] < p_mutation:
-                #     chosen_char = np.random.choice([char for char in self.alphabet if char != parent_char])
-                # else:
-                #     chosen_char = self.father.sequence[i]
-                #
-                # self.sequence += chosen_char
 
         for child in self.children:
             child.generate_sequence(alpha, rates)

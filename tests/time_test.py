@@ -6,7 +6,7 @@ from line_profiler import LineProfiler
 from gloome.tree.tree import Tree
 from gloome.services.service_functions import draw_tree, compute_likelihood_of_tree, create_all_file_types
 
-BIN_DIR = Path.cwd()
+BIN_DIR = Path.cwd().parent
 
 
 def read_file(file_path: Path) -> str:

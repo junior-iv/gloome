@@ -32,6 +32,8 @@ class Tree:
     log_likelihood_vector: Optional[List[Union[float, np.ndarray]]] = None
     log_likelihood: Optional[Union[float, np.ndarray]] = None
     likelihood: Optional[Union[float, np.ndarray]] = None
+    posterior_rates: Optional[np.ndarray] = None
+    correlation_vector: Optional[np.ndarray] = None
     calculated_ancestor_sequence: bool = False
     calculated_tree: bool = False
     calculated_likelihood: bool = False
@@ -65,7 +67,7 @@ class Tree:
             data = self.del_bootstrap_values(data)
             self.newick_to_tree(data)
             if node_name and isinstance(node_name, str):
-                Tree.rename_nodes(self, node_name)
+                self.rename_nodes(self, node_name)
         elif isinstance(data, Node):
             self.root = data
         else:
@@ -77,6 +79,7 @@ class Tree:
         self.rate_vector = (1.0,)
         self.pi_1, self.coefficient_bl = None, 1
         self.log_likelihood_vector, self.log_likelihood, self.likelihood = None, None, None
+        self.correlation_vector, self.posterior_rates = None, None
         self.calculated_ancestor_sequence = self.calculated_tree = self.calculated_likelihood = False
 
         if any(kwargs.values()):
@@ -89,8 +92,8 @@ class Tree:
 
     def __dir__(self) -> List[str]:
         return ['root', 'alphabet', 'msa', 'rate_vector', 'alpha', 'categories_quantity', 'pi_1', 'coefficient_bl',
-                'log_likelihood_vector', 'log_likelihood', 'likelihood', 'calculated_ancestor_sequence',
-                'calculated_tree', 'calculated_likelihood']
+                'log_likelihood_vector', 'log_likelihood', 'likelihood', 'posterior_rates', 'correlation_vector',
+                'calculated_ancestor_sequence', 'calculated_tree', 'calculated_likelihood']
 
     def __dict__(self) -> [Optional[Node], Optional[Tuple[str, ...]], Optional[Dict[str, str]],
                            Tuple[Union[float, np.ndarray, int], ...], Optional[Union[float, np.ndarray, int]],
@@ -108,6 +111,8 @@ class Tree:
                 'log_likelihood_vector': self.log_likelihood_vector,
                 'log_likelihood': self.log_likelihood,
                 'likelihood': self.likelihood,
+                'posterior_rates': self.posterior_rates,
+                'correlation_vector': self.correlation_vector,
                 'calculated_ancestor_sequence': self.calculated_ancestor_sequence,
                 'calculated_tree': self.calculated_tree,
                 'calculated_likelihood': self.calculated_likelihood}
@@ -157,11 +162,11 @@ class Tree:
             self.msa = msa
 
         if isinstance(self.msa, dict) and self.msa:
-            self.alphabet = Tree.get_alphabet_from_dict(self.msa)
+            self.alphabet = self.get_alphabet_from_dict(self.msa)
         else:
             self.set_alpha(alpha, beta)
-            self.alphabet = Tree.get_alphabet()
-            self.generate_sequence(1)
+            self.alphabet = self.get_alphabet()
+            self.generate_sequence(size=1)
 
         self.set_all(categories_quantity, alpha, beta, pi_0, pi_1, coefficient_bl)
 
@@ -228,7 +233,7 @@ class Tree:
             mode (str, optional): `pre-order` (default), 'pre-order', 'in-order', 'post-order', 'level-order'.
             filters (Dict, optional):
             only_node_list (bool, optional): `False` (default).
-        
+
         Returns:
             list: A list of all nodes of the tree or a list of dictionaries with information about these nodes.
         """
@@ -498,7 +503,7 @@ class Tree:
             else:
                 node_list.append(newick_node)
 
-            ancestral_alphabet = Tree.get_ancestral_alphabet()
+            ancestral_alphabet = self.get_ancestral_alphabet()
             for current_node in node_list:
                 current_node.ancestral_sequence = ''
                 if current_node.father:
@@ -573,7 +578,7 @@ class Tree:
             self.clean_all()
 
             leaves = self.get_leaves()
-            len_seq = len(min(list(self.msa.values())))
+            len_seq = len(next(iter(self.msa.values())))
             for i in range(len_seq):
                 self.likelihood *= self.calculate_up(msa=''.join([self.msa.get(leaf.name)[i] for leaf in leaves]))
                 self.calculate_down()
@@ -679,6 +684,29 @@ class Tree:
 
         return file_name
 
+    def posterior_rates_to_tsv(self, file_name: str = 'PosteriorRates.tsv', sep: str = '\t') -> str:
+
+        if self.posterior_rates is None:
+            self.set_posterior_rates_vector()
+
+        df = pd.DataFrame({'POS': range(len(self.posterior_rates)),
+                           'rate': self.posterior_rates})
+        df.to_csv(file_name, sep=sep, index=False)
+
+        return file_name
+
+    def pearson_correlation_to_tsv(self, file_name: str = 'PearsonCorrelation.tsv', sep: str = '\t') -> str:
+
+        if self.correlation_vector is None:
+            self.set_pearson_correlation_vector()
+
+        df = pd.DataFrame({'POS1': np.int16(self.correlation_vector[0]),
+                           'POS2': np.int16(self.correlation_vector[1]),
+                           'correlation': self.correlation_vector[2]})
+        df.to_csv(file_name, sep=sep, index=False)
+
+        return file_name
+
     def attributes_to_tsv(self, file_name: str = 'TreeAttributes.tsv', sep: str = '\t') -> str:
 
         self.make_dir(file_name)
@@ -738,11 +766,11 @@ class Tree:
     def tree_to_visual_format(self, file_name: str = 'VisualTree.svg', with_internal_nodes: bool = False,
                               file_extensions: Optional[Union[str, Tuple[str, ...]]] = None, show_axes: bool = False,
                               taking_into_coefficient: bool = True) -> Dict[str, str]:
-        file_extensions = Tree.check_file_extensions_tuple(file_extensions, 'svg')
+        file_extensions = self.check_file_extensions_tuple(file_extensions, 'svg')
 
         self.make_dir(file_name)
         tmp_dir = Path(file_name).parent.joinpath('tmp')
-        tmp_file = f'{tmp_dir.joinpath(f"{Tree.get_random_name()}.tree")}'
+        tmp_file = f'{tmp_dir.joinpath(f"{self.get_random_name()}.tree")}'
         self.make_dir(tmp_file)
         self.tree_to_newick_file(tmp_file, with_internal_nodes, taking_into_coefficient)
         phylogenetic_tree = Phylo.read(tmp_file, 'newick')
@@ -834,7 +862,7 @@ class Tree:
 
     def tree_to_graph(self, file_name: str = 'graph.svg', file_extensions: Optional[Union[str, Tuple[str, ...]]] = None
                       ) -> Union[str, Dict[str, str]]:
-        file_extensions = Tree.check_file_extensions_tuple(file_extensions, 'png')
+        file_extensions = self.check_file_extensions_tuple(file_extensions, 'png')
 
         size_factor = min(1 + self.get_leaves_count() // 9, 6)
         self.make_dir(file_name)
@@ -919,6 +947,7 @@ class Tree:
     def clean_all(self):
         self.root.clean_all()
         self.likelihood, self.log_likelihood, self.log_likelihood_vector = 1, 0, []
+        self.correlation_vector, self.posterior_rates = None, None
 
     def set_all(self, categories_quantity: Optional[int] = None, alpha: Optional[float] = None,
                 beta: Optional[float] = None, pi_0: Optional[Union[float, np.ndarray, int]] = None,
@@ -981,98 +1010,110 @@ class Tree:
 
         return gamma.ppf(probability_vector, a=self.alpha, scale=1/self.alpha)
 
-    def generate_sequence(self, size: int, seed: Optional[int] = None, fasta_text: bool = True
-                          ) -> Tuple[np.ndarray, Union[Dict[str, str], str]]:
+    def generate_sequence(self, size: int, msa_type: type = str, seed: Optional[int] = None,
+                          true_rates: Optional[np.ndarray] = None) -> Union[Dict[str, str], str]:
 
-        if seed is not None:
-            np.random.seed(seed)
-        rates = self.generate_site_rates(self.alpha, size)
-        self.root.generate_sequence(self.alpha, rates)
+        if true_rates is None:
+            true_rates = self.generate_site_rates(size, seed)
+        self.root.generate_sequence(self.alpha, true_rates)
         self.msa = {leaf.name: leaf.sequence for leaf in self.get_leaves()}
 
-        return rates, self.get_fasta_text() if fasta_text else self.msa
+        return self.get_fasta_text() if msa_type == str else self.msa
 
-    def compute_posterior_rates(self, prior: np.ndarray = None) -> np.ndarray:
-        """
-        For every site in tree.msa compute the posterior mean rate:
+    def set_posterior_rates_vector(self, prior: np.ndarray = None) -> None:
+        rate_vector_length = len(self.rate_vector)
+        num_sites = len(next(iter(self.msa.values())))
 
-            E(r|D) = sum_i  r_i * P(D|r_i) * P(r_i)
-                   / sum_j  P(D|r_j) * P(r_j)
-
-        prior : array of length K with P(r_i) for each rate category.
-                Defaults to uniform (1/K), but kept explicit so any weighting
-                (e.g. invariable-sites, non-uniform gamma) works without changes.
-
-        P(D|r_i) is extracted from GLOOME's calculate_up():
-            P(D|r_i) = sum_s  frequency[s] * root.up_vector[r_i][s]
-        where root.up_vector[r][s] = P(subtree data | root_state=s, rate=r_i).
-        """
-        length = len(self.rate_vector)
-        n_sites = len(next(iter(self.msa.values())))
-
-        if prior is None:
-            prior = np.ones(length) / length
-        prior = np.asarray(prior, dtype=float)
-        assert len(prior) == length, 'prior length must match number of rate categories'
+        prior = np.ones(rate_vector_length) / rate_vector_length if prior is None else prior
+        prior = np.array(prior)
+        assert len(prior) == rate_vector_length, 'prior length must match number of rate categories'
 
         leaves = self.get_leaves()
-
-        posterior = np.zeros(n_sites)
-
-        for i in range(n_sites):
-            nodes_dict = {}
-            for leaf in leaves:
-                char = self.msa[leaf.name][i]
-                nodes_dict[leaf.name] = tuple(int(c == char) for c in self.alphabet)
-
-            self.root.calculate_up(nodes_dict)
-
-            p_data_given_rate = np.array([
-                sum(self.root.frequency[s] * self.root.up_vector[r][s] for s in range(2))
-                for r in range(length)
-            ])
-
-            weighted = p_data_given_rate * prior
+        posterior = np.zeros(num_sites)
+        for i in range(num_sites):
+            self.calculate_up(msa=''.join([self.msa.get(leaf.name)[i] for leaf in leaves]))
+            likelihoods_per_rate = np.array([sum(self.root.frequency[j] * self.root.up_vector[r][j] for j in
+                                                 range(self.root.alphabet_size)) for r in range(rate_vector_length)])
+            weighted = likelihoods_per_rate * prior
             posterior[i] = np.dot(self.rate_vector, weighted) / weighted.sum()
+            # posterior[i] = np.where(posterior[i] == np.nan, np.float64(0), posterior[i])
 
-        return posterior
+        self.posterior_rates = posterior
+
+    def set_pearson_correlation_vector(self, limit_value: Union[float, np.ndarray] = 0.7,
+                                       quantity: Union[float, np.ndarray, int] = 2) -> None:
+        nodes_list = self.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
+        num_sites = len(next(iter(self.msa.values())))
+        site_probabilities = []
+        indices = []
+
+        for i in range(num_sites):
+            probabilities = []
+            for node in nodes_list:
+                probabilities.append(node.probability_vector_loss[i])
+                probabilities.append(node.probability_vector_gain[i])
+
+            if sum(np.array(probabilities) > limit_value) >= quantity:
+                indices.append(i)
+
+            site_probabilities.append(probabilities)
+        unique_item = np.unique(indices)
+        idx1, idx2 = np.triu_indices(len(unique_item), k=1)
+        couples = np.column_stack((unique_item[idx1], unique_item[idx2]))
+        correlation_vector = np.zeros((4, len(couples)))
+
+        for n, couple in enumerate(couples):
+            i, j = couple
+            r_corr, p_val = pearsonr(site_probabilities[i], site_probabilities[j])
+            correlation_vector[0][n] = i
+            correlation_vector[1][n] = j
+            correlation_vector[2][n] = r_corr
+            correlation_vector[3][n] = p_val
+
+        self.correlation_vector = correlation_vector
 
     @classmethod
-    def compute_correlation(cls, n_taxa: int = 8,
+    def compute_correlation(cls, num_taxa: int = 8,
                             sites_quantity: int = 100,
                             categories_quantity: int = 4,
                             alpha: float = 0.5,
                             pi_1: Union[float, np.ndarray, int] = 0.5,
                             branch_lengths: Union[float, np.ndarray, int] = 0.5,
                             seed: Optional[int] = None,
-                            newick_text: Optional[str] = None) -> Tuple[float, np.asarray, np.ndarray]:
-        """Run the full pipeline and return (pearson_r, true_rates, estimated_rates)."""
+                            newick_text: Optional[str] = None,
+                            fasta_text: Optional[str] = None) -> Tuple[float, float, np.asarray, np.ndarray]:
         if not newick_text:
-            newick_text = Tree.build_symmetric_newick(n_taxa, branch_lengths)
+            newick_text = cls.build_symmetric_newick(num_taxa, branch_lengths)
 
-        newick_tree = Tree(newick_text)
+        newick_tree = cls(newick_text)
+
+        if fasta_text:
+            msa = newick_tree.get_msa_dict(fasta_text)
+            sites_quantity = len(next(iter(msa.values())))
+
         tree_data = {'pi_1': pi_1,
                      'alpha': alpha,
                      'categories_quantity': categories_quantity}
-
         newick_tree.set_tree_data(**tree_data)
-        true_rates, fasta_text = newick_tree.generate_sequence(sites_quantity, seed)
-        print(f'max(true_rates): {max(true_rates)}')
-        # print(f'true_rates: {true_rates}')
 
-        gloome_tree = Tree(newick_text, msa=fasta_text, **tree_data)
+        true_rates = newick_tree.generate_site_rates(sites_quantity, seed)
 
-        print(f'  rate_vector (4 Gamma categories): '
-              f'{[round(float(r), 4) for r in gloome_tree.rate_vector]}')
+        print(f'\ttrue_rates: {[round(float(r), 4) for r in true_rates]}')
 
-        est_rates = gloome_tree.compute_posterior_rates()
-        print(f'max(est_rates): {max(est_rates)}')
-        # print(f'est_rates: {est_rates}')
+        if not fasta_text:
+            fasta_text = newick_tree.generate_sequence(size=sites_quantity, seed=seed, true_rates=true_rates)
 
-        r_corr, p_val = pearsonr(true_rates, est_rates)
-        print(f'  Pearson r = {r_corr:.4f}  (p = {p_val:.3e})')
+        gloome_tree = cls(newick_text, msa=fasta_text, **tree_data)
 
-        return r_corr, true_rates, est_rates
+        print(f'\trate_vector (4 Gamma categories): {[round(float(r), 4) for r in gloome_tree.rate_vector]}')
+
+        gloome_tree.set_posterior_rates_vector()
+        print(true_rates, gloome_tree.posterior_rates, sep='\n')
+        r_val, p_val = pearsonr(true_rates, gloome_tree.posterior_rates)
+
+        print(f'\tPearson r = {r_val:.4f}  (p = {p_val:.3e})\n')
+
+        return r_val, p_val, true_rates, gloome_tree.posterior_rates
 
     @classmethod
     def generate_scatter_plot(cls, taxa_list: Union[List[int], Tuple[int, ...], np.ndarray],
@@ -1083,33 +1124,32 @@ class Tree:
                               branch_lengths: Union[float, np.ndarray, int] = 0.5,
                               seed: Optional[int] = None,
                               newick_text: Optional[str] = None,
+                              fasta_text: Optional[str] = None,
                               out_path: Optional[str] = None) -> None:
 
         print(f'Correlation estimation. Args: alpha={alpha}, sites={sites_quantity}, branch lengths={branch_lengths}, '
-              f'pi1={pi_1}, Gamma categories={categories_quantity}, seed for randomizer={seed} \n')
+              f'π1={pi_1}, Gamma categories={categories_quantity}, seed for randomizer={seed} \n')
 
         results = {}
-        for n_taxa in taxa_list:
-            print(f"N = {n_taxa} taxa:")
-            corr, tr, er = cls.compute_correlation(n_taxa, sites_quantity, categories_quantity, alpha, pi_1,
-                                                   branch_lengths, seed, newick_text)
-            results[n_taxa] = (corr, tr, er)
-            print()
+        for num_taxa in taxa_list:
+            print(f"\nN = {num_taxa} taxa")
+            results[num_taxa] = cls.compute_correlation(num_taxa, sites_quantity, categories_quantity, alpha, pi_1,
+                                                        branch_lengths, seed, newick_text, fasta_text)
 
         fig, axes = plt.subplots(2, 3, figsize=(10, 8))
-        fig.suptitle(f'True vs. estimated site rates  (alpha={alpha}, {sites_quantity} sites, BL={branch_lengths})',
-                     fontsize=13)
+        fig.suptitle(f'True vs. estimated site rates  (alpha={alpha}, sites={sites_quantity}, '
+                     f'branch lengths={branch_lengths})', fontsize=13)
 
-        for ax, n in zip(axes.flat, taxa_list):
-            corr, tr, er = results[n]
-            ax.scatter(tr, er, alpha=0.55, s=25, color='steelblue', edgecolors='none')
-            lim = [0, max(tr.max(), er.max()) * 1.05]
+        for ax, num_taxa in zip(axes.flat, taxa_list):
+            r_val, p_val, true_rates, est_rates = results[num_taxa]
+            ax.scatter(true_rates, est_rates, alpha=0.55, s=25, color='steelblue', edgecolors='none')
+            lim = [0, max(true_rates.max(), est_rates.max()) * 1.05]
             ax.plot(lim, lim, 'r--', lw=1, alpha=0.6, label='y = x')
             ax.set_xlim(lim)
             ax.set_ylim(lim)
             ax.set_xlabel('True rate', fontsize=10)
             ax.set_ylabel('E(r|D)  posterior mean', fontsize=10)
-            ax.set_title(f'{n} taxa  —  Pearson r = {corr:.3f}', fontsize=11)
+            ax.set_title(f'Taxa = {num_taxa};  Pearson r = {r_val:.3f}  (p = {p_val:.2e})', fontsize=9)
             ax.legend(fontsize=8)
 
         plt.tight_layout()
@@ -1306,35 +1346,37 @@ class Tree:
         return ''.join(Writer((phylo_tree, )).to_strings(format_branch_length='%1.10f'))
 
     @staticmethod
-    def build_symmetric_newick(n_taxa: int, bl: Union[float, np.ndarray, int] = 0.5) -> str:
+    def build_symmetric_newick(num_taxa: int, branch_length: Union[float, np.ndarray, int] = 0.5) -> str:
         """
         Recursively build a perfectly symmetric binary Newick tree.
-        If n_taxa is less than 2 or not a power of 2,
+        If num_taxa is less than 2 or not a power of 2,
         it will be automatically rounded down to the nearest power of 2 (minimum 2).
-        Every branch (leaf and internal) has length bl
+        Every branch (leaf and internal) has length branch_length
         """
-        n_taxa = 2 if n_taxa < 2 else 1 << (n_taxa.bit_length() - 1)
+        num_taxa = 2 if num_taxa < 2 else 1 << (num_taxa.bit_length() - 1)
 
-        leaves = [f't{i + 1}' for i in range(n_taxa)]
+        leaves = [f't{i + 1}' for i in range(num_taxa)]
 
         def build_subtree(taxa):
-            l_taxa = len(taxa)
-            if l_taxa == 1:
-                return f'{taxa[0]}:{bl}'
+            taxa_length = len(taxa)
+            if taxa_length == 1:
+                return f'{taxa[0]}:{branch_length}'
 
-            mid = l_taxa // 2
+            mid = taxa_length // 2
 
-            return f'({build_subtree(taxa[:mid])},{build_subtree(taxa[mid:])}):{bl}'
+            return f'({build_subtree(taxa[:mid])},{build_subtree(taxa[mid:])}):{branch_length}'
 
-        middle = n_taxa // 2
+        middle = num_taxa // 2
 
         return f'({build_subtree(leaves[:middle])},{build_subtree(leaves[middle:])});'
 
-    @staticmethod
-    def generate_site_rates(alpha: Union[float, np.float64, np.ndarray], size: int) -> np.ndarray:
+    def generate_site_rates(self, size: int, seed: Optional[int] = None) -> np.ndarray:
+        if seed is not None:
+            np.random.seed(seed)
 
-        return np.random.gamma(shape=alpha, scale=1/alpha, size=size)
-        # return gamma.rvs(a=alpha, scale=1/alpha, size=size)
+        # return np.random.gamma(shape=self.alpha, scale=1/self.alpha, size=size)
+        return np.random.choice(self.rate_vector, size)
+        # return gamma.rvs(a=self.alpha, scale=1/self.alpha, size=size)
 
     @staticmethod
     def set_root_by_midpoint(tree_data: str) -> str:
@@ -1415,9 +1457,10 @@ class Tree:
             decimals = 8
         elif mode == 'branch_tsv':
             columns = columns if columns else {'father_name': 'Parent node', 'node': 'Child node', distance_name:
-                                               'Branch length', 'branch_probability_vector':
-                                               'Branch probability vector'}
-            lists = ('branch_probability_vector', )
+                                               'Branch length', 'probability_vector_gain': 'Gain probability',
+                                               'probability_vector_loss': 'Loss probability',
+                                               'branch_probability_vector': 'Branch probability vector'}
+            lists = ('branch_probability_vector', 'probability_vector_gain', 'probability_vector_loss')
             decimals = 8
         elif mode == 'tree_html':
             columns = columns if columns else {'node': 'target', 'father_name': 'source', distance_name: 'weight',
@@ -1440,13 +1483,13 @@ class Tree:
 
         return file_name
 
-    @staticmethod
-    def get_alphabet_from_dict(msa_dict: Dict[str, str]) -> Tuple[str, ...]:
+    @classmethod
+    def get_alphabet_from_dict(cls, msa_dict: Dict[str, str]) -> Tuple[str, ...]:
         character_list = []
         for sequence in msa_dict.values():
             character_list += [i for i in sequence]
 
-        return Tree.get_alphabet(set(character_list))
+        return cls.get_alphabet(set(character_list))
 
     @staticmethod
     def get_columns_list_for_sorting(mode: str = 'node') -> Dict[str, List[str]]:
@@ -1502,10 +1545,10 @@ class Tree:
             dir_path.mkdir(mode=kwargs.get('mode', 0o777), parents=kwargs.get('parents', True),
                            exist_ok=kwargs.get('exist_ok', True))
 
-    @staticmethod
-    def check_tree(newick_tree: Union[str, 'Tree']) -> 'Tree':
+    @classmethod
+    def check_tree(cls, newick_tree: Union[str, 'Tree']) -> 'Tree':
         if isinstance(newick_tree, str):
-            newick_tree = Tree(newick_tree)
+            newick_tree = cls(newick_tree)
 
         return newick_tree
 
@@ -1541,10 +1584,10 @@ class Tree:
 
         return newick_node
 
-    @staticmethod
-    def rename_nodes(newick_tree: Union[str, 'Tree'], node_name: str = 'N', fill_character: str = '0', number_length:
-                     int = 0) -> 'Tree':
-        newick_tree = Tree.check_tree(newick_tree)
+    @classmethod
+    def rename_nodes(cls, newick_tree: Union[str, 'Tree'], node_name: str = 'N', fill_character: str = '0',
+                     number_length: int = 0) -> 'Tree':
+        newick_tree = cls.check_tree(newick_tree)
         nodes_list = newick_tree.get_nodes()
         num = newick_tree.__counter()
         for current_node in nodes_list:
@@ -1581,8 +1624,8 @@ class Tree:
 
     @classmethod
     def get_robinson_foulds_distance(cls, tree1: Union['Tree', str], tree2: Union['Tree', str]) -> float:
-        tree1 = Tree(tree1) if type(tree1) is str else tree1
-        tree2 = Tree(tree2) if type(tree2) is str else tree2
+        tree1 = cls(tree1) if type(tree1) is str else tree1
+        tree2 = cls(tree2) if type(tree2) is str else tree2
 
         edges_list1 = sorted(tree1.get_edges_list(), key=lambda item: item[1])
         edges_list2 = sorted(tree2.get_edges_list(), key=lambda item: item[1])
