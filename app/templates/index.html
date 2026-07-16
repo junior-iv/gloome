@@ -381,6 +381,32 @@
                                 </div>
                                 <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
+                                        <label for="fileTableOfPosteriorRatesTsv" class="h6 text-start text-success-emphasis ms-3">Table of posterior rates (tsv)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="fileTableOfPosteriorRatesTsv" name="fileTableOfPosteriorRatesTsv"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_table_of_posterior_rates_tsv -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="fileTableOfPearsonCorrelationTsv" class="h6 text-start text-success-emphasis ms-3">Table of pearson correlation (tsv)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="fileTableOfPearsonCorrelationTsv" name="fileTableOfPearsonCorrelationTsv"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_table_of_pearson_correlation_tsv -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
                                         <label for="fileTableOfNodesTsv" class="h6 text-start text-success-emphasis ms-3">Table of nodes (tsv)</label>
                                     </div>
                                     <div class="w-48 text-start">

@@ -13,7 +13,7 @@ from gloome.services.service_functions import check_data, execute_all_actions, r
 load_dotenv()
 MODE = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions']
 ROOTING_METHODS = [('mad', 'Minimal Ancestor Deviation'), ('mvr', 'Minimum Variance Rooting'),
-                  ('midpoint', 'Midpoint Rooting'), ('outgroup', 'Outgroup Rooting')]
+                   ('midpoint', 'Midpoint Rooting'), ('outgroup', 'Outgroup Rooting')]
 IS_PRODUCTION = True
 MAX_CONTENT_LENGTH = 16 * 1000 * 1000 * 1000
 PREFIX = '/'
@@ -159,6 +159,8 @@ DEFAULT_FORM_ARGUMENTS = {
     'is_do_not_use_e_mail': True,
     'file_interactive_tree_html': False,
     'file_newick_tree_png': False,
+    'file_table_of_posterior_rates_tsv': True,
+    'file_table_of_pearson_correlation_tsv': True,
     'file_table_of_nodes_tsv': True,
     'file_probability_per_pos_per_branches_tsv': True,
     'file_table_of_branches_tsv': True,
@@ -182,6 +184,7 @@ ACTIONS = Actions(**{
                      'set_tree_data': Tree.set_tree_data,
                      'calculate_tree': Tree.calculate_tree,
                      'calculate_ancestral_sequence': Tree.calculate_ancestral_sequence,
+                     'calculate_correlation': Tree.calculate_correlation,
                      'execute_all_actions': execute_all_actions,
                      'recompile_json': recompile_json
                      })
@@ -197,6 +200,7 @@ DEFAULT_ACTIONS = {
     'set_tree_data': True,
     'calculate_tree': False,
     'calculate_ancestral_sequence': False,
+    'calculate_correlation': False,
     'execute_all_actions': False
     }
 
@@ -247,6 +251,10 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify file_interactive_tree_html. Default is 0.
 \t\t--file_newick_tree_png <type=int> 
 \t\t\tSpecify file_newick_tree_png. Default is 0.
+\t\t--file_table_of_posterior_rates_tsv <type=int>
+\t\t\tSpecify file_table_of_posterior_rates_tsv. Default is 1.
+\t\t--file_table_of_pearson_correlation_tsv <type=int>
+\t\t\tSpecify file_table_of_pearson_correlation_tsv. Default is 1.
 \t\t--file_table_of_nodes_tsv <type=int>
 \t\t\tSpecify file_table_of_nodes_tsv. Default is 1.
 \t\t--file_probability_per_pos_per_branches_tsv 

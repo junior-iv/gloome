@@ -1,8 +1,9 @@
 let jsonTreeData = null
 let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`,
-                      `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfNodesTsv`,
-                      `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`,
-                      `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk'];
+                      `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfPosteriorRatesTsv`,
+                      `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`,
+                      `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`,
+                      `filePhylogeneticTreeNwk`];
 let lists = [`rootingMethods`, `leaves`]
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
@@ -19,6 +20,8 @@ let objectsDependence = {
     'isDoNotUseEMail': {'dependence': '', 'value': ''},
     'fileInteractiveTreeHtml': {'dependence': '', 'value': ''},
     'fileNewickTreePng': {'dependence': '', 'value': ''},
+    'fileTableOfPosteriorRatesTsv': {'dependence': '', 'value': ''},
+    'fileTableOfPearsonCorrelationTsv': {'dependence': '', 'value': ''},
     'fileTableOfNodesTsv': {'dependence': '', 'value': ''},
     'fileProbabilityPerPosPerBranchesTsv': {'dependence': '', 'value': ''},
     'fileTableOfBranchesTsv': {'dependence': '', 'value': ''},
@@ -505,6 +508,8 @@ function makeTree(mode = 0) {
     const isDoNotUseEMail = document.getElementById(`isDoNotUseEMail`)
     const fileInteractiveTreeHtml = document.getElementById(`fileInteractiveTreeHtml`)
     const fileNewickTreePng = document.getElementById(`fileNewickTreePng`)
+    const fileTableOfPosteriorRatesTsv = document.getElementById(`fileTableOfPosteriorRatesTsv`)
+    const fileTableOfPearsonCorrelationTsv = document.getElementById(`fileTableOfPearsonCorrelationTsv`)
     const fileTableOfNodesTsv = document.getElementById(`fileTableOfNodesTsv`)
     const fileProbabilityPerPosPerBranchesTsv = document.getElementById(`fileProbabilityPerPosPerBranchesTsv`)
     const fileTableOfBranchesTsv = document.getElementById(`fileTableOfBranchesTsv`)
@@ -528,6 +533,8 @@ function makeTree(mode = 0) {
     formData.append(`isDoNotUseEMail`, +isDoNotUseEMail.checked);
     formData.append(`fileInteractiveTreeHtml`, +fileInteractiveTreeHtml.checked);
     formData.append(`fileNewickTreePng`, +fileNewickTreePng.checked);
+    formData.append(`fileTableOfPosteriorRatesTsv`, +fileTableOfPosteriorRatesTsv.checked);
+    formData.append(`fileTableOfPearsonCorrelationTsv`, +fileTableOfPearsonCorrelationTsv.checked);
     formData.append(`fileTableOfNodesTsv`, +fileTableOfNodesTsv.checked);
     formData.append(`fileProbabilityPerPosPerBranchesTsv`, +fileProbabilityPerPosPerBranchesTsv.checked);
     formData.append(`fileTableOfBranchesTsv`, +fileTableOfBranchesTsv.checked);
@@ -601,7 +608,8 @@ function gedIdentifiers(id = ``) {
         return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`, `newickText`,
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `eMail`, `isOptimizePi`,
             `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseEMail`, `fileInteractiveTreeHtml`,
-            `fileNewickTreePng`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`,
+            `fileNewickTreePng`, `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`,
+            `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`,
             `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
     }
 }

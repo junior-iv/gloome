@@ -573,6 +573,11 @@ class Tree:
 
         return msa_dict
 
+    def calculate_correlation(self, prior: Optional[np.ndarray] = None, limit_value: Union[float, np.ndarray] = 0.9,
+                              quantity: Union[float, np.ndarray, int] = 5) -> None:
+        self.set_posterior_rates_vector(prior)
+        self.set_pearson_correlation_vector(limit_value, quantity)
+
     def calculate_tree(self) -> Dict[str, Union[float, np.ndarray, int]]:
         if self.msa and not self.calculated_tree:
             self.clean_all()
@@ -1020,7 +1025,7 @@ class Tree:
 
         return self.get_fasta_text() if msa_type == str else self.msa
 
-    def set_posterior_rates_vector(self, prior: np.ndarray = None) -> None:
+    def set_posterior_rates_vector(self, prior: Optional[np.ndarray] = None) -> None:
         rate_vector_length = len(self.rate_vector)
         num_sites = len(next(iter(self.msa.values())))
 

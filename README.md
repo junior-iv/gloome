@@ -148,6 +148,12 @@ To get the project working, you need to run the command "gloome" or "python3 -m 
     --file_newick_tree_png <type=int> 
         Specify file_newick_tree_png. Default is 0.
 
+    --file_table_of_posterior_rates_tsv <type=int> 
+        Specify file_table_of_posterior_rates_tsv. Default is 1.
+
+    --file_table_of_pearson_correlation_tsv <type=int> 
+        Specify file_table_of_pearson_correlation_tsv. Default is 1.
+
     --file_table_of_nodes_tsv <type=int> 
         Specify file_table_of_nodes_tsv. Default is 1.
 

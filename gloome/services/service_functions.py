@@ -13,6 +13,8 @@ from gloome.services.design_functions import *
 
 SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_newick_tree_png': True,
+                  'file_table_of_posterior_rates_tsv': True,
+                  'file_table_of_pearson_correlation_tsv': True,
                   'file_table_of_nodes_tsv': True,
                   'file_probability_per_pos_per_branches_tsv': True,
                   'file_table_of_branches_tsv': True,
@@ -175,6 +177,12 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
         result.update(newick_tree.tree_to_visual_format(f'{file_path}/VisualTree.svg', with_internal_nodes,
                                                         ('png', ),
                                                         taking_into_coefficient=taking_into_coefficient))
+    if selected_files.get('file_table_of_posterior_rates_tsv', False):
+        result.update({'Table of posterior rates (tsv)':
+                       newick_tree.posterior_rates_to_tsv(f'{file_path}/PosteriorRates.tsv')})
+    if selected_files.get('file_table_of_pearson_correlation_tsv', False):
+        result.update({'Table of pearson correlation (tsv)':
+                       newick_tree.pearson_correlation_to_tsv(f'{file_path}/PearsonCorrelation.tsv')})
     if selected_files.get('file_table_of_nodes_tsv', False):
         result.update({'Table of nodes (tsv)':
                        newick_tree.tree_to_tsv(f'{file_path}/Nodes.tsv', mode='node_tsv',
@@ -254,14 +262,16 @@ def check_data(*args) -> List[Tuple[str, str]]:
     is_do_not_use_e_mail = bool(args[11])
     file_interactive_tree_html = bool(args[12])
     file_newick_tree_png = bool(args[13])
-    file_table_of_nodes_tsv = bool(args[14])
-    file_probability_per_pos_per_branches_tsv = bool(args[15])
-    file_table_of_branches_tsv = bool(args[16])
-    file_log_likelihood_tsv = bool(args[17])
-    file_table_of_attributes_tsv = bool(args[18])
-    file_phylogenetic_tree_nwk = bool(args[19])
-    rooting_method = args[20].strip()
-    leaf = args[21].strip()
+    file_table_of_posterior_rates_tsv = bool(args[14])
+    file_table_of_pearson_correlation_tsv = bool(args[15])
+    file_table_of_nodes_tsv = bool(args[16])
+    file_probability_per_pos_per_branches_tsv = bool(args[17])
+    file_table_of_branches_tsv = bool(args[18])
+    file_log_likelihood_tsv = bool(args[19])
+    file_table_of_attributes_tsv = bool(args[20])
+    file_phylogenetic_tree_nwk = bool(args[21])
+    rooting_method = args[22].strip()
+    leaf = args[23].strip()
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -305,6 +315,14 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not isinstance(file_newick_tree_png, bool):
         err_list.append((f'Newick tree (png) value error [ {file_newick_tree_png} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_table_of_posterior_rates_tsv, bool):
+        err_list.append((f'Table of posterior rates (tsv) value error [ {file_table_of_posterior_rates_tsv} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_table_of_pearson_correlation_tsv, bool):
+        err_list.append((f'Table of pearson correlation (tsv) value error [ {file_table_of_pearson_correlation_tsv} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(file_table_of_nodes_tsv, bool):
