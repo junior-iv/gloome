@@ -1040,8 +1040,8 @@ class Tree:
 
         self.posterior_rates = posterior
 
-    def set_pearson_correlation_vector(self, limit_value: Union[float, np.ndarray] = 0.7,
-                                       quantity: Union[float, np.ndarray, int] = 2) -> None:
+    def set_pearson_correlation_vector(self, limit_value: Union[float, np.ndarray] = 0.9,
+                                       quantity: Union[float, np.ndarray, int] = 5) -> None:
         nodes_list = self.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
         num_sites = len(next(iter(self.msa.values())))
         site_probabilities = []
