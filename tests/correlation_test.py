@@ -28,6 +28,7 @@ def main():
     categories_quantity = 4
     alpha = 0.5
     pi_1 = 0.5
+    coefficient_bl = 1
     branch_lengths = 0.5
     seed = 24
     fasta_text = None
@@ -46,16 +47,23 @@ def main():
     file_path = dirname.joinpath('g')
     tree_data = {'pi_1': pi_1,
                  'alpha': alpha,
-                 'categories_quantity': categories_quantity}
+                 'categories_quantity': categories_quantity,
+                 'coefficient_bl': coefficient_bl,
+                 'is_optimize_pi': True,
+                 'is_optimize_pi_average': False,
+                 'is_optimize_alpha': True,
+                 'is_optimize_bl': True,
+                 }
     gloome_tree = Tree(newick_text, msa=fasta_text, **tree_data)
 
     print(f'\trate_vector (4 Gamma categories): {[round(float(r), 4) for r in gloome_tree.rate_vector]}')
 
     gloome_tree.calculate_tree()
-    gloome_tree.set_posterior_rates_vector()
+    gloome_tree.calculate_ancestral_sequence()
+    gloome_tree.calculate_correlation()
     gloome_tree.posterior_rates_to_tsv(f'{file_path}/PosteriorRates.tsv')
     gloome_tree.tree_to_tsv(f'{file_path}/Branches.tsv', mode='branch_tsv', taking_into_coefficient=True)
-    gloome_tree.set_pearson_correlation_vector(0.9, 5)
+    # gloome_tree.set_pearson_correlation_vector(0.9, 5)
     gloome_tree.pearson_correlation_to_tsv(f'{file_path}/PearsonCorrelation.tsv')
     # len_seq = len(next(iter(gloome_tree.msa.values())))
     #

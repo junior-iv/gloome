@@ -103,6 +103,7 @@ class Config:
                      'isOptimizePiAverage': int(self.CURRENT_ARGS.is_optimize_pi_average),
                      'isOptimizeAlpha': int(self.CURRENT_ARGS.is_optimize_alpha),
                      'isOptimizeBL': int(self.CURRENT_ARGS.is_optimize_bl),
+                     'isDoNotUseCoPAP': int(self.CURRENT_ARGS.is_do_not_use_copap),
                      'isDoNotUseEMail': int(self.CURRENT_ARGS.is_do_not_use_e_mail),
                      'fileInteractiveTreeHtml': int(self.CURRENT_ARGS.file_interactive_tree_html),
                      'fileNewickTreePng': int(self.CURRENT_ARGS.file_newick_tree_png),
@@ -115,6 +116,8 @@ class Config:
                      'fileLogLikelihoodTsv': int(self.CURRENT_ARGS.file_log_likelihood_tsv),
                      'fileTableOfAttributesTsv': int(self.CURRENT_ARGS.file_table_of_attributes_tsv),
                      'filePhylogeneticTreeNwk': int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk),
+                     'numberLG': self.CURRENT_ARGS.number_lg,
+                     'probabilityLG': self.CURRENT_ARGS.probability_lg,
                      'coefficientBL': self.CURRENT_ARGS.coefficient_bl,
                      'pi1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
@@ -143,7 +146,9 @@ class Config:
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_ancestral_sequence', False):
             self.execute_action(self.ACTIONS.calculate_ancestral_sequence, self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_correlation', False):
-            self.execute_action(self.ACTIONS.calculate_correlation, self.CALCULATED_ARGS.newick_tree)
+            self.execute_action(self.ACTIONS.calculate_correlation, self.CALCULATED_ARGS.newick_tree,
+                                probability_lg=self.CALCULATED_ARGS.probability_lg,
+                                number_lg=self.CALCULATED_ARGS.number_lg)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
             self.execute_action(self.ACTIONS.execute_all_actions, file_path=self.OUT_DIR, create_new_file=True,
                                 form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
@@ -173,30 +178,34 @@ class Config:
                                                   f'File "{self.MSA_FILE}" does not exist '))
 
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('check_data', False):
-            self.CALCULATED_ARGS.err_list += self.ACTIONS.check_data(self.CALCULATED_ARGS.newick_text,
-                                                                     self.CALCULATED_ARGS.msa,
-                                                                     self.CURRENT_ARGS.categories_quantity,
-                                                                     self.CURRENT_ARGS.alpha,
-                                                                     self.CURRENT_ARGS.pi_1,
-                                                                     self.CURRENT_ARGS.coefficient_bl,
-                                                                     self.CURRENT_ARGS.e_mail,
-                                                                     self.CURRENT_ARGS.is_optimize_pi,
-                                                                     self.CURRENT_ARGS.is_optimize_pi_average,
-                                                                     self.CURRENT_ARGS.is_optimize_alpha,
-                                                                     self.CURRENT_ARGS.is_optimize_bl,
-                                                                     self.CURRENT_ARGS.is_do_not_use_e_mail,
-                                                                     self.CURRENT_ARGS.file_interactive_tree_html,
-                                                                     self.CURRENT_ARGS.file_newick_tree_png,
-                                                                     self.CURRENT_ARGS.file_table_of_posterior_rates_tsv,
-                                                                     self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv,
-                                                                     self.CURRENT_ARGS.file_table_of_nodes_tsv,
-                                                                     self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv,
-                                                                     self.CURRENT_ARGS.file_table_of_branches_tsv,
-                                                                     self.CURRENT_ARGS.file_log_likelihood_tsv,
-                                                                     self.CURRENT_ARGS.file_table_of_attributes_tsv,
-                                                                     self.CURRENT_ARGS.file_phylogenetic_tree_nwk,
-                                                                     self.CURRENT_ARGS.rooting_method,
-                                                                     self.CURRENT_ARGS.leaf)
+            self.CALCULATED_ARGS.err_list += (
+                self.ACTIONS.check_data(self.CALCULATED_ARGS.newick_text,
+                                        self.CALCULATED_ARGS.msa,
+                                        self.CURRENT_ARGS.categories_quantity,
+                                        self.CURRENT_ARGS.alpha,
+                                        self.CURRENT_ARGS.pi_1,
+                                        self.CURRENT_ARGS.coefficient_bl,
+                                        self.CURRENT_ARGS.probability_lg,
+                                        self.CURRENT_ARGS.number_lg,
+                                        self.CURRENT_ARGS.e_mail,
+                                        self.CURRENT_ARGS.is_optimize_pi,
+                                        self.CURRENT_ARGS.is_optimize_pi_average,
+                                        self.CURRENT_ARGS.is_optimize_alpha,
+                                        self.CURRENT_ARGS.is_optimize_bl,
+                                        self.CURRENT_ARGS.is_do_not_use_copap,
+                                        self.CURRENT_ARGS.is_do_not_use_e_mail,
+                                        self.CURRENT_ARGS.file_interactive_tree_html,
+                                        self.CURRENT_ARGS.file_newick_tree_png,
+                                        self.CURRENT_ARGS.file_table_of_posterior_rates_tsv,
+                                        self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv,
+                                        self.CURRENT_ARGS.file_table_of_nodes_tsv,
+                                        self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv,
+                                        self.CURRENT_ARGS.file_table_of_branches_tsv,
+                                        self.CURRENT_ARGS.file_log_likelihood_tsv,
+                                        self.CURRENT_ARGS.file_table_of_attributes_tsv,
+                                        self.CURRENT_ARGS.file_phylogenetic_tree_nwk,
+                                        self.CURRENT_ARGS.rooting_method,
+                                        self.CURRENT_ARGS.leaf))
 
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('set_root', False):
             try:
@@ -276,20 +285,23 @@ class Config:
                                          'calculate_ancestral_sequence': True,
                                          'execute_all_actions': True})
             self.MAIN_ACTIONS.update({'draw_tree': True})
-        if 'create_all_file_types' in self.MODE:
+        if 'create_all_file_types' in self.MODE or 'execute_all_actions' in self.MODE:
             self.DEFAULT_ACTIONS.update({'calculate_tree': True,
                                          'calculate_ancestral_sequence': True,
-                                         'calculate_correlation': True,
                                          'execute_all_actions': True})
             self.MAIN_ACTIONS.update({'create_all_file_types': True})
         if 'execute_all_actions' in self.MODE:
             self.DEFAULT_ACTIONS.update({'calculate_tree': True,
                                          'calculate_ancestral_sequence': True,
-                                         'calculate_correlation': True,
                                          'execute_all_actions': True})
             self.MAIN_ACTIONS.update({'compute_likelihood_of_tree': True,
                                       'draw_tree': True,
                                       'create_all_file_types': True})
+        if not self.CURRENT_ARGS.is_do_not_use_copap:
+            self.DEFAULT_ACTIONS.update({'calculate_correlation': True})
+        else:
+            self.CURRENT_ARGS.update({'file_table_of_posterior_rates_tsv': False,
+                                      'file_table_of_pearson_correlation_tsv': False})
 
     def parse_arguments(self):
         """parse arguments and fill out the relevant Variable Class properties"""
@@ -308,11 +320,11 @@ class Config:
                             f'"compute_likelihood_of_tree", "create_all_file_types", "execute_all_actions"). '
                             f'Default is {self.MODE[3:4]}.')
         parser.add_argument('--with_internal_nodes', dest='with_internal_nodes', type=int, required=False,
-                            default=self.CURRENT_ARGS.with_internal_nodes, help=f'Specify the tree has internal nodes '
-                            f'(optional). Default is {self.CURRENT_ARGS.with_internal_nodes}.')
+                            default=int(self.CURRENT_ARGS.with_internal_nodes), help=f'Specify the tree has internal '
+                            f'nodes (optional). Default is {int(self.CURRENT_ARGS.with_internal_nodes)}.')
         parser.add_argument('--categories_quantity', dest='categories_quantity', type=int, required=False,
-                            default=int(self.CURRENT_ARGS.categories_quantity), help=f'Specify categories quantity '
-                            f'(optional). Default is {int(self.CURRENT_ARGS.categories_quantity)}.')
+                            default=self.CURRENT_ARGS.categories_quantity, help=f'Specify categories quantity '
+                            f'(optional). Default is {self.CURRENT_ARGS.categories_quantity}.')
         parser.add_argument('--alpha', dest='alpha', type=float, required=False, default=self.CURRENT_ARGS.alpha,
                             help=f'Specify alpha (optional). Default is {self.CURRENT_ARGS.alpha}.')
         parser.add_argument('--pi_1', dest='pi_1', type=float, required=False, default=self.CURRENT_ARGS.pi_1,
@@ -320,6 +332,12 @@ class Config:
         parser.add_argument('--coefficient_bl', dest='coefficient_bl', type=float, required=False,
                             help=f'Specify coefficient_bl (optional). Default is {self.CURRENT_ARGS.coefficient_bl}.',
                             default=self.CURRENT_ARGS.coefficient_bl)
+        parser.add_argument('--probability_lg', dest='probability_lg', type=float, required=False,
+                            help=f'Specify probability_lg (optional). Default is {self.CURRENT_ARGS.probability_lg}.',
+                            default=self.CURRENT_ARGS.probability_lg)
+        parser.add_argument('--number_lg', dest='number_lg', type=int, required=False,
+                            help=f'Specify number_lg (optional). Default is {self.CURRENT_ARGS.number_lg}.',
+                            default=self.CURRENT_ARGS.number_lg)
         parser.add_argument('--e_mail', dest='e_mail', type=str, required=False,
                             help=f'Specify e_mail (technical parameter, do not change) .',
                             default=self.CURRENT_ARGS.e_mail)
@@ -406,7 +424,7 @@ class Config:
                 elif arg_name in ('msa_file', 'tree_file', 'out_dir'):
                     setattr(self, arg_name.upper(), Path(arg_value))
                 elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
-                                  'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_e_mail',
+                                  'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_copap', 'is_do_not_use_e_mail',
                                   'file_interactive_tree_html', 'file_newick_tree_png',
                                   'file_table_of_posterior_rates_tsv', 'file_table_of_pearson_correlation_tsv',
                                   'file_table_of_nodes_tsv', 'file_probability_per_pos_per_branches_tsv',

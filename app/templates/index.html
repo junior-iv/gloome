@@ -257,6 +257,57 @@
                             <details class="subdetails">
                                 <summary class="text-start w-100 form-control btn btn-outline-secondary bg-secondary-subtle border-1 rounded-5">
                                 <span class="subarrow">▽</span>
+                                    CoPAP (Co-evolution of presence-absence patterns)
+                                </summary>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="probabilityLG" class="h6 text-start text-success-emphasis ms-3">Probability of loss/gain event</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input value="{{probability_lg}}" id="probabilityLG" name="probabilityLG"
+                                               title="The value must be between 0.1 and 0.9" type="number" min="0.01" max="0.99" step="0.01"
+                                               onchange="validateInput(this.id, {{probability_lg}})"
+                                               class="form-control rounded-pill"
+                                            {%- if is_do_not_use_copap -%}
+                                                disabled
+                                            {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="numberLG" class="h6 text-start text-success-emphasis ms-3">Number of loss/gain events</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input value="{{number_lg}}" id="numberLG" name="numberLG"
+                                               title="The value must be between 1 and 20" type="number" min="1" max="20" step="1"
+                                               onchange="validateInput(this.id, {{number_lg}})"
+                                               class="form-control rounded-pill"
+                                            {%- if is_do_not_use_copap -%}
+                                                disabled
+                                            {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="isDoNotUseCoPAP" class="h6 text-start text-success-emphasis ms-3">don`t use CoPAP</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="isDoNotUseCoPAP" name="isDoNotUseCoPAP" onchange="onChangingCheckbox(this.id, this.checked)"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if is_do_not_use_copap -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+                        <div class="box flex-column h-auto w-100 p-2">
+                            <details class="subdetails">
+                                <summary class="text-start w-100 form-control btn btn-outline-secondary bg-secondary-subtle border-1 rounded-5">
+                                <span class="subarrow">▽</span>
                                     e-mail
                                 </summary>
                                 <div class="box flex-row h-auto w-100 m-2">

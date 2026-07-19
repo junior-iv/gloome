@@ -573,10 +573,10 @@ class Tree:
 
         return msa_dict
 
-    def calculate_correlation(self, prior: Optional[np.ndarray] = None, limit_value: Union[float, np.ndarray] = 0.9,
-                              quantity: Union[float, np.ndarray, int] = 5) -> None:
+    def calculate_correlation(self, prior: Optional[np.ndarray] = None, probability_lg: Union[float, np.ndarray] = 0.9,
+                              number_lg: Union[float, np.ndarray, int] = 5) -> None:
         self.set_posterior_rates_vector(prior)
-        self.set_pearson_correlation_vector(limit_value, quantity)
+        self.set_pearson_correlation_vector(probability_lg, number_lg)
 
     def calculate_tree(self) -> Dict[str, Union[float, np.ndarray, int]]:
         if self.msa and not self.calculated_tree:
@@ -1045,8 +1045,8 @@ class Tree:
 
         self.posterior_rates = posterior
 
-    def set_pearson_correlation_vector(self, limit_value: Union[float, np.ndarray] = 0.9,
-                                       quantity: Union[float, np.ndarray, int] = 5) -> None:
+    def set_pearson_correlation_vector(self, probability_lg: Union[float, np.ndarray] = 0.9,
+                                       number_lg: Union[float, np.ndarray, int] = 5) -> None:
         nodes_list = self.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
         num_sites = len(next(iter(self.msa.values())))
         site_probabilities = []
@@ -1058,7 +1058,7 @@ class Tree:
                 probabilities.append(node.probability_vector_loss[i])
                 probabilities.append(node.probability_vector_gain[i])
 
-            if sum(np.array(probabilities) > limit_value) >= quantity:
+            if sum(np.array(probabilities) >= probability_lg) >= number_lg:
                 indices.append(i)
 
             site_probabilities.append(probabilities)

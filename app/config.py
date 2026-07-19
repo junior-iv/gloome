@@ -84,21 +84,23 @@ class WebConfig:
                                  f'\n\tLOG_URL: {self.LOG_URL}\n')
 
     def arguments_filling(self, **arguments):
-        dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'eMail', 'isOptimizePi',
-                   'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseEMail',
-                   'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileTableOfPosteriorRatesTsv',
+        dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'probabilityLG', 'numberLG', 'eMail',
+                   'isOptimizePi', 'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseCoPAP',
+                   'isDoNotUseEMail', 'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileTableOfPosteriorRatesTsv',
                    'fileTableOfPearsonCorrelationTsv', 'fileTableOfNodesTsv', 'fileProbabilityPerPosPerBranchesTsv',
                    'fileTableOfBranchesTsv', 'fileLogLikelihoodTsv', 'fileTableOfAttributesTsv',
                    'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'),
-                  ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'e_mail', 'is_optimize_pi',
-                   'is_optimize_pi_average', 'is_optimize_bl', 'is_optimize_alpha', 'is_do_not_use_e_mail',
-                   'file_interactive_tree_html', 'file_newick_tree_png', 'file_table_of_posterior_rates_tsv',
-                   'file_table_of_pearson_correlation_tsv', 'file_table_of_nodes_tsv',
-                   'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv', 'file_log_likelihood_tsv',
-                   'file_table_of_attributes_tsv', 'file_phylogenetic_tree_nwk', 'rooting_method', 'leaf'),
-                  ((int, ), (float, ), (float, ), (float, ), (str, ), (int, bool), (int, bool), (int, bool),
+                  ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'probability_lg', 'number_lg', 'e_mail',
+                   'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_bl', 'is_optimize_alpha',
+                   'is_do_not_use_copap', 'is_do_not_use_e_mail', 'file_interactive_tree_html', 'file_newick_tree_png',
+                   'file_table_of_posterior_rates_tsv', 'file_table_of_pearson_correlation_tsv',
+                   'file_table_of_nodes_tsv', 'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv',
+                   'file_log_likelihood_tsv', 'file_table_of_attributes_tsv', 'file_phylogenetic_tree_nwk',
+                   'rooting_method', 'leaf'),
+                  ((int, ), (float, ), (float, ), (float, ), (float, ), (int, ), (str, ), (int, bool), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
-                   (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (str, ), (str, )))
+                   (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (str, ),
+                   (str, )))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -116,11 +118,14 @@ class WebConfig:
                              f'\n\talpha: {self.CURRENT_ARGS.alpha}'
                              f'\n\tpi_1: {self.CURRENT_ARGS.pi_1}'
                              f'\n\tcoefficient_bl: {self.CURRENT_ARGS.coefficient_bl}'
+                             f'\n\tprobability_lg: {self.CURRENT_ARGS.probability_lg}'
+                             f'\n\tnumber_lg: {self.CURRENT_ARGS.number_lg}'
                              f'\n\te_mail: {self.CURRENT_ARGS.e_mail}'
                              f'\n\tis_optimize_pi: {self.CURRENT_ARGS.is_optimize_pi}'
                              f'\n\tis_optimize_pi_average: {self.CURRENT_ARGS.is_optimize_pi_average}'
                              f'\n\tis_optimize_alpha: {self.CURRENT_ARGS.is_optimize_alpha}'
                              f'\n\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}'
+                             f'\n\tis_do_not_use_copap: {self.CURRENT_ARGS.is_do_not_use_copap}'
                              f'\n\tis_do_not_use_e_mail: {self.CURRENT_ARGS.is_do_not_use_e_mail}'
                              f'\n\tfile_interactive_tree_html: {self.CURRENT_ARGS.file_interactive_tree_html}'
                              f'\n\tfile_newick_tree_png: {self.CURRENT_ARGS.file_newick_tree_png}'
@@ -174,11 +179,14 @@ class WebConfig:
             f'--alpha {self.CURRENT_ARGS.alpha} '
             f'--pi_1 {self.CURRENT_ARGS.pi_1} '
             f'--coefficient_bl {self.CURRENT_ARGS.coefficient_bl} '
+            f'--probability_lg {self.CURRENT_ARGS.probability_lg} '
+            f'--number_lg {self.CURRENT_ARGS.number_lg} '
             f'{e_mail}'
             f'--is_optimize_pi {int(self.CURRENT_ARGS.is_optimize_pi)} '
             f'--is_optimize_pi_average {int(self.CURRENT_ARGS.is_optimize_pi_average)} '
             f'--is_optimize_alpha {int(self.CURRENT_ARGS.is_optimize_alpha)} '
             f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
+            f'--is_do_not_use_copap {int(self.CURRENT_ARGS.is_do_not_use_copap)} '
             f'{is_do_not_use_e_mail} '
             f'--file_interactive_tree_html {int(self.CURRENT_ARGS.file_interactive_tree_html)} '
             f'--file_newick_tree_png {int(self.CURRENT_ARGS.file_newick_tree_png)} '

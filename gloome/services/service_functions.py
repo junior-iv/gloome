@@ -254,24 +254,27 @@ def check_data(*args) -> List[Tuple[str, str]]:
     alpha = float(args[3])
     pi_1 = float(args[4])
     coefficient_bl = float(args[5])
-    e_mail = args[6]
-    is_optimize_pi = bool(args[7])
-    is_optimize_pi_average = bool(args[8])
-    is_optimize_alpha = bool(args[9])
-    is_optimize_bl = bool(args[10])
-    is_do_not_use_e_mail = bool(args[11])
-    file_interactive_tree_html = bool(args[12])
-    file_newick_tree_png = bool(args[13])
-    file_table_of_posterior_rates_tsv = bool(args[14])
-    file_table_of_pearson_correlation_tsv = bool(args[15])
-    file_table_of_nodes_tsv = bool(args[16])
-    file_probability_per_pos_per_branches_tsv = bool(args[17])
-    file_table_of_branches_tsv = bool(args[18])
-    file_log_likelihood_tsv = bool(args[19])
-    file_table_of_attributes_tsv = bool(args[20])
-    file_phylogenetic_tree_nwk = bool(args[21])
-    rooting_method = args[22].strip()
-    leaf = args[23].strip()
+    probability_lg = float(args[6])
+    number_lg = int(args[7])
+    e_mail = args[8]
+    is_optimize_pi = bool(args[9])
+    is_optimize_pi_average = bool(args[10])
+    is_optimize_alpha = bool(args[11])
+    is_optimize_bl = bool(args[12])
+    is_do_not_use_copap = bool(args[13])
+    is_do_not_use_e_mail = bool(args[14])
+    file_interactive_tree_html = bool(args[15])
+    file_newick_tree_png = bool(args[16])
+    file_table_of_posterior_rates_tsv = bool(args[17])
+    file_table_of_pearson_correlation_tsv = bool(args[18])
+    file_table_of_nodes_tsv = bool(args[19])
+    file_probability_per_pos_per_branches_tsv = bool(args[20])
+    file_table_of_branches_tsv = bool(args[21])
+    file_log_likelihood_tsv = bool(args[22])
+    file_table_of_attributes_tsv = bool(args[23])
+    file_phylogenetic_tree_nwk = bool(args[24])
+    rooting_method = args[25].strip()
+    leaf = args[26].strip()
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -286,6 +289,14 @@ def check_data(*args) -> List[Tuple[str, str]]:
     if not isinstance(coefficient_bl, float) or not 0.1 <= coefficient_bl <= 10:
         err_list.append((f'Branch lengths (BL) coefficient value error [ {coefficient_bl} ]',
                          f'The value must be between 0.1 and 10.'))
+
+    if not isinstance(probability_lg, float) or not 0.01 <= probability_lg <= 0.99:
+        err_list.append((f'Probability of loss/gain event value error [ {probability_lg} ]',
+                         f'The value must be between 0.01 and 0.99.'))
+
+    if not isinstance(number_lg, float) or not 1 <= number_lg <= 20:
+        err_list.append((f'Number of loss/gain events value error [ {number_lg} ]',
+                         f'The value must be between 1 and 20.'))
 
     if ((not isinstance(e_mail, str) or not e_mail) or not validate_email(e_mail)) and not is_do_not_use_e_mail:
         err_list.append((f'Invalid email address [ {e_mail} ]', f'Must be valid email address.'))
@@ -303,6 +314,10 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not isinstance(is_optimize_bl, bool):
         err_list.append((f'Optimize branch lengths coefficient value error [ {is_optimize_bl} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(is_do_not_use_copap, bool):
+        err_list.append((f'Do not use CoPAP value error [ {is_do_not_use_copap} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(is_do_not_use_e_mail, bool):
