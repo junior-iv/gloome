@@ -294,7 +294,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'Probability of loss/gain event value error [ {probability_lg} ]',
                          f'The value must be between 0.01 and 0.99.'))
 
-    if not isinstance(number_lg, float) or not 1 <= number_lg <= 20:
+    if not isinstance(number_lg, int) or not 1 <= number_lg <= 20:
         err_list.append((f'Number of loss/gain events value error [ {number_lg} ]',
                          f'The value must be between 1 and 20.'))
 
