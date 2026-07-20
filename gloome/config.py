@@ -147,16 +147,24 @@ class Config:
             self.execute_action(self.ACTIONS.calculate_ancestral_sequence, self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_correlation', False):
             self.execute_action(self.ACTIONS.calculate_correlation, self.CALCULATED_ARGS.newick_tree,
-                                probability_lg=self.CURRENT_ARGS.probability_lg, number_lg=self.CURRENT_ARGS.number_lg)
+                                probability_lg=self.CURRENT_ARGS.probability_lg,
+                                number_lg=self.CURRENT_ARGS.number_lg)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
-            self.execute_action(self.ACTIONS.execute_all_actions, file_path=self.OUT_DIR, create_new_file=True,
-                                form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
+            self.execute_action(self.ACTIONS.execute_all_actions,
+                                file_path=self.OUT_DIR,
+                                create_new_file=True,
+                                form_data=self.get_form_data(),
+                                newick_tree=self.CALCULATED_ARGS.newick_tree,
                                 with_internal_nodes=self.CURRENT_ARGS.with_internal_nodes,
-                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename, actions=self.MAIN_ACTIONS,
-                                selected_files=self.get_selected_files())
+                                log_file=self.JOB_LOGGER.handlers[-1].baseFilename,
+                                actions=self.MAIN_ACTIONS,
+                                selected_files=self.get_selected_files(),
+                                use_copap=not self.CURRENT_ARGS.is_do_not_use_copap)
         if not self.CALCULATED_ARGS.err_list:
-            self.execute_action(self.ACTIONS.recompile_json, output_file=self.OUT_DIR.joinpath('result.json'),
-                                process_id=self.PROCESS_ID, create_link=False)
+            self.execute_action(self.ACTIONS.recompile_json,
+                                output_file=self.OUT_DIR.joinpath('result.json'),
+                                process_id=self.PROCESS_ID,
+                                create_link=False)
 
     def check_arguments_for_errors(self) -> bool:
         if self.TREE_FILE.is_file():
@@ -298,9 +306,9 @@ class Config:
                                       'create_all_file_types': True})
         if not self.CURRENT_ARGS.is_do_not_use_copap:
             self.DEFAULT_ACTIONS.update({'calculate_correlation': True})
-        else:
-            self.CURRENT_ARGS.update({'file_table_of_posterior_rates_tsv': False,
-                                      'file_table_of_pearson_correlation_tsv': False})
+        # else:
+        #     self.CURRENT_ARGS.update({'file_table_of_posterior_rates_tsv': False,
+        #                               'file_table_of_pearson_correlation_tsv': False})
 
     def parse_arguments(self):
         """parse arguments and fill out the relevant Variable Class properties"""

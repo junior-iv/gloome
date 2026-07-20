@@ -9359,6 +9359,13 @@ textarea.form-control-lg {
     flex-wrap: wrap-reverse !important
 }
 
+.overview-text {
+    text-indent: 2%;
+    width: 80%;
+    text-align: justify;
+    justify-content: space-between !important
+}
+
 .justify-content-start {
     justify-content: flex-start !important
 }

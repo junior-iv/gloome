@@ -132,7 +132,8 @@ def check_tree_data(newick_tree: Union[str, Tree], msa: Union[Dict[str, str], st
 def execute_all_actions(newick_tree: Union[str, Tree], file_path: Union[str, Path], create_new_file: bool = False,
                         form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
                         log_file: Optional[str] = None, with_internal_nodes: bool = True,
-                        actions: Optional[Dict[str, bool]] = None, selected_files: Optional[Dict[str, bool]] = None
+                        actions: Optional[Dict[str, bool]] = None, selected_files: Optional[Dict[str, bool]] = None,
+                        use_copap: Optional[bool] = None
                         ) -> Union[Dict[str, str], Path]:
     result_data = {}
     if actions is None or actions.get('draw_tree', False):
@@ -141,7 +142,8 @@ def execute_all_actions(newick_tree: Union[str, Tree], file_path: Union[str, Pat
         result_data.update({'compute_likelihood_of_tree': compute_likelihood_of_tree(newick_tree)})
     if actions is None or actions.get('create_all_file_types', False):
         result_data.update({'create_all_file_types': create_all_file_types(newick_tree, file_path, log_file,
-                                                                           with_internal_nodes, selected_files)})
+                                                                           with_internal_nodes, selected_files,
+                                                                           use_copap)})
     if create_new_file:
         file_path = file_path.joinpath('result.json') if isinstance(file_path, Path) else f'{file_path}/result.json'
         return create_file(file_path, get_result_data(result_data, 'execute_all_actions', form_data), 'result.json')
@@ -158,7 +160,9 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree]) -> Union[List[Unio
 
 def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, Path],
                           log_file: Optional[Union[str, Path]] = None,
-                          with_internal_nodes: Optional[bool] = True, selected_files: Optional[Dict[str, bool]] = None
+                          with_internal_nodes: Optional[bool] = True,
+                          selected_files: Optional[Dict[str, bool]] = None,
+                          use_copap: Optional[bool] = None
                           ) -> Union[Dict[str, str], str]:
     selected_files = (SELECTED_FILES if selected_files is None else selected_files)
     result = {}
@@ -171,40 +175,45 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     # result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
     if selected_files.get('file_interactive_tree_html', False):
         result.update({'Interactive tree (html)':
-                       newick_tree.tree_to_interactive_html(f'{file_path}/InteractiveTree.html',
+                       newick_tree.tree_to_interactive_html(file_name=f'{file_path}/InteractiveTree.html',
                                                             taking_into_coefficient=taking_into_coefficient)})
     if selected_files.get('file_newick_tree_png', False):
-        result.update(newick_tree.tree_to_visual_format(f'{file_path}/VisualTree.svg', with_internal_nodes,
-                                                        ('png', ),
-                                                        taking_into_coefficient=taking_into_coefficient))
-    if selected_files.get('file_table_of_posterior_rates_tsv', False):
+        result.update(newick_tree.tree_to_visual_format(file_name=f'{file_path}/VisualTree.svg',
+                                                        with_internal_nodes=with_internal_nodes,
+                                                        taking_into_coefficient=taking_into_coefficient,
+                                                        file_extensions=('png', )))
+    if selected_files.get('file_table_of_posterior_rates_tsv', False) and use_copap:
         result.update({'Table of posterior rates (tsv)':
-                       newick_tree.posterior_rates_to_tsv(f'{file_path}/PosteriorRates.tsv')})
-    if selected_files.get('file_table_of_pearson_correlation_tsv', False):
+                       newick_tree.posterior_rates_to_tsv(file_name=f'{file_path}/PosteriorRates.tsv')})
+    if selected_files.get('file_table_of_pearson_correlation_tsv', False) and use_copap:
         result.update({'Table of pearson correlation (tsv)':
-                       newick_tree.pearson_correlation_to_tsv(f'{file_path}/PearsonCorrelation.tsv')})
+                       newick_tree.pearson_correlation_to_tsv(file_name=f'{file_path}/PearsonCorrelation.tsv')})
     if selected_files.get('file_table_of_nodes_tsv', False):
         result.update({'Table of nodes (tsv)':
-                       newick_tree.tree_to_tsv(f'{file_path}/Nodes.tsv', mode='node_tsv',
-                                               taking_into_coefficient=taking_into_coefficient)})
+                       newick_tree.tree_to_tsv(file_name=f'{file_path}/Nodes.tsv',
+                                               taking_into_coefficient=taking_into_coefficient,
+                                               mode='node_tsv')})
     if selected_files.get('file_probability_per_pos_per_branches_tsv', False):
         result.update({'Probability per positions per branches (tsv)':
-                       newick_tree.probability_to_tsv(f'{file_path}/ProbabilityPerPositionsPerBranches.tsv',
+                       newick_tree.probability_to_tsv(file_name=f'{file_path}/ProbabilityPerPositionsPerBranches.tsv',
                                                       taking_into_coefficient=taking_into_coefficient)})
     if selected_files.get('file_table_of_branches_tsv', False):
         result.update({'Table of branches (tsv)':
-                       newick_tree.tree_to_tsv(f'{file_path}/Branches.tsv', mode='branch_tsv',
-                                               taking_into_coefficient=taking_into_coefficient)})
+                       newick_tree.tree_to_tsv(file_name=f'{file_path}/Branches.tsv',
+                                               taking_into_coefficient=taking_into_coefficient,
+                                               mode='branch_tsv')})
     if selected_files.get('file_log_likelihood_tsv', False):
         result.update({'Log-likelihood (tsv)':
-                       newick_tree.likelihood_to_tsv(f'{file_path}/LogLikelihood.tsv')})
+                       newick_tree.likelihood_to_tsv(file_name=f'{file_path}/LogLikelihood.tsv')})
     if selected_files.get('file_table_of_attributes_tsv', False):
         result.update({'Tree attributes (tsv)':
-                       newick_tree.attributes_to_tsv(f'{file_path}/TreeAttributes.tsv')})
+                       newick_tree.attributes_to_tsv(file_name=f'{file_path}/TreeAttributes.tsv')})
     if selected_files.get('file_phylogenetic_tree_nwk', False):
         result.update({'Phylogenetic tree (nwk)':
-                       newick_tree.tree_to_newick_file(f'{file_path}/PhylogeneticTree.nwk', True, 0,
-                                                       taking_into_coefficient=taking_into_coefficient)})
+                       newick_tree.tree_to_newick_file(file_name=f'{file_path}/PhylogeneticTree.nwk',
+                                                       taking_into_coefficient=taking_into_coefficient,
+                                                       with_internal_nodes=True,
+                                                       decimal_length=0)})
 
     if result:
         file_path = get_path(file_path)
