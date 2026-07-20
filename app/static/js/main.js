@@ -531,8 +531,8 @@ function makeTree(mode = 0) {
     formData.append(`alpha`, alpha.value.trim());
     formData.append(`pi1`, pi1.value.trim());
     formData.append(`coefficientBL`, coefficientBL.value.trim());
-    formData.append(`probabilityLG`, coefficientBL.value.trim());
-    formData.append(`numberLG`, coefficientBL.value.trim());
+    formData.append(`probabilityLG`, probabilityLG.value.trim());
+    formData.append(`numberLG`, numberLG.value.trim());
     formData.append(`eMail`, eMail.value.trim());
     formData.append(`isOptimizePi`, +isOptimizePi.checked);
     formData.append(`isOptimizePiAverage`, +isOptimizePiAverage.checked);

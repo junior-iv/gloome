@@ -265,7 +265,7 @@
                                     </div>
                                     <div class="w-48 text-start">
                                         <input value="{{probability_lg}}" id="probabilityLG" name="probabilityLG"
-                                               title="The value must be between 0.1 and 0.9" type="number" min="0.01" max="0.99" step="0.01"
+                                               title="The value must be between 0.01 and 0.99" type="number" min="0.01" max="0.99" step="0.01"
                                                onchange="validateInput(this.id, {{probability_lg}})"
                                                class="form-control rounded-pill"
                                             {%- if is_do_not_use_copap -%}
@@ -437,6 +437,9 @@
                                     <div class="w-48 text-start">
                                         <input id="fileTableOfPosteriorRatesTsv" name="fileTableOfPosteriorRatesTsv"
                                                type="checkbox" class="form-check-input rounded-1"
+                                               {%- if is_do_not_use_copap -%}
+                                                   disabled
+                                               {% endif -%}
                                                {%- if file_table_of_posterior_rates_tsv -%}
                                                    checked
                                                {% endif -%}
@@ -450,6 +453,9 @@
                                     <div class="w-48 text-start">
                                         <input id="fileTableOfPearsonCorrelationTsv" name="fileTableOfPearsonCorrelationTsv"
                                                type="checkbox" class="form-check-input rounded-1"
+                                               {%- if is_do_not_use_copap -%}
+                                                   disabled
+                                               {% endif -%}
                                                {%- if file_table_of_pearson_correlation_tsv -%}
                                                    checked
                                                {% endif -%}
