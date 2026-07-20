@@ -242,6 +242,12 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify pi_1. Default is 0.5.
 \t\t--coefficient_bl <type=float> 
 \t\t\tSpecify coefficient_bl. Default is 1.0.
+\t\t--probability_lg <type=float> 
+\t\t\tSpecify probability_lg. Default is 0.9.
+\t\t--number_lg <type=float> 
+\t\t\tSpecify number_lg. Default is 5.
+\t\t--is_do_not_use_copap <type=int> 
+\t\t\tSpecify is_do_not_use_copap. Default is 0.
 \t\t--is_optimize_pi <type=int> 
 \t\t\tSpecify is_optimize_pi. Default is 1.
 \t\t--is_optimize_pi_average <type=int> 

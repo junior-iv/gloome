@@ -365,6 +365,10 @@ class Config:
         parser.add_argument('--is_optimize_bl', dest='is_optimize_bl', type=int, required=False,
                             help=f'Specify is_optimize_bl (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_optimize_bl)}.', default=int(self.CURRENT_ARGS.is_optimize_bl))
+        parser.add_argument('--is_do_not_use_copap', dest='is_do_not_use_copap', type=int, required=False,
+                            help=f'Specify is_do_not_use_copap (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.is_do_not_use_copap)}.',
+                            default=int(self.CURRENT_ARGS.is_do_not_use_copap))
         parser.add_argument('--is_do_not_use_e_mail', dest='is_do_not_use_e_mail', type=int, required=False,
                             help=f'Specify is_do_not_use_e_mail (technical parameter, do not change).',
                             default=int(self.CURRENT_ARGS.is_do_not_use_e_mail))
