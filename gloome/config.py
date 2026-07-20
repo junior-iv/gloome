@@ -147,8 +147,7 @@ class Config:
             self.execute_action(self.ACTIONS.calculate_ancestral_sequence, self.CALCULATED_ARGS.newick_tree)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_correlation', False):
             self.execute_action(self.ACTIONS.calculate_correlation, self.CALCULATED_ARGS.newick_tree,
-                                probability_lg=self.CALCULATED_ARGS.probability_lg,
-                                number_lg=self.CALCULATED_ARGS.number_lg)
+                                probability_lg=self.CURRENT_ARGS.probability_lg, number_lg=self.CURRENT_ARGS.number_lg)
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('execute_all_actions', False):
             self.execute_action(self.ACTIONS.execute_all_actions, file_path=self.OUT_DIR, create_new_file=True,
                                 form_data=self.get_form_data(), newick_tree=self.CALCULATED_ARGS.newick_tree,
