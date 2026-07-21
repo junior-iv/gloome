@@ -510,9 +510,26 @@ def link_design(json_object: Any) -> Any:
             continue
         json_object.update(
             {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="'
-                        f'{create_url(file_path=value, mode="download")}" target="_blank">download</a>',
+                        f'{create_url(file_path=value, mode="download")}" target="_blank">'
+                        f'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#8899a4" '
+                        f'stroke-width="2" stroke-linecap="square" stroke-linejoin="arcs"><path d="M3 '
+                        f'15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4M17 9l-5 5-5-5M12 12.8V2.5"></path></svg>'
+                        f'</a>',
                         f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="'
-                        f'{create_url(file_path=value, mode="view")}" target="_blank">view</a>']})
+                        f'{create_url(file_path=value, mode="view")}" target="_blank">'
+                        f'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#8899a4" '
+                        f'stroke-width="2" stroke-linecap="square" stroke-linejoin="arcs"><path d="M29,21.972c-3.86,'
+                        f'0-7,3.14-7,7c0,0.552,0.448,1,1,1s1-0.448,1-1c0-2.757,2.243-5,5-5c0.552,0,1-0.448,1-1   '
+                        f'S29.552,21.972,29,21.972z"/><path d="M57.655,27.873c-7.613-7.674-17.758-11.9-28.568-11.9c-'
+                        f'0.02,0-0.039,0.001-0.059,0.001c-0.01,0-0.019-0.001-0.028-0.001   c-0.027,0-0.054,0.004-0.081,'
+                        f'0.004C18.173,16.02,8.093,20.239,0.52,27.873l-0.23,0.232c-0.389,0.392-0.386,1.025,0.006,1.414'
+                        f'   c0.195,0.193,0.45,0.29,0.704,0.29c0.257,0,0.515-0.099,0.71-0.296l0.23-0.232c5.254-5.297,'
+                        f'11.782-8.855,18.895-10.411   C17.89,21.255,16,24.896,16,28.972c0,7.168,5.832,13,13,'
+                        f'13s13-5.832,13-13c0-4.11-1.923-7.774-4.91-10.158   c7.211,1.527,13.829,5.108,19.145,'
+                        f'10.467c0.389,0.393,1.023,0.395,1.414,0.006C58.041,28.898,58.044,28.265,57.655,27.873z    M40,'
+                        f'28.972c0,6.065-4.935,11-11,11s-11-4.935-11-11c0-6.038,4.891-10.952,10.919-10.996c0.037,0,'
+                        f'0.073-0.003,0.109-0.003   C35.081,17.989,40,22.917,40,28.972z"/></svg>'
+                        f'</a>']})
 
     return json_object
 

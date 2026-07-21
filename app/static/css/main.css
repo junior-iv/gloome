@@ -9362,6 +9362,7 @@ textarea.form-control-lg {
 .overview-text {
     text-indent: 2%;
     width: 80%;
+    color: #8899a4;
     text-align: justify;
     justify-content: space-between !important
 }

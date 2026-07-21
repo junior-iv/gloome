@@ -129,6 +129,15 @@ To get the project working, you need to run the command "gloome" or "python3 -m 
 
     --coefficient_bl <type=float> 
         Specify coefficient_bl. Default is 1.0.
+        
+    --probability_lg <type=float> 
+        Specify probability_lg. Default is 0.9.
+    
+    --number_lg <type=float> 
+        Specify number_lg. Default is 5.
+    
+    --is_do_not_use_copap <type=int> 
+        Specify is_do_not_use_copap. Default is 0.
 
     --is_optimize_pi <type=int> 
         Specify is_optimize_pi. Default is 1.
@@ -156,6 +165,9 @@ To get the project working, you need to run the command "gloome" or "python3 -m 
 
     --file_table_of_nodes_tsv <type=int> 
         Specify file_table_of_nodes_tsv. Default is 1.
+
+    --file_probability_per_pos_per_branches_tsv <type=int>  
+        Specify file_probability_per_pos_per_branches_tsv. Default is 1.
 
     --file_table_of_branches_tsv <type=int> 
         Specify file_table_of_branches_tsv. Default is 1.
