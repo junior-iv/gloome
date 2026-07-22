@@ -509,12 +509,12 @@ def link_design(json_object: Any) -> Any:
         if key == 'execution_time':
             continue
         json_object.update(
-            {f'{key}': [f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="'
-                        f'{create_url(file_path=value, mode="download")}" target="_blank">'
+            {f'{key}': [f'<a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-warning zoomable-element '
+                        f'border-1 rounded-pill" href="{create_url(file_path=value, mode="download")}" target="_blank">'
                         f'download'
                         f'</a>',
-                        f'<a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="'
-                        f'{create_url(file_path=value, mode="view")}" target="_blank">'
+                        f'<a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-info zoomable-element '
+                        f'border-1 rounded-pill" href="{create_url(file_path=value, mode="view")}" target="_blank">'
                         f'view'
                         f'</a>']})
 

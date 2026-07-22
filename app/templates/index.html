@@ -628,7 +628,7 @@
 {#        <div class="w-100 form-control box flex-row text-center bg-warning-subtle bg-opacity-75 text-success h2">#}
 {#            {{nwt.arrow(2, 'maroon', 48, 48)}}#}
 {#        </div>#}
-    <div id="result" style="visibility: hidden" class="d-flex gap-2 flex-column w-auto h-auto bg-light rounded-3 p-3 mx-3">
+    <div id="result" style="visibility: visible" class="d-flex gap-2 flex-column w-auto h-auto bg-light rounded-3 p-3 mx-3">
         <div id="nodeInfo" class="d-flex gap-2 flex-column text-start w-100 px-2">
 {#            <details open>#}
 {#                <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">#}
@@ -660,6 +660,56 @@
 {#                </tbody></table>#}
 {#            </details>#}
         </div>
+{#        <div id="fileList" class="d-flex gap-2 flex-column text-start w-100 px-2">#}
+{#            <details open="">#}
+{#                <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">#}
+{#                    <span class="arrow">▼</span>#}
+{#                    View/Download Results#}
+{#                </summary>#}
+{#                <table class="w-97 m-3 p-4 h7">#}
+{#                    <tbody>#}
+{#                        <tr>#}
+{#                            <th class="p-1 w-auto">Archive (zip):	</th>#}
+{#                            <th class="p-1 w-auto">Log-File (log):	</th>#}
+{#                            <th class="p-1 w-auto">Log-likelihood (tsv):	</th>#}
+{#                            <th class="p-1 w-auto">Phylogenetic tree (nwk):	</th>#}
+{#                            <th class="p-1 w-auto">Probability per positions per branches (tsv):	</th>#}
+{#                            <th class="p-1 w-auto">Table of branches (tsv):	</th>#}
+{#                            <th class="p-1 w-auto">Table of nodes (tsv):	</th>#}
+{#                            <th class="p-1 w-auto">Table of pearson correlation (tsv):	</th>#}
+{#                            <th class="p-1 w-auto">Table of posterior rates (tsv):	</th>#}
+{#                            <th class="p-1 w-auto">Tree attributes (tsv):	</th>#}
+{#                            <th class="p-1 w-auto">json response file (json):	</th>#}
+{#                        </tr>#}
+{#                        <tr>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-secondary bg-secondary-subtle border-1 rounded-5" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2F17847146326761.zip&amp;mode=view" target="_blank">view</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link bg-secondary-subtle border-1 rounded-5" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Flogs%2F17847146326761.log&amp;mode=view" target="_blank">view</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-secondary zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FLogLikelihood.tsv&amp;mode=view" target="_blank">view</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-warning zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FPhylogeneticTree.nwk&amp;mode=view" target="_blank">view</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-success zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FProbabilityPerPositionsPerBranches.tsv&amp;mode=view" target="_blank">view</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn bg-secondary-subtle btn-outline-info zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FBranches.tsv&amp;mode=view" target="_blank">view</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn bg-secondary-subtle btn-info zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FNodes.tsv&amp;mode=view" target="_blank">view</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FPearsonCorrelation.tsv&amp;mode=view" target="_blank">view</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FPosteriorRates.tsv&amp;mode=view" target="_blank">view</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-outline-info zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FTreeAttributes.tsv&amp;mode=view" target="_blank">view</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-info zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2Fresult.json&amp;mode=view" target="_blank">view</a></th>#}
+{#                        </tr>#}
+{#                        <tr>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2F17847146326761.zip&amp;mode=download" target="_blank">download</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Flogs%2F17847146326761.log&amp;mode=download" target="_blank">download</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FLogLikelihood.tsv&amp;mode=download" target="_blank">download</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FPhylogeneticTree.nwk&amp;mode=download" target="_blank">download</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control btn btn-outline-link rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FProbabilityPerPositionsPerBranches.tsv&amp;mode=download" target="_blank">download</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-outline-secondary zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FBranches.tsv&amp;mode=download" target="_blank">download</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-secondary zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FNodes.tsv&amp;mode=download" target="_blank">download</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-outline-success zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FPearsonCorrelation.tsv&amp;mode=download" target="_blank">download</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-success zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FPosteriorRates.tsv&amp;mode=download" target="_blank">download</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-outline-warning zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2FTreeAttributes.tsv&amp;mode=download" target="_blank">download</a></th>#}
+{#                            <th class="p-1 w-auto"><a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-warning zoomable-element border-1 rounded-pill" href="https://gloome.tau.ac.il/get_file?file_path=%2Fgloome%2Fresults%2Fout%2F17847146326761%2Fresult.json&amp;mode=download" target="_blank">download</a></th></tr>#}
+{#                    </tbody>#}
+{#                </table>#}
+{#            </details>#}
+{#        </div>#}
         <div id="errorMessage" class="d-flex gap-2 flex-column text-start w-100 px-2">
         </div>
     </div>
