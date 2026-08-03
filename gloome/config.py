@@ -159,7 +159,9 @@ class Config:
                                 log_file=self.JOB_LOGGER.handlers[-1].baseFilename,
                                 actions=self.MAIN_ACTIONS,
                                 selected_files=self.get_selected_files(),
-                                use_copap=not self.CURRENT_ARGS.is_do_not_use_copap)
+                                use_copap=not self.CURRENT_ARGS.is_do_not_use_copap,
+                                probability_lg=self.CURRENT_ARGS.probability_lg,
+                                number_lg=self.CURRENT_ARGS.number_lg)
         if not self.CALCULATED_ARGS.err_list:
             self.execute_action(self.ACTIONS.recompile_json,
                                 output_file=self.OUT_DIR.joinpath('result.json'),

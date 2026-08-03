@@ -4,7 +4,7 @@ from pathlib import Path
 from json import dumps
 from line_profiler import LineProfiler
 from gloome.tree.tree import Tree
-from gloome.services.service_functions import draw_tree, compute_likelihood_of_tree, create_all_file_types
+# from gloome.services.service_functions import draw_tree, compute_likelihood_of_tree, create_all_file_types
 
 BIN_DIR = Path.cwd().parent
 
@@ -46,8 +46,8 @@ def main():
     # file_path = f'{dirname}/results/out/test_1_op/'
     msa_file = dirname.joinpath('gloome/data/initial_data/msa/patternMSA0.msa')
     tree_file = dirname.joinpath('gloome/data/initial_data/tree/newickTree0.tree')
-    file_path = dirname.joinpath('results/out/test_0_op/')
-    log_file = file_path.joinpath('log.log')
+    # file_path = dirname.joinpath('g/')
+    # log_file = file_path.joinpath('log.log')
     form_data = {'msaText': read_file(msa_file),
                  'newickText': read_file(tree_file),
                  'isOptimizePi': is_optimize_pi,
@@ -55,12 +55,13 @@ def main():
                  'isOptimizeAlpha': is_optimize_alpha,
                  'isOptimizeBL': is_optimize_bl,
                  'isDoNotUseEMail': True,
+                 'isDoNotUseCoPAP': True,
                  'coefficientBL': coefficient_bl,
                  'pi1': pi_1,
                  'alpha': alpha,
                  'categoriesQuantity': categories_quantity,
                  'eMail': ''}
-    print(msa_file, tree_file, form_data)
+    # print(msa_file, tree_file, form_data)
 
     newick_tree = Tree(form_data.get('newickText'))
     Tree.rename_nodes(newick_tree)
@@ -72,18 +73,54 @@ def main():
                               is_optimize_pi_average=is_optimize_pi_average,
                               is_optimize_alpha=is_optimize_alpha,
                               is_optimize_bl=is_optimize_bl)
-    newick_tree.calculate_tree()
-    newick_tree.calculate_ancestral_sequence()
-    draw_tree(newick_tree)
-    compute_likelihood_of_tree(newick_tree)
-    selected_files = {'file_probability_per_pos_per_branches_tsv': True,
-                      'file_table_of_branches_tsv': True,
-                      'file_log_likelihood_tsv': True,
-                      'file_table_of_attributes_tsv': True,
-                      'file_phylogenetic_tree_nwk': True}
-    create_all_file_types(newick_tree, file_path=file_path, log_file=log_file, with_internal_nodes=True,
-                          selected_files=selected_files)
-    # newick_tree.print_args('END')
+    # newick_tree.calculate_likelihood()
+    # print(newick_tree.root.up_vector, newick_tree.log_likelihood_vector, newick_tree.log_likelihood, sep='\n')
+    # newick_tree.calculate_up2()
+    # print(newick_tree.root.up_vector2, newick_tree.log_likelihood_vector, newick_tree.log_likelihood, sep='\n')
+    # leaves = newick_tree.get_leaves()
+    # likelihood = 0
+    # for i in range(newick_tree.msa_length):
+    #     likelihood += newick_tree.calculate_up(msa=''.join([newick_tree.msa.get(leaf.name)[i] for leaf in leaves]))
+    #     newick_tree.calculate_down()
+    #     newick_tree.calculate_marginal()
+    #     newick_tree.calculate_gl_probability()
+
+    # print(likelihood)
+    # print(newick_tree.root.children[1].marginal_vector, sep='\n')
+    # print(newick_tree.root.probability_vector, sep='\n')
+    # print(newick_tree.root.probabilities_sequence_characters, sep='\n')
+    # print(newick_tree.root.sequence, sep='\n')
+    # print(newick_tree.root.children[1].branch_probability_vector, sep='\n')
+    #
+    newick_tree.calculate_likelihood()
+    print(newick_tree.log_likelihood)
+    newick_tree.calculate_down()
+    newick_tree.calculate_marginal()
+    # print(newick_tree.root.children[1].branch_probability_vector2, sep='\n')
+    # print('final', newick_tree.likelihood)
+    # print(newick_tree.root.probability_vector2, sep='\n')
+    # print(newick_tree.root.probabilities_sequence_characters2, sep='\n')
+    # print(newick_tree.root.sequence, sep='\n')
+    # print(newick_tree.root.pmatrix)
+    # print(newick_tree.root.up_vector2)
+    # print(newick_tree.root.down_vector2)
+    # newick_tree.calculate_down2()
+    # print(newick_tree.root.down_vector2)
+    # for node in newick_tree.get_all_nodes():
+    #     print(node.name, node.up_vector_vectorized)
+    #
+    # newick_tree.calculate_tree()
+    # newick_tree.calculate_ancestral_sequence()
+    # draw_tree(newick_tree)
+    # compute_likelihood_of_tree(newick_tree)
+    # selected_files = {'file_probability_per_pos_per_branches_tsv': True,
+    #                   'file_table_of_branches_tsv': True,
+    #                   'file_log_likelihood_tsv': True,
+    #                   'file_table_of_attributes_tsv': True,
+    #                   'file_phylogenetic_tree_nwk': True}
+    # create_all_file_types(newick_tree, file_path=file_path, log_file=log_file, with_internal_nodes=True,
+    #                       selected_files=selected_files)
+    # # newick_tree.print_args('END')
 
 
 use_line_profiler = True

@@ -1,9 +1,7 @@
-import pandas as pd
 import numpy as np
 
 from typing import Optional, Dict, Union, List, Tuple, Any
 from scipy.linalg import expm
-from math import log, prod
 from json import loads, dumps
 
 from .npencoder import NpEncoder
@@ -30,23 +28,24 @@ class Node:
     alphabet_size: int
     rate_vector_size: int
     pi_1: Union[float, np.ndarray]
-    frequency: Tuple[Union[float, np.ndarray], ...]
+    frequency: Optional[np.ndarray]
     coefficient_bl: Union[float, np.ndarray, int]
     pmatrix: Optional[Tuple[np.ndarray, ...]]
-    log_likelihood_vector: List[Union[float, np.ndarray]]
-    log_likelihood: Union[float, np.ndarray]
+    log_likelihood_vector: Optional[np.ndarray]
+    log_likelihood: Union[float, np.float64, None]
+    likelihood_vector: Optional[np.ndarray]
+    likelihood: Union[float, np.float64, None]
     sequence_likelihood: Union[float, np.ndarray]
-    likelihood: Union[float, np.ndarray]
-    up_vector: List[List[Union[float, np.ndarray]]]
-    down_vector: List[List[Union[float, np.ndarray]]]
-    marginal_vector: List[List[Union[float, np.ndarray]]]
-    marginal_bl_vector: List[List[Union[float, np.ndarray]]]
-    probability_vector: List[List[Union[float, np.ndarray]]]
-    branch_probability_vector: List[List[Union[float, np.ndarray]]]
-    probability_vector_gain: List[Union[float, np.ndarray]]
-    probability_vector_loss: List[Union[float, np.ndarray]]
+    up_vector: Optional[np.ndarray]
+    down_vector: Optional[np.ndarray]
+    marginal_vector: Optional[np.ndarray]
+    marginal_bl_vector: Optional[np.ndarray]
+    probability_vector: Optional[np.ndarray]
+    branch_probability_vector: Optional[np.ndarray]
+    probability_vector_gain: Optional[np.ndarray]
+    probability_vector_loss: Optional[np.ndarray]
     sequence: str
-    probabilities_sequence_characters: List[Union[float, np.ndarray]]
+    probabilities_sequence_characters: Optional[np.ndarray]
     ancestral_sequence: str
 
     def __init__(self, name: Optional[str]) -> None:
@@ -68,23 +67,24 @@ class Node:
         self.alphabet_size = 2
         self.rate_vector_size = 1
         self.pi_1 = 0.5
-        self.frequency = (0.5, 0.5)
+        self.frequency = np.asarray((0.5, 0.5))
         self.coefficient_bl = 1.0
         self.pmatrix = None
-        self.log_likelihood_vector = []
-        self.log_likelihood = 0.0
+        self.log_likelihood_vector = None
+        self.log_likelihood = None
+        self.likelihood_vector = None
+        self.likelihood = None
         self.sequence_likelihood = 1.0
-        self.likelihood = 0.0
-        self.up_vector = []
-        self.down_vector = []
-        self.marginal_vector = []
-        self.marginal_bl_vector = []
-        self.probability_vector = []
-        self.branch_probability_vector = []
-        self.probability_vector_gain = []
-        self.probability_vector_loss = []
+        self.up_vector = None
+        self.down_vector = None
+        self.marginal_vector = None
+        self.marginal_bl_vector = None
+        self.probability_vector = None
+        self.branch_probability_vector = None
+        self.probability_vector_gain = None
+        self.probability_vector_loss = None
         self.sequence = ''
-        self.probabilities_sequence_characters = []
+        self.probabilities_sequence_characters = None
         self.ancestral_sequence = ''
 
     def __str__(self) -> str:
@@ -218,182 +218,96 @@ class Node:
         return None
 
     def get_pmatrix(self, rate: Union[float, np.ndarray] = 1.0):
+
         return self.get_one_parameter_pmatrix(rate)
 
-    def calculate_sequence_likelihood(self) -> None:
-        self.sequence_likelihood *= self.likelihood
-        self.log_likelihood += log(max(self.likelihood, eps))
-        self.log_likelihood_vector.append(log(max(self.likelihood, eps)))
-
-    def calculate_gl_probability(self) -> None:
-        self.marginal_bl_vector = []
-
-        for r in range(self.rate_vector_size):
-            current_marginal_bl_vector = []
-            for j in range(self.alphabet_size):
-                for i in range(self.alphabet_size):
-                    current_marginal_bl_vector.append(self.frequency[i] * self.up_vector[r][j] *
-                                                      self.pmatrix[r][i, j] * self.down_vector[r][i])
-            self.marginal_bl_vector.append(current_marginal_bl_vector)
-
-        likelihood = (np.sum([np.sum(self.marginal_bl_vector[r]) for r in range(self.rate_vector_size)]) /
-                      self.rate_vector_size)
-        likelihood = max(likelihood, eps)
-
-        branch_probability_vector = []
-        for i in range(self.alphabet_size * self.alphabet_size):
-            branch_probability_vector.append(np.sum([self.marginal_bl_vector[r][i] for r in
-                                             range(self.rate_vector_size)]) / self.rate_vector_size / likelihood)
-        self.branch_probability_vector.append(branch_probability_vector)
-        self.probability_vector_loss.append(branch_probability_vector[1])
-        self.probability_vector_gain.append(branch_probability_vector[2])
-
-    def calculate_marginal(self) -> Tuple[Union[Union[List[List[np.ndarray]], List[List[float]]], float],
-                                          Union[np.ndarray, float]]:
-        self.marginal_vector = []
-
-        for r in range(self.rate_vector_size):
-            current_marginal_vector = []
-            for j in range(self.alphabet_size):
-                marg = 0
-                for i in range(self.alphabet_size):
-                    marg += self.frequency[i] * self.pmatrix[r][i, j] * self.down_vector[r][i]
-                current_marginal_vector.append(self.up_vector[r][j] * marg)
-            self.marginal_vector.append(current_marginal_vector)
-
-        likelihood = (np.sum([np.sum(self.marginal_vector[r]) for r in range(self.rate_vector_size)]) /
-                      self.rate_vector_size)
-        likelihood = max(likelihood, eps)
-
-        probability_vector = []
-        for i in range(self.alphabet_size):
-            probability_vector.append(np.sum([self.marginal_vector[r][i] for r in range(self.rate_vector_size)]) /
-                                      self.rate_vector_size / likelihood)
-        self.probability_vector.append(probability_vector)
-        probability = max(self.probability_vector[-1])
-        self.sequence = f'{self.sequence}{self.alphabet[self.probability_vector[-1].index(probability)]}'
-        self.probabilities_sequence_characters.append(probability)
-
-        return self.marginal_vector, likelihood
-
-    def calculate_up(self, nodes_dict: Dict[str, Tuple[int, ...]]
-                     ) -> Union[Union[List[List[np.ndarray]], List[List[float]]], float]:
-        self.up_vector = []
-        self.likelihood = 0
-
-        if not self.children:
-            up_vector = list(nodes_dict.get(self.name))
-            max_up_vector = max(up_vector)
-            for r in range(self.rate_vector_size):
-                likelihood = np.sum([self.frequency[i] * 1 / self.rate_vector_size * up_vector[i]
-                                     for i in range(len(up_vector))])
-                self.likelihood += likelihood
-                self.up_vector.append(up_vector)
-            probable_character = self.alphabet[up_vector.index(max_up_vector)]
-            self.sequence = f'{self.sequence}{probable_character}'
-            self.probabilities_sequence_characters.append(max_up_vector)
-
-            self.calculate_sequence_likelihood()
-
-            return self.up_vector
+    def calculate_up(self, rate_vector_length: int, alphabet_length: int, msa_length: int) -> None:
+        total_up = np.ones((rate_vector_length, alphabet_length, msa_length))
 
         for child in self.children:
-            child.calculate_up(nodes_dict)
+            child_contribution = np.einsum('rji,ril->rjl', child.pmatrix, child.up_vector)
 
-        for r in range(self.rate_vector_size):
-            up_vector = []
-            for j in range(self.alphabet_size):
-                probabilities = {}
-                for i in range(self.alphabet_size):
-                    for child in self.children:
-                        p1 = child.pmatrix[r][j, i] * child.up_vector[r][i]
-                        probabilities.update({child.name: probabilities.get(child.name, 0.0) + p1})
+            total_up *= child_contribution
 
-                up_vector.append(prod(probabilities.values()))
-            self.up_vector.append(up_vector)
-            self.likelihood += np.sum([self.frequency[i] * 1 / self.rate_vector_size * up_vector[i] for i in
-                                       range(len(up_vector))])
+        self.up_vector = total_up
 
-        self.calculate_sequence_likelihood()
+        weighted_vector = self.up_vector * self.frequency[:, np.newaxis]
 
-        if self.father:
-            return self.up_vector
+        likelihood_per_site = np.sum(np.mean(weighted_vector, axis=0), axis=0)
+
+        # invalid_mask = (likelihood_per_site == 0.0) | np.isnan(likelihood_per_site) | np.isinf(likelihood_per_site)
+        invalid_mask = (likelihood_per_site <= 0.0) | np.isnan(likelihood_per_site)
+        likelihood_per_site = np.where(invalid_mask, eps, likelihood_per_site)
+
+        self.likelihood_vector = likelihood_per_site
+        self.likelihood = np.prod(likelihood_per_site)
+        self.log_likelihood_vector = np.log(likelihood_per_site)
+        self.log_likelihood = np.sum(self.log_likelihood_vector)
+
+    def calculate_down(self, rate_vector_length: int, alphabet_length: int, msa_length: int) -> None:
+        total_down = np.ones((rate_vector_length, alphabet_length, msa_length))
+        if not self.father:
+            self.down_vector = total_down
+
         else:
-            return self.likelihood
+            brothers = [b for b in self.father.children if b != self]
+            for brother in brothers:
+                brother_contrib = np.einsum('rji,ril->rjl', brother.pmatrix, brother.up_vector)
+                total_down *= brother_contrib
 
-    def calculate_down(self, tree_info: pd.Series) -> None:
-        self.down_vector = []
+            if self.father.father:
+                father_contrib = np.einsum('rji,ril->rjl', self.father.pmatrix, self.father.down_vector)
+                total_down *= father_contrib
 
-        father = self.father
-        if father:
-            brothers = tuple([father.get_node_by_name(i) for i in tree_info.get(father.name).get('children') if i !=
-                              self.name])
+        # sum_vector = np.sum(accumulated_down, axis=-1, keepdims=True)
+        # self.down_vector2 = accumulated_down + 1e-300
+        self.down_vector = total_down
 
-            for r in range(self.rate_vector_size):
-                current_down_vector = []
-                for j in range(self.alphabet_size):
-                    probabilities = {}
-                    for i in range(self.alphabet_size):
-                        for brother in brothers:
-                            probabilities.update(
-                                {brother.name:
-                                 probabilities.get(brother.name, 0) + (brother.pmatrix[r][j, i] *
-                                                                       brother.up_vector[r][i])})
-                        if father.father:
-                            probabilities.update(
-                                {father.name: probabilities.get(father.name, 0) + (father.pmatrix[r][j, i] *
-                                                                                   father.down_vector[r][i])})
+    def calculate_marginal(self, rate_vector_length: int, msa_length: int) -> None:
+        marg = np.einsum('i,rij,ril->rjl', self.frequency, self.pmatrix, self.down_vector)
 
-                    current_down_vector.append(prod(probabilities.values()))
-                self.down_vector.append(current_down_vector)
+        self.marginal_vector = self.up_vector * marg
+        self.marginal_bl_vector = np.einsum('i,ril,rij,rjl->rjil', self.frequency, self.down_vector,
+                                            self.pmatrix, self.up_vector)
 
-            for child in self.children:
-                child.calculate_down(tree_info)
-        else:
-            self.down_vector = [[1] * self.alphabet_size for _ in range(self.rate_vector_size)]
-            for child in self.children:
-                child.calculate_down(tree_info)
+        likelihoods = np.sum(self.marginal_vector, axis=(0, 1)) / rate_vector_length
+        invalid_mask = (likelihoods == 0.0) | np.isnan(likelihoods) | np.isinf(likelihoods)
+        likelihoods = np.where(invalid_mask, eps, likelihoods)
+        summed_marginal = np.sum(self.marginal_vector, axis=0)
+        summed_marginal_bl = np.sum(self.marginal_bl_vector, axis=0)
+        current_branch_prob = summed_marginal_bl / (rate_vector_length * likelihoods[None, None, :])
+
+        self.probability_vector = (summed_marginal / (rate_vector_length * likelihoods)).T
+        self.branch_probability_vector = current_branch_prob.transpose(2, 0, 1).reshape(msa_length, -1)
+        self.probability_vector_loss = self.branch_probability_vector[:, 1]
+        self.probability_vector_gain = self.branch_probability_vector[:, 2]
+
+        max_indices = np.argmax(self.probability_vector, axis=1)
+        reconstructed_chars = np.array(self.alphabet)[max_indices]
+
+        self.probabilities_sequence_characters = self.probability_vector[np.arange(msa_length), max_indices]
+        self.sequence = ''.join(reconstructed_chars)
 
     def clean_all(self):
-        for current_node in self.get_list_nodes_info(only_node_list=True):
-            current_node.log_likelihood_vector = []
-            current_node.log_likelihood = 0.0
-            current_node.sequence_likelihood = 1.0
-            current_node.likelihood = 0.0
-            current_node.up_vector = []
-            current_node.down_vector = []
-            current_node.marginal_vector = []
-            current_node.marginal_bl_vector = []
-            current_node.probability_vector = []
-            current_node.branch_probability_vector = []
-            current_node.probability_vector_gain = []
-            current_node.probability_vector_loss = []
-            current_node.sequence = ''
-            current_node.probabilities_sequence_characters = []
-            current_node.ancestral_sequence = ''
-
-    def calculate_likelihood(self, msa_dict: Dict[str, str]) -> Tuple[List[float], float, float]:
-
-        leaves_info = self.get_list_nodes_info(True, 'pre-order', {'node_type': ['leaf']})
-
-        len_seq = len(min(list(msa_dict.values())))
-        likelihood, log_likelihood, log_likelihood_list = 1, 0, []
-        for i_char in range(len_seq):
-            nodes_dict = dict()
-            for i in range(len(leaves_info)):
-                node_name = leaves_info[i].get('node')
-                character = msa_dict.get(node_name)[i_char]
-                nodes_dict.update({node_name: tuple([int(j == character) for j in self.alphabet])})
-
-            char_likelihood = self.calculate_up(nodes_dict)
-            likelihood *= char_likelihood
-            log_likelihood += log(max(char_likelihood, eps))
-            log_likelihood_list.append(log(max(char_likelihood, eps)))
-
-        return log_likelihood_list, log_likelihood, likelihood
+        self.log_likelihood_vector = None
+        self.log_likelihood = None
+        self.likelihood_vector = None
+        self.likelihood = None
+        self.sequence_likelihood = 1.0
+        self.up_vector = None
+        self.down_vector = None
+        self.marginal_vector = None
+        self.marginal_bl_vector = None
+        self.probability_vector = None
+        self.branch_probability_vector = None
+        self.probability_vector_gain = None
+        self.probability_vector_loss = None
+        self.sequence = ''
+        self.probabilities_sequence_characters = None
+        self.ancestral_sequence = ''
 
     def get_one_parameter_pmatrix(self, rate: Union[float, np.float64, np.ndarray] = 1.0) -> np.ndarray:
-        qmatrix = np.zeros((2, 2), dtype='float32')
+        qmatrix = np.zeros((2, 2), dtype=np.float64)
         qmatrix[0, 0] = - 1 / (2 * (1 - self.pi_1))
         qmatrix[0, 1] = 1 / (2 * (1 - self.pi_1))
         qmatrix[1, 0] = 1 / (2 * self.pi_1)

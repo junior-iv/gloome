@@ -23,23 +23,23 @@ def write_file(file_path: Path, data: Union[str, Any]):
 
 
 def main():
-    taxa_list = [8, 16, 32, 64, 128, 256]
-    sites_quantity = 100
+    # taxa_list = [8, 16, 32, 64, 128, 256]
+    # sites_quantity = 100
     categories_quantity = 4
     alpha = 0.5
     pi_1 = 0.5
     coefficient_bl = 1
-    branch_lengths = 0.5
-    seed = 24
-    fasta_text = None
-    newick_text = None
+    # branch_lengths = 0.5
+    # seed = 24
+    # fasta_text = None
+    # newick_text = None
     # seed = 42
     #
     # Tree.generate_scatter_plot(taxa_list, sites_quantity, categories_quantity, alpha, pi_1, branch_lengths, seed)
     #
     dirname = BIN_DIR
-    msa_file = dirname.joinpath('gloome/data/initial_data/msa/patternMSA1.msa')
-    tree_file = dirname.joinpath('gloome/data/initial_data/tree/newickTree1.tree')
+    msa_file = dirname.joinpath('gloome/data/initial_data/msa/patternMSA0.msa')
+    tree_file = dirname.joinpath('gloome/data/initial_data/tree/newickTree0.tree')
     # msa_file = dirname.joinpath('gloome/data/initial_data/msa/patternMSA11.fasta')
     # tree_file = dirname.joinpath('gloome/data/initial_data/tree/newickTree11.nwk')
     fasta_text = read_file(msa_file)
@@ -134,8 +134,6 @@ def main():
     # #     for node in nodes_list:
     # #         probabilities.append(node.probability_vector_loss)
     # #         probabilities.append(node.probability_vector_gain)
-
-
 
 
 main()

@@ -11,7 +11,7 @@ from d3blocks import D3Blocks
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
 from Bio.Phylo.NewickIO import Writer
-from scipy.stats import gamma, pearsonr
+from scipy.stats import gamma, pearsonr, distributions
 from scipy.special import gammainc
 from scipy.optimize import minimize_scalar
 from io import StringIO
@@ -19,25 +19,31 @@ from io import StringIO
 from .node import Node
 from .npencoder import NpEncoder
 
+eps = 5e-324
+
 
 class Tree:
     root: Optional[Node] = None
     alphabet: Optional[Tuple[str, ...]] = None
     msa: Optional[Dict[str, str]] = None
-    rate_vector: Tuple[Union[float, np.ndarray, int], ...] = (1.0, )
-    alpha: Optional[Union[float, np.ndarray, int]] = None
+    rate_vector: Tuple[Union[float, np.float64, int], ...] = (1.0, )
+    alpha: Optional[Union[float, np.float64, int]] = None
     categories_quantity: Optional[int] = None
-    pi_1: Optional[Union[float, np.ndarray, int]] = None
-    coefficient_bl: Optional[Union[float, np.ndarray, int]] = 1,
-    log_likelihood_vector: Optional[List[Union[float, np.ndarray]]] = None
-    log_likelihood: Optional[Union[float, np.ndarray]] = None
-    likelihood: Optional[Union[float, np.ndarray]] = None
+    pi_1: Optional[Union[float, np.float64, int]] = None
+    coefficient_bl: Optional[Union[float, np.float64, int]] = 1,
+    log_likelihood_vector: Optional[np.ndarray] = None
+    log_likelihood: Optional[Union[float, np.float64]] = None
+    likelihood_vector: Optional[np.ndarray] = None
+    likelihood: Optional[Union[float, np.float64]] = None
     posterior_rates: Optional[np.ndarray] = None
     correlation_vector: Optional[np.ndarray] = None
     calculated_ancestor_sequence: bool = False
     calculated_tree: bool = False
     calculated_likelihood: bool = False
     all_nodes: Dict[str, Node]
+    alphabet_length: int
+    msa_length: int
+    rate_vector_length: int
 
     def __init__(self, data: Optional[Union[str, Node]] = None, node_name: Optional[str] = None, **kwargs) -> None:
         """
@@ -75,11 +81,13 @@ class Tree:
 
         self.all_nodes = {current_node.name: current_node for current_node in self.get_all_nodes()}
 
-        self.msa, self.alphabet, self.categories_quantity, self.alpha = None, None, None, None
-        self.rate_vector = (1.0,)
+        self.msa = self.alphabet = self.categories_quantity = self.alpha = None
+        self.rate_vector = (1.0, )
+        self.rate_vector_length = 1
         self.pi_1, self.coefficient_bl = None, 1
-        self.log_likelihood_vector, self.log_likelihood, self.likelihood = None, None, None
-        self.correlation_vector, self.posterior_rates = None, None
+        self.log_likelihood_vector = self.likelihood_vector = self.correlation_vector = self.posterior_rates = None
+        self.log_likelihood = self.likelihood = 0.0
+
         self.calculated_ancestor_sequence = self.calculated_tree = self.calculated_likelihood = False
 
         if any(kwargs.values()):
@@ -92,8 +100,9 @@ class Tree:
 
     def __dir__(self) -> List[str]:
         return ['root', 'alphabet', 'msa', 'rate_vector', 'alpha', 'categories_quantity', 'pi_1', 'coefficient_bl',
-                'log_likelihood_vector', 'log_likelihood', 'likelihood', 'posterior_rates', 'correlation_vector',
-                'calculated_ancestor_sequence', 'calculated_tree', 'calculated_likelihood']
+                'log_likelihood_vector', 'log_likelihood', 'likelihood_vector', 'likelihood', 'posterior_rates',
+                'correlation_vector', 'calculated_ancestor_sequence', 'calculated_tree', 'calculated_likelihood',
+                'all_nodes', 'alphabet_length', 'msa_length', 'rate_vector_length']
 
     def __dict__(self) -> [Optional[Node], Optional[Tuple[str, ...]], Optional[Dict[str, str]],
                            Tuple[Union[float, np.ndarray, int], ...], Optional[Union[float, np.ndarray, int]],
@@ -110,12 +119,17 @@ class Tree:
                 'coefficient_bl': self.coefficient_bl,
                 'log_likelihood_vector': self.log_likelihood_vector,
                 'log_likelihood': self.log_likelihood,
+                'likelihood_vector': self.likelihood_vector,
                 'likelihood': self.likelihood,
                 'posterior_rates': self.posterior_rates,
                 'correlation_vector': self.correlation_vector,
                 'calculated_ancestor_sequence': self.calculated_ancestor_sequence,
                 'calculated_tree': self.calculated_tree,
-                'calculated_likelihood': self.calculated_likelihood}
+                'calculated_likelihood': self.calculated_likelihood,
+                'all_nodes': self.all_nodes,
+                'alphabet_length': self.alphabet_length,
+                'msa_length': self.msa_length,
+                'rate_vector_length': self.rate_vector_length}
 
     def __len__(self) -> int:
         return self.get_node_count()
@@ -167,6 +181,9 @@ class Tree:
             self.set_alpha(alpha, beta)
             self.alphabet = self.get_alphabet()
             self.generate_sequence(size=1)
+
+        self.msa_length = len(next(iter(self.msa.values())))
+        self.alphabet_length = len(self.alphabet)
 
         self.set_all(categories_quantity, alpha, beta, pi_0, pi_1, coefficient_bl)
 
@@ -451,6 +468,7 @@ class Tree:
                                            'up_vector': 'Up',
                                            'down_vector': 'Down',
                                            'likelihood': 'Likelihood',
+                                           'likelihood_vector': 'Vector of likelihood',
                                            'sequence_likelihood': 'Likelihood of sequence',
                                            'log_likelihood': 'Log-likelihood',
                                            'log_likelihood_vector': 'Vector of log-likelihood',
@@ -464,8 +482,9 @@ class Tree:
                                            'probability_vector_loss': 'Loss probability'}
         lists = lists if lists else ('children', 'full_distance', 'full_distance_taking_into_coefficient', 'up_vector',
                                      'down_vector', 'marginal_vector', 'marginal_bl_vector', 'probability_vector',
-                                     'probabilities_sequence_characters', 'log_likelihood_vector', 'sequence',
-                                     'ancestral_sequence', 'probability_vector_gain', 'probability_vector_loss')
+                                     'probabilities_sequence_characters', 'log_likelihood_vector', 'likelihood_vector',
+                                     'sequence', 'ancestral_sequence', 'probability_vector_gain',
+                                     'probability_vector_loss')
         exceptions = ('sequence', 'ancestral_sequence')
 
         for node_info in nodes_info:
@@ -522,31 +541,49 @@ class Tree:
 
         return 'OK' if self.calculated_ancestor_sequence else ''
 
-    def calculate_gl_probability(self) -> None:
-        node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
-
-        for current_node in node_list:
-            current_node.calculate_gl_probability()
-
-    def calculate_marginal(self, newick_node: Optional[Union[Node, str]] = None) -> None:
-        if not newick_node:
-            node_list = self.get_nodes()
-        else:
-            node_list = []
-            if isinstance(newick_node, str):
-                node_list.append(self.get_node_by_name(newick_node))
-            elif isinstance(newick_node, Node):
-                node_list.append(newick_node)
-
-        for current_node in node_list:
-            current_node.calculate_marginal()
-
-    def calculate_up(self, msa: str) -> Union[float, np.ndarray]:
-
-        return self.root.calculate_up(self.get_msa_dict(msa, self.alphabet))
+    def calculate_marginal(self) -> None:
+        for current_node in self.get_all_nodes():
+            current_node.calculate_marginal(self.rate_vector_length, self.msa_length)
 
     def calculate_down(self) -> None:
-        self.root.calculate_down(self.get_tree_info())
+        for current_node in self.get_all_nodes():
+            current_node.calculate_down(self.rate_vector_length, self.alphabet_length, self.msa_length)
+
+    def calculate_up(self) -> None:
+        self.initialize_leaf_up_vectors()
+        self.initialize_node_up_vectors()
+
+        self.likelihood_vector = self.root.likelihood_vector
+        self.likelihood = self.root.likelihood
+        self.log_likelihood_vector = self.root.log_likelihood_vector
+        self.log_likelihood = self.root.log_likelihood
+
+        self.calculated_likelihood = True
+
+    def get_log_likelihood(self) -> Union[np.float64, float]:
+        if self.msa and self.alphabet:
+            self.calculate_up()
+
+        return self.log_likelihood
+
+    def initialize_node_up_vectors(self) -> None:
+        for current_node in self.get_nodes(mode='post-order'):
+            current_node.calculate_up(self.rate_vector_length, self.alphabet_length, self.msa_length)
+
+    def initialize_leaf_up_vectors(self) -> None:
+        for leaf in self.get_leaves():
+            sequence = np.asarray(list(self.msa[leaf.name]))
+            up_vector = np.zeros((self.rate_vector_length, self.alphabet_length, self.msa_length), dtype=np.float64)
+            mask_0 = (sequence == '0')
+            mask_1 = (sequence == '1')
+
+            up_vector[:, 0, mask_0] = 1.0
+            up_vector[:, 1, mask_1] = 1.0
+
+            mask_gap = (sequence == '-') | (sequence == '?')
+            up_vector[:, :, mask_gap] = 1.0
+
+            leaf.up_vector = up_vector
 
     def get_msa_dict(self, msa: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None, only_leaves: bool = True
                      ) -> Dict[str, Union[Tuple[int, ...], str]]:
@@ -578,30 +615,25 @@ class Tree:
         self.set_posterior_rates_vector(prior)
         self.set_pearson_correlation_vector(probability_lg, number_lg)
 
-    def calculate_tree(self) -> Dict[str, Union[float, np.ndarray, int]]:
+    def calculate_tree(self) -> Dict[str, Union[float, np.ndarray, int, np.float64]]:
         if self.msa and not self.calculated_tree:
             self.clean_all()
 
-            leaves = self.get_leaves()
-            len_seq = len(next(iter(self.msa.values())))
-            for i in range(len_seq):
-                self.likelihood *= self.calculate_up(msa=''.join([self.msa.get(leaf.name)[i] for leaf in leaves]))
-                self.calculate_down()
-                self.calculate_marginal()
-                self.calculate_gl_probability()
-            self.log_likelihood, self.log_likelihood_vector = self.root.log_likelihood, self.root.log_likelihood_vector
-            self.calculated_tree = True
-            self.calculated_likelihood = True
+            self.calculate_up()
+            self.calculate_down()
+            self.calculate_marginal()
 
-        return {'likelihood': self.likelihood, 'log_likelihood': self.log_likelihood,
+            self.calculated_tree = True
+
+        return {'likelihood': self.likelihood,
+                'likelihood_vector': self.likelihood_vector,
+                'log_likelihood': self.log_likelihood,
                 'log_likelihood_vector': self.log_likelihood_vector}
 
     def calculate_likelihood(self) -> None:
         if self.msa and self.alphabet and not self.calculated_likelihood:
             self.clean_all()
-            self.log_likelihood_vector, self.log_likelihood, self.likelihood = (
-                self.root.calculate_likelihood(self.msa))
-            self.calculated_likelihood = True
+            self.calculate_up()
 
     def get_fasta_text(self) -> str:
 
@@ -700,10 +732,12 @@ class Tree:
 
         return file_name
 
-    def pearson_correlation_to_tsv(self, file_name: str = 'PearsonCorrelation.tsv', sep: str = '\t') -> str:
+    def pearson_correlation_to_tsv(self, file_name: str = 'PearsonCorrelation.tsv', sep: str = '\t',
+                                   probability_lg: Union[float, np.ndarray] = 0.9,
+                                   number_lg: Union[float, np.ndarray, int] = 5) -> str:
 
         if self.correlation_vector is None:
-            self.set_pearson_correlation_vector()
+            self.calculate_correlation(probability_lg=probability_lg, number_lg=number_lg)
 
         df = pd.DataFrame({'POS1': np.int16(self.correlation_vector[0]),
                            'POS2': np.int16(self.correlation_vector[1]),
@@ -908,21 +942,21 @@ class Tree:
         self.set_pi(current_pi[mode], current_pi[::-1][mode])
         self.set_vars()
 
-        return -self.root.calculate_likelihood(self.msa)[1]
+        return -self.get_log_likelihood()
 
     def alpha_optimization(self, alpha: Union[int, float, np.ndarray]) -> Union[float, np.ndarray]:
         self.clean_all()
         self.set_gamma_distribution_categories_vector(alpha)
         self.set_vars()
 
-        return -self.root.calculate_likelihood(self.msa)[1]
+        return -self.get_log_likelihood()
 
     def coefficient_bl_optimization(self, coefficient_bl: Union[int, float, np.ndarray]) -> Union[float, np.ndarray]:
         self.clean_all()
         self.set_coefficient_bl(coefficient_bl)
         self.set_vars()
 
-        return -self.root.calculate_likelihood(self.msa)[1]
+        return -self.get_log_likelihood()
 
     def optimize_coefficient_bl(self, is_optimize_bl: Optional[bool] = None) -> None:
         if is_optimize_bl:
@@ -950,9 +984,10 @@ class Tree:
         self.set_vars()
 
     def clean_all(self):
-        self.root.clean_all()
-        self.likelihood, self.log_likelihood, self.log_likelihood_vector = 1, 0, []
-        self.correlation_vector, self.posterior_rates = None, None
+        for current_node in self.get_all_nodes():
+            current_node.clean_all()
+        self.log_likelihood_vector = self.likelihood_vector = self.correlation_vector = self.posterior_rates = None
+        self.log_likelihood = self.likelihood = 0.0
 
     def set_all(self, categories_quantity: Optional[int] = None, alpha: Optional[float] = None,
                 beta: Optional[float] = None, pi_0: Optional[Union[float, np.ndarray, int]] = None,
@@ -977,6 +1012,7 @@ class Tree:
             categories_vector.append(mean)
 
         self.rate_vector = tuple(categories_vector)
+        self.rate_vector_length = len(self.rate_vector)
 
     def set_coefficient_bl(self, coefficient_bl: Optional[Union[float, np.ndarray, int]] = None) -> None:
         self.coefficient_bl = 1.0 if coefficient_bl is None else coefficient_bl
@@ -1005,10 +1041,10 @@ class Tree:
             current_node.alphabet = self.alphabet
             current_node.alphabet_size = alphabet_size
             current_node.rate_vector_size = rate_vector_size
-            current_node.frequency = frequency
+            current_node.frequency = np.asarray(frequency, dtype=np.float64)
             current_node.pi_1 = self.pi_1
             current_node.coefficient_bl = self.coefficient_bl
-            current_node.pmatrix = tuple([current_node.get_pmatrix(r) for r in self.rate_vector])
+            current_node.pmatrix = np.asarray([current_node.get_pmatrix(r) for r in self.rate_vector])
 
     def get_gamma_distribution_percent_point(self) -> List[float]:
         probability_vector = np.linspace(0, 1, self.categories_quantity + 1)
@@ -1026,55 +1062,86 @@ class Tree:
         return self.get_fasta_text() if msa_type == str else self.msa
 
     def set_posterior_rates_vector(self, prior: Optional[np.ndarray] = None) -> None:
-        rate_vector_length = len(self.rate_vector)
-        num_sites = len(next(iter(self.msa.values())))
+        prior = np.ones(self.rate_vector_length) / self.rate_vector_length if prior is None else prior
+        prior = np.asarray(prior)
+        assert len(prior) == self.rate_vector_length, 'prior length must match number of rate categories'
 
-        prior = np.ones(rate_vector_length) / rate_vector_length if prior is None else prior
-        prior = np.array(prior)
-        assert len(prior) == rate_vector_length, 'prior length must match number of rate categories'
+        if not self.calculated_likelihood:
+            self.calculate_up()
 
-        leaves = self.get_leaves()
-        posterior = np.zeros(num_sites)
-        for i in range(num_sites):
-            self.calculate_up(msa=''.join([self.msa.get(leaf.name)[i] for leaf in leaves]))
-            likelihoods_per_rate = np.array([sum(self.root.frequency[j] * self.root.up_vector[r][j] for j in
-                                                 range(self.root.alphabet_size)) for r in range(rate_vector_length)])
-            weighted = likelihoods_per_rate * prior
-            posterior[i] = np.dot(self.rate_vector, weighted) / weighted.sum()
-            # posterior[i] = np.where(posterior[i] == np.nan, np.float64(0), posterior[i])
+        likelihoods_per_rate = np.einsum('j,rji->ri', self.root.frequency, self.root.up_vector)
+        invalid_mask = (likelihoods_per_rate <= 0.0) | np.isnan(likelihoods_per_rate)
+        likelihoods_per_rate = np.where(invalid_mask, eps, likelihoods_per_rate)
+        weighted = likelihoods_per_rate * prior[:, np.newaxis]
+        weighted_sum = weighted.sum(axis=0)
+        numerator = np.einsum('r,ri->i', self.rate_vector, weighted)
+        posterior = np.divide(numerator, weighted_sum, where=(weighted_sum > 0), out=np.zeros_like(numerator))
 
         self.posterior_rates = posterior
 
     def set_pearson_correlation_vector(self, probability_lg: Union[float, np.ndarray] = 0.9,
                                        number_lg: Union[float, np.ndarray, int] = 5) -> None:
         nodes_list = self.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
-        num_sites = len(next(iter(self.msa.values())))
-        site_probabilities = []
-        indices = []
 
-        for i in range(num_sites):
-            probabilities = []
-            for node in nodes_list:
-                probabilities.append(node.probability_vector_loss[i])
-                probabilities.append(node.probability_vector_gain[i])
+        # 1. Aggregate all node data into a single matrix of shape (2 * len(nodes_list), msa_length)
+        # First, extract loss and gain probability vectors for all nodes
+        loss_vectors = np.array([node.probability_vector_loss for node in nodes_list])  # Shape: (nodes, msa)
+        gain_vectors = np.array([node.probability_vector_gain for node in nodes_list])  # Shape: (nodes, msa)
 
-            if sum(np.array(probabilities) >= probability_lg) >= number_lg:
-                indices.append(i)
+        # Interleave vectors (loss1, gain1, loss2, gain2...) along the first axis
+        # To do this, stack them into a 3D array and reshape to 2D
+        site_probs_matrix = np.stack((loss_vectors, gain_vectors), axis=1).reshape(-1, self.msa_length)
 
-            site_probabilities.append(probabilities)
-        unique_item = np.unique(indices)
+        # 2. Vectorized site filtering (replaces the first loop)
+        # Evaluate the threshold condition for the entire matrix simultaneously
+        condition_mask = site_probs_matrix >= probability_lg
+        # Count True values for each site (axis=0 corresponds to the msa_length axis)
+        counts_per_site = np.sum(condition_mask, axis=0)
+        # Get indices of sites where the count satisfies the threshold criteria
+        unique_item = np.where(counts_per_site >= number_lg)[0]
+
+        # 3. Generate unique pairs (couples) using upper triangle indices
         idx1, idx2 = np.triu_indices(len(unique_item), k=1)
         couples = np.column_stack((unique_item[idx1], unique_item[idx2]))
+
+        # 4. Fast matrix computation of Pearson correlation (replaces the second loop)
+        # Extract only the filtered sites from the main probability matrix
+        filtered_probs = site_probs_matrix[:, unique_item]  # Shape: (2*nodes, len(unique_item))
+
+        # Compute the correlation matrix for all combinations of filtered sites
+        # np.corrcoef expects variables in rows, so we transpose filtered_probs
+        corr_matrix = np.corrcoef(filtered_probs.T)
+
+        # Extract correlation coefficients (r) for the targeted pairs
+        r_coefficients = corr_matrix[idx1, idx2]
+
+        # 5. Vectorized calculation of p-values for correlation coefficients (safe and precise)
+        df = site_probs_matrix.shape[0] - 2
+
+        # Create a mask for elements where the correlation is NOT perfect
+        # (If r == 1 or -1, the p-value is guaranteed to be exactly 0.0)
+        valid_r_mask = np.abs(r_coefficients) < 1.0
+
+        # Initialize the t-statistic array, defaulting to zeros
+        t_stat = np.zeros_like(r_coefficients)
+
+        # Calculate the t-statistic ONLY for pairs where division by zero will not occur
+        t_stat[valid_r_mask] = r_coefficients[valid_r_mask] * np.sqrt(df / (1.0 - r_coefficients[valid_r_mask] ** 2))
+
+        # Calculate the p-values for valid non-perfect correlation values
+        p_values = np.zeros_like(r_coefficients)
+        p_values[valid_r_mask] = distributions.t.sf(np.abs(t_stat[valid_r_mask]), df) * 2
+
+        # For perfect correlations (where valid_r_mask == False), values will remain exact zeros
+
+        # 6. Assemble the final matrix of results
         correlation_vector = np.zeros((4, len(couples)))
+        correlation_vector[0] = unique_item[idx1]  # Site indices i
+        correlation_vector[1] = unique_item[idx2]  # Site indices j
+        correlation_vector[2] = r_coefficients     # Correlation coefficients r
+        correlation_vector[3] = p_values           # Calculated p-values
 
-        for n, couple in enumerate(couples):
-            i, j = couple
-            r_corr, p_val = pearsonr(site_probabilities[i], site_probabilities[j])
-            correlation_vector[0][n] = i
-            correlation_vector[1][n] = j
-            correlation_vector[2][n] = r_corr
-            correlation_vector[3][n] = p_val
-
+        # print(np.allclose(old_correlation_vector, correlation_vector, atol=1e-12))
         self.correlation_vector = correlation_vector
 
     @classmethod
@@ -1429,8 +1496,8 @@ class Tree:
 
         lists = ('children', 'full_distance', 'full_distance_taking_into_coefficient', 'up_vector', 'down_vector',
                  'marginal_vector', 'marginal_bl_vector', 'probability_vector', 'probabilities_sequence_characters',
-                 'log_likelihood_vector', 'probability_vector_gain', 'probability_vector_loss', 'ancestral_sequence',
-                 'sequence')
+                 'log_likelihood_vector', 'likelihood_vector', 'probability_vector_gain', 'probability_vector_loss',
+                 'ancestral_sequence', 'sequence')
         decimals = 4
         if mode == 'node':
             columns = columns if columns else {'node': 'Name', 'node_type': 'Node type', distance_name:

@@ -133,7 +133,9 @@ def execute_all_actions(newick_tree: Union[str, Tree], file_path: Union[str, Pat
                         form_data: Optional[Dict[str, Union[str, int, float, ndarray]]] = None,
                         log_file: Optional[str] = None, with_internal_nodes: bool = True,
                         actions: Optional[Dict[str, bool]] = None, selected_files: Optional[Dict[str, bool]] = None,
-                        use_copap: Optional[bool] = None
+                        use_copap: Optional[bool] = None,
+                        probability_lg: Union[float, ndarray] = 0.9,
+                        number_lg: Union[float, ndarray, int] = 5
                         ) -> Union[Dict[str, str], Path]:
     result_data = {}
     if actions is None or actions.get('draw_tree', False):
@@ -143,7 +145,7 @@ def execute_all_actions(newick_tree: Union[str, Tree], file_path: Union[str, Pat
     if actions is None or actions.get('create_all_file_types', False):
         result_data.update({'create_all_file_types': create_all_file_types(newick_tree, file_path, log_file,
                                                                            with_internal_nodes, selected_files,
-                                                                           use_copap)})
+                                                                           use_copap, probability_lg, number_lg)})
     if create_new_file:
         file_path = file_path.joinpath('result.json') if isinstance(file_path, Path) else f'{file_path}/result.json'
         return create_file(file_path, get_result_data(result_data, 'execute_all_actions', form_data), 'result.json')
@@ -162,7 +164,9 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                           log_file: Optional[Union[str, Path]] = None,
                           with_internal_nodes: Optional[bool] = True,
                           selected_files: Optional[Dict[str, bool]] = None,
-                          use_copap: Optional[bool] = None
+                          use_copap: Optional[bool] = None,
+                          probability_lg: Union[float, ndarray] = 0.9,
+                          number_lg: Union[float, ndarray, int] = 5
                           ) -> Union[Dict[str, str], str]:
     selected_files = (SELECTED_FILES if selected_files is None else selected_files)
     result = {}
@@ -187,7 +191,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                        newick_tree.posterior_rates_to_tsv(file_name=f'{file_path}/PosteriorRates.tsv')})
     if selected_files.get('file_table_of_pearson_correlation_tsv', False) and use_copap:
         result.update({'Table of pearson correlation (tsv)':
-                       newick_tree.pearson_correlation_to_tsv(file_name=f'{file_path}/PearsonCorrelation.tsv')})
+                       newick_tree.pearson_correlation_to_tsv(file_name=f'{file_path}/PearsonCorrelation.tsv',
+                                                              probability_lg=probability_lg, number_lg=number_lg)})
     if selected_files.get('file_table_of_nodes_tsv', False):
         result.update({'Table of nodes (tsv)':
                        newick_tree.tree_to_tsv(file_name=f'{file_path}/Nodes.tsv',
