@@ -1,6 +1,7 @@
 import inspect
 import json
 import re
+import copy
 
 from pathlib import Path
 from typing import Callable, Any
@@ -13,6 +14,7 @@ from gloome.services.design_functions import *
 
 SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_newick_tree_png': True,
+                  'file_table_of_simulated_datasets_tsv': True,
                   'file_table_of_posterior_rates_tsv': True,
                   'file_table_of_pearson_correlation_tsv': True,
                   'file_table_of_nodes_tsv': True,
@@ -135,7 +137,8 @@ def execute_all_actions(newick_tree: Union[str, Tree], file_path: Union[str, Pat
                         actions: Optional[Dict[str, bool]] = None, selected_files: Optional[Dict[str, bool]] = None,
                         use_copap: Optional[bool] = None,
                         probability_lg: Union[float, ndarray] = 0.9,
-                        number_lg: Union[float, ndarray, int] = 5
+                        number_lg: Union[float, ndarray, int] = 5,
+                        number_datasets: int = 100
                         ) -> Union[Dict[str, str], Path]:
     result_data = {}
     if actions is None or actions.get('draw_tree', False):
@@ -145,7 +148,8 @@ def execute_all_actions(newick_tree: Union[str, Tree], file_path: Union[str, Pat
     if actions is None or actions.get('create_all_file_types', False):
         result_data.update({'create_all_file_types': create_all_file_types(newick_tree, file_path, log_file,
                                                                            with_internal_nodes, selected_files,
-                                                                           use_copap, probability_lg, number_lg)})
+                                                                           use_copap, probability_lg, number_lg,
+                                                                           number_datasets)})
     if create_new_file:
         file_path = file_path.joinpath('result.json') if isinstance(file_path, Path) else f'{file_path}/result.json'
         return create_file(file_path, get_result_data(result_data, 'execute_all_actions', form_data), 'result.json')
@@ -166,7 +170,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                           selected_files: Optional[Dict[str, bool]] = None,
                           use_copap: Optional[bool] = None,
                           probability_lg: Union[float, ndarray] = 0.9,
-                          number_lg: Union[float, ndarray, int] = 5
+                          number_lg: Union[float, ndarray, int] = 5,
+                          number_datasets: int = 100
                           ) -> Union[Dict[str, str], str]:
     selected_files = (SELECTED_FILES if selected_files is None else selected_files)
     result = {}
@@ -219,6 +224,10 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                                                        taking_into_coefficient=taking_into_coefficient,
                                                        with_internal_nodes=True,
                                                        decimal_length=0)})
+    if selected_files.get('file_table_of_simulated_datasets_tsv', False) and use_copap:
+        result.update({'Table of simulated datasets (tsv)':
+                       newick_tree.simulated_datasets_to_tsv(file_name=f'{file_path}/SimulatedDatasets.tsv',
+                                                             number_datasets=number_datasets)})
 
     if result:
         file_path = get_path(file_path)
@@ -270,25 +279,27 @@ def check_data(*args) -> List[Tuple[str, str]]:
     coefficient_bl = float(args[5])
     probability_lg = float(args[6])
     number_lg = int(args[7])
-    e_mail = args[8]
-    is_optimize_pi = bool(args[9])
-    is_optimize_pi_average = bool(args[10])
-    is_optimize_alpha = bool(args[11])
-    is_optimize_bl = bool(args[12])
-    is_do_not_use_copap = bool(args[13])
-    is_do_not_use_e_mail = bool(args[14])
-    file_interactive_tree_html = bool(args[15])
-    file_newick_tree_png = bool(args[16])
-    file_table_of_posterior_rates_tsv = bool(args[17])
-    file_table_of_pearson_correlation_tsv = bool(args[18])
-    file_table_of_nodes_tsv = bool(args[19])
-    file_probability_per_pos_per_branches_tsv = bool(args[20])
-    file_table_of_branches_tsv = bool(args[21])
-    file_log_likelihood_tsv = bool(args[22])
-    file_table_of_attributes_tsv = bool(args[23])
-    file_phylogenetic_tree_nwk = bool(args[24])
-    rooting_method = args[25].strip()
-    leaf = args[26].strip()
+    number_datasets = int(args[8])
+    e_mail = args[9]
+    is_optimize_pi = bool(args[10])
+    is_optimize_pi_average = bool(args[11])
+    is_optimize_alpha = bool(args[12])
+    is_optimize_bl = bool(args[13])
+    is_do_not_use_copap = bool(args[14])
+    is_do_not_use_e_mail = bool(args[15])
+    file_interactive_tree_html = bool(args[16])
+    file_newick_tree_png = bool(args[17])
+    file_table_of_simulated_datasets_tsv = bool(args[18])
+    file_table_of_posterior_rates_tsv = bool(args[19])
+    file_table_of_pearson_correlation_tsv = bool(args[20])
+    file_table_of_nodes_tsv = bool(args[21])
+    file_probability_per_pos_per_branches_tsv = bool(args[22])
+    file_table_of_branches_tsv = bool(args[23])
+    file_log_likelihood_tsv = bool(args[24])
+    file_table_of_attributes_tsv = bool(args[25])
+    file_phylogenetic_tree_nwk = bool(args[26])
+    rooting_method = args[27].strip()
+    leaf = args[28].strip()
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -311,6 +322,10 @@ def check_data(*args) -> List[Tuple[str, str]]:
     if not isinstance(number_lg, int) or not 1 <= number_lg <= 20:
         err_list.append((f'Number of loss/gain events value error [ {number_lg} ]',
                          f'The value must be between 1 and 20.'))
+
+    if not isinstance(number_datasets, int) or not 1 <= number_datasets <= 1000:
+        err_list.append((f'Number of simulation events value error [ {number_datasets} ]',
+                         f'The value must be between 1 and 1000.'))
 
     if ((not isinstance(e_mail, str) or not e_mail) or not validate_email(e_mail)) and not is_do_not_use_e_mail:
         err_list.append((f'Invalid email address [ {e_mail} ]', f'Must be valid email address.'))
@@ -344,6 +359,10 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not isinstance(file_newick_tree_png, bool):
         err_list.append((f'Newick tree (png) value error [ {file_newick_tree_png} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_table_of_simulated_datasets_tsv, bool):
+        err_list.append((f'Table of simulated datasets (tsv) value error [ {file_table_of_simulated_datasets_tsv} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(file_table_of_posterior_rates_tsv, bool):

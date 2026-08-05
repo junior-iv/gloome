@@ -14,6 +14,7 @@ let objectsDependence = {
     'coefficientBL': {'dependence': ['isOptimizeBL'], 'value': ''},
     'probabilityLG': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
     'numberLG': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
+    'numberDatasets': {'dependence': '', 'value': ''},
     'eMail': {'dependence': ['isDoNotUseEMail'], 'value': ''},
     'isOptimizePi': {'dependence': '', 'value': ''},
     'isOptimizePiAverage': {'dependence': '', 'value': ''},
@@ -505,6 +506,7 @@ function makeTree(mode = 0) {
     const coefficientBL = document.getElementById(`coefficientBL`);
     const probabilityLG = document.getElementById(`probabilityLG`);
     const numberLG = document.getElementById(`numberLG`);
+    const numberDatasets = document.getElementById(`numberDatasets`);
     const eMail = document.getElementById(`eMail`);
     const isOptimizePi = document.getElementById(`isOptimizePi`)
     const isOptimizePiAverage = document.getElementById(`isOptimizePiAverage`)
@@ -533,6 +535,7 @@ function makeTree(mode = 0) {
     formData.append(`coefficientBL`, coefficientBL.value.trim());
     formData.append(`probabilityLG`, probabilityLG.value.trim());
     formData.append(`numberLG`, numberLG.value.trim());
+    formData.append(`numberDatasets`, numberDatasets.value.trim());
     formData.append(`eMail`, eMail.value.trim());
     formData.append(`isOptimizePi`, +isOptimizePi.checked);
     formData.append(`isOptimizePiAverage`, +isOptimizePiAverage.checked);
@@ -616,11 +619,11 @@ function gedIdentifiers(id = ``) {
     } else {
         return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`, `newickText`,
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `probabilityLG`, `numberLG`,
-            `eMail`, `isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseCoPAP`,
-            `isDoNotUseEMail`, `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfPosteriorRatesTsv`,
-            `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`,
-            `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk',
-            'rootingMethod', 'leaf'];
+            `numberDatasets`, `eMail`, `isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`,
+            `isDoNotUseCoPAP`, `isDoNotUseEMail`, `fileInteractiveTreeHtml`, `fileNewickTreePng`,
+            `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`,
+            `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`,
+            `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
     }
 }
 

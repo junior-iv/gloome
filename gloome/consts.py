@@ -149,6 +149,7 @@ DEFAULT_FORM_ARGUMENTS = {
     'coefficient_bl': 1.0,
     'probability_lg': 0.9,
     'number_lg': 5,
+    'number_datasets': 100,
     'e_mail': '',
     'rooting_method': ROOTING_METHODS[2][0],
     'rooting_methods': ROOTING_METHODS,
@@ -162,6 +163,7 @@ DEFAULT_FORM_ARGUMENTS = {
     'is_do_not_use_e_mail': True,
     'file_interactive_tree_html': False,
     'file_newick_tree_png': False,
+    'file_table_of_simulated_datasets_tsv': False,
     'file_table_of_posterior_rates_tsv': True,
     'file_table_of_pearson_correlation_tsv': True,
     'file_table_of_nodes_tsv': True,
@@ -246,6 +248,8 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify probability_lg. Default is 0.9.
 \t\t--number_lg <type=float> 
 \t\t\tSpecify number_lg. Default is 5.
+\t\t--number_datasets <type=float> 
+\t\t\tSpecify number_datasets. Default is 100.
 \t\t--is_do_not_use_copap <type=int> 
 \t\t\tSpecify is_do_not_use_copap. Default is 0.
 \t\t--is_optimize_pi <type=int> 
@@ -260,6 +264,8 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify file_interactive_tree_html. Default is 0.
 \t\t--file_newick_tree_png <type=int> 
 \t\t\tSpecify file_newick_tree_png. Default is 0.
+\t\t--file_table_of_simulated_datasets_tsv <type=int>
+\t\t\tSpecify file_table_of_simulated_datasets_tsv. Default is 1.
 \t\t--file_table_of_posterior_rates_tsv <type=int>
 \t\t\tSpecify file_table_of_posterior_rates_tsv. Default is 1.
 \t\t--file_table_of_pearson_correlation_tsv <type=int>

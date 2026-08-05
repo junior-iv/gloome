@@ -136,6 +136,9 @@ To get the project working, you need to run the command "gloome" or "python3 -m 
     --number_lg <type=float> 
         Specify number_lg. Default is 5.
     
+    --number_datasets <type=float> 
+        Specify number_datasets. Default is 5.
+    
     --is_do_not_use_copap <type=int> 
         Specify is_do_not_use_copap. Default is 0.
 
@@ -156,6 +159,9 @@ To get the project working, you need to run the command "gloome" or "python3 -m 
 
     --file_newick_tree_png <type=int> 
         Specify file_newick_tree_png. Default is 0.
+
+    --file_table_of_simulated_datasets_tsv <type=int> 
+        Specify file_table_of_simulated_datasets_tsv. Default is 1.
 
     --file_table_of_posterior_rates_tsv <type=int> 
         Specify file_table_of_posterior_rates_tsv. Default is 1.

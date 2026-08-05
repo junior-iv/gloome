@@ -84,6 +84,8 @@ class Config:
     def get_selected_files(self) -> Dict[str, bool]:
         selected_files = {'file_interactive_tree_html': self.CURRENT_ARGS.file_interactive_tree_html,
                           'file_newick_tree_png': self.CURRENT_ARGS.file_newick_tree_png,
+                          'file_table_of_simulated_datasets_tsv':
+                              self.CURRENT_ARGS.file_table_of_simulated_datasets_tsv,
                           'file_table_of_posterior_rates_tsv': self.CURRENT_ARGS.file_table_of_posterior_rates_tsv,
                           'file_table_of_pearson_correlation_tsv':
                               self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv,
@@ -107,6 +109,7 @@ class Config:
                      'isDoNotUseEMail': int(self.CURRENT_ARGS.is_do_not_use_e_mail),
                      'fileInteractiveTreeHtml': int(self.CURRENT_ARGS.file_interactive_tree_html),
                      'fileNewickTreePng': int(self.CURRENT_ARGS.file_newick_tree_png),
+                     'fileTableOfSimulatedDatasetsTsv': int(self.CURRENT_ARGS.file_table_of_simulated_datasets_tsv),
                      'fileTableOfPosteriorRatesTsv': int(self.CURRENT_ARGS.file_table_of_posterior_rates_tsv),
                      'fileTableOfPearsonCorrelationTsv': int(self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv),
                      'fileTableOfNodesTsv': int(self.CURRENT_ARGS.file_table_of_nodes_tsv),
@@ -116,6 +119,7 @@ class Config:
                      'fileLogLikelihoodTsv': int(self.CURRENT_ARGS.file_log_likelihood_tsv),
                      'fileTableOfAttributesTsv': int(self.CURRENT_ARGS.file_table_of_attributes_tsv),
                      'filePhylogeneticTreeNwk': int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk),
+                     'numberDatasets': self.CURRENT_ARGS.number_datasets,
                      'numberLG': self.CURRENT_ARGS.number_lg,
                      'probabilityLG': self.CURRENT_ARGS.probability_lg,
                      'coefficientBL': self.CURRENT_ARGS.coefficient_bl,
@@ -161,7 +165,8 @@ class Config:
                                 selected_files=self.get_selected_files(),
                                 use_copap=not self.CURRENT_ARGS.is_do_not_use_copap,
                                 probability_lg=self.CURRENT_ARGS.probability_lg,
-                                number_lg=self.CURRENT_ARGS.number_lg)
+                                number_lg=self.CURRENT_ARGS.number_lg,
+                                number_datasets=self.CURRENT_ARGS.number_datasets)
         if not self.CALCULATED_ARGS.err_list:
             self.execute_action(self.ACTIONS.recompile_json,
                                 output_file=self.OUT_DIR.joinpath('result.json'),
@@ -196,6 +201,7 @@ class Config:
                                         self.CURRENT_ARGS.coefficient_bl,
                                         self.CURRENT_ARGS.probability_lg,
                                         self.CURRENT_ARGS.number_lg,
+                                        self.CURRENT_ARGS.number_datasets,
                                         self.CURRENT_ARGS.e_mail,
                                         self.CURRENT_ARGS.is_optimize_pi,
                                         self.CURRENT_ARGS.is_optimize_pi_average,
@@ -205,6 +211,7 @@ class Config:
                                         self.CURRENT_ARGS.is_do_not_use_e_mail,
                                         self.CURRENT_ARGS.file_interactive_tree_html,
                                         self.CURRENT_ARGS.file_newick_tree_png,
+                                        self.CURRENT_ARGS.file_table_of_simulated_datasets_tsv,
                                         self.CURRENT_ARGS.file_table_of_posterior_rates_tsv,
                                         self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv,
                                         self.CURRENT_ARGS.file_table_of_nodes_tsv,
@@ -347,6 +354,9 @@ class Config:
         parser.add_argument('--number_lg', dest='number_lg', type=int, required=False,
                             help=f'Specify number_lg (optional). Default is {self.CURRENT_ARGS.number_lg}.',
                             default=self.CURRENT_ARGS.number_lg)
+        parser.add_argument('--number_datasets', dest='number_datasets', type=int, required=False,
+                            help=f'Specify number_datasets (optional). Default is {self.CURRENT_ARGS.number_datasets}.',
+                            default=self.CURRENT_ARGS.number_datasets)
         parser.add_argument('--e_mail', dest='e_mail', type=str, required=False,
                             help=f'Specify e_mail (technical parameter, do not change) .',
                             default=self.CURRENT_ARGS.e_mail)
@@ -389,6 +399,11 @@ class Config:
                             help=f'Specify file_newick_tree_png (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_newick_tree_png)}.',
                             default=int(self.CURRENT_ARGS.file_newick_tree_png))
+        parser.add_argument('--file_table_of_simulated_datasets_tsv',
+                            dest='file_table_of_simulated_datasets_tsv', type=int, required=False,
+                            help=f'Specify file_table_of_simulated_datasets_tsv (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_table_of_simulated_datasets_tsv)}.',
+                            default=int(self.CURRENT_ARGS.file_table_of_simulated_datasets_tsv))
         parser.add_argument('--file_table_of_posterior_rates_tsv',
                             dest='file_table_of_posterior_rates_tsv', type=int, required=False,
                             help=f'Specify file_table_of_posterior_rates_tsv (optional). Default is '
@@ -439,10 +454,11 @@ class Config:
                 elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
                                   'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_copap', 'is_do_not_use_e_mail',
                                   'file_interactive_tree_html', 'file_newick_tree_png',
-                                  'file_table_of_posterior_rates_tsv', 'file_table_of_pearson_correlation_tsv',
-                                  'file_table_of_nodes_tsv', 'file_probability_per_pos_per_branches_tsv',
-                                  'file_table_of_branches_tsv', 'file_log_likelihood_tsv',
-                                  'file_table_of_attributes_tsv', 'file_phylogenetic_tree_nwk'):
+                                  'file_table_of_simulated_datasets_tsv', 'file_table_of_posterior_rates_tsv',
+                                  'file_table_of_pearson_correlation_tsv', 'file_table_of_nodes_tsv',
+                                  'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv',
+                                  'file_log_likelihood_tsv', 'file_table_of_attributes_tsv',
+                                  'file_phylogenetic_tree_nwk'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))
                 else:

@@ -84,23 +84,23 @@ class WebConfig:
                                  f'\n\tLOG_URL: {self.LOG_URL}\n')
 
     def arguments_filling(self, **arguments):
-        dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'probabilityLG', 'numberLG', 'eMail',
-                   'isOptimizePi', 'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseCoPAP',
-                   'isDoNotUseEMail', 'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileTableOfPosteriorRatesTsv',
-                   'fileTableOfPearsonCorrelationTsv', 'fileTableOfNodesTsv', 'fileProbabilityPerPosPerBranchesTsv',
-                   'fileTableOfBranchesTsv', 'fileLogLikelihoodTsv', 'fileTableOfAttributesTsv',
-                   'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'),
-                  ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'probability_lg', 'number_lg', 'e_mail',
-                   'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_bl', 'is_optimize_alpha',
-                   'is_do_not_use_copap', 'is_do_not_use_e_mail', 'file_interactive_tree_html', 'file_newick_tree_png',
-                   'file_table_of_posterior_rates_tsv', 'file_table_of_pearson_correlation_tsv',
-                   'file_table_of_nodes_tsv', 'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv',
-                   'file_log_likelihood_tsv', 'file_table_of_attributes_tsv', 'file_phylogenetic_tree_nwk',
-                   'rooting_method', 'leaf'),
-                  ((int, ), (float, ), (float, ), (float, ), (float, ), (int, ), (str, ), (int, bool), (int, bool),
+        dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'probabilityLG', 'numberLG', 'numberDatasets',
+                   'eMail', 'isOptimizePi', 'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseCoPAP',
+                   'isDoNotUseEMail', 'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileTableOfSimulatedDatasetsTsv',
+                   'fileTableOfPosteriorRatesTsv', 'fileTableOfPearsonCorrelationTsv', 'fileTableOfNodesTsv',
+                   'fileProbabilityPerPosPerBranchesTsv', 'fileTableOfBranchesTsv', 'fileLogLikelihoodTsv',
+                   'fileTableOfAttributesTsv', 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'),
+                  ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'probability_lg', 'number_lg',
+                   'number_datasets', 'e_mail', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_bl',
+                   'is_optimize_alpha', 'is_do_not_use_copap', 'is_do_not_use_e_mail', 'file_interactive_tree_html',
+                   'file_newick_tree_png', 'file_table_of_simulated_datasets_tsv', 'file_table_of_posterior_rates_tsv',
+                   'file_table_of_pearson_correlation_tsv', 'file_table_of_nodes_tsv',
+                   'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv', 'file_log_likelihood_tsv',
+                   'file_table_of_attributes_tsv', 'file_phylogenetic_tree_nwk', 'rooting_method', 'leaf'),
+                  ((int, ), (float, ), (float, ), (float, ), (float, ), (int, ), (int, ), (str, ), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
-                   (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (str, ),
-                   (str, )))
+                   (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
+                   (int, bool), (int, bool), (str, ), (str, )))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -120,6 +120,7 @@ class WebConfig:
                              f'\n\tcoefficient_bl: {self.CURRENT_ARGS.coefficient_bl}'
                              f'\n\tprobability_lg: {self.CURRENT_ARGS.probability_lg}'
                              f'\n\tnumber_lg: {self.CURRENT_ARGS.number_lg}'
+                             f'\n\tnumber_datasets: {self.CURRENT_ARGS.number_datasets}'
                              f'\n\te_mail: {self.CURRENT_ARGS.e_mail}'
                              f'\n\tis_optimize_pi: {self.CURRENT_ARGS.is_optimize_pi}'
                              f'\n\tis_optimize_pi_average: {self.CURRENT_ARGS.is_optimize_pi_average}'
@@ -129,6 +130,8 @@ class WebConfig:
                              f'\n\tis_do_not_use_e_mail: {self.CURRENT_ARGS.is_do_not_use_e_mail}'
                              f'\n\tfile_interactive_tree_html: {self.CURRENT_ARGS.file_interactive_tree_html}'
                              f'\n\tfile_newick_tree_png: {self.CURRENT_ARGS.file_newick_tree_png}'
+                             f'\n\tfile_table_of_simulated_datasets_tsv: '
+                             f'{self.CURRENT_ARGS.file_table_of_simulated_datasets_tsv}'
                              f'\n\tfile_table_of_posterior_rates_tsv: '
                              f'{self.CURRENT_ARGS.file_table_of_posterior_rates_tsv}'
                              f'\n\tfile_table_of_pearson_correlation_tsv: '
@@ -182,6 +185,7 @@ class WebConfig:
             f'--coefficient_bl {self.CURRENT_ARGS.coefficient_bl} '
             f'--probability_lg {self.CURRENT_ARGS.probability_lg} '
             f'--number_lg {self.CURRENT_ARGS.number_lg} '
+            f'--number_datasets {self.CURRENT_ARGS.number_datasets} '
             f'{e_mail}'
             f'--is_do_not_use_copap {int(self.CURRENT_ARGS.is_do_not_use_copap)} '
             f'--is_optimize_pi {int(self.CURRENT_ARGS.is_optimize_pi)} '
@@ -191,6 +195,7 @@ class WebConfig:
             f'{is_do_not_use_e_mail} '
             f'--file_interactive_tree_html {int(self.CURRENT_ARGS.file_interactive_tree_html)} '
             f'--file_newick_tree_png {int(self.CURRENT_ARGS.file_newick_tree_png)} '
+            f'--file_table_of_simulated_datasets_tsv {int(self.CURRENT_ARGS.file_table_of_simulated_datasets_tsv)} '
             f'--file_table_of_posterior_rates_tsv {int(self.CURRENT_ARGS.file_table_of_posterior_rates_tsv)} '
             f'--file_table_of_pearson_correlation_tsv {int(self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv)} '
             f'--file_table_of_nodes_tsv {int(self.CURRENT_ARGS.file_table_of_nodes_tsv)} '

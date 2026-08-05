@@ -382,20 +382,26 @@
                                         </datalist>
                                     </div>
                                 </div>
-
-{#                                <div class="box flex-row h-auto w-100 m-2">#}
-{#                                    <div class="w-48 text-start">#}
-{#                                        <label for="isDoNotUseEMail" class="h6 text-start text-success-emphasis ms-3">don`t use e-mail</label>#}
-{#                                    </div>#}
-{#                                    <div class="w-48 text-start">#}
-{#                                        <input id="isDoNotUseEMail" name="isDoNotUseEMail" onchange="onChangingCheckbox(this.id, this.checked)"#}
-{#                                               type="checkbox" class="form-check-input rounded-1"#}
-{#                                               {%- if is_do_not_use_e_mail -%}#}
-{#                                                   checked#}
-{#                                               {% endif -%}#}
-{#                                        />#}
-{#                                    </div>#}
-{#                                </div>#}
+                            </details>
+                        </div>
+                        <div class="box flex-column h-auto w-100 p-2">
+                            <details class="subdetails">
+                                <summary class="text-start w-100 form-control btn btn-outline-secondary bg-secondary-subtle border-1 rounded-5">
+                                <span class="subarrow">▽</span>
+                                    Simulation datasets
+                                </summary>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="numberDatasets" class="h6 text-start text-success-emphasis ms-3">number of datasets</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input value="{{number_datasets}}" id="numberDatasets" name="numberDatasets"
+                                               title="The value must be between 1 and 1000" type="number" min="1" max="1000" step="1"
+                                               onchange="validateInput(this.id, {{number_datasets}})"
+                                               class="form-control rounded-pill"
+                                        />
+                                    </div>
+                                </div>
                             </details>
                         </div>
                         <div class="box flex-column h-auto w-100 p-2">
@@ -425,6 +431,19 @@
                                         <input id="fileNewickTreePng" name="fileNewickTreePng"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_newick_tree_png -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="fileTableOfSimulatedDatasetsTsv" class="h6 text-start text-success-emphasis ms-3">table of simulated datasets (tsv)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="fileTableOfSimulatedDatasetsTsv" name="fileTableOfSimulatedDatasetsTsv"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_table_of_simulated_datasets_tsv -%}
                                                    checked
                                                {% endif -%}
                                         />

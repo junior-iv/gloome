@@ -14,28 +14,26 @@ class Node:
     children: List['Node']
     name: str
     node_type: str
-    distance_to_father: Union[float, np.ndarray]
-    distance_to_root: Union[float, np.ndarray]
-    distance_to_root_vector: List[Union[float, np.ndarray]]
-    distance_to_nearest: Union[float, np.ndarray]
-    distance_to_father_taking_into_coefficient: Union[float, np.ndarray]
-    distance_to_root_taking_into_coefficient: Union[float, np.ndarray]
-    distance_to_root_vector_taking_into_coefficient: List[Union[float, np.ndarray]]
-    distance_to_nearest_taking_into_coefficient: Union[float, np.ndarray]
+    distance_to_father: Union[float, np.float64]
+    distance_to_root: Union[float, np.float64]
+    distance_to_root_vector: List[Union[float, np.float64]]
+    distance_to_nearest: Union[float, np.float64]
+    distance_to_father_taking_into_coefficient: Union[float, np.float64]
+    distance_to_root_taking_into_coefficient: Union[float, np.float64]
+    distance_to_root_vector_taking_into_coefficient: List[Union[float, np.float64]]
+    distance_to_nearest_taking_into_coefficient: Union[float, np.float64]
     level: int
     levels_to_nearest: int
     alphabet: Tuple[str, ...]
-    alphabet_size: int
-    rate_vector_size: int
-    pi_1: Union[float, np.ndarray]
+    pi_1: Union[float, np.float64]
     frequency: Optional[np.ndarray]
-    coefficient_bl: Union[float, np.ndarray, int]
-    pmatrix: Optional[Tuple[np.ndarray, ...]]
+    coefficient_bl: Union[float, np.float64, int]
+    pmatrix: Optional[np.ndarray]
     log_likelihood_vector: Optional[np.ndarray]
     log_likelihood: Union[float, np.float64, None]
     likelihood_vector: Optional[np.ndarray]
     likelihood: Union[float, np.float64, None]
-    sequence_likelihood: Union[float, np.ndarray]
+    sequence_likelihood: Union[float, np.float64]
     up_vector: Optional[np.ndarray]
     down_vector: Optional[np.ndarray]
     marginal_vector: Optional[np.ndarray]
@@ -47,6 +45,7 @@ class Node:
     sequence: str
     probabilities_sequence_characters: Optional[np.ndarray]
     ancestral_sequence: str
+    simulated_sequence: str
 
     def __init__(self, name: Optional[str]) -> None:
         self.father = None
@@ -64,8 +63,6 @@ class Node:
         self.level = 0
         self.levels_to_nearest = 0
         self.alphabet = ('0', '1')
-        self.alphabet_size = 2
-        self.rate_vector_size = 1
         self.pi_1 = 0.5
         self.frequency = np.asarray((0.5, 0.5))
         self.coefficient_bl = 1.0
@@ -86,6 +83,7 @@ class Node:
         self.sequence = ''
         self.probabilities_sequence_characters = None
         self.ancestral_sequence = ''
+        self.simulated_sequence = ''
 
     def __str__(self) -> str:
         return self.get_name(True)
@@ -94,19 +92,18 @@ class Node:
         return ['father', 'children', 'name', 'distance_to_father', 'distance_to_root', 'distance_to_root_vector',
                 'distance_to_nearest', 'distance_to_father_taking_into_coefficient',
                 'distance_to_root_taking_into_coefficient', 'distance_to_root_vector_taking_into_coefficient',
-                'distance_to_nearest_taking_into_coefficient', 'level', 'levels_to_nearest', 'alphabet',
-                'alphabet_size', 'rate_vector_size', 'pi_1', 'frequency', 'coefficient_bl', 'pmatrix',
-                'log_likelihood_vector', 'log_likelihood', 'sequence_likelihood', 'likelihood', 'up_vector',
-                'down_vector', 'marginal_vector', 'marginal_bl_vector' 'probability_vector',
-                'branch_probability_vector', 'probability_vector_gain', 'probability_vector_loss', 'sequence',
-                'probabilities_sequence_characters', 'ancestral_sequence']
+                'distance_to_nearest_taking_into_coefficient', 'level', 'levels_to_nearest', 'alphabet', 'pi_1',
+                'frequency', 'coefficient_bl', 'pmatrix', 'log_likelihood_vector', 'log_likelihood',
+                'sequence_likelihood', 'likelihood', 'up_vector', 'down_vector', 'marginal_vector',
+                'marginal_bl_vector', 'probability_vector', 'branch_probability_vector', 'probability_vector_gain',
+                'probability_vector_loss', 'sequence', 'probabilities_sequence_characters', 'ancestral_sequence']
 
     def get_list_nodes_info(self, with_additional_details: bool = False,
                             mode: Optional[str] = None,
                             filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None,
                             only_node_list: bool = False
-                            ) -> List[Union[Dict[str, Union[float, np.ndarray, bool, str, List[float],
-                                      List[np.ndarray]]], 'Node']]:
+                            ) -> List[Union[Dict[str, Union[float, np.float64, bool, str, np.ndarray, List[float],
+                                      List[np.float64]]], 'Node']]:
         """
         Retrieve a list of descendant nodes from a given node, including the node itself.
 
@@ -166,7 +163,8 @@ class Node:
 
         return list_result
 
-    def get_node_info(self) -> Dict[str, Union[float, np.ndarray, bool, str, List[float], List[np.ndarray]]]:
+    def get_node_info(self) -> Dict[str, Union[float, np.float64, bool, str, np.ndarray, List[float],
+                                    List[np.float64]]]:
 
         result = {'node': self.name,
                   'distance': self.distance_to_father,
@@ -198,8 +196,6 @@ class Node:
                   'probability_vector_gain': self.probability_vector_gain,
                   'probability_vector_loss': self.probability_vector_loss,
                   'alphabet': self.alphabet,
-                  'alphabet_size': self.alphabet_size,
-                  'rate_vector_size': self.rate_vector_size,
                   'pi_1': self.pi_1,
                   'frequency': self.frequency,
                   'coefficient_bl': self.coefficient_bl,
@@ -217,7 +213,7 @@ class Node:
                     return newick_node
         return None
 
-    def get_pmatrix(self, rate: Union[float, np.ndarray] = 1.0):
+    def get_pmatrix(self, rate: Union[float, np.float64, np.ndarray] = 1.0):
 
         return self.get_one_parameter_pmatrix(rate)
 
@@ -305,6 +301,7 @@ class Node:
         self.sequence = ''
         self.probabilities_sequence_characters = None
         self.ancestral_sequence = ''
+        self.simulated_sequence = ''
 
     def get_one_parameter_pmatrix(self, rate: Union[float, np.float64, np.ndarray] = 1.0) -> np.ndarray:
         qmatrix = np.zeros((2, 2), dtype=np.float64)
@@ -315,47 +312,47 @@ class Node:
 
         return expm(qmatrix * (self.distance_to_father * self.coefficient_bl * rate))
 
-    def get_jukes_cantor_pmatrix(self, rate: Union[float, np.float64, np.ndarray] = 1) -> np.ndarray:
-        qmatrix = np.ones((self.alphabet_size, self.alphabet_size))
-        np.fill_diagonal(qmatrix, 1 - self.alphabet_size)
-        qmatrix = qmatrix * 1 / (self.alphabet_size - 1)
+    def get_jukes_cantor_pmatrix(self, alphabet_length: int, rate: Union[float, np.float64, np.ndarray] = 1
+                                 ) -> np.ndarray:
+        qmatrix = np.ones((alphabet_length, alphabet_length))
+        np.fill_diagonal(qmatrix, 1 - alphabet_length)
+        qmatrix = qmatrix * 1 / (alphabet_length - 1)
 
         return expm(qmatrix * (self.distance_to_father * self.coefficient_bl * rate))
 
-    def generate_sequence(self, alpha: Union[float, np.float64, np.ndarray], rates: np.ndarray,
-                          seed: Optional[int] = None) -> None:
-        if seed is not None:
-            np.random.seed(seed)
-
+    def generate_sequence(self, rates: np.ndarray, alphabet_length: int) -> None:
         size = len(rates)
         if self.father is None:
-            self.sequence = ''.join(np.random.choice(self.alphabet, size=size))
+            self.simulated_sequence = ''.join(np.random.choice(self.alphabet, size=size))
         else:
-            self.sequence = ''
-            for i in range(size):
-                parent_char = self.father.sequence[i]
-                pmatrix = self.get_jukes_cantor_pmatrix(rates[i])
-                current_char = str(np.random.choice(2, p=pmatrix[int(parent_char)]))
-                self.sequence += current_char
+            other_states = alphabet_length - 1
+            branch_length = self.distance_to_father * self.coefficient_bl * rates
+            exponent = np.exp((-alphabet_length / other_states) * branch_length)
+            p_identity = (1 / alphabet_length) + (other_states / alphabet_length) * exponent
+            parent_states = np.array([int(char) for char in self.father.sequence])
+            rand_vals = np.random.random(size=size)
+            mutated = rand_vals >= p_identity
+            random_shifts = np.random.randint(1, alphabet_length, size=size)
+            mutated_states = (parent_states + random_shifts) % alphabet_length
+            child_states = np.where(mutated, mutated_states, parent_states)
 
-        for child in self.children:
-            child.generate_sequence(alpha, rates)
+            self.simulated_sequence = ''.join(child_states.astype(str))
 
-    def get_jukes_cantor_transition_probs(self, rate: Union[float, np.float64, np.ndarray, Any] = 1.0
+    def get_jukes_cantor_transition_probs(self, alphabet_length: int,
+                                          rate: Union[float, np.float64, np.ndarray, Any] = 1.0
                                           ) -> Union[Tuple[np.ndarray, np.ndarray], Tuple[np.float64, np.float64],
                                                      Tuple[float, float]]:
-        k = self.alphabet_size
-        other_states = k - 1
+        other_states = alphabet_length - 1
 
         branch_length = self.distance_to_father * self.coefficient_bl * rate
-        exponent = np.exp((-k / other_states) * branch_length)
+        exponent = np.exp((-alphabet_length / other_states) * branch_length)
 
-        p_identity = (1 / k) + (other_states / k) * exponent
-        p_mutation = (1 / k) - (1 / k) * exponent
+        p_identity = (1 / alphabet_length) + (other_states / alphabet_length) * exponent
+        p_mutation = (1 / alphabet_length) - (1 / alphabet_length) * exponent
 
         return p_identity, p_mutation
 
-    def node_to_json(self) -> Dict[str, Union[str, List[Any], float, np.ndarray]]:
+    def node_to_json(self) -> Dict[str, Union[str, List[Any], float, np.float64, np.ndarray]]:
         dict_json = dict()
         dict_json.update({'name': self.name})
         dict_json.update({'distance': f'{float(self.distance_to_father)}'})
@@ -367,7 +364,8 @@ class Node:
 
         return dict_json
 
-    def get_distance_to_father(self, taking_into_coefficient: bool) -> Union[float, np.ndarray]:
+    def get_distance_to_father(self, taking_into_coefficient: bool) -> Union[float, np.float64, np.ndarray]:
+
         return self.distance_to_father * self.coefficient_bl if taking_into_coefficient else self.distance_to_father
 
     def subtree_to_newick(self, with_internal_nodes: bool = False,

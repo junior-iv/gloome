@@ -44,6 +44,7 @@ class Tree:
     alphabet_length: int
     msa_length: int
     rate_vector_length: int
+    simulated_datasets: Optional[pd.DataFrame] = None
 
     def __init__(self, data: Optional[Union[str, Node]] = None, node_name: Optional[str] = None, **kwargs) -> None:
         """
@@ -54,9 +55,9 @@ class Tree:
             categories_quantity (float, optional): `None` (default)
             alpha (float, optional): `None` (default)
             beta (float, optional): `None` (default)
-            pi_0 (float, np.ndarray, int, optional): `None` (default)
-            pi_1 (float, np.ndarray, int, optional): `None` (default)
-            coefficient_bl (float, np.ndarray, int, optional): `None` (default)
+            pi_0 (float, np.float64, int, optional): `None` (default)
+            pi_1 (float, np.float64, int, optional): `None` (default)
+            coefficient_bl (float, np.float64, int, optional): `None` (default)
             is_optimize_pi (bool, optional): `None` (default)
             is_optimize_pi_average (bool, optional): `None` (default)
             is_optimize_alpha (bool, optional): `None` (default)
@@ -64,7 +65,7 @@ class Tree:
         """
         available_parameters = {'data', 'node_name', 'msa', 'categories_quantity', 'alpha', 'beta', 'pi_0', 'pi_1',
                                 'coefficient_bl', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_alpha',
-                                'is_optimize_bl'}
+                                'is_optimize_bl', 'seed'}
         invalid_parameters = set(kwargs.keys()) - available_parameters
         for key in invalid_parameters:
             del kwargs[key]
@@ -96,19 +97,19 @@ class Tree:
             print(f'There are invalid parameters: {", ".join(invalid_parameters)}')
 
     def __str__(self) -> str:
+
         return self.get_newick()
 
     def __dir__(self) -> List[str]:
+
         return ['root', 'alphabet', 'msa', 'rate_vector', 'alpha', 'categories_quantity', 'pi_1', 'coefficient_bl',
                 'log_likelihood_vector', 'log_likelihood', 'likelihood_vector', 'likelihood', 'posterior_rates',
                 'correlation_vector', 'calculated_ancestor_sequence', 'calculated_tree', 'calculated_likelihood',
                 'all_nodes', 'alphabet_length', 'msa_length', 'rate_vector_length']
 
-    def __dict__(self) -> [Optional[Node], Optional[Tuple[str, ...]], Optional[Dict[str, str]],
-                           Tuple[Union[float, np.ndarray, int], ...], Optional[Union[float, np.ndarray, int]],
-                           Optional[int], Optional[Union[float, np.ndarray, int]],
-                           Optional[Union[float, np.ndarray, int]], Optional[List[Union[float, np.ndarray]]],
-                           Optional[Union[float, np.ndarray]], Optional[Union[float, np.ndarray]], bool, bool, bool]:
+    def __dict__(self) -> Dict[str, Optional[Union[Node, float, np.float64, int, np.ndarray, bool, Tuple[str, ...],
+                               Tuple[Union[float, np.float64, int], ...], Dict[str, str]]]]:
+
         return {'root': self.root,
                 'alphabet': self.alphabet,
                 'msa': self.msa,
@@ -132,24 +133,31 @@ class Tree:
                 'rate_vector_length': self.rate_vector_length}
 
     def __len__(self) -> int:
+
         return self.get_node_count()
 
     def __eq__(self, other) -> bool:
+
         return str(self).lower() == str(other).lower()
 
     def __ne__(self, other) -> bool:
+
         return not self == other
 
     def __lt__(self, other) -> bool:
+
         return len(self) < len(other)
 
     def __le__(self, other) -> bool:
+
         return self < other or self == other or len(str(self)) < len(str(other))
 
     def __gt__(self, other) -> bool:
+
         return len(self) > len(other)
 
     def __ge__(self, other) -> bool:
+
         return self > other or self == other or len(str(self)) > len(str(other))
 
     def print_args(self, prefix_name: str = '', prefix: str = '', sort: bool = False) -> None:
@@ -163,13 +171,18 @@ class Tree:
                       categories_quantity: Optional[int] = None,
                       alpha: Optional[float] = None,
                       beta: Optional[float] = None,
-                      pi_0: Optional[Union[float, np.ndarray, int]] = None,
-                      pi_1: Optional[Union[float, np.ndarray, int]] = None,
-                      coefficient_bl: Optional[Union[float, np.ndarray, int]] = None,
+                      pi_0: Optional[Union[float, np.float64, int]] = None,
+                      pi_1: Optional[Union[float, np.float64, int]] = None,
+                      coefficient_bl: Optional[Union[float, np.float64, int]] = None,
                       is_optimize_pi: Optional[bool] = None,
                       is_optimize_pi_average: Optional[bool] = None,
                       is_optimize_alpha: Optional[bool] = None,
-                      is_optimize_bl: Optional[bool] = None) -> None:
+                      is_optimize_bl: Optional[bool] = None,
+                      seed: Optional[int] = None) -> None:
+
+        if seed is not None:
+            np.random.seed(seed)
+
         if isinstance(msa, str):
             self.msa = self.get_msa_dict(msa)
         elif isinstance(msa, dict):
@@ -180,7 +193,7 @@ class Tree:
         else:
             self.set_alpha(alpha, beta)
             self.alphabet = self.get_alphabet()
-            self.generate_sequence(size=1)
+            self.msa = self.generate_sequence()
 
         self.msa_length = len(next(iter(self.msa.values())))
         self.alphabet_length = len(self.alphabet)
@@ -196,7 +209,7 @@ class Tree:
 
         self.set_distance_taking_into_coefficient()
 
-    def set_distance_taking_into_coefficient(self):
+    def set_distance_taking_into_coefficient(self) -> None:
         for current_node in self.root.get_list_nodes_info(only_node_list=True):
             current_node.distance_to_father_taking_into_coefficient = (current_node.distance_to_father *
                                                                        self.coefficient_bl)
@@ -206,8 +219,7 @@ class Tree:
             current_node.distance_to_root_vector_taking_into_coefficient = [i * self.coefficient_bl for i in
                                                                             current_node.distance_to_root_vector]
 
-    def print_node_list(self, with_additional_details: bool = False,
-                        mode: Optional[str] = None,
+    def print_node_list(self, with_additional_details: bool = False, mode: Optional[str] = None,
                         filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None) -> None:
         """
         Print a list of nodes.
@@ -237,8 +249,8 @@ class Tree:
 
     def get_list_nodes_info(self, with_additional_details: bool = False, mode: Optional[str] = None, filters:
                             Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None, only_node_list:
-                            bool = False) -> List[Union[Dict[str, Union[float, np.ndarray, bool, str, List[float],
-                                                  List[np.ndarray]]], 'Node']]:
+                            bool = False) -> List[Union[Dict[str, Union[float, np.float64, bool, str, np.ndarray,
+                                                  List[float], List[np.float64]]], Node]]:
         """
         Retrieve a list of all nodes of the tree.
 
@@ -261,12 +273,12 @@ class Tree:
 
         return self.get_list_nodes_info(filters={'node_type': ['leaf']}, only_node_list=only_node_list, mode=mode)
 
-    def get_nodes(self, only_node_list: bool = True, mode: Optional[str] = None) -> List[Node]:
+    def get_nodes(self, only_node_list: bool = True, mode: Optional[str] = None) -> List[Union[Node, str]]:
 
         return self.get_list_nodes_info(filters={'node_type': ['node', 'root']}, only_node_list=only_node_list,
                                         mode=mode)
 
-    def get_all_nodes(self, only_node_list: bool = True, mode: Optional[str] = None) -> List[Node]:
+    def get_all_nodes(self, only_node_list: bool = True, mode: Optional[str] = None) -> List[Union[Node, str]]:
 
         return self.get_list_nodes_info(only_node_list=only_node_list, mode=mode)
 
@@ -610,12 +622,12 @@ class Tree:
 
         return msa_dict
 
-    def calculate_correlation(self, prior: Optional[np.ndarray] = None, probability_lg: Union[float, np.ndarray] = 0.9,
-                              number_lg: Union[float, np.ndarray, int] = 5) -> None:
+    def calculate_correlation(self, prior: Optional[np.ndarray] = None, probability_lg: Union[float, np.float64] = 0.9,
+                              number_lg: Union[float, np.float64, int] = 5) -> None:
         self.set_posterior_rates_vector(prior)
         self.set_pearson_correlation_vector(probability_lg, number_lg)
 
-    def calculate_tree(self) -> Dict[str, Union[float, np.ndarray, int, np.float64]]:
+    def calculate_tree(self) -> Dict[str, Union[float, int, np.float64, np.ndarray]]:
         if self.msa and not self.calculated_tree:
             self.clean_all()
 
@@ -635,9 +647,9 @@ class Tree:
             self.clean_all()
             self.calculate_up()
 
-    def get_fasta_text(self) -> str:
+    def get_fasta_text(self, msa: Optional[Dict[str, str]] = None) -> str:
 
-        return ''.join(f'>{k}\n{v}\n' for k, v in self.msa.items()).strip()
+        return ''.join(f'>{k}\n{v}\n' for k, v in (self.msa if msa is None else msa).items()).strip()
 
     def get_json_structure(self, return_table: bool = False,
                            columns: Optional[Dict[str, str]] = None,
@@ -721,6 +733,16 @@ class Tree:
 
         return file_name
 
+    def simulated_datasets_to_tsv(self, file_name: str = 'SimulatedDatasets.tsv', sep: str = '\t',
+                                  number_datasets: int = 100) -> str:
+
+        if self.simulated_datasets is None or not isinstance(self.simulated_datasets, pd.DataFrame):
+            self.simulate_datasets(number_datasets)
+
+        self.simulated_datasets.to_csv(file_name, sep=sep, index=False)
+
+        return file_name
+
     def posterior_rates_to_tsv(self, file_name: str = 'PosteriorRates.tsv', sep: str = '\t') -> str:
 
         if self.posterior_rates is None:
@@ -733,8 +755,8 @@ class Tree:
         return file_name
 
     def pearson_correlation_to_tsv(self, file_name: str = 'PearsonCorrelation.tsv', sep: str = '\t',
-                                   probability_lg: Union[float, np.ndarray] = 0.9,
-                                   number_lg: Union[float, np.ndarray, int] = 5) -> str:
+                                   probability_lg: Union[float, np.float64] = 0.9,
+                                   number_lg: Union[float, np.float64, int] = 5) -> str:
 
         if self.correlation_vector is None:
             self.calculate_correlation(probability_lg=probability_lg, number_lg=number_lg)
@@ -927,8 +949,8 @@ class Tree:
 
         return file_names
 
-    def optimize(self, func: Union[Callable, str], bracket: Tuple[Union[float, np.ndarray], ...] = (0.5,),
-                 bounds: Tuple[Union[float, np.ndarray], ...] = (0.001, 0.999), args: Optional[Tuple[Any, ...]] = None,
+    def optimize(self, func: Union[Callable, str], bracket: Tuple[Union[float, np.float64], ...] = (0.5,),
+                 bounds: Tuple[Union[float, np.float64], ...] = (0.001, 0.999), args: Optional[Tuple[Any, ...]] = None,
                  result_fild: Optional[str] = None):
         func = self.__getattribute__(func) if isinstance(func, str) else func
         min_scalar = minimize_scalar(func, bracket=bracket, bounds=bounds) if args is None else (
@@ -936,7 +958,7 @@ class Tree:
 
         return min_scalar[result_fild] if result_fild else min_scalar
 
-    def pi_optimization(self, pi: Union[float, np.ndarray], mode: int = 1) -> Union[float, np.ndarray]:
+    def pi_optimization(self, pi: Union[float, np.float64], mode: int = 1) -> Union[float, np.float64]:
         current_pi = (pi, None)
         self.clean_all()
         self.set_pi(current_pi[mode], current_pi[::-1][mode])
@@ -944,14 +966,14 @@ class Tree:
 
         return -self.get_log_likelihood()
 
-    def alpha_optimization(self, alpha: Union[int, float, np.ndarray]) -> Union[float, np.ndarray]:
+    def alpha_optimization(self, alpha: Union[int, float, np.ndarray]) -> Union[float, np.float64]:
         self.clean_all()
         self.set_gamma_distribution_categories_vector(alpha)
         self.set_vars()
 
         return -self.get_log_likelihood()
 
-    def coefficient_bl_optimization(self, coefficient_bl: Union[int, float, np.ndarray]) -> Union[float, np.ndarray]:
+    def coefficient_bl_optimization(self, coefficient_bl: Union[int, float, np.ndarray]) -> Union[float, np.float64]:
         self.clean_all()
         self.set_coefficient_bl(coefficient_bl)
         self.set_vars()
@@ -990,9 +1012,9 @@ class Tree:
         self.log_likelihood = self.likelihood = 0.0
 
     def set_all(self, categories_quantity: Optional[int] = None, alpha: Optional[float] = None,
-                beta: Optional[float] = None, pi_0: Optional[Union[float, np.ndarray, int]] = None,
-                pi_1: Optional[Union[float, np.ndarray, int]] = None,
-                coefficient_bl: Optional[Union[float, np.ndarray, int]] = None) -> None:
+                beta: Optional[float] = None, pi_0: Optional[Union[float, np.float64, int]] = None,
+                pi_1: Optional[Union[float, np.float64, int]] = None,
+                coefficient_bl: Optional[Union[float, np.float64, int]] = None) -> None:
 
         self.categories_quantity = categories_quantity
         self.set_alpha(alpha, beta)
@@ -1001,7 +1023,7 @@ class Tree:
         self.set_gamma_distribution_categories_vector(self.alpha)
         self.set_vars()
 
-    def set_gamma_distribution_categories_vector(self, alpha: Union[int, float, np.ndarray]) -> None:
+    def set_gamma_distribution_categories_vector(self, alpha: Union[int, float, np.float64]) -> None:
         self.set_alpha(alpha)
         categories_vector = []
         gamma_percent_point = self.get_gamma_distribution_percent_point()
@@ -1014,33 +1036,28 @@ class Tree:
         self.rate_vector = tuple(categories_vector)
         self.rate_vector_length = len(self.rate_vector)
 
-    def set_coefficient_bl(self, coefficient_bl: Optional[Union[float, np.ndarray, int]] = None) -> None:
+    def set_coefficient_bl(self, coefficient_bl: Optional[Union[float, np.float64, int]] = None) -> None:
         self.coefficient_bl = 1.0 if coefficient_bl is None else coefficient_bl
 
     def set_alpha(self, alpha: Optional[float] = None, beta: Optional[float] = None) -> None:
         self.alpha = alpha if alpha else (beta if beta else 0.5)
 
-    def set_pi(self, pi_0: Optional[Union[float, np.ndarray, int]] = None,
-               pi_1: Optional[Union[float, np.ndarray, int]] = None) -> None:
-        alphabet_size = len(self.alphabet)
+    def set_pi(self, pi_0: Optional[Union[float, np.float64, int]] = None,
+               pi_1: Optional[Union[float, np.float64, int]] = None) -> None:
         if pi_0:
             self.pi_1 = 1 - pi_0
         elif pi_1:
             self.pi_1 = pi_1
         else:
-            self.pi_1 = 1 / alphabet_size
+            self.pi_1 = 1 / self.alphabet_length
 
     def set_vars(self) -> None:
-        alphabet_size = len(self.alphabet)
-        rate_vector_size = len(self.rate_vector)
         if self.pi_1:
             frequency = (1 - self.pi_1, self.pi_1)
         else:
-            frequency = (1 / alphabet_size, 1 / alphabet_size)
+            frequency = (1 / self.alphabet_length, 1 / self.alphabet_length)
         for current_node in self.root.get_list_nodes_info(only_node_list=True):
             current_node.alphabet = self.alphabet
-            current_node.alphabet_size = alphabet_size
-            current_node.rate_vector_size = rate_vector_size
             current_node.frequency = np.asarray(frequency, dtype=np.float64)
             current_node.pi_1 = self.pi_1
             current_node.coefficient_bl = self.coefficient_bl
@@ -1051,15 +1068,44 @@ class Tree:
 
         return gamma.ppf(probability_vector, a=self.alpha, scale=1/self.alpha)
 
-    def generate_sequence(self, size: int, msa_type: type = str, seed: Optional[int] = None,
+    def simulate_datasets(self, number_datasets: int = 100) -> None:
+        simulated_results = self.generate_simulated_datasets(number_datasets)
+
+        all_rows = []
+        for sim_id, msa in enumerate(simulated_results):
+            for leaf_name, sequence in msa.items():
+                all_rows.append(
+                    {
+                        "simulation_id": sim_id,
+                        "leaf_name": leaf_name,
+                        "sequence": sequence,
+                    }
+                )
+
+        self.simulated_datasets = pd.DataFrame(all_rows)
+
+    def generate_simulated_datasets(self, number_datasets: int = 100) -> list:
+        all_simulated_msas = []
+
+        for _ in range(number_datasets):
+            current_msa = self.generate_sequence(true_rates=self.posterior_rates)
+            all_simulated_msas.append(current_msa)
+
+        return all_simulated_msas
+
+    def generate_sequence(self, msa_type: type = dict,
+                          sites_quantity: Optional[int] = None,
                           true_rates: Optional[np.ndarray] = None) -> Union[Dict[str, str], str]:
 
         if true_rates is None:
-            true_rates = self.generate_site_rates(size, seed)
-        self.root.generate_sequence(self.alpha, true_rates)
-        self.msa = {leaf.name: leaf.sequence for leaf in self.get_leaves()}
+            true_rates = np.random.choice(self.rate_vector, 1 if sites_quantity is None else sites_quantity)
 
-        return self.get_fasta_text() if msa_type == str else self.msa
+        for current_node in self.get_all_nodes():
+            current_node.generate_sequence(true_rates, self.alphabet_length)
+
+        msa = {leaf.name: leaf.sequence for leaf in self.get_leaves()}
+
+        return self.get_fasta_text(msa) if msa_type == str else msa
 
     def set_posterior_rates_vector(self, prior: Optional[np.ndarray] = None) -> None:
         prior = np.ones(self.rate_vector_length) / self.rate_vector_length if prior is None else prior
@@ -1079,8 +1125,8 @@ class Tree:
 
         self.posterior_rates = posterior
 
-    def set_pearson_correlation_vector(self, probability_lg: Union[float, np.ndarray] = 0.9,
-                                       number_lg: Union[float, np.ndarray, int] = 5) -> None:
+    def set_pearson_correlation_vector(self, probability_lg: Union[float, np.float64] = 0.9,
+                                       number_lg: Union[float, np.float64, int] = 5) -> None:
         nodes_list = self.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
 
         # 1. Aggregate all node data into a single matrix of shape (2 * len(nodes_list), msa_length)
@@ -1149,8 +1195,8 @@ class Tree:
                             sites_quantity: int = 100,
                             categories_quantity: int = 4,
                             alpha: float = 0.5,
-                            pi_1: Union[float, np.ndarray, int] = 0.5,
-                            branch_lengths: Union[float, np.ndarray, int] = 0.5,
+                            pi_1: Union[float, np.float64, int] = 0.5,
+                            branch_lengths: Union[float, np.float64, int] = 0.5,
                             seed: Optional[int] = None,
                             newick_text: Optional[str] = None,
                             fasta_text: Optional[str] = None) -> Tuple[float, float, np.asarray, np.ndarray]:
@@ -1165,15 +1211,16 @@ class Tree:
 
         tree_data = {'pi_1': pi_1,
                      'alpha': alpha,
-                     'categories_quantity': categories_quantity}
+                     'categories_quantity': categories_quantity,
+                     'seed': seed}
         newick_tree.set_tree_data(**tree_data)
 
-        true_rates = newick_tree.generate_site_rates(sites_quantity, seed)
+        true_rates = newick_tree.generate_site_rates(sites_quantity)
 
         print(f'\ttrue_rates: {[round(float(r), 4) for r in true_rates]}')
 
         if not fasta_text:
-            fasta_text = newick_tree.generate_sequence(size=sites_quantity, seed=seed, true_rates=true_rates)
+            fasta_text = newick_tree.generate_sequence(msa_type=str, true_rates=true_rates)
 
         gloome_tree = cls(newick_text, msa=fasta_text, **tree_data)
 
@@ -1192,8 +1239,8 @@ class Tree:
                               sites_quantity: int = 100,
                               categories_quantity: int = 4,
                               alpha: float = 0.5,
-                              pi_1: Union[float, np.ndarray, int] = 0.5,
-                              branch_lengths: Union[float, np.ndarray, int] = 0.5,
+                              pi_1: Union[float, np.float64, int] = 0.5,
+                              branch_lengths: Union[float, np.float64, int] = 0.5,
                               seed: Optional[int] = None,
                               newick_text: Optional[str] = None,
                               fasta_text: Optional[str] = None,
@@ -1418,7 +1465,7 @@ class Tree:
         return ''.join(Writer((phylo_tree, )).to_strings(format_branch_length='%1.10f'))
 
     @staticmethod
-    def build_symmetric_newick(num_taxa: int, branch_length: Union[float, np.ndarray, int] = 0.5) -> str:
+    def build_symmetric_newick(num_taxa: int, branch_length: Union[float, np.float64, int] = 0.5) -> str:
         """
         Recursively build a perfectly symmetric binary Newick tree.
         If num_taxa is less than 2 or not a power of 2,
@@ -1442,13 +1489,9 @@ class Tree:
 
         return f'({build_subtree(leaves[:middle])},{build_subtree(leaves[middle:])});'
 
-    def generate_site_rates(self, size: int, seed: Optional[int] = None) -> np.ndarray:
-        if seed is not None:
-            np.random.seed(seed)
+    def generate_site_rates(self, sites_quantity: int) -> np.ndarray:
 
-        # return np.random.gamma(shape=self.alpha, scale=1/self.alpha, size=size)
-        return np.random.choice(self.rate_vector, size)
-        # return gamma.rvs(a=self.alpha, scale=1/self.alpha, size=size)
+        return np.random.choice(self.rate_vector, sites_quantity)
 
     @staticmethod
     def set_root_by_midpoint(tree_data: str) -> str:
@@ -1460,20 +1503,20 @@ class Tree:
         return ''.join(Writer((phylo_tree, )).to_strings(format_branch_length='%1.10f'))
 
     @staticmethod
-    def get_round(obj: Union[int, float, np.ndarray], decimals: int = 4) -> float:
+    def get_round(obj: Union[int, float, np.float64, np.ndarray], decimals: int = 4) -> float:
 
         return float(np.round(obj, decimals))
 
     @staticmethod
-    def get_list_decimals(obj: Union[int, float, np.ndarray], list_type: type = str, decimals: int = 4,
+    def get_list_decimals(obj: Union[int, float, np.float64, np.ndarray], list_type: type = str, decimals: int = 4,
                           return_list: bool = False) -> Any:
         if list_type in (list, tuple, set):
             if return_list:
-                return list_type(map(lambda x: Tree.get_round(x, decimals) if (isinstance(x, (int, float, np.ndarray))
-                                                                               ) else x, obj))
+                return list_type(map(lambda x: Tree.get_round(x, decimals) if (isinstance(x, (int, float, np.float64,
+                                                                               np.ndarray))) else x, obj))
             if isinstance(obj, (list, tuple, set)):
                 return list_type(map(lambda x: Tree.get_round(x, decimals)
-                                     if isinstance(x, (int, float, np.ndarray))
+                                     if isinstance(x, (int, float, np.float64, np.ndarray))
                                      else Tree.get_list_decimals(x, list_type, decimals), obj))
             else:
                 return obj
@@ -1481,8 +1524,8 @@ class Tree:
             return ' '.join(map(str, obj))
 
     @staticmethod
-    def is_bootstrap_value(number_str: str, lower: Union[float, np.ndarray, int] = 0,
-                           upper: Union[float, np.ndarray, int] = 100) -> bool:
+    def is_bootstrap_value(number_str: str, lower: Union[float, np.float64, int] = 0,
+                           upper: Union[float, np.float64, int] = 100) -> bool:
         re_result = bool(re.fullmatch(r'^-?\d+(\.\d+)?$', number_str)) if len(number_str.strip()) else False
 
         return lower <= float(number_str) <= upper if re_result else False
@@ -1602,10 +1645,11 @@ class Tree:
                     return alphabet
 
     @staticmethod
-    def find_dict_in_iterable(iterable: Union[List[Union[Dict[str, Union[float, np.ndarray, bool, str, List[float],
-                              List[np.ndarray]]], 'Node']], Tuple[Dict[str, Union[float, bool, str, List[float], Tuple[
-                                   int, ...]]]]], key: str, value: Optional[Union[float, bool, str, List[float]]] = None
-                              ) -> Dict[str, Union[float, bool, str, List[float], List[int], Tuple[int, ...]]]:
+    def find_dict_in_iterable(iterable: List[Union[Dict[str, Union[float, np.float64, bool, str, np.ndarray,
+                                             List[float], List[np.float64]]], Node]], key: str,
+                              value: Optional[Union[float, bool, str, List[float]]] = None
+                              ) -> Dict[str, Union[float, np.float64, bool, str, np.ndarray, List[float],
+                                        List[np.float64]]]:
         for index, dictionary in enumerate(iterable):
             if key in dictionary and (True if value is None else dictionary[key] == value):
                 return dictionary
