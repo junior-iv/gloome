@@ -754,7 +754,7 @@ class Tree:
             header = f'iterations = {i}'
             current_msa = self.generate_msa(msa_type=str, site_rate=self.posterior_rates, p01=p01, p11=p11,
                                             branch_length=branch_length, leaves=leaves)
-            current_content = f'{header}\n{current_msa}\n\n'
+            current_content = f'{header}\n\n{current_msa}\n\n\n'
             with open(file_name, 'a', encoding='utf-8') as file:
                 file.write(current_content)
 
