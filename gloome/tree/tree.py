@@ -44,7 +44,6 @@ class Tree:
     alphabet_length: int
     msa_length: int
     rate_vector_length: int
-    simulated_datasets: Optional[pd.DataFrame] = None
 
     def __init__(self, data: Optional[Union[str, Node]] = None, node_name: Optional[str] = None, **kwargs) -> None:
         """
@@ -193,7 +192,7 @@ class Tree:
         else:
             self.set_alpha(alpha, beta)
             self.alphabet = self.get_alphabet()
-            self.msa = self.generate_sequence()
+            self.msa = self.generate_msa()
 
         self.msa_length = len(next(iter(self.msa.values())))
         self.alphabet_length = len(self.alphabet)
@@ -733,13 +732,31 @@ class Tree:
 
         return file_name
 
-    def simulated_datasets_to_tsv(self, file_name: str = 'SimulatedDatasets.tsv', sep: str = '\t',
-                                  number_datasets: int = 100) -> str:
+    def simulated_datasets_to_fastas(self, file_name: str = 'SimulatedDatasets.fastas',
+                                     number_datasets: int = 100) -> str:
+        if self.posterior_rates is None:
+            self.set_posterior_rates_vector()
 
-        if self.simulated_datasets is None or not isinstance(self.simulated_datasets, pd.DataFrame):
-            self.simulate_datasets(number_datasets)
+        site_rate = np.asarray(self.posterior_rates, dtype=np.float64)
+        branch_nodes = [n for n in self.get_all_nodes(mode='pre-order') if n.father is not None]
+        branch_length = np.asarray([n.distance_to_father for n in branch_nodes], dtype=np.float64)
+        leaves = self.get_leaves()
 
-        self.simulated_datasets.to_csv(file_name, sep=sep, index=False)
+        a = 1.0 / (2 * (1 - self.pi_1))
+        b = 1.0 / (2 * self.pi_1)
+        mu = a + b
+        t = branch_length[:, np.newaxis] * site_rate[np.newaxis, :] * self.coefficient_bl
+        e = np.exp(-mu * t)
+        p01 = a * (1 - e) / mu
+        p11 = (a + b * e) / mu
+
+        for i in range(number_datasets):
+            header = f'iterations = {i}'
+            current_msa = self.generate_msa(msa_type=str, site_rate=self.posterior_rates, p01=p01, p11=p11,
+                                            branch_length=branch_length, leaves=leaves)
+            current_content = f'{header}\n{current_msa}\n\n'
+            with open(file_name, 'a', encoding='utf-8') as file:
+                file.write(current_content)
 
         return file_name
 
@@ -1061,55 +1078,52 @@ class Tree:
             current_node.frequency = np.asarray(frequency, dtype=np.float64)
             current_node.pi_1 = self.pi_1
             current_node.coefficient_bl = self.coefficient_bl
-            current_node.pmatrix = np.asarray([current_node.get_pmatrix(r) for r in self.rate_vector])
+            current_node.pmatrix = np.asarray([current_node.get_pmatrix(r) for r in self.rate_vector], dtype=np.float64)
 
     def get_gamma_distribution_percent_point(self) -> List[float]:
         probability_vector = np.linspace(0, 1, self.categories_quantity + 1)
 
         return gamma.ppf(probability_vector, a=self.alpha, scale=1/self.alpha)
 
-    def simulate_datasets(self, number_datasets: int = 100) -> None:
-        simulated_results = self.generate_simulated_datasets(number_datasets)
+    def generate_msa(self, msa_type: type = dict,
+                     sites_quantity: int = 1,
+                     site_rate: Optional[np.ndarray] = None,
+                     p01: Optional[np.ndarray] = None,
+                     p11: Optional[np.ndarray] = None,
+                     branch_length: Optional[np.ndarray] = None,
+                     branch_nodes: Optional[List[Node]] = None,
+                     leaves: Optional[List[Node]] = None) -> Union[Dict[str, str], str]:
 
-        all_rows = []
-        for sim_id, msa in enumerate(simulated_results):
-            for leaf_name, sequence in msa.items():
-                all_rows.append(
-                    {
-                        "simulation_id": sim_id,
-                        "leaf_name": leaf_name,
-                        "sequence": sequence,
-                    }
-                )
+        if site_rate is None:
+            site_rate = np.random.choice(self.rate_vector, 1 if sites_quantity is None else sites_quantity)
+        if branch_nodes is None:
+            branch_nodes = [n for n in self.get_all_nodes(mode='pre-order') if n.father is not None]
+        if branch_length is None:
+            branch_length = np.asarray([n.distance_to_father for n in branch_nodes], dtype=np.float64)
+        if p01 is None or p11 is None:
+            a = 1.0 / (2 * (1 - self.pi_1))
+            b = 1.0 / (2 * self.pi_1)
+            mu = a + b
+            t = branch_length[:, np.newaxis] * site_rate[np.newaxis, :] * self.coefficient_bl
+            e = np.exp(-mu * t)
+            p01 = a * (1 - e) / mu
+            p11 = (a + b * e) / mu
+        if leaves is None:
+            leaves = self.get_leaves()
 
-        self.simulated_datasets = pd.DataFrame(all_rows)
+        states = {self.root.name: (np.random.random(sites_quantity) < self.pi_1).astype(np.int8)}
+        for idx, node in enumerate(branch_nodes):
+            parent_state = states[node.father.name]
+            p = np.where(parent_state == 0, p01[idx], p11[idx])
+            states[node.name] = (np.random.random(sites_quantity) < p).astype(np.int8)
 
-    def generate_simulated_datasets(self, number_datasets: int = 100) -> list:
-        all_simulated_msas = []
-
-        for _ in range(number_datasets):
-            current_msa = self.generate_sequence(true_rates=self.posterior_rates)
-            all_simulated_msas.append(current_msa)
-
-        return all_simulated_msas
-
-    def generate_sequence(self, msa_type: type = dict,
-                          sites_quantity: Optional[int] = None,
-                          true_rates: Optional[np.ndarray] = None) -> Union[Dict[str, str], str]:
-
-        if true_rates is None:
-            true_rates = np.random.choice(self.rate_vector, 1 if sites_quantity is None else sites_quantity)
-
-        for current_node in self.get_all_nodes():
-            current_node.generate_sequence(true_rates, self.alphabet_length)
-
-        msa = {leaf.name: leaf.sequence for leaf in self.get_leaves()}
+        msa = {leaf.name: ''.join(self.alphabet[s] for s in states[leaf.name]) for leaf in leaves}
 
         return self.get_fasta_text(msa) if msa_type == str else msa
 
     def set_posterior_rates_vector(self, prior: Optional[np.ndarray] = None) -> None:
         prior = np.ones(self.rate_vector_length) / self.rate_vector_length if prior is None else prior
-        prior = np.asarray(prior)
+        prior = np.asarray(prior, dtype=np.float64)
         assert len(prior) == self.rate_vector_length, 'prior length must match number of rate categories'
 
         if not self.calculated_likelihood:

@@ -1,7 +1,6 @@
 import inspect
 import json
 import re
-import copy
 
 from pathlib import Path
 from typing import Callable, Any
@@ -14,7 +13,7 @@ from gloome.services.design_functions import *
 
 SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_newick_tree_png': True,
-                  'file_table_of_simulated_datasets_tsv': True,
+                  'file_table_of_simulated_datasets_fastas': True,
                   'file_table_of_posterior_rates_tsv': True,
                   'file_table_of_pearson_correlation_tsv': True,
                   'file_table_of_nodes_tsv': True,
@@ -224,10 +223,10 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                                                        taking_into_coefficient=taking_into_coefficient,
                                                        with_internal_nodes=True,
                                                        decimal_length=0)})
-    if selected_files.get('file_table_of_simulated_datasets_tsv', False) and use_copap:
-        result.update({'Table of simulated datasets (tsv)':
-                       newick_tree.simulated_datasets_to_tsv(file_name=f'{file_path}/SimulatedDatasets.tsv',
-                                                             number_datasets=number_datasets)})
+    if selected_files.get('file_table_of_simulated_datasets_fastas', False) and use_copap:
+        result.update({'Table of simulated datasets (fastas)':
+                       newick_tree.simulated_datasets_to_fastas(file_name=f'{file_path}/SimulatedDatasets.fastas',
+                                                                number_datasets=number_datasets)})
 
     if result:
         file_path = get_path(file_path)
@@ -289,7 +288,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
     is_do_not_use_e_mail = bool(args[15])
     file_interactive_tree_html = bool(args[16])
     file_newick_tree_png = bool(args[17])
-    file_table_of_simulated_datasets_tsv = bool(args[18])
+    file_table_of_simulated_datasets_fastas = bool(args[18])
     file_table_of_posterior_rates_tsv = bool(args[19])
     file_table_of_pearson_correlation_tsv = bool(args[20])
     file_table_of_nodes_tsv = bool(args[21])
@@ -361,8 +360,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'Newick tree (png) value error [ {file_newick_tree_png} ]',
                          f'The value must be boolean type.'))
 
-    if not isinstance(file_table_of_simulated_datasets_tsv, bool):
-        err_list.append((f'Table of simulated datasets (tsv) value error [ {file_table_of_simulated_datasets_tsv} ]',
+    if not isinstance(file_table_of_simulated_datasets_fastas, bool):
+        err_list.append((f'Table of simulated datasets (fastas) value error '
+                         f'[ {file_table_of_simulated_datasets_fastas} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(file_table_of_posterior_rates_tsv, bool):

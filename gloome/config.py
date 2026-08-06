@@ -84,8 +84,8 @@ class Config:
     def get_selected_files(self) -> Dict[str, bool]:
         selected_files = {'file_interactive_tree_html': self.CURRENT_ARGS.file_interactive_tree_html,
                           'file_newick_tree_png': self.CURRENT_ARGS.file_newick_tree_png,
-                          'file_table_of_simulated_datasets_tsv':
-                              self.CURRENT_ARGS.file_table_of_simulated_datasets_tsv,
+                          'file_table_of_simulated_datasets_fastas':
+                              self.CURRENT_ARGS.file_table_of_simulated_datasets_fastas,
                           'file_table_of_posterior_rates_tsv': self.CURRENT_ARGS.file_table_of_posterior_rates_tsv,
                           'file_table_of_pearson_correlation_tsv':
                               self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv,
@@ -109,7 +109,8 @@ class Config:
                      'isDoNotUseEMail': int(self.CURRENT_ARGS.is_do_not_use_e_mail),
                      'fileInteractiveTreeHtml': int(self.CURRENT_ARGS.file_interactive_tree_html),
                      'fileNewickTreePng': int(self.CURRENT_ARGS.file_newick_tree_png),
-                     'fileTableOfSimulatedDatasetsTsv': int(self.CURRENT_ARGS.file_table_of_simulated_datasets_tsv),
+                     'fileTableOfSimulatedDatasetsFastas':
+                         int(self.CURRENT_ARGS.file_table_of_simulated_datasets_fastas),
                      'fileTableOfPosteriorRatesTsv': int(self.CURRENT_ARGS.file_table_of_posterior_rates_tsv),
                      'fileTableOfPearsonCorrelationTsv': int(self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv),
                      'fileTableOfNodesTsv': int(self.CURRENT_ARGS.file_table_of_nodes_tsv),
@@ -211,7 +212,7 @@ class Config:
                                         self.CURRENT_ARGS.is_do_not_use_e_mail,
                                         self.CURRENT_ARGS.file_interactive_tree_html,
                                         self.CURRENT_ARGS.file_newick_tree_png,
-                                        self.CURRENT_ARGS.file_table_of_simulated_datasets_tsv,
+                                        self.CURRENT_ARGS.file_table_of_simulated_datasets_fastas,
                                         self.CURRENT_ARGS.file_table_of_posterior_rates_tsv,
                                         self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv,
                                         self.CURRENT_ARGS.file_table_of_nodes_tsv,
@@ -399,11 +400,11 @@ class Config:
                             help=f'Specify file_newick_tree_png (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_newick_tree_png)}.',
                             default=int(self.CURRENT_ARGS.file_newick_tree_png))
-        parser.add_argument('--file_table_of_simulated_datasets_tsv',
-                            dest='file_table_of_simulated_datasets_tsv', type=int, required=False,
-                            help=f'Specify file_table_of_simulated_datasets_tsv (optional). Default is '
-                            f'{int(self.CURRENT_ARGS.file_table_of_simulated_datasets_tsv)}.',
-                            default=int(self.CURRENT_ARGS.file_table_of_simulated_datasets_tsv))
+        parser.add_argument('--file_table_of_simulated_datasets_fastas',
+                            dest='file_table_of_simulated_datasets_fastas', type=int, required=False,
+                            help=f'Specify file_table_of_simulated_datasets_fastas (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_table_of_simulated_datasets_fastas)}.',
+                            default=int(self.CURRENT_ARGS.file_table_of_simulated_datasets_fastas))
         parser.add_argument('--file_table_of_posterior_rates_tsv',
                             dest='file_table_of_posterior_rates_tsv', type=int, required=False,
                             help=f'Specify file_table_of_posterior_rates_tsv (optional). Default is '
@@ -454,7 +455,7 @@ class Config:
                 elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
                                   'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_copap', 'is_do_not_use_e_mail',
                                   'file_interactive_tree_html', 'file_newick_tree_png',
-                                  'file_table_of_simulated_datasets_tsv', 'file_table_of_posterior_rates_tsv',
+                                  'file_table_of_simulated_datasets_fastas', 'file_table_of_posterior_rates_tsv',
                                   'file_table_of_pearson_correlation_tsv', 'file_table_of_nodes_tsv',
                                   'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv',
                                   'file_log_likelihood_tsv', 'file_table_of_attributes_tsv',

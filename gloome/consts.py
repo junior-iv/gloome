@@ -163,7 +163,7 @@ DEFAULT_FORM_ARGUMENTS = {
     'is_do_not_use_e_mail': True,
     'file_interactive_tree_html': False,
     'file_newick_tree_png': False,
-    'file_table_of_simulated_datasets_tsv': False,
+    'file_table_of_simulated_datasets_fastas': False,
     'file_table_of_posterior_rates_tsv': True,
     'file_table_of_pearson_correlation_tsv': True,
     'file_table_of_nodes_tsv': True,
@@ -264,8 +264,8 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify file_interactive_tree_html. Default is 0.
 \t\t--file_newick_tree_png <type=int> 
 \t\t\tSpecify file_newick_tree_png. Default is 0.
-\t\t--file_table_of_simulated_datasets_tsv <type=int>
-\t\t\tSpecify file_table_of_simulated_datasets_tsv. Default is 1.
+\t\t--file_table_of_simulated_datasets_fastas <type=int>
+\t\t\tSpecify file_table_of_simulated_datasets_fastas. Default is 1.
 \t\t--file_table_of_posterior_rates_tsv <type=int>
 \t\t\tSpecify file_table_of_posterior_rates_tsv. Default is 1.
 \t\t--file_table_of_pearson_correlation_tsv <type=int>

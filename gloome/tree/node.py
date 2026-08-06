@@ -45,7 +45,6 @@ class Node:
     sequence: str
     probabilities_sequence_characters: Optional[np.ndarray]
     ancestral_sequence: str
-    simulated_sequence: str
 
     def __init__(self, name: Optional[str]) -> None:
         self.father = None
@@ -83,7 +82,6 @@ class Node:
         self.sequence = ''
         self.probabilities_sequence_characters = None
         self.ancestral_sequence = ''
-        self.simulated_sequence = ''
 
     def __str__(self) -> str:
         return self.get_name(True)
@@ -301,7 +299,6 @@ class Node:
         self.sequence = ''
         self.probabilities_sequence_characters = None
         self.ancestral_sequence = ''
-        self.simulated_sequence = ''
 
     def get_one_parameter_pmatrix(self, rate: Union[float, np.float64, np.ndarray] = 1.0) -> np.ndarray:
         qmatrix = np.zeros((2, 2), dtype=np.float64)
@@ -319,24 +316,6 @@ class Node:
         qmatrix = qmatrix * 1 / (alphabet_length - 1)
 
         return expm(qmatrix * (self.distance_to_father * self.coefficient_bl * rate))
-
-    def generate_sequence(self, rates: np.ndarray, alphabet_length: int) -> None:
-        size = len(rates)
-        if self.father is None:
-            self.simulated_sequence = ''.join(np.random.choice(self.alphabet, size=size))
-        else:
-            other_states = alphabet_length - 1
-            branch_length = self.distance_to_father * self.coefficient_bl * rates
-            exponent = np.exp((-alphabet_length / other_states) * branch_length)
-            p_identity = (1 / alphabet_length) + (other_states / alphabet_length) * exponent
-            parent_states = np.array([int(char) for char in self.father.sequence])
-            rand_vals = np.random.random(size=size)
-            mutated = rand_vals >= p_identity
-            random_shifts = np.random.randint(1, alphabet_length, size=size)
-            mutated_states = (parent_states + random_shifts) % alphabet_length
-            child_states = np.where(mutated, mutated_states, parent_states)
-
-            self.simulated_sequence = ''.join(child_states.astype(str))
 
     def get_jukes_cantor_transition_probs(self, alphabet_length: int,
                                           rate: Union[float, np.float64, np.ndarray, Any] = 1.0
