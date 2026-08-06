@@ -52,9 +52,9 @@ class MailSenderSMTPLib:
             self.add_attachment_to_email(attachment_path, message)
             return ''
         else:
-            suffixes = ('txt', 'csv', 'tsv', 'nwk', 'tree', 'dot', 'fasta', 'log', 'png', 'svg', 'jpeg', 'jpg', 'html',
-                        'htm', 'json', 'zip', 'rar', '7z', 'gz', 'tgz', 'tar', 'pdf', 'doc', 'dot', 'wiz', 'docx',
-                        'xls', 'xlt', 'xla', 'xlsx', 'ppt', 'pps', 'pps', 'pptx', 'ppsx')
+            suffixes = ('txt', 'csv', 'tsv', 'nwk', 'tree', 'dot', 'fasta', 'fastas', 'log', 'png', 'svg', 'jpeg',
+                        'jpg', 'html', 'htm', 'json', 'zip', 'rar', '7z', 'gz', 'tgz', 'tar', 'pdf', 'doc', 'dot',
+                        'wiz', 'docx', 'xls', 'xlt', 'xla', 'xlsx', 'ppt', 'pps', 'pps', 'pptx', 'ppsx')
             mode = 'view' if attachment_path.suffix[1:] in suffixes else 'download'
             return (f'\n<a href="{WEBSERVER_URL}/get_file?file_path={str(attachment_path).replace("/", "%2F")}'
                     f'&mode={mode}" target="_blank">{attachment_path}</a>')
