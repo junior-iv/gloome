@@ -1,10 +1,9 @@
 let jsonTreeData = null
 let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isDoNotUseCoPAP`,
-                      `isDoNotUseEMail`,`fileInteractiveTreeHtml`, `fileNewickTreePng`,
-                      `fileTableOfSimulatedDatasetsFastas`, `fileTableOfPosteriorRatesTsv`,
-                      `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`,
-                      `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`,
-                      `filePhylogeneticTreeNwk`];
+                      `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfSimulatedDatasetsFastas`,
+                      `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`,
+                      `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`,
+                      `fileTableOfAttributesTsv`, `filePhylogeneticTreeNwk`];
 let lists = [`rootingMethods`, `leaves`]
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
@@ -16,12 +15,12 @@ let objectsDependence = {
     'probabilityLG': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
     'numberLG': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
     'numberDatasets': {'dependence': '', 'value': ''},
-    'eMail': {'dependence': ['isDoNotUseEMail'], 'value': ''},
+    'eMail': {'dependence': '', 'value': ''},
     'isOptimizePi': {'dependence': '', 'value': ''},
     'isOptimizePiAverage': {'dependence': '', 'value': ''},
     'isOptimizeAlpha': {'dependence': '', 'value': ''},
     'isOptimizeBL': {'dependence': '', 'value': ''},
-    'isDoNotUseEMail': {'dependence': '', 'value': ''},
+    // 'isDoNotUseEMail': {'dependence': '', 'value': ''},
     'isDoNotUseCoPAP': {'dependence': '', 'value': ''},
     'fileInteractiveTreeHtml': {'dependence': '', 'value': ''},
     'fileNewickTreePng': {'dependence': '', 'value': ''},
@@ -67,6 +66,17 @@ function setVisibility(id = 'result', visible = true) {
         element.style.visibility = `visible`;
     } else {
         element.style.visibility = `hidden`;
+    }
+
+    return element
+}
+
+function setDisplay(id = 'result', visible = true) {
+    let element = document.getElementById(id)
+    if (visible) {
+        element.style.display = `flex`;
+    } else {
+        element.style.display = `none`;
     }
 
     return element
@@ -515,7 +525,7 @@ function makeTree(mode = 0) {
     const isOptimizeAlpha = document.getElementById(`isOptimizeAlpha`)
     const isOptimizeBL = document.getElementById(`isOptimizeBL`)
     const isDoNotUseCoPAP = document.getElementById(`isDoNotUseCoPAP`)
-    const isDoNotUseEMail = document.getElementById(`isDoNotUseEMail`)
+    // const isDoNotUseEMail = document.getElementById(`isDoNotUseEMail`)
     const fileInteractiveTreeHtml = document.getElementById(`fileInteractiveTreeHtml`)
     const fileNewickTreePng = document.getElementById(`fileNewickTreePng`)
     const fileTableOfSimulatedDatasetsFastas = document.getElementById(`fileTableOfSimulatedDatasetsFastas`)
@@ -545,7 +555,7 @@ function makeTree(mode = 0) {
     formData.append(`isOptimizeAlpha`, +isOptimizeAlpha.checked);
     formData.append(`isOptimizeBL`, +isOptimizeBL.checked);
     formData.append(`isDoNotUseCoPAP`, +isDoNotUseCoPAP.checked);
-    formData.append(`isDoNotUseEMail`, +isDoNotUseEMail.checked);
+    formData.append(`isDoNotUseEMail`, +!!document.getElementById('eMail').value.trim());
     formData.append(`fileInteractiveTreeHtml`, +fileInteractiveTreeHtml.checked);
     formData.append(`fileNewickTreePng`, +fileNewickTreePng.checked);
     formData.append(`fileTableOfSimulatedDatasetsFastas`, +fileTableOfSimulatedDatasetsFastas.checked);
@@ -624,10 +634,10 @@ function gedIdentifiers(id = ``) {
         return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`, `newickText`,
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `probabilityLG`, `numberLG`,
             `numberDatasets`, `eMail`, `isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`,
-            `isDoNotUseCoPAP`, `isDoNotUseEMail`, `fileInteractiveTreeHtml`, `fileNewickTreePng`,
-            `fileTableOfSimulatedDatasetsFastas`, `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`,
-            `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`,
-            `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
+            `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfSimulatedDatasetsFastas`,
+            `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`,
+            `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`,
+            `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
     }
 }
 
@@ -695,12 +705,20 @@ function onChangingRootingMethod(delLeaf = true) {
 
 function onChangingCheckbox(id, value) {
     let element = document.getElementById(id);
-    let checkboxesGroups = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha'], 'coefficientBL': ['isOptimizeBL'], 'eMail': ['isDoNotUseEMail'], 'probabilityLG': ['isDoNotUseCoPAP'], 'numberLG': ['isDoNotUseCoPAP'], 'fileTableOfPosteriorRatesTsv': ['isDoNotUseCoPAP'], 'fileTableOfPearsonCorrelationTsv': ['isDoNotUseCoPAP']};
+    let checkboxesAccessibilityGroups = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha'], 'coefficientBL': ['isOptimizeBL'], 'probabilityLG': ['isDoNotUseCoPAP'], 'numberLG': ['isDoNotUseCoPAP']};
+    let checkboxesDisplayGroups = {'blockFileTableOfPosteriorRatesTsv': ['isDoNotUseCoPAP'], 'blockFileTableOfPearsonCorrelationTsv': ['isDoNotUseCoPAP']};
     if (checkboxes.includes(id)) {
-        Object.entries(checkboxesGroups).forEach(([key, valueList]) => {
+        Object.entries(checkboxesAccessibilityGroups).forEach(([key, valueList]) => {
             if (valueList.includes(id)) {
                 valueList.forEach(elementId => id !== elementId ? document.getElementById(elementId).checked = false : element.checked = Boolean(value));
                 setAccessibility(key, element.checked);
+            }
+
+        });
+        Object.entries(checkboxesDisplayGroups).forEach(([key, valueList]) => {
+            if (valueList.includes(id)) {
+                valueList.forEach(elementId => id !== elementId ? document.getElementById(elementId).checked = false : element.checked = Boolean(value));
+                setDisplay(key, !element.checked);
             }
 
         });
@@ -740,9 +758,10 @@ function showMessage(message = null, variant = 1) {
 }
 
 function formCleaning(args) {
-    let elementNames = {'value': [`newickText`, `msaText`, `leaf`],
+    let elementNames = {'value': [`newickText`, `msaText`, `leaf`, `eMail`],
         'innerHTML': [`tree`, 'branchInfo', `nodeInfo`, `logLikelihood`, `fileList`, `leaves`],
-        'setDefault': [`pi1`, `alpha`, `categoriesQuantity`, `coefficientBL`]};
+        'setDefault': [`rootingMethod`, `numberDatasets`, `probabilityLG`, `numberLG`, `pi1`, `alpha`,
+            `categoriesQuantity`, `coefficientBL`]};
     for (let i = 0; i < elementNames.value.length; i++) {
         document.getElementById(elementNames.value[i]).value = ``;
     }

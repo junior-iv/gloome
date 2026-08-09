@@ -106,7 +106,7 @@ class Config:
                      'isOptimizeAlpha': int(self.CURRENT_ARGS.is_optimize_alpha),
                      'isOptimizeBL': int(self.CURRENT_ARGS.is_optimize_bl),
                      'isDoNotUseCoPAP': int(self.CURRENT_ARGS.is_do_not_use_copap),
-                     'isDoNotUseEMail': int(self.CURRENT_ARGS.is_do_not_use_e_mail),
+                     # 'isDoNotUseEMail': int(self.CURRENT_ARGS.is_do_not_use_e_mail),
                      'fileInteractiveTreeHtml': int(self.CURRENT_ARGS.file_interactive_tree_html),
                      'fileNewickTreePng': int(self.CURRENT_ARGS.file_newick_tree_png),
                      'fileTableOfSimulatedDatasetsFastas':

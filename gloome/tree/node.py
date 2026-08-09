@@ -45,6 +45,7 @@ class Node:
     sequence: str
     probabilities_sequence_characters: Optional[np.ndarray]
     ancestral_sequence: str
+    aliases = Dict[str, str]
 
     def __init__(self, name: Optional[str]) -> None:
         self.father = None
@@ -82,6 +83,7 @@ class Node:
         self.sequence = ''
         self.probabilities_sequence_characters = None
         self.ancestral_sequence = ''
+        self.aliases = dict()
 
     def __str__(self) -> str:
         return self.get_name(True)
@@ -94,7 +96,8 @@ class Node:
                 'frequency', 'coefficient_bl', 'pmatrix', 'log_likelihood_vector', 'log_likelihood',
                 'sequence_likelihood', 'likelihood', 'up_vector', 'down_vector', 'marginal_vector',
                 'marginal_bl_vector', 'probability_vector', 'branch_probability_vector', 'probability_vector_gain',
-                'probability_vector_loss', 'sequence', 'probabilities_sequence_characters', 'ancestral_sequence']
+                'probability_vector_loss', 'sequence', 'probabilities_sequence_characters', 'ancestral_sequence',
+                'aliases']
 
     def get_list_nodes_info(self, with_additional_details: bool = False,
                             mode: Optional[str] = None,
@@ -120,28 +123,33 @@ class Node:
         list_result = []
         mode = 'pre-order' if mode is None or mode.lower() not in ('pre-order', 'in-order', 'post-order', 'level-order'
                                                                    ) else mode.lower()
-        condition = with_additional_details or only_node_list
+
+        def resolve_item(trees_node: 'Node') -> Union[str, 'Node', Dict[str, Any]]:
+            if only_node_list:
+                return trees_node
+            if with_additional_details:
+                return trees_node.get_node_info()
+            return trees_node.name
 
         def get_list(trees_node: Node) -> None:
-            nonlocal list_result, filters, mode, condition
+            nonlocal list_result, filters, mode
 
-            nodes_info = trees_node.get_node_info()
-            list_item = trees_node if only_node_list else nodes_info
-            if trees_node.check_filter_compliance(filters, nodes_info):
+            if trees_node.check_filter_compliance(filters):
+                list_item = resolve_item(trees_node)
                 if mode == 'pre-order':
-                    list_result.append(list_item if condition else trees_node.name)
+                    list_result.append(list_item)
 
                 for i, child in enumerate(trees_node.children):
                     get_list(child)
                     if mode == 'in-order' and not i:
-                        list_result.append(list_item if condition else trees_node.name)
+                        list_result.append(list_item)
 
                 if not trees_node.children:
                     if mode == 'in-order':
-                        list_result.append(list_item if condition else trees_node.name)
+                        list_result.append(list_item)
 
                 if mode == 'post-order':
-                    list_result.append(list_item if condition else trees_node.name)
+                    list_result.append(list_item)
             else:
                 for child in trees_node.children:
                     get_list(child)
@@ -150,9 +158,8 @@ class Node:
             nodes_list = [self]
             while nodes_list:
                 newick_node = nodes_list.pop(0)
-                if newick_node.check_filter_compliance(filters, newick_node.get_node_info()):
-                    level_order_item = newick_node if only_node_list else newick_node.get_node_info()
-                    list_result.append(level_order_item if condition else newick_node.name)
+                if newick_node.check_filter_compliance(filters):
+                    list_result.append(resolve_item(newick_node))
 
                 for nodes_child in newick_node.children:
                     nodes_list.append(nodes_child)
@@ -396,6 +403,20 @@ class Node:
         self.levels_to_nearest = min(levels_list)
         self.distance_to_nearest = min(distance_list)
 
+    def get_filter_value(self, key: str) -> Any:
+        if key == 'father_name':
+            return self.father.name if self.father else ''
+        if key == 'children':
+            return [i.name for i in self.children]
+
+        return getattr(self, self.aliases.get(key, key), None)
+
+    def check_filter_compliance(self, filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]]) -> bool:
+        if not filters:
+            return True
+
+        return any(self.get_filter_value(key) == value for key, values in filters.items() for value in values)
+
     @staticmethod
     def get_integer(data: Union[str, int, float]) -> int:
         result = float(data) * 10
@@ -416,16 +437,3 @@ class Node:
     def draw_cell_html_table(color: str, data: str) -> str:
 
         return f'<td style="color: {color}" class="h7 w-auto text-center">{data}</td>'
-
-    @staticmethod
-    def check_filter_compliance(filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]], info: Dict[str,
-                                Union[float, bool, str, list[float]]]) -> bool:
-        permission = 0
-        if filters:
-            for key in filters.keys():
-                for value in filters.get(key):
-                    permission += sum(k == key and info[k] == value for k in info)
-        else:
-            permission = 1
-
-        return bool(permission)

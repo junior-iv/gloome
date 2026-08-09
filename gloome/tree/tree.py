@@ -41,6 +41,10 @@ class Tree:
     calculated_tree: bool = False
     calculated_likelihood: bool = False
     all_nodes: Dict[str, Node]
+    all_nodes_objects: Optional[List[Node]] = None
+    nodes_objects: Optional[List[Node]] = None
+    nodes_objects_post_order: Optional[List[Node]] = None
+    leaves_objects: Optional[List[Node]] = None
     alphabet_length: int
     msa_length: int
     rate_vector_length: int
@@ -79,7 +83,11 @@ class Tree:
         else:
             self.root = Node('root')
 
-        self.all_nodes = {current_node.name: current_node for current_node in self.get_all_nodes()}
+        self.all_nodes_objects = self.get_all_nodes()
+        self.all_nodes = {current_node.name: current_node for current_node in self.all_nodes_objects}
+        self.nodes_objects = self.get_nodes()
+        self.nodes_objects_post_order = self.get_nodes(mode='post-order')
+        self.leaves_objects = self.get_leaves()
 
         self.msa = self.alphabet = self.categories_quantity = self.alpha = None
         self.rate_vector = (1.0, )
@@ -104,7 +112,8 @@ class Tree:
         return ['root', 'alphabet', 'msa', 'rate_vector', 'alpha', 'categories_quantity', 'pi_1', 'coefficient_bl',
                 'log_likelihood_vector', 'log_likelihood', 'likelihood_vector', 'likelihood', 'posterior_rates',
                 'correlation_vector', 'calculated_ancestor_sequence', 'calculated_tree', 'calculated_likelihood',
-                'all_nodes', 'alphabet_length', 'msa_length', 'rate_vector_length']
+                'all_nodes', 'all_nodes_objects', 'nodes_objects', 'nodes_objects_post_order', 'leaves_objects',
+                'alphabet_length', 'msa_length', 'rate_vector_length']
 
     def __dict__(self) -> Dict[str, Optional[Union[Node, float, np.float64, int, np.ndarray, bool, Tuple[str, ...],
                                Tuple[Union[float, np.float64, int], ...], Dict[str, str]]]]:
@@ -127,6 +136,10 @@ class Tree:
                 'calculated_tree': self.calculated_tree,
                 'calculated_likelihood': self.calculated_likelihood,
                 'all_nodes': self.all_nodes,
+                'all_nodes_objects': self.all_nodes_objects,
+                'nodes_objects': self.nodes_objects,
+                'nodes_objects_post_order': self.nodes_objects_post_order,
+                'leaves_objects': self.leaves_objects,
                 'alphabet_length': self.alphabet_length,
                 'msa_length': self.msa_length,
                 'rate_vector_length': self.rate_vector_length}
@@ -209,7 +222,7 @@ class Tree:
         self.set_distance_taking_into_coefficient()
 
     def set_distance_taking_into_coefficient(self) -> None:
-        for current_node in self.root.get_list_nodes_info(only_node_list=True):
+        for current_node in self.all_nodes_objects:
             current_node.distance_to_father_taking_into_coefficient = (current_node.distance_to_father *
                                                                        self.coefficient_bl)
             current_node.distance_to_nearest_taking_into_coefficient = (current_node.distance_to_nearest *
@@ -233,7 +246,7 @@ class Tree:
         Returns:
             None: This function does not return any value; it only prints the nodes to the standard output.
         """
-        data_structure = self.root.get_list_nodes_info(with_additional_details, mode, filters)
+        data_structure = self.get_list_nodes_info(with_additional_details, mode, filters)
 
         str_result = ''
         for i in data_structure:
@@ -242,7 +255,7 @@ class Tree:
 
     def get_tree_info(self, filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None
                       ) -> pd.Series:
-        nodes_info = self.get_list_nodes_info(True, 'pre-order', filters)
+        nodes_info = self.get_list_nodes_info(True, filters=filters)
 
         return pd.Series([pd.Series(i) for i in nodes_info], index=[i.get('node') for i in nodes_info])
 
@@ -333,7 +346,7 @@ class Tree:
             bool: `True` if a node with the specified name is found; `False` otherwise.
         """
 
-        return name in self.root.get_list_nodes_info()
+        return name in self.get_list_nodes_info()
 
     def newick_to_tree(self, newick: str) -> Optional['Tree']:
         """
@@ -395,6 +408,7 @@ class Tree:
                 self.__set_children_list_from_string(dict_children.get('children'), newick_node, num)
             for current_node in self.get_list_nodes_info(only_node_list=True):
                 current_node.set_levels_and_distance_to_nearest()
+                current_node.aliases = {'node': 'name', 'distance': 'distance_to_father'}
                 if current_node.node_type in ('node', ) and self.is_bootstrap_value(current_node.name):
                     current_node.name = 'nd' + str(num()).rjust(4, '0')
 
@@ -529,7 +543,7 @@ class Tree:
         if self.alphabet and not self.calculated_ancestor_sequence:
             node_list = []
             if not newick_node:
-                node_list = self.root.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
+                node_list = self.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
             else:
                 node_list.append(newick_node)
 
@@ -553,11 +567,11 @@ class Tree:
         return 'OK' if self.calculated_ancestor_sequence else ''
 
     def calculate_marginal(self) -> None:
-        for current_node in self.get_all_nodes():
+        for current_node in self.all_nodes_objects:
             current_node.calculate_marginal(self.rate_vector_length, self.msa_length)
 
     def calculate_down(self) -> None:
-        for current_node in self.get_all_nodes():
+        for current_node in self.all_nodes_objects:
             current_node.calculate_down(self.rate_vector_length, self.alphabet_length, self.msa_length)
 
     def calculate_up(self) -> None:
@@ -578,11 +592,11 @@ class Tree:
         return self.log_likelihood
 
     def initialize_node_up_vectors(self) -> None:
-        for current_node in self.get_nodes(mode='post-order'):
+        for current_node in self.nodes_objects_post_order:
             current_node.calculate_up(self.rate_vector_length, self.alphabet_length, self.msa_length)
 
     def initialize_leaf_up_vectors(self) -> None:
-        for leaf in self.get_leaves():
+        for leaf in self.leaves_objects:
             sequence = np.asarray(list(self.msa[leaf.name]))
             up_vector = np.zeros((self.rate_vector_length, self.alphabet_length, self.msa_length), dtype=np.float64)
             mask_0 = (sequence == '0')
@@ -699,7 +713,7 @@ class Tree:
         distance_to_root = f'distance_to_root{suffix}'
         distance_to_nearest = f'distance_to_nearest{suffix}'
 
-        list_nodes = self.get_list_nodes_info(only_node_list=True)
+        list_nodes = self.all_nodes_objects
         for current_node in list_nodes:
             branch_probability_vector = current_node.branch_probability_vector
             for pos, value in enumerate(branch_probability_vector, start=1):
@@ -738,9 +752,8 @@ class Tree:
             self.set_posterior_rates_vector()
 
         site_rate = np.asarray(self.posterior_rates, dtype=np.float64)
-        branch_nodes = [n for n in self.get_all_nodes(mode='pre-order') if n.father is not None]
+        branch_nodes = [n for n in self.all_nodes_objects if n.father is not None]
         branch_length = np.asarray([n.distance_to_father for n in branch_nodes], dtype=np.float64)
-        leaves = self.get_leaves()
 
         a = 1.0 / (2 * (1 - self.pi_1))
         b = 1.0 / (2 * self.pi_1)
@@ -753,7 +766,8 @@ class Tree:
         for i in range(number_datasets):
             header = f'iterations = {i}'
             current_msa = self.generate_msa(msa_type=str, site_rate=self.posterior_rates, p01=p01, p11=p11,
-                                            branch_length=branch_length, leaves=leaves)
+                                            sites_quantity=self.msa_length, branch_length=branch_length,
+                                            leaves=self.leaves_objects)
             current_content = f'{header}\n\n{current_msa}\n\n\n'
             with open(file_name, 'a', encoding='utf-8') as file:
                 file.write(current_content)
@@ -1023,7 +1037,7 @@ class Tree:
         self.set_vars()
 
     def clean_all(self):
-        for current_node in self.get_all_nodes():
+        for current_node in self.all_nodes_objects:
             current_node.clean_all()
         self.log_likelihood_vector = self.likelihood_vector = self.correlation_vector = self.posterior_rates = None
         self.log_likelihood = self.likelihood = 0.0
@@ -1073,7 +1087,7 @@ class Tree:
             frequency = (1 - self.pi_1, self.pi_1)
         else:
             frequency = (1 / self.alphabet_length, 1 / self.alphabet_length)
-        for current_node in self.root.get_list_nodes_info(only_node_list=True):
+        for current_node in self.all_nodes_objects:
             current_node.alphabet = self.alphabet
             current_node.frequency = np.asarray(frequency, dtype=np.float64)
             current_node.pi_1 = self.pi_1
@@ -1097,7 +1111,7 @@ class Tree:
         if site_rate is None:
             site_rate = np.random.choice(self.rate_vector, 1 if sites_quantity is None else sites_quantity)
         if branch_nodes is None:
-            branch_nodes = [n for n in self.get_all_nodes(mode='pre-order') if n.father is not None]
+            branch_nodes = [n for n in self.all_nodes_objects if n.father is not None]
         if branch_length is None:
             branch_length = np.asarray([n.distance_to_father for n in branch_nodes], dtype=np.float64)
         if p01 is None or p11 is None:
@@ -1109,7 +1123,7 @@ class Tree:
             p01 = a * (1 - e) / mu
             p11 = (a + b * e) / mu
         if leaves is None:
-            leaves = self.get_leaves()
+            leaves = self.leaves_objects
 
         states = {self.root.name: (np.random.random(sites_quantity) < self.pi_1).astype(np.int8)}
         for idx, node in enumerate(branch_nodes):
@@ -1234,7 +1248,7 @@ class Tree:
         print(f'\ttrue_rates: {[round(float(r), 4) for r in true_rates]}')
 
         if not fasta_text:
-            fasta_text = newick_tree.generate_sequence(msa_type=str, true_rates=true_rates)
+            fasta_text = newick_tree.generate_msa(msa_type=str, site_rate=true_rates)
 
         gloome_tree = cls(newick_text, msa=fasta_text, **tree_data)
 
@@ -1718,13 +1732,13 @@ class Tree:
     def rename_nodes(cls, newick_tree: Union[str, 'Tree'], node_name: str = 'N', fill_character: str = '0',
                      number_length: int = 0) -> 'Tree':
         newick_tree = cls.check_tree(newick_tree)
-        nodes_list = newick_tree.get_nodes()
+        nodes_list = newick_tree.nodes_objects
         num = newick_tree.__counter()
         for current_node in nodes_list:
             if re.fullmatch(r'^nd\d{4}$', current_node.name):
                 current_node.name = f'{node_name}{str(num()).rjust(number_length, fill_character)}'
 
-        newick_tree.all_nodes = {current_node.name: current_node for current_node in newick_tree.get_all_nodes()}
+        newick_tree.all_nodes = {current_node.name: current_node for current_node in newick_tree.all_nodes_objects}
 
         return newick_tree
 
