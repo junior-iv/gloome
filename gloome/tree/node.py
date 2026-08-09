@@ -339,9 +339,7 @@ class Node:
         return p_identity, p_mutation
 
     def node_to_json(self) -> Dict[str, Union[str, List[Any], float, np.float64, np.ndarray]]:
-        dict_json = dict()
-        dict_json.update({'name': self.name})
-        dict_json.update({'distance': f'{float(self.distance_to_father)}'})
+        dict_json = {'name': self.name, 'distance': f'{float(self.distance_to_father)}'}
 
         if self.children:
             dict_json.update({'children': []})

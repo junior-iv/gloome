@@ -555,7 +555,7 @@ function makeTree(mode = 0) {
     formData.append(`isOptimizeAlpha`, +isOptimizeAlpha.checked);
     formData.append(`isOptimizeBL`, +isOptimizeBL.checked);
     formData.append(`isDoNotUseCoPAP`, +isDoNotUseCoPAP.checked);
-    formData.append(`isDoNotUseEMail`, +!!document.getElementById('eMail').value.trim());
+    formData.append(`isDoNotUseEMail`, +!document.getElementById('eMail').value.trim());
     formData.append(`fileInteractiveTreeHtml`, +fileInteractiveTreeHtml.checked);
     formData.append(`fileNewickTreePng`, +fileNewickTreePng.checked);
     formData.append(`fileTableOfSimulatedDatasetsFastas`, +fileTableOfSimulatedDatasetsFastas.checked);
