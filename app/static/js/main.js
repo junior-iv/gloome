@@ -425,7 +425,7 @@ function drawFileList(jsonData) {
         <span class="arrow">▼</span>
         View/Download Results
         </summary>
-            <div class="grid-container">
+            <div class="grid-container my-2">
                 ${container}
             </div>
         </details>`;
