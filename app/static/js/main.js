@@ -91,7 +91,7 @@ function delayedWrapper(id = 'wrapper', visible = true, duration = 7500) {
 
 function setWrapper(id = 'wrapper', visible = true) {
     let wrapper = document.getElementById(id)
-    setVisibility(id, visible)
+    setDisplay(id, visible)
     if (visible) {
         wrapper.innerHTML =
             `<div class="scroll-text text-info text-center">Scroll to down</div>
@@ -758,9 +758,7 @@ function showMessage(message = null, variant = 1) {
 
 function formCleaning(args) {
     let elementNames = {'value': [`newickText`, `msaText`, `leaf`, `eMail`],
-        'innerHTML': [`tree`, 'branchInfo', `nodeInfo`, `logLikelihood`, `fileList`, `leaves`],
-        'setDefault': [`rootingMethod`, `numberDatasets`, `probabilityLG`, `numberLG`, `pi1`, `alpha`,
-            `categoriesQuantity`, `coefficientBL`]};
+        'innerHTML': [`tree`, 'branchInfo', `nodeInfo`, `logLikelihood`, `fileList`, `leaves`]};
     for (let i = 0; i < elementNames.value.length; i++) {
         document.getElementById(elementNames.value[i]).value = ``;
     }
