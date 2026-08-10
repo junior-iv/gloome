@@ -412,27 +412,26 @@ function copyValue(id, variant = 5) {
 }
 
 function drawFileList(jsonData) {
-    let headersRow = ``;
-    let firstRow = ``;
-    let secondRow = ``;
+    let container = ``;
     Object.entries(jsonData).forEach(([key, value]) => {
-        headersRow += `<th class="p-1 w-auto">${key}</th>`;
-        firstRow += `<th class="p-1 w-auto">${value[0]}</th>`;
-        secondRow += `<th class="p-1 w-auto">${value[1]}</th>`;
+        container += `<div class="grid-container-2">
+                            <div class="p-1 w-auto text-secondary">${key}</div>
+                            <div class="p-1 w-auto">${value[0]}</div>
+                            <div class="p-1 w-auto">${value[1]}</div>
+                       </div>`;
     });
-    let table = `<details open>
+    let fileList = `<details open>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
         <span class="arrow">▼</span>
         View/Download Results
         </summary>
-        <table class="w-97 m-3 p-4 h7">
-        <tr>${headersRow}</tr>
-        <tr>${secondRow}</tr>
-        <tr>${firstRow}</tr>
-        </table></details>`;
+            <div class="grid-container">
+                ${container}
+            </div>
+        </details>`;
 
-    document.getElementById('fileList').innerHTML = table;
-    return table;
+    document.getElementById('fileList').innerHTML = fileList;
+    return fileList;
 }
 
 function showResponse(jsonData, mode = 0) {
@@ -768,9 +767,9 @@ function formCleaning(args) {
     for (let i = 0; i < elementNames.innerHTML.length; i++) {
         document.getElementById(elementNames.innerHTML[i]).innerHTML = ``;
     }
-    for (let i = 0; i < elementNames.setDefault.length; i++) {
-        document.getElementById(elementNames.setDefault[i]).value = args[i];
-    }
+    Object.entries(args).forEach(([key, value]) => {
+        document.getElementById(key).value = value;
+    });
     showMessage(``, -1);
 }
 
