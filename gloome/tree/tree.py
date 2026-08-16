@@ -11,6 +11,7 @@ from d3blocks import D3Blocks
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
 from Bio.Phylo.NewickIO import Writer
+from numpy import ndarray, dtype, void
 from scipy.stats import gamma, pearsonr, distributions
 from scipy.special import gammainc
 from scipy.optimize import minimize_scalar
@@ -116,7 +117,7 @@ class Tree:
                 'alphabet_length', 'msa_length', 'rate_vector_length']
 
     def __dict__(self) -> Dict[str, Optional[Union[Node, float, np.float64, int, np.ndarray, bool, Tuple[str, ...],
-                               Tuple[Union[float, np.float64, int], ...], Dict[str, str]]]]:
+                               Tuple[Union[float, np.float64, int], ...], Dict[str, str], List[Node]]]]:
 
         return {'root': self.root,
                 'alphabet': self.alphabet,
@@ -203,9 +204,8 @@ class Tree:
         if isinstance(self.msa, dict) and self.msa:
             self.alphabet = self.get_alphabet_from_dict(self.msa)
         else:
-            self.set_alpha(alpha, beta)
             self.alphabet = self.get_alphabet()
-            self.msa = self.generate_msa()
+            self.set_basic_msa()
 
         self.msa_length = len(next(iter(self.msa.values())))
         self.alphabet_length = len(self.alphabet)
@@ -219,6 +219,8 @@ class Tree:
         if (is_optimize_alpha or is_optimize_pi or is_optimize_pi_average) and is_optimize_bl:
             self.optimize_coefficient_bl(is_optimize_bl)
 
+        self.set_all(categories_quantity=self.categories_quantity, alpha=self.alpha, pi_1=self.pi_1,
+                     coefficient_bl=self.coefficient_bl)
         self.set_distance_taking_into_coefficient()
 
     def set_distance_taking_into_coefficient(self) -> None:
@@ -635,8 +637,8 @@ class Tree:
 
         return msa_dict
 
-    def calculate_correlation(self, prior: Optional[np.ndarray] = None, probability_lg: Union[float, np.float64] = 0.9,
-                              number_lg: Union[float, np.float64, int] = 5) -> None:
+    def calculate_correlation(self, prior: Optional[np.ndarray] = None, probability_lg: Union[float, np.float64] = 0.5,
+                              number_lg: Union[float, np.float64, int] = 1) -> None:
         self.set_posterior_rates_vector(prior)
         self.set_pearson_correlation_vector(probability_lg, number_lg)
 
@@ -746,8 +748,54 @@ class Tree:
 
         return file_name
 
+    @staticmethod
+    def get_row_correlations(matrix: np.ndarray) -> np.ndarray:
+        centered = matrix - matrix.mean(axis=1, keepdims=True)
+        norms = np.sqrt((centered ** 2).sum(axis=1))
+
+        return (centered @ centered.T) / np.outer(norms, norms)
+
+    @staticmethod
+    def benjamini_hochberg(p_values: np.ndarray) -> np.ndarray:
+        order = np.argsort(p_values)
+        ranked = p_values[order]
+        scale = len(p_values) / np.arange(1, len(p_values) + 1)
+        q_sorted = np.minimum.accumulate((ranked * scale)[::-1])[::-1]
+        q = np.empty_like(q_sorted)
+        q[order] = np.clip(q_sorted, 0, 1)
+
+        return q
+
+    @staticmethod
+    def empirical_p(r: Any, bin_key: str, null_pool: Any) -> Union[np.float64, float]:
+        if bin_key not in null_pool or len(null_pool[bin_key]) == 0:
+            return 1.0
+
+        null_distribution = np.asarray(null_pool[bin_key], dtype=float)
+        n = null_distribution.size
+        count_extreme = np.sum(np.abs(null_distribution) >= np.abs(r))
+        p_value = (count_extreme + 1) / (n + 1)
+
+        return p_value
+
+    def get_bins(self, site_matrix: np.ndarray, candidates: np.ndarray, categories: np.ndarray
+                 ) -> Tuple[ndarray[Any, dtype[Any]], ndarray[Any, Any], List[Tuple[Union[Union[ndarray[Any, Any],
+                            ndarray[Any, dtype[Any]], ndarray[Any, dtype[void]]], Any], ...]]]:
+        correlations = self.get_row_correlations(site_matrix[candidates])
+        i_idx, j_idx = np.triu_indices(len(candidates), k=1)
+        pairs = np.column_stack((candidates[i_idx], candidates[j_idx]))
+        r_values = correlations[i_idx, j_idx]
+        bins = [tuple(sorted((categories[a], categories[b]))) for a, b in pairs]
+
+        return pairs, r_values, bins
+
     def simulated_datasets_to_fastas(self, file_name: str = 'SimulatedDatasets.fastas',
-                                     number_datasets: int = 100) -> str:
+                                     number_datasets: int = 100,
+                                     probability_lg: Union[float, np.float64] = 0.5,
+                                     number_lg: Union[float, np.float64, int] = 1) -> str:
+
+        if self.correlation_vector is None:
+            self.calculate_correlation(probability_lg=probability_lg, number_lg=number_lg)
         if self.posterior_rates is None:
             self.set_posterior_rates_vector()
 
@@ -762,15 +810,64 @@ class Tree:
         e = np.exp(-mu * t)
         p01 = a * (1 - e) / mu
         p11 = (a + b * e) / mu
+        event_threshold = 0.5
 
+        newick_text = self.get_newick()
+
+        nodes_objects = self.all_nodes_objects[1:]
+        loss = np.array([n.probability_vector_loss for n in nodes_objects])
+        gain = np.array([n.probability_vector_gain for n in nodes_objects])
+        site_matrix = np.empty((self.msa_length, 2 * len(nodes_objects)))
+        site_matrix[:, 0::2], site_matrix[:, 1::2] = loss.T, gain.T
+        candidates = np.where((site_matrix.max(axis=1) > event_threshold) & (site_matrix.var(axis=1) > 0))[0]
+        categories = np.abs(self.posterior_rates[:, None] - np.array(self.rate_vector)[None, :]).argmin(axis=1)
+        pairs, r_values, bins = self.get_bins(site_matrix, candidates, categories)
+
+        null_pool = {current_bin: [] for current_bin in set(bins)}
         for i in range(number_datasets):
             header = f'iterations = {i}'
             current_msa = self.generate_msa(msa_type=str, site_rate=self.posterior_rates, p01=p01, p11=p11,
                                             sites_quantity=self.msa_length, branch_length=branch_length,
                                             leaves=self.leaves_objects)
+            current_tree = Tree(newick_text, msa=current_msa, categories_quantity=self.categories_quantity,
+                                alpha=self.alpha, pi_1=self.pi_1, coefficient_bl=self.coefficient_bl)
+            current_tree.calculate_tree()
+            current_tree.set_posterior_rates_vector()
+
+            current_pairs, current_r_values, current_bins = current_tree.get_bins(site_matrix, candidates, categories)
+            for current_bin, r_value in zip(current_bins, current_r_values):
+                null_pool[current_bin].append(r_value)
+
             current_content = f'{header}\n\n{current_msa}\n\n\n'
             with open(file_name, 'a', encoding='utf-8') as file:
                 file.write(current_content)
+
+        pos1_list = []
+        pos2_list = []
+        rate_bin_list = []
+        r_list = []
+        p_value_list = []
+
+        for i, (current_pair, current_r_value, current_bin) in enumerate(zip(pairs, r_values, bins)):
+            current_p_value = self.empirical_p(current_r_value, current_bin, null_pool)
+            pos1_list.append(current_pair[0])
+            pos2_list.append(current_pair[1])
+            rate_bin_list.append(current_bin)
+            r_list.append(current_r_value)
+            p_value_list.append(current_p_value)
+
+        p_values = np.asarray(p_value_list)
+        q_values = self.benjamini_hochberg(p_values)
+        print(p_value_list)
+        print(q_values.tolist())
+        df = pd.DataFrame({'POS1': np.int32(np.asarray(pos1_list)),
+                           'POS2': np.int32(np.asarray(pos2_list)),
+                           'r': r_list,
+                           'rate_bin': rate_bin_list,
+                           'p_value': p_values,
+                           'q_value': q_values})
+        df.sort_values(by='q_value')
+        print(df)
 
         return file_name
 
@@ -786,14 +883,14 @@ class Tree:
         return file_name
 
     def pearson_correlation_to_tsv(self, file_name: str = 'PearsonCorrelation.tsv', sep: str = '\t',
-                                   probability_lg: Union[float, np.float64] = 0.9,
-                                   number_lg: Union[float, np.float64, int] = 5) -> str:
+                                   probability_lg: Union[float, np.float64] = 0.5,
+                                   number_lg: Union[float, np.float64, int] = 1) -> str:
 
         if self.correlation_vector is None:
             self.calculate_correlation(probability_lg=probability_lg, number_lg=number_lg)
 
-        df = pd.DataFrame({'POS1': np.int16(self.correlation_vector[0]),
-                           'POS2': np.int16(self.correlation_vector[1]),
+        df = pd.DataFrame({'POS1': np.int32(self.correlation_vector[0]),
+                           'POS2': np.int32(self.correlation_vector[1]),
                            'correlation': self.correlation_vector[2]})
         df.to_csv(file_name, sep=sep, index=False)
 
@@ -1015,26 +1112,25 @@ class Tree:
         if is_optimize_bl:
             self.coefficient_bl = self.optimize(func=self.coefficient_bl_optimization, bracket=(1, ), bounds=(0.1, 10),
                                                 result_fild='x')
-
-        self.set_vars()
+            self.set_vars()
 
     def optimize_alpha(self, is_optimize_alpha: Optional[bool] = None) -> None:
         if is_optimize_alpha:
             self.alpha = self.optimize(func=self.alpha_optimization, bracket=(0.5, ), bounds=(0.1, 20), result_fild='x')
-
-        self.set_vars()
+            self.set_vars()
 
     def optimize_pi(self, is_optimize_pi: Optional[bool] = None, is_optimize_pi_average: Optional[bool] = None,
                     mode: int = 1) -> None:
         if is_optimize_pi:
             self.pi_1 = self.optimize(func=self.pi_optimization, bracket=(0.5, ), bounds=(0.001, 0.999), args=(mode, ),
                                       result_fild='x')
+            self.set_vars()
+
         elif is_optimize_pi_average:
             all_lines_list = list(self.msa.values())
             all_lines = ''.join(all_lines_list)
             self.pi_1 = all_lines.count(self.alphabet[mode]) / len(all_lines)
-
-        self.set_vars()
+            self.set_vars()
 
     def clean_all(self):
         for current_node in self.all_nodes_objects:
@@ -1099,6 +1195,9 @@ class Tree:
 
         return gamma.ppf(probability_vector, a=self.alpha, scale=1/self.alpha)
 
+    def set_basic_msa(self) -> None:
+        self.msa = {leaf.name: self.alphabet[0] for leaf in self.leaves_objects}
+
     def generate_msa(self, msa_type: type = dict,
                      sites_quantity: int = 1,
                      site_rate: Optional[np.ndarray] = None,
@@ -1153,8 +1252,8 @@ class Tree:
 
         self.posterior_rates = posterior
 
-    def set_pearson_correlation_vector(self, probability_lg: Union[float, np.float64] = 0.9,
-                                       number_lg: Union[float, np.float64, int] = 5) -> None:
+    def set_pearson_correlation_vector(self, probability_lg: Union[float, np.float64] = 0.5,
+                                       number_lg: Union[float, np.float64, int] = 1) -> None:
         nodes_list = self.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
 
         # 1. Aggregate all node data into a single matrix of shape (2 * len(nodes_list), msa_length)
@@ -1217,6 +1316,10 @@ class Tree:
 
         # print(np.allclose(old_correlation_vector, correlation_vector, atol=1e-12))
         self.correlation_vector = correlation_vector
+
+    def generate_site_rates(self, sites_quantity: int) -> np.ndarray:
+
+        return np.random.choice(self.rate_vector, sites_quantity)
 
     @classmethod
     def compute_correlation(cls, num_taxa: int = 8,
@@ -1516,10 +1619,6 @@ class Tree:
         middle = num_taxa // 2
 
         return f'({build_subtree(leaves[:middle])},{build_subtree(leaves[middle:])});'
-
-    def generate_site_rates(self, sites_quantity: int) -> np.ndarray:
-
-        return np.random.choice(self.rate_vector, sites_quantity)
 
     @staticmethod
     def set_root_by_midpoint(tree_data: str) -> str:

@@ -135,8 +135,8 @@ def execute_all_actions(newick_tree: Union[str, Tree], file_path: Union[str, Pat
                         log_file: Optional[str] = None, with_internal_nodes: bool = True,
                         actions: Optional[Dict[str, bool]] = None, selected_files: Optional[Dict[str, bool]] = None,
                         use_copap: Optional[bool] = None,
-                        probability_lg: Union[float, ndarray] = 0.9,
-                        number_lg: Union[float, ndarray, int] = 5,
+                        probability_lg: Union[float, ndarray] = 0.5,
+                        number_lg: Union[float, ndarray, int] = 1,
                         number_datasets: int = 100
                         ) -> Union[Dict[str, str], Path]:
     result_data = {}
@@ -168,8 +168,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                           with_internal_nodes: Optional[bool] = True,
                           selected_files: Optional[Dict[str, bool]] = None,
                           use_copap: Optional[bool] = None,
-                          probability_lg: Union[float, ndarray] = 0.9,
-                          number_lg: Union[float, ndarray, int] = 5,
+                          probability_lg: Union[float, ndarray] = 0.5,
+                          number_lg: Union[float, ndarray, int] = 1,
                           number_datasets: int = 100
                           ) -> Union[Dict[str, str], str]:
     selected_files = (SELECTED_FILES if selected_files is None else selected_files)
@@ -226,7 +226,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     if selected_files.get('file_table_of_simulated_datasets_fastas', False) and use_copap:
         result.update({'Table of simulated datasets (fastas)':
                        newick_tree.simulated_datasets_to_fastas(file_name=f'{file_path}/SimulatedDatasets.fastas',
-                                                                number_datasets=number_datasets)})
+                                                                number_datasets=number_datasets,
+                                                                probability_lg=probability_lg, number_lg=number_lg)})
 
     if result:
         file_path = get_path(file_path)

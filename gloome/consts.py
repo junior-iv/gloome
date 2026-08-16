@@ -147,8 +147,8 @@ DEFAULT_FORM_ARGUMENTS = {
     'alpha': 0.5,
     'pi_1': 0.5,
     'coefficient_bl': 1.0,
-    'probability_lg': 0.9,
-    'number_lg': 5,
+    'probability_lg': 0.5,
+    'number_lg': 1,
     'number_datasets': 100,
     'e_mail': '',
     'rooting_method': ROOTING_METHODS[2][0],
@@ -166,12 +166,12 @@ DEFAULT_FORM_ARGUMENTS = {
     'file_table_of_simulated_datasets_fastas': False,
     'file_table_of_posterior_rates_tsv': True,
     'file_table_of_pearson_correlation_tsv': True,
-    'file_table_of_nodes_tsv': True,
-    'file_probability_per_pos_per_branches_tsv': True,
-    'file_table_of_branches_tsv': True,
-    'file_log_likelihood_tsv': True,
-    'file_table_of_attributes_tsv': True,
-    'file_phylogenetic_tree_nwk': True
+    'file_table_of_nodes_tsv': False,
+    'file_probability_per_pos_per_branches_tsv': False,
+    'file_table_of_branches_tsv': False,
+    'file_log_likelihood_tsv': False,
+    'file_table_of_attributes_tsv': False,
+    'file_phylogenetic_tree_nwk': False
 }
 
 DEFAULT_ARGUMENTS = DefaultArgs(**{

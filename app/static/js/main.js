@@ -395,17 +395,18 @@ function drawErrorMessage(jsonData) {
 
 function drawLogLikelihood(jsonData) {
     let result = `<div class="w-100 flex-row form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" 
-        onclick="copyValue('logLikelihoodValue', 7)" title="click here to copy the value of log-Likelihood to the clipboard">
-        Tree Log-Likelihood: <span id="logLikelihoodValue" class="badge bg-success" onclick="copyValue(this.id, 7)">${jsonData[0]}</span>
+        onclick="copyValue('logLikelihoodValue', 7)" title="click here to copy the value of log-likelihood to the clipboard">
+        Log-likelihood of the phylogenetic tree: <input id="logLikelihoodValue" title="click here to copy the value of log-likelihood to the clipboard" 
+        class="badge bg-success border-0" onclick="copyValue(this.id, 7)" name="Log-likelihood of the phylogenetic tree" type="submit" value="${jsonData[0]}"/> 
     </div>`
     document.getElementById('logLikelihood').innerHTML = result;
     return result;
 }
 
 function copyValue(id, variant = 5) {
-    let logLikelihood = document.getElementById(id).textContent
-    navigator.clipboard.writeText(logLikelihood).then(function() {
-            showAlert(`Tree log-likelihood successfully copied to clipboard<br><br>${logLikelihood}`, 7000, variant);
+    let element = document.getElementById(id)
+    navigator.clipboard.writeText(element.value).then(function() {
+            showAlert(`${element.name} successfully copied to clipboard<br><br>${element.value}`, 7000, variant);
         }, function(err) {
             showAlert(`An error occurred while copying tree log-likelihood: ${err}`);
         });
