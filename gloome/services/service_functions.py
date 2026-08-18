@@ -13,7 +13,8 @@ from gloome.services.design_functions import *
 
 SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_newick_tree_png': True,
-                  'file_table_of_simulated_datasets_fastas': True,
+                  'file_coevolution_tsv': True,
+                  'file_simulated_datasets_fastas': True,
                   'file_table_of_posterior_rates_tsv': True,
                   'file_table_of_pearson_correlation_tsv': True,
                   'file_table_of_nodes_tsv': True,
@@ -176,9 +177,9 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     result = {}
     newick_tree = Tree.check_tree(newick_tree)
     taking_into_coefficient = newick_tree.coefficient_bl != 1
+    use_coevolution_file = selected_files.get('file_coevolution_tsv', False)
+    use_simulated_datasets_file = selected_files.get('file_simulated_datasets_fastas', False)
     # result.update(newick_tree.tree_to_graph(f'{file_path}/graph.txt', ('dot', 'png', 'svg')))
-    # result.update(newick_tree.tree_to_visual_format(f'{file_path}/visual_tree.svg', True, ('txt', 'png', 'svg')))
-    # result.update({'Newick text (tree)': newick_tree.tree_to_newick_file(f'{file_path}/newick_tree.tree', True)})
     # table = newick_tree.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float)
     # result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
     if selected_files.get('file_interactive_tree_html', False):
@@ -223,11 +224,13 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                                                        taking_into_coefficient=taking_into_coefficient,
                                                        with_internal_nodes=True,
                                                        decimal_length=0)})
-    if selected_files.get('file_table_of_simulated_datasets_fastas', False) and use_copap:
-        result.update({'Table of simulated datasets (fastas)':
-                       newick_tree.simulated_datasets_to_fastas(file_name=f'{file_path}/SimulatedDatasets.fastas',
-                                                                number_datasets=number_datasets,
-                                                                probability_lg=probability_lg, number_lg=number_lg)})
+    if any((use_simulated_datasets_file, use_coevolution_file)) and use_copap:
+        result.update(newick_tree.simulate_datasets(file_path=f'{file_path}',
+                                                    number_datasets=number_datasets,
+                                                    probability_lg=probability_lg,
+                                                    number_lg=number_lg,
+                                                    use_simulated_datasets_file=use_simulated_datasets_file,
+                                                    use_coevolution_file=use_coevolution_file))
 
     if result:
         file_path = get_path(file_path)
@@ -289,17 +292,18 @@ def check_data(*args) -> List[Tuple[str, str]]:
     is_do_not_use_e_mail = bool(args[15])
     file_interactive_tree_html = bool(args[16])
     file_newick_tree_png = bool(args[17])
-    file_table_of_simulated_datasets_fastas = bool(args[18])
-    file_table_of_posterior_rates_tsv = bool(args[19])
-    file_table_of_pearson_correlation_tsv = bool(args[20])
-    file_table_of_nodes_tsv = bool(args[21])
-    file_probability_per_pos_per_branches_tsv = bool(args[22])
-    file_table_of_branches_tsv = bool(args[23])
-    file_log_likelihood_tsv = bool(args[24])
-    file_table_of_attributes_tsv = bool(args[25])
-    file_phylogenetic_tree_nwk = bool(args[26])
-    rooting_method = args[27].strip()
-    leaf = args[28].strip()
+    file_coevolution_tsv = bool(args[18])
+    file_simulated_datasets_fastas = bool(args[19])
+    file_table_of_posterior_rates_tsv = bool(args[20])
+    file_table_of_pearson_correlation_tsv = bool(args[21])
+    file_table_of_nodes_tsv = bool(args[22])
+    file_probability_per_pos_per_branches_tsv = bool(args[23])
+    file_table_of_branches_tsv = bool(args[24])
+    file_log_likelihood_tsv = bool(args[25])
+    file_table_of_attributes_tsv = bool(args[26])
+    file_phylogenetic_tree_nwk = bool(args[27])
+    rooting_method = args[28].strip()
+    leaf = args[29].strip()
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -361,9 +365,14 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'Newick tree (png) value error [ {file_newick_tree_png} ]',
                          f'The value must be boolean type.'))
 
-    if not isinstance(file_table_of_simulated_datasets_fastas, bool):
-        err_list.append((f'Table of simulated datasets (fastas) value error '
-                         f'[ {file_table_of_simulated_datasets_fastas} ]',
+    if not isinstance(file_coevolution_tsv, bool):
+        err_list.append((f'Coevolution (tsv) value error '
+                         f'[ {file_coevolution_tsv} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_simulated_datasets_fastas, bool):
+        err_list.append((f'Simulated datasets (fastas) value error '
+                         f'[ {file_simulated_datasets_fastas} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(file_table_of_posterior_rates_tsv, bool):

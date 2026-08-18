@@ -778,6 +778,32 @@ class Tree:
 
         return p_value
 
+    def identify_event_candidates(self, event_threshold: Union[np.float64, float] = 0.5
+                                  ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Extracts gain/loss matrices, filters candidate sites, and categorizes evolutionary rates.
+
+        Args:
+            event_threshold: The minimum probability threshold to consider a site as an event.
+
+        Returns:
+            Tuple containing:
+                - site_matrix (np.ndarray): Interleaved loss/gain probability matrix (MSA length x 2*Nodes).
+                - candidates (np.ndarray): Indices of variable sites exceeding the threshold.
+                - categories (np.ndarray): Assigned rate categories for each site.
+        """
+        nodes_objects = self.all_nodes_objects[1:]
+
+        loss = np.array([n.probability_vector_loss for n in nodes_objects])
+        gain = np.array([n.probability_vector_gain for n in nodes_objects])
+
+        site_matrix = np.empty((self.msa_length, 2 * len(nodes_objects)))
+        site_matrix[:, 0::2], site_matrix[:, 1::2] = loss.T, gain.T
+
+        candidates = np.where((site_matrix.max(axis=1) > event_threshold) & (site_matrix.var(axis=1) > 0))[0]
+        categories = np.abs(self.posterior_rates[:, None] - np.array(self.rate_vector)[None, :]).argmin(axis=1)
+
+        return site_matrix, candidates, categories
+
     def get_bins(self, site_matrix: np.ndarray, candidates: np.ndarray, categories: np.ndarray
                  ) -> Tuple[ndarray[Any, dtype[Any]], ndarray[Any, Any], List[Tuple[Union[Union[ndarray[Any, Any],
                             ndarray[Any, dtype[Any]], ndarray[Any, dtype[void]]], Any], ...]]]:
@@ -789,15 +815,21 @@ class Tree:
 
         return pairs, r_values, bins
 
-    def simulated_datasets_to_fastas(self, file_name: str = 'SimulatedDatasets.fastas',
-                                     number_datasets: int = 100,
-                                     probability_lg: Union[float, np.float64] = 0.5,
-                                     number_lg: Union[float, np.float64, int] = 1) -> str:
+    def simulate_datasets(self, file_path: str = '',
+                          sep: str = '\t',
+                          number_datasets: int = 100,
+                          probability_lg: Union[float, np.float64] = 0.5,
+                          number_lg: Union[float, np.float64, int] = 1,
+                          use_simulated_datasets_file: bool = True,
+                          use_coevolution_file: bool = False) -> Dict[str, str]:
 
         if self.correlation_vector is None:
             self.calculate_correlation(probability_lg=probability_lg, number_lg=number_lg)
         if self.posterior_rates is None:
             self.set_posterior_rates_vector()
+
+        file_simulated_datasets = f'{file_path}/SimulatedDatasets.fastas'
+        file_coevolution = f'{file_path}/Coevolution.tsv'
 
         site_rate = np.asarray(self.posterior_rates, dtype=np.float64)
         branch_nodes = [n for n in self.all_nodes_objects if n.father is not None]
@@ -814,62 +846,78 @@ class Tree:
 
         newick_text = self.get_newick()
 
-        nodes_objects = self.all_nodes_objects[1:]
-        loss = np.array([n.probability_vector_loss for n in nodes_objects])
-        gain = np.array([n.probability_vector_gain for n in nodes_objects])
-        site_matrix = np.empty((self.msa_length, 2 * len(nodes_objects)))
-        site_matrix[:, 0::2], site_matrix[:, 1::2] = loss.T, gain.T
-        candidates = np.where((site_matrix.max(axis=1) > event_threshold) & (site_matrix.var(axis=1) > 0))[0]
-        categories = np.abs(self.posterior_rates[:, None] - np.array(self.rate_vector)[None, :]).argmin(axis=1)
-        pairs, r_values, bins = self.get_bins(site_matrix, candidates, categories)
+        null_pool, pairs, r_values, bins = {}, None, None, None
 
-        null_pool = {current_bin: [] for current_bin in set(bins)}
+        if use_coevolution_file:
+            site_matrix, candidates, categories = self.identify_event_candidates(event_threshold)
+            pairs, r_values, bins = self.get_bins(site_matrix, candidates, categories)
+
+            null_pool = {current_bin: [] for current_bin in set(bins)}
+
         for i in range(number_datasets):
             header = f'iterations = {i}'
-            current_msa = self.generate_msa(msa_type=str, site_rate=self.posterior_rates, p01=p01, p11=p11,
-                                            sites_quantity=self.msa_length, branch_length=branch_length,
+            current_msa = self.generate_msa(msa_type=str,
+                                            site_rate=self.posterior_rates,
+                                            p01=p01, p11=p11,
+                                            sites_quantity=self.msa_length,
+                                            branch_length=branch_length,
                                             leaves=self.leaves_objects)
-            current_tree = Tree(newick_text, msa=current_msa, categories_quantity=self.categories_quantity,
-                                alpha=self.alpha, pi_1=self.pi_1, coefficient_bl=self.coefficient_bl)
-            current_tree.calculate_tree()
-            current_tree.set_posterior_rates_vector()
+            phylo_tree = Tree(newick_text, msa=current_msa, categories_quantity=self.categories_quantity,
+                              alpha=self.alpha, pi_1=self.pi_1, coefficient_bl=self.coefficient_bl)
+            phylo_tree.calculate_tree()
+            phylo_tree.set_posterior_rates_vector()
 
-            current_pairs, current_r_values, current_bins = current_tree.get_bins(site_matrix, candidates, categories)
-            for current_bin, r_value in zip(current_bins, current_r_values):
-                null_pool[current_bin].append(r_value)
+            if use_coevolution_file:
+                current_site_matrix, current_candidates, current_categories = (
+                    phylo_tree.identify_event_candidates(event_threshold))
+                current_pairs, current_r_values, current_bins = phylo_tree.get_bins(current_site_matrix,
+                                                                                    current_candidates,
+                                                                                    current_categories)
+                for current_bin, r_value in zip(current_bins, current_r_values):
+                    null_pool.setdefault(current_bin, []).append(r_value)
 
-            current_content = f'{header}\n\n{current_msa}\n\n\n'
-            with open(file_name, 'a', encoding='utf-8') as file:
-                file.write(current_content)
+            if use_simulated_datasets_file:
+                current_content = f'{header}\n\n{current_msa}\n\n\n'
+                with open(file_simulated_datasets, 'a', encoding='utf-8') as file:
+                    file.write(current_content)
 
-        pos1_list = []
-        pos2_list = []
-        rate_bin_list = []
-        r_list = []
-        p_value_list = []
+        result = {}
 
-        for i, (current_pair, current_r_value, current_bin) in enumerate(zip(pairs, r_values, bins)):
-            current_p_value = self.empirical_p(current_r_value, current_bin, null_pool)
-            pos1_list.append(current_pair[0])
-            pos2_list.append(current_pair[1])
-            rate_bin_list.append(current_bin)
-            r_list.append(current_r_value)
-            p_value_list.append(current_p_value)
+        if use_simulated_datasets_file:
+            result.update({'Simulated datasets (fastas)': file_simulated_datasets})
 
-        p_values = np.asarray(p_value_list)
-        q_values = self.benjamini_hochberg(p_values)
-        print(p_value_list)
-        print(q_values.tolist())
-        df = pd.DataFrame({'POS1': np.int32(np.asarray(pos1_list)),
-                           'POS2': np.int32(np.asarray(pos2_list)),
-                           'r': r_list,
-                           'rate_bin': rate_bin_list,
-                           'p_value': p_values,
-                           'q_value': q_values})
-        df.sort_values(by='q_value')
-        print(df)
+        if use_coevolution_file:
+            pos1_list = []
+            pos2_list = []
+            rate_bin_list = []
+            r_list = []
+            p_value_list = []
+            direction_list = []
 
-        return file_name
+            for i, (current_pair, current_r_value, current_bin) in enumerate(zip(pairs, r_values, bins)):
+                current_p_value = self.empirical_p(current_r_value, current_bin, null_pool)
+                pos1_list.append(current_pair[0])
+                pos2_list.append(current_pair[1])
+                r_list.append(current_r_value)
+                rate_bin_list.append(current_bin)
+                p_value_list.append(current_p_value)
+                direction_list.append('co-occurrence' if current_r_value >= 0 else 'avoidance')
+
+            p_values = np.asarray(p_value_list)
+            q_values = self.benjamini_hochberg(p_values)
+            df = pd.DataFrame({'POS1': np.int32(np.asarray(pos1_list)),
+                               'POS2': np.int32(np.asarray(pos2_list)),
+                               'r': r_list,
+                               'rate-bin': rate_bin_list,
+                               'p-value': p_values,
+                               'q-value': q_values,
+                               'direction': direction_list})
+            df.sort_values(by=['q-value', 'p-value', 'r'], key=lambda x: x.abs() if x.name == 'r' else x, inplace=True,
+                           ascending=[True, True, False])
+            df.to_csv(file_coevolution, sep=sep, index=False)
+            result.update({'Table of coevolution (tsv)': file_coevolution})
+
+        return result
 
     def posterior_rates_to_tsv(self, file_name: str = 'PosteriorRates.tsv', sep: str = '\t') -> str:
 
@@ -1410,10 +1458,11 @@ class Tree:
             plt.show()
 
     @classmethod
-    def set_root(cls, tree_data: str, rooting_method: str = 'midpoint', leaf: Optional[Union[str, Node]] = None) -> str:
+    def set_root(cls, newick_data: str, rooting_method: str = 'midpoint', leaf: Optional[Union[str, Node]] = None
+                 ) -> str:
         """
         Args:
-            tree_data (str)
+            newick_data (str): A Newick formatted string representing the tree structure.
             rooting_method (str, optional): `mad` (Minimal Ancestor Deviation), `mvr`(Minimum Variance Rooting),
             `midpoint` (Midpoint Rooting, default), `outgroup` (Outgroup Rooting)
             leaf (str, Node, optional): `None` (default)
@@ -1422,22 +1471,22 @@ class Tree:
             str: A Newick formatted string representing the tree structure.
         """
         rooting_method = rooting_method.strip().lower()
-        current_tree = cls(tree_data)
-        if len(current_tree.root.children) > 2:
+        phylo_tree = cls(newick_data)
+        if len(phylo_tree.root.children) > 2:
             if leaf and rooting_method == 'outgroup':
-                current_tree_data = cls.set_root_by_outgroup(tree_data, leaf.name if isinstance(leaf, Node) else leaf)
+                newick_data = cls.set_root_by_outgroup(newick_data, leaf.name if isinstance(leaf, Node) else leaf)
             else:
                 if rooting_method in ('mad', 'mvr'):
-                    current_tree_data = cls.set_root_by_minimum(tree_data, rooting_method)
+                    newick_data = cls.set_root_by_minimum(newick_data, rooting_method)
                 else:
-                    current_tree_data = cls.set_root_by_midpoint(tree_data)
-            current_tree = cls(current_tree_data)
-            for current_node in current_tree.get_list_nodes_info(only_node_list=True,
-                                                                 filters={'node_type': ['node', 'leaf']}):
+                    newick_data = cls.set_root_by_midpoint(newick_data)
+            phylo_tree = cls(newick_data)
+            for current_node in phylo_tree.get_list_nodes_info(only_node_list=True,
+                                                               filters={'node_type': ['node', 'leaf']}):
                 if current_node.distance_to_father == 0:
                     current_node.distance_to_father = 1e-10
 
-        return current_tree.get_newick()
+        return phylo_tree.get_newick()
 
     @staticmethod
     def del_bootstrap_values(newick_text: str) -> str:
@@ -1456,9 +1505,17 @@ class Tree:
         return newick_text
 
     @staticmethod
-    def set_root_by_outgroup(tree_data: str, leaf: str) -> str:
-        phylo_tree = Phylo.read(StringIO(tree_data), 'newick')
-        phylo_tree.root_with_outgroup(leaf)
+    def set_root_by_outgroup(newick_data: str, leaf_name: str) -> str:
+        """
+        Args:
+            newick_data (str): A Newick formatted string representing the tree structure.
+            leaf_name (str): leaf name.
+
+        Returns:
+            str: A Newick formatted string representing the tree structure.
+        """
+        phylo_tree = Phylo.read(StringIO(newick_data), 'newick')
+        phylo_tree.root_with_outgroup(leaf_name)
 
         return ''.join(Writer((phylo_tree, )).to_strings(format_branch_length='%1.10f'))
 
@@ -1553,16 +1610,16 @@ class Tree:
         return np.var(root_distances)
 
     @classmethod
-    def set_root_by_minimum(cls, tree_data: str, rooting_method: str) -> str:
+    def set_root_by_minimum(cls, newick_data: str, rooting_method: str) -> str:
         """
         Args:
-            tree_data (str)
+            newick_data (str): A Newick formatted string representing the tree structure.
             rooting_method (str): `mad` (Minimal Ancestor Deviation), `mvr`(Minimum Variance Rooting)
 
         Returns:
             str: A Newick formatted string representing the tree structure.
         """
-        phylo_tree = Phylo.read(StringIO(tree_data), 'newick')
+        phylo_tree = Phylo.read(StringIO(newick_data), 'newick')
         all_leaves = phylo_tree.get_terminals()
         dists = {leaf1: {leaf2: phylo_tree.distance(leaf1, leaf2) for leaf2 in all_leaves} for leaf1 in all_leaves}
 
@@ -1621,9 +1678,16 @@ class Tree:
         return f'({build_subtree(leaves[:middle])},{build_subtree(leaves[middle:])});'
 
     @staticmethod
-    def set_root_by_midpoint(tree_data: str) -> str:
+    def set_root_by_midpoint(newick_data: str) -> str:
+        """
+        Args:
+            newick_data (str): A Newick formatted string representing the tree structure.
 
-        phylo_tree = Phylo.read(StringIO(tree_data), 'newick')
+        Returns:
+            str: A Newick formatted string representing the tree structure.
+        """
+
+        phylo_tree = Phylo.read(StringIO(newick_data), 'newick')
         if len(phylo_tree.root.clades) > 2:
             phylo_tree.root_at_midpoint()
 
@@ -1789,11 +1853,11 @@ class Tree:
                            exist_ok=kwargs.get('exist_ok', True))
 
     @classmethod
-    def check_tree(cls, newick_tree: Union[str, 'Tree']) -> 'Tree':
-        if isinstance(newick_tree, str):
-            newick_tree = cls(newick_tree)
+    def check_tree(cls, phylo_tree: Union[str, 'Tree']) -> 'Tree':
+        if isinstance(phylo_tree, str):
+            phylo_tree = cls(phylo_tree)
 
-        return newick_tree
+        return phylo_tree
 
     @staticmethod
     def check_file_extensions_tuple(file_extensions: Optional[Union[str, Tuple[str, ...]]] = None, default_value: str =
@@ -1828,18 +1892,18 @@ class Tree:
         return newick_node
 
     @classmethod
-    def rename_nodes(cls, newick_tree: Union[str, 'Tree'], node_name: str = 'N', fill_character: str = '0',
+    def rename_nodes(cls, phylo_tree: Union[str, 'Tree'], node_name: str = 'N', fill_character: str = '0',
                      number_length: int = 0) -> 'Tree':
-        newick_tree = cls.check_tree(newick_tree)
-        nodes_list = newick_tree.nodes_objects
-        num = newick_tree.__counter()
+        phylo_tree = cls.check_tree(phylo_tree)
+        nodes_list = phylo_tree.nodes_objects
+        num = phylo_tree.__counter()
         for current_node in nodes_list:
             if re.fullmatch(r'^nd\d{4}$', current_node.name):
                 current_node.name = f'{node_name}{str(num()).rjust(number_length, fill_character)}'
 
-        newick_tree.all_nodes = {current_node.name: current_node for current_node in newick_tree.all_nodes_objects}
+        phylo_tree.all_nodes = {current_node.name: current_node for current_node in phylo_tree.all_nodes_objects}
 
-        return newick_tree
+        return phylo_tree
 
     @staticmethod
     def __counter():

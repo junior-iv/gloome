@@ -18,8 +18,8 @@ kwargs = {'msaText': read_file(f'msa/patternMSA{file_numbe}.msa'),
           'isDoNotUseCoPAP': int(DEFAULT_ARGUMENTS.is_do_not_use_copap),
           'fileInteractiveTreeHtml': int(DEFAULT_ARGUMENTS.file_interactive_tree_html),
           'fileNewickTreePng': int(DEFAULT_ARGUMENTS.file_newick_tree_png),
-          'fileTableOfSimulatedDatasetsFastas':
-              int(DEFAULT_ARGUMENTS.file_table_of_simulated_datasets_fastas),
+          'fileSimulatedDatasetsFastas':
+              int(DEFAULT_ARGUMENTS.file_simulated_datasets_fastas),
           'fileTableOfPosteriorRatesTsv': int(DEFAULT_ARGUMENTS.file_table_of_posterior_rates_tsv),
           'fileTableOfPearsonCorrelationTsv': int(DEFAULT_ARGUMENTS.file_table_of_pearson_correlation_tsv),
           'fileTableOfNodesTsv': int(DEFAULT_ARGUMENTS.file_table_of_nodes_tsv),

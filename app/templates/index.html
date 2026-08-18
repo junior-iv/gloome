@@ -313,6 +313,18 @@
                                 </div>
                                 <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
+                                        <label for="numberDatasets" class="h6 text-start text-success-emphasis ms-3">number of simulated datasets</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input value="{{number_datasets}}" id="numberDatasets" name="numberDatasets"
+                                               title="The value must be between 1 and 1000" type="number" min="1" max="1000" step="1"
+                                               onchange="validateInput(this.id, {{number_datasets}})"
+                                               class="form-control rounded-pill"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
                                         <label for="isDoNotUseCoPAP" class="h6 text-start text-success-emphasis ms-3">don`t use CoPAP</label>
                                     </div>
                                     <div class="w-48 text-start">
@@ -406,26 +418,26 @@
                                 </div>
                             </details>
                         </div>
-                        <div class="box flex-column h-auto w-100 p-2">
-                            <details class="subdetails">
-                                <summary class="text-start w-100 form-control btn btn-outline-secondary bg-secondary-subtle border-1 rounded-5">
-                                <span class="subarrow">▽</span>
-                                    Simulation datasets
-                                </summary>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
-                                        <label for="numberDatasets" class="h6 text-start text-success-emphasis ms-3">number of datasets</label>
-                                    </div>
-                                    <div class="w-48 text-start">
-                                        <input value="{{number_datasets}}" id="numberDatasets" name="numberDatasets"
-                                               title="The value must be between 1 and 1000" type="number" min="1" max="1000" step="1"
-                                               onchange="validateInput(this.id, {{number_datasets}})"
-                                               class="form-control rounded-pill"
-                                        />
-                                    </div>
-                                </div>
-                            </details>
-                        </div>
+{#                        <div class="box flex-column h-auto w-100 p-2">#}
+{#                            <details class="subdetails">#}
+{#                                <summary class="text-start w-100 form-control btn btn-outline-secondary bg-secondary-subtle border-1 rounded-5">#}
+{#                                <span class="subarrow">▽</span>#}
+{#                                    Simulation datasets#}
+{#                                </summary>#}
+{#                                <div class="box flex-row h-auto w-100 m-2">#}
+{#                                    <div class="w-48 text-start">#}
+{#                                        <label for="numberDatasets" class="h6 text-start text-success-emphasis ms-3">number of datasets</label>#}
+{#                                    </div>#}
+{#                                    <div class="w-48 text-start">#}
+{#                                        <input value="{{number_datasets}}" id="numberDatasets" name="numberDatasets"#}
+{#                                               title="The value must be between 1 and 1000" type="number" min="1" max="1000" step="1"#}
+{#                                               onchange="validateInput(this.id, {{number_datasets}})"#}
+{#                                               class="form-control rounded-pill"#}
+{#                                        />#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </details>#}
+{#                        </div>#}
                         <div class="box flex-column h-auto w-100 p-2">
                             <details class="subdetails">
                                 <summary class="text-start w-100 form-control btn btn-outline-secondary bg-secondary-subtle border-1 rounded-5">
@@ -458,14 +470,27 @@
                                         />
                                     </div>
                                 </div>
-                                <div class="box flex-row h-auto w-100 m-2">
+                                <div id="blockFileCoevolutionTsv" class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
-                                        <label for="fileTableOfSimulatedDatasetsFastas" class="h6 text-start text-success-emphasis ms-3">table of simulated datasets (fastas)</label>
+                                        <label for="fileCoevolutionTsv" class="h6 text-start text-success-emphasis ms-3">coevolutionTsv (tsv)</label>
                                     </div>
                                     <div class="w-48 text-start">
-                                        <input id="fileTableOfSimulatedDatasetsFastas" name="fileTableOfSimulatedDatasetsFastas"
+                                        <input id="fileCoevolutionTsv" name="fileCoevolutionTsv"
                                                type="checkbox" class="form-check-input rounded-1"
-                                               {%- if file_table_of_simulated_datasets_fastas -%}
+                                               {%- if file_coevolution_tsv -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div id="blockFileSimulatedDatasetsFastas" class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="fileSimulatedDatasetsFastas" class="h6 text-start text-success-emphasis ms-3">simulated datasets (fastas)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="fileSimulatedDatasetsFastas" name="fileSimulatedDatasetsFastas"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_simulated_datasets_fastas -%}
                                                    checked
                                                {% endif -%}
                                         />
