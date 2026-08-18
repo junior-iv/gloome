@@ -86,7 +86,7 @@ class WebConfig:
     def arguments_filling(self, **arguments):
         dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'probabilityLG', 'numberLG', 'numberDatasets',
                    'eMail', 'isOptimizePi', 'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseCoPAP',
-                   'isDoNotUseEMail', 'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileCoevolutionTsv',
+                   'isDoNotUseEMail', 'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileTableOfCoevolutionTsv',
                    'fileSimulatedDatasetsFastas', 'fileTableOfPosteriorRatesTsv', 'fileTableOfPearsonCorrelationTsv',
                    'fileTableOfNodesTsv', 'fileProbabilityPerPosPerBranchesTsv', 'fileTableOfBranchesTsv',
                    'fileLogLikelihoodTsv', 'fileTableOfAttributesTsv', 'filePhylogeneticTreeNwk', 'rootingMethod',
@@ -94,7 +94,7 @@ class WebConfig:
                   ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'probability_lg', 'number_lg',
                    'number_datasets', 'e_mail', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_bl',
                    'is_optimize_alpha', 'is_do_not_use_copap', 'is_do_not_use_e_mail', 'file_interactive_tree_html',
-                   'file_newick_tree_png', 'file_coevolution_tsv', 'file_simulated_datasets_fastas',
+                   'file_newick_tree_png', 'file_table_of_coevolution_tsv', 'file_simulated_datasets_fastas',
                    'file_table_of_posterior_rates_tsv', 'file_table_of_pearson_correlation_tsv',
                    'file_table_of_nodes_tsv', 'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv',
                    'file_log_likelihood_tsv', 'file_table_of_attributes_tsv', 'file_phylogenetic_tree_nwk',
@@ -132,7 +132,7 @@ class WebConfig:
                              f'\n\tis_do_not_use_e_mail: {self.CURRENT_ARGS.is_do_not_use_e_mail}'
                              f'\n\tfile_interactive_tree_html: {self.CURRENT_ARGS.file_interactive_tree_html}'
                              f'\n\tfile_newick_tree_png: {self.CURRENT_ARGS.file_newick_tree_png}'
-                             f'\n\tfile_coevolution_tsv: {self.CURRENT_ARGS.file_coevolution_tsv}'
+                             f'\n\tfile_table_of_coevolution_tsv: {self.CURRENT_ARGS.file_table_of_coevolution_tsv}'
                              f'\n\tfile_simulated_datasets_fastas: {self.CURRENT_ARGS.file_simulated_datasets_fastas}'
                              f'\n\tfile_table_of_posterior_rates_tsv: '
                              f'{self.CURRENT_ARGS.file_table_of_posterior_rates_tsv}'
@@ -197,7 +197,7 @@ class WebConfig:
             f'{is_do_not_use_e_mail} '
             f'--file_interactive_tree_html {int(self.CURRENT_ARGS.file_interactive_tree_html)} '
             f'--file_newick_tree_png {int(self.CURRENT_ARGS.file_newick_tree_png)} '
-            f'--file_coevolution_tsv {int(self.CURRENT_ARGS.file_coevolution_tsv)} '
+            f'--file_table_of_coevolution_tsv {int(self.CURRENT_ARGS.file_table_of_coevolution_tsv)} '
             f'--file_simulated_datasets_fastas {int(self.CURRENT_ARGS.file_simulated_datasets_fastas)} '
             f'--file_table_of_posterior_rates_tsv {int(self.CURRENT_ARGS.file_table_of_posterior_rates_tsv)} '
             f'--file_table_of_pearson_correlation_tsv {int(self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv)} '

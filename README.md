@@ -160,8 +160,8 @@ To get the project working, you need to run the command "gloome" or "python3 -m 
     --file_newick_tree_png <type=int> 
         Specify file_newick_tree_png. Default is 0.
 
-    --file_coevolution_tsv <type=int> 
-        Specify file_coevolution_tsv. Default is 1.
+    --file_table_of_coevolution_tsv <type=int> 
+        Specify file_table_of_coevolution_tsv. Default is 1.
 
     --file_simulated_datasets_fastas <type=int> 
         Specify file_simulated_datasets_fastas. Default is 1.

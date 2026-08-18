@@ -1,6 +1,6 @@
 let jsonTreeData = null
 let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`,  `isDoNotUseCoPAP`,
-                  `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileCoevolutionTsv`, `fileSimulatedDatasetsFastas`,
+                  `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfCoevolutionTsv`, `fileSimulatedDatasetsFastas`,
                   `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`,
                   `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`,
                   `fileTableOfAttributesTsv`, `filePhylogeneticTreeNwk`];
@@ -24,7 +24,7 @@ let objectsDependence = {
     'isDoNotUseCoPAP': {'dependence': '', 'value': ''},
     'fileInteractiveTreeHtml': {'dependence': '', 'value': ''},
     'fileNewickTreePng': {'dependence': '', 'value': ''},
-    'fileCoevolutionTsv': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
+    'fileTableOfCoevolutionTsv': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
     'fileSimulatedDatasetsFastas': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
     'fileTableOfPosteriorRatesTsv': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
     'fileTableOfPearsonCorrelationTsv': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
@@ -529,7 +529,7 @@ function makeTree(mode = 0) {
     // const isDoNotUseEMail = document.getElementById(`isDoNotUseEMail`)
     const fileInteractiveTreeHtml = document.getElementById(`fileInteractiveTreeHtml`)
     const fileNewickTreePng = document.getElementById(`fileNewickTreePng`)
-    const fileCoevolutionTsv = document.getElementById(`fileCoevolutionTsv`)
+    const fileTableOfCoevolutionTsv = document.getElementById(`fileTableOfCoevolutionTsv`)
     const fileSimulatedDatasetsFastas = document.getElementById(`fileSimulatedDatasetsFastas`)
     const fileTableOfPosteriorRatesTsv = document.getElementById(`fileTableOfPosteriorRatesTsv`)
     const fileTableOfPearsonCorrelationTsv = document.getElementById(`fileTableOfPearsonCorrelationTsv`)
@@ -560,7 +560,7 @@ function makeTree(mode = 0) {
     formData.append(`isDoNotUseEMail`, +!document.getElementById('eMail').value.trim());
     formData.append(`fileInteractiveTreeHtml`, +fileInteractiveTreeHtml.checked);
     formData.append(`fileNewickTreePng`, +fileNewickTreePng.checked);
-    formData.append(`fileCoevolutionTsv`, +fileCoevolutionTsv.checked);
+    formData.append(`fileTableOfCoevolutionTsv`, +fileTableOfCoevolutionTsv.checked);
     formData.append(`fileSimulatedDatasetsFastas`, +fileSimulatedDatasetsFastas.checked);
     formData.append(`fileTableOfPosteriorRatesTsv`, +fileTableOfPosteriorRatesTsv.checked);
     formData.append(`fileTableOfPearsonCorrelationTsv`, +fileTableOfPearsonCorrelationTsv.checked);
@@ -637,7 +637,7 @@ function gedIdentifiers(id = ``) {
         return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`, `newickText`,
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `probabilityLG`, `numberLG`,
             `numberDatasets`, `eMail`, `isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`,
-            `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileCoevolutionTsv`,
+            `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfCoevolutionTsv`,
             `fileSimulatedDatasetsFastas`, `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`,
             `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`, `fileTableOfBranchesTsv`,
             `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
@@ -709,7 +709,7 @@ function onChangingRootingMethod(delLeaf = true) {
 function onChangingCheckbox(id, value) {
     let element = document.getElementById(id);
     let checkboxesAccessibilityGroups = {'pi1': ['isOptimizePi', 'isOptimizePiAverage'], 'alpha': ['isOptimizeAlpha'], 'coefficientBL': ['isOptimizeBL'], 'probabilityLG': ['isDoNotUseCoPAP'], 'numberLG': ['isDoNotUseCoPAP'], 'numberDatasets': ['isDoNotUseCoPAP']};
-    let checkboxesDisplayGroups = {'blockFileTableOfPosteriorRatesTsv': ['isDoNotUseCoPAP'], 'blockFileTableOfPearsonCorrelationTsv': ['isDoNotUseCoPAP'], 'blockFileSimulatedDatasetsFastas': ['isDoNotUseCoPAP'], 'blockFileCoevolutionTsv': ['isDoNotUseCoPAP']};
+    let checkboxesDisplayGroups = {'blockFileTableOfPosteriorRatesTsv': ['isDoNotUseCoPAP'], 'blockFileTableOfPearsonCorrelationTsv': ['isDoNotUseCoPAP'], 'blockFileSimulatedDatasetsFastas': ['isDoNotUseCoPAP'], 'blockFileTableOfCoevolutionTsv': ['isDoNotUseCoPAP']};
     if (checkboxes.includes(id)) {
         Object.entries(checkboxesAccessibilityGroups).forEach(([key, valueList]) => {
             if (valueList.includes(id)) {
