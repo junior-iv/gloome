@@ -60,15 +60,19 @@ class MailSenderSMTPLib:
                     f'&mode={mode}" target="_blank">{attachment_path}</a>')
 
     def send_email(self, subject: str, attachments: Optional[Union[List[Path], Dict[str, List[Path]]]],
-                   body: str, use_attachments: bool = False, receiver: Optional[str] = None) -> None:
+                   body: str, use_attachments: bool = False, receiver: Optional[str] = None, is_error: bool = False
+                   ) -> None:
         message = MIMEMultipart()
         message["From"] = self.sender
         message["To"] = self.receiver if receiver is None else receiver
         message["Subject"] = subject
 
         if isinstance(attachments, (tuple, list)):
-            body += (f'<br><br>Link:<br>{self.create_link_to_results(f"{self.results}/{self.name}")}'
-                     f'<br><br>Result files:')
+            if is_error:
+                link_to_results = ''
+            else:
+                link_to_results = f'<br><br>Link:<br>{self.create_link_to_results(f"{self.results}/{self.name}")}'
+            body += f'{link_to_results}<br><br>Result files:'
             for attachment_path in attachments:
                 body += f'<br>{self.create_attachments(attachment_path, message, use_attachments)}'
         elif isinstance(attachments, dict):

@@ -311,7 +311,8 @@ class WebConfig:
             if job_state == 'COMPLETED':
                 recompile_json(self.OUTPUT_FILE, self.PROCESS_ID, True)
 
-            return self.read_response()
+                return self.read_response()
+
         return ''
 
 
@@ -418,6 +419,7 @@ class SawSubmiter:
             try:
                 job_info = self.get_job(conf.CURRENT_JOB)
             except Exception:
+                count -= 1
                 sleep(waiting_time)
                 continue
 
@@ -437,6 +439,12 @@ class SawSubmiter:
                 msg = f'HTTP error: {http_err}'
                 print(msg)
                 conf.JOB_LOGGER.info(f'\n\t{msg}\n')
+                if http_err.response is not None and http_err.response.status_code in (500, 502, 503, 504):
+                    conf.JOB_LOGGER.info("\n\t[Temporary server error, retrying...]\n")
+                    count -= 1
+                    sleep(waiting_time)
+                    continue
+
                 job_state = 'FAILED'
             except requests.exceptions.RequestException as req_err:
                 msg = f'Network or Request error occurred: {req_err}'
