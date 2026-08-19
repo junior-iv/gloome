@@ -421,7 +421,20 @@ class SawSubmiter:
                 sleep(waiting_time)
                 continue
 
-            job_state = job_info.json().get('job_state', 'RUNNING')
+            try:
+                job_info.raise_for_status()
+                job_state = job_info.json().get('job_state', 'RUNNING')
+            except requests.exceptions.JSONDecodeError:
+                print(f'The server did not return JSON! Status: {job_info.status_code}')
+                print(f'Server response text: {job_info.text}')
+                conf.JOB_LOGGER.info(f'\n\tThe server did not return JSON! Status: {job_info.status_code}'
+                                     f'\n\tServer response text: {job_info.text}\n')
+                job_state = 'FAILED'
+            except requests.exceptions.HTTPError as http_err:
+                print(f"HTTP error: {http_err}")
+                conf.JOB_LOGGER.info(f'\n\tHTTP error: {http_err}\n')
+                job_state = 'FAILED'
+
             state_filter = ['FAILED']
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
             if job_state in state_filter:
@@ -536,7 +549,20 @@ class SlurmSubmiter:
                 sleep(waiting_time)
                 continue
 
-            job_state = ''.join(self.find_in_json(job_info.json(), key='job_state', return_dict=False))
+            try:
+                job_info.raise_for_status()
+                job_state = ''.join(self.find_in_json(job_info.json(), key='job_state', return_dict=False))
+            except requests.exceptions.JSONDecodeError:
+                print(f'The server did not return JSON! Status: {job_info.status_code}')
+                print(f'Server response text: {job_info.text}')
+                conf.JOB_LOGGER.info(f'\n\tThe server did not return JSON! Status: {job_info.status_code}'
+                                     f'\n\tServer response text: {job_info.text}\n')
+                job_state = 'FAILED'
+            except requests.exceptions.HTTPError as http_err:
+                print(f"HTTP error: {http_err}")
+                conf.JOB_LOGGER.info(f'\n\tHTTP error: {http_err}\n')
+                job_state = 'FAILED'
+
             state_filter = ['FAILED']
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
             if job_state in state_filter:
