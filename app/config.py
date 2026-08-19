@@ -296,16 +296,27 @@ class WebConfig:
 
         job_state = self.SUBMITER.check_job_state(self, count=REQUESTS_NUMBER, waiting_time=REQUEST_WAITING_TIME)
 
-        if job_state == 'COMPLETED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
-            mail_sender.send_results_by_email(results_files=self.OUT_DIR, use_attachments=self.USE_ATTACHMENTS,
-                                              is_error=False, log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
-                                              included=('.json', '.zip', '.log', '.html', '.png', 'tsv'),
-                                              receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
-        if job_state == 'FAILED' and self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
-            mail_sender.send_results_by_email(results_files=self.OUT_DIR, is_error=True, name=self.PROCESS_ID,
+        if (job_state in ('COMPLETED', )
+                and self.CURRENT_ARGS.e_mail
+                and not self.CURRENT_ARGS.is_do_not_use_e_mail):
+            mail_sender.send_results_by_email(job_state=job_state,
+                                              name=self.PROCESS_ID,
+                                              results_files=self.OUT_DIR,
+                                              receiver=self.CURRENT_ARGS.e_mail,
+                                              use_attachments=self.USE_ATTACHMENTS,
                                               log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
-                                              included=('.log', ), receiver=self.CURRENT_ARGS.e_mail,
-                                              use_attachments=self.USE_ATTACHMENTS)
+                                              included=('.json', '.zip', '.log', '.html', '.png', '.tsv', '.nwk',
+                                                        '.fastas'))
+        if (job_state in ('FAILED', 'EXPIRED')
+                and self.CURRENT_ARGS.e_mail
+                and not self.CURRENT_ARGS.is_do_not_use_e_mail):
+            mail_sender.send_results_by_email(job_state=job_state,
+                                              name=self.PROCESS_ID,
+                                              results_files=self.OUT_DIR,
+                                              receiver=self.CURRENT_ARGS.e_mail,
+                                              use_attachments=self.USE_ATTACHMENTS,
+                                              log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
+                                              included=('.log', ))
         if job_state:
             self.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
             if job_state == 'COMPLETED':
@@ -459,7 +470,7 @@ class SawSubmiter:
                 return job_state
             count -= 1
             sleep(waiting_time)
-        return ''
+        return 'EXPIRED'
 
 
 class SlurmSubmiter:

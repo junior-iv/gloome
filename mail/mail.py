@@ -118,15 +118,15 @@ class MailSenderSMTPLib:
     def send_results_by_email(self, results_files: Path, log_file: Path,
                               excluded: Optional[Union[Tuple[str, ...], List[str], str]] = None,
                               included: Optional[Union[Tuple[str, ...], List[str], str]] = None,
-                              is_error: bool = False, use_attachments: bool = False, **kwargs) -> None:
+                              job_state: str = '', use_attachments: bool = False, **kwargs) -> None:
         self.set_attributes(**kwargs)
-        status = 'failed!' if is_error else 'completed'
-        subject = f'{WEBSERVER_NAME_CAPITAL} job {self.name} by {self.receiver} has {status} at {current_time()}'
+        subject = (f'{WEBSERVER_NAME_CAPITAL} job {self.name} by {self.receiver} is {job_state.lower()} at '
+                   f'{current_time()}')
         body = f'{subject}\n'
         attachments = [log_file]
         for entry in results_files.iterdir():
             self.add_attachment_to_list(entry, attachments, excluded, included)
-        self.send_email(subject, attachments, body, use_attachments)
+        self.send_email(subject, attachments, body, use_attachments, is_error=job_state in ('FAILED', 'EXPIRED'))
 
     def send_log_files_list(self, start_date: float, end_date: float,
                             excluded: Optional[Union[Tuple[str, ...], List[str], str]] = None,
