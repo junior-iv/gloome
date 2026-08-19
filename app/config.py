@@ -425,14 +425,23 @@ class SawSubmiter:
                 job_info.raise_for_status()
                 job_state = job_info.json().get('job_state', 'RUNNING')
             except requests.exceptions.JSONDecodeError:
-                print(f'The server did not return JSON! Status: {job_info.status_code}')
-                print(f'Server response text: {job_info.text}')
-                conf.JOB_LOGGER.info(f'\n\tThe server did not return JSON! Status: {job_info.status_code}'
-                                     f'\n\tServer response text: {job_info.text}\n')
+                msg1 = f'The server did not return JSON! Status: {job_info.status_code}'
+                msg2 = (f'Server response text: '
+                        f'{job_info.text[:1000] if job_info.text else "[Response body is completely empty]"}')
+                print(msg1)
+                print(msg2)
+                conf.JOB_LOGGER.info(f'\n\t{msg1}'
+                                     f'\n\t{msg2}\n')
                 job_state = 'FAILED'
             except requests.exceptions.HTTPError as http_err:
-                print(f"HTTP error: {http_err}")
-                conf.JOB_LOGGER.info(f'\n\tHTTP error: {http_err}\n')
+                msg = f'HTTP error: {http_err}'
+                print(msg)
+                conf.JOB_LOGGER.info(f'\n\t{msg}\n')
+                job_state = 'FAILED'
+            except requests.exceptions.RequestException as req_err:
+                msg = f'Network or Request error occurred: {req_err}'
+                print(msg)
+                conf.JOB_LOGGER.info(f'\n\t{msg}\n')
                 job_state = 'FAILED'
 
             state_filter = ['FAILED']
@@ -553,14 +562,23 @@ class SlurmSubmiter:
                 job_info.raise_for_status()
                 job_state = ''.join(self.find_in_json(job_info.json(), key='job_state', return_dict=False))
             except requests.exceptions.JSONDecodeError:
-                print(f'The server did not return JSON! Status: {job_info.status_code}')
-                print(f'Server response text: {job_info.text}')
-                conf.JOB_LOGGER.info(f'\n\tThe server did not return JSON! Status: {job_info.status_code}'
-                                     f'\n\tServer response text: {job_info.text}\n')
+                msg1 = f'The server did not return JSON! Status: {job_info.status_code}'
+                msg2 = (f'Server response text: '
+                        f'{job_info.text[:1000] if job_info.text else "[Response body is completely empty]"}')
+                print(msg1)
+                print(msg2)
+                conf.JOB_LOGGER.info(f'\n\t{msg1}'
+                                     f'\n\t{msg2}\n')
                 job_state = 'FAILED'
             except requests.exceptions.HTTPError as http_err:
-                print(f"HTTP error: {http_err}")
-                conf.JOB_LOGGER.info(f'\n\tHTTP error: {http_err}\n')
+                msg = f'HTTP error: {http_err}'
+                print(msg)
+                conf.JOB_LOGGER.info(f'\n\t{msg}\n')
+                job_state = 'FAILED'
+            except requests.exceptions.RequestException as req_err:
+                msg = f'Network or Request error occurred: {req_err}'
+                print(msg)
+                conf.JOB_LOGGER.info(f'\n\t{msg}\n')
                 job_state = 'FAILED'
 
             state_filter = ['FAILED']
