@@ -907,7 +907,7 @@ class Tree:
             q_values = self.benjamini_hochberg(p_values)
             df = pd.DataFrame({'POS1': np.int32(np.asarray(pos1_list)),
                                'POS2': np.int32(np.asarray(pos2_list)),
-                               'r': r_list,
+                               'r': np.asarray(r_list),
                                'rate-bin': rate_bin_list,
                                'p-value': p_values,
                                'q-value': q_values,
