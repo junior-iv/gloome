@@ -54,7 +54,6 @@ def main():
                  'isOptimizePiAverage': is_optimize_pi_average,
                  'isOptimizeAlpha': is_optimize_alpha,
                  'isOptimizeBL': is_optimize_bl,
-                 'isDoNotUseEMail': True,
                  'isDoNotUseCoPAP': True,
                  'coefficientBL': coefficient_bl,
                  'pi1': pi_1,

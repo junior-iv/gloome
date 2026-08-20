@@ -166,7 +166,6 @@ DEFAULT_FORM_ARGUMENTS = {
     'is_optimize_alpha': True,
     'is_optimize_bl': True,
     'is_do_not_use_copap': False,
-    'is_do_not_use_e_mail': True,
     'file_interactive_tree_html': False,
     'file_newick_tree_png': False,
     'file_table_of_coevolution_tsv': True,
@@ -301,9 +300,7 @@ USAGE = '''\tRequired parameters:
 \t\t--leaf <type=str> 
 \t\t\tSpecify leaf for outgroup rooting. Default is ''.
 \t\t--e_mail <type=str> 
-\t\t\tSpecify e_mail (technical parameter, do not change).
-\t\t--is_do_not_use_e_mail <type=int> 
-\t\t\tSpecify is_do_not_use_e_mail (technical parameter, do not change).'''
+\t\t\tSpecify e_mail (technical parameter, do not change).'''
 
 MENU = ({'name': 'Home', 'url': 'index',
          'submenu': (), 'title': 'Gain Loss Mapping Engine'

@@ -289,21 +289,20 @@ def check_data(*args) -> List[Tuple[str, str]]:
     is_optimize_alpha = bool(args[12])
     is_optimize_bl = bool(args[13])
     is_do_not_use_copap = bool(args[14])
-    is_do_not_use_e_mail = bool(args[15])
-    file_interactive_tree_html = bool(args[16])
-    file_newick_tree_png = bool(args[17])
-    file_table_of_coevolution_tsv = bool(args[18])
-    file_simulated_datasets_fastas = bool(args[19])
-    file_table_of_posterior_rates_tsv = bool(args[20])
-    file_table_of_pearson_correlation_tsv = bool(args[21])
-    file_table_of_nodes_tsv = bool(args[22])
-    file_probability_per_pos_per_branches_tsv = bool(args[23])
-    file_table_of_branches_tsv = bool(args[24])
-    file_log_likelihood_tsv = bool(args[25])
-    file_table_of_attributes_tsv = bool(args[26])
-    file_phylogenetic_tree_nwk = bool(args[27])
-    rooting_method = args[28].strip()
-    leaf = args[29].strip()
+    file_interactive_tree_html = bool(args[15])
+    file_newick_tree_png = bool(args[16])
+    file_table_of_coevolution_tsv = bool(args[17])
+    file_simulated_datasets_fastas = bool(args[18])
+    file_table_of_posterior_rates_tsv = bool(args[19])
+    file_table_of_pearson_correlation_tsv = bool(args[20])
+    file_table_of_nodes_tsv = bool(args[21])
+    file_probability_per_pos_per_branches_tsv = bool(args[22])
+    file_table_of_branches_tsv = bool(args[23])
+    file_log_likelihood_tsv = bool(args[24])
+    file_table_of_attributes_tsv = bool(args[25])
+    file_phylogenetic_tree_nwk = bool(args[26])
+    rooting_method = args[27].strip()
+    leaf = args[28].strip()
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -331,7 +330,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'Number of simulation events value error [ {number_datasets} ]',
                          f'The value must be between 1 and 1000.'))
 
-    if ((not isinstance(e_mail, str) or not e_mail) or not validate_email(e_mail)) and not is_do_not_use_e_mail:
+    if (not isinstance(e_mail, str) or not e_mail) or not validate_email(e_mail):
         err_list.append((f'Invalid email address [ {e_mail} ]', f'Must be valid email address.'))
 
     if not isinstance(is_optimize_pi, bool):
@@ -351,10 +350,6 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not isinstance(is_do_not_use_copap, bool):
         err_list.append((f'Do not use CoPAP value error [ {is_do_not_use_copap} ]',
-                         f'The value must be boolean type.'))
-
-    if not isinstance(is_do_not_use_e_mail, bool):
-        err_list.append((f'Do not use e-mail value error [ {is_do_not_use_e_mail} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(file_interactive_tree_html, bool):

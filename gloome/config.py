@@ -106,7 +106,6 @@ class Config:
                      'isOptimizeAlpha': int(self.CURRENT_ARGS.is_optimize_alpha),
                      'isOptimizeBL': int(self.CURRENT_ARGS.is_optimize_bl),
                      'isDoNotUseCoPAP': int(self.CURRENT_ARGS.is_do_not_use_copap),
-                     # 'isDoNotUseEMail': int(self.CURRENT_ARGS.is_do_not_use_e_mail),
                      'fileInteractiveTreeHtml': int(self.CURRENT_ARGS.file_interactive_tree_html),
                      'fileNewickTreePng': int(self.CURRENT_ARGS.file_newick_tree_png),
                      'fileTableOfCoevolutionTsv': int(self.CURRENT_ARGS.file_table_of_coevolution_tsv),
@@ -209,7 +208,6 @@ class Config:
                                         self.CURRENT_ARGS.is_optimize_alpha,
                                         self.CURRENT_ARGS.is_optimize_bl,
                                         self.CURRENT_ARGS.is_do_not_use_copap,
-                                        self.CURRENT_ARGS.is_do_not_use_e_mail,
                                         self.CURRENT_ARGS.file_interactive_tree_html,
                                         self.CURRENT_ARGS.file_newick_tree_png,
                                         self.CURRENT_ARGS.file_table_of_coevolution_tsv,
@@ -390,9 +388,6 @@ class Config:
                             help=f'Specify is_do_not_use_copap (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_do_not_use_copap)}.',
                             default=int(self.CURRENT_ARGS.is_do_not_use_copap))
-        parser.add_argument('--is_do_not_use_e_mail', dest='is_do_not_use_e_mail', type=int, required=False,
-                            help=f'Specify is_do_not_use_e_mail (technical parameter, do not change).',
-                            default=int(self.CURRENT_ARGS.is_do_not_use_e_mail))
         parser.add_argument('--file_interactive_tree_html', dest='file_interactive_tree_html', type=int, required=False,
                             help=f'Specify file_interactive_tree_html (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_interactive_tree_html)}.',
@@ -458,13 +453,23 @@ class Config:
                     setattr(self, arg_name.upper(), arg_value)
                 elif arg_name in ('msa_file', 'tree_file', 'out_dir'):
                     setattr(self, arg_name.upper(), Path(arg_value))
-                elif arg_name in ('with_internal_nodes', 'is_optimize_pi', 'is_optimize_pi_average',
-                                  'is_optimize_alpha', 'is_optimize_bl', 'is_do_not_use_copap', 'is_do_not_use_e_mail',
-                                  'file_interactive_tree_html', 'file_newick_tree_png', 'file_table_of_coevolution_tsv',
-                                  'file_simulated_datasets_fastas', 'file_table_of_posterior_rates_tsv',
-                                  'file_table_of_pearson_correlation_tsv', 'file_table_of_nodes_tsv',
-                                  'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv',
-                                  'file_log_likelihood_tsv', 'file_table_of_attributes_tsv',
+                elif arg_name in ('with_internal_nodes',
+                                  'is_optimize_pi',
+                                  'is_optimize_pi_average',
+                                  'is_optimize_alpha',
+                                  'is_optimize_bl',
+                                  'is_do_not_use_copap',
+                                  'file_interactive_tree_html',
+                                  'file_newick_tree_png',
+                                  'file_table_of_coevolution_tsv',
+                                  'file_simulated_datasets_fastas',
+                                  'file_table_of_posterior_rates_tsv',
+                                  'file_table_of_pearson_correlation_tsv',
+                                  'file_table_of_nodes_tsv',
+                                  'file_probability_per_pos_per_branches_tsv',
+                                  'file_table_of_branches_tsv',
+                                  'file_log_likelihood_tsv',
+                                  'file_table_of_attributes_tsv',
                                   'file_phylogenetic_tree_nwk'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))

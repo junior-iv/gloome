@@ -86,14 +86,14 @@ class WebConfig:
     def arguments_filling(self, **arguments):
         dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'probabilityLG', 'numberLG', 'numberDatasets',
                    'eMail', 'isOptimizePi', 'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseCoPAP',
-                   'isDoNotUseEMail', 'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileTableOfCoevolutionTsv',
+                   'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileTableOfCoevolutionTsv',
                    'fileSimulatedDatasetsFastas', 'fileTableOfPosteriorRatesTsv', 'fileTableOfPearsonCorrelationTsv',
                    'fileTableOfNodesTsv', 'fileProbabilityPerPosPerBranchesTsv', 'fileTableOfBranchesTsv',
                    'fileLogLikelihoodTsv', 'fileTableOfAttributesTsv', 'filePhylogeneticTreeNwk', 'rootingMethod',
                    'leaf'),
                   ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'probability_lg', 'number_lg',
                    'number_datasets', 'e_mail', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_bl',
-                   'is_optimize_alpha', 'is_do_not_use_copap', 'is_do_not_use_e_mail', 'file_interactive_tree_html',
+                   'is_optimize_alpha', 'is_do_not_use_copap', 'file_interactive_tree_html',
                    'file_newick_tree_png', 'file_table_of_coevolution_tsv', 'file_simulated_datasets_fastas',
                    'file_table_of_posterior_rates_tsv', 'file_table_of_pearson_correlation_tsv',
                    'file_table_of_nodes_tsv', 'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv',
@@ -102,7 +102,7 @@ class WebConfig:
                   ((int, ), (float, ), (float, ), (float, ), (float, ), (int, ), (int, ), (str, ), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
-                   (int, bool), (int, bool), (int, bool), (str, ), (str, )))
+                   (int, bool), (int, bool), (str, ), (str, )))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -129,7 +129,6 @@ class WebConfig:
                              f'\n\tis_optimize_alpha: {self.CURRENT_ARGS.is_optimize_alpha}'
                              f'\n\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}'
                              f'\n\tis_do_not_use_copap: {self.CURRENT_ARGS.is_do_not_use_copap}'
-                             f'\n\tis_do_not_use_e_mail: {self.CURRENT_ARGS.is_do_not_use_e_mail}'
                              f'\n\tfile_interactive_tree_html: {self.CURRENT_ARGS.file_interactive_tree_html}'
                              f'\n\tfile_newick_tree_png: {self.CURRENT_ARGS.file_newick_tree_png}'
                              f'\n\tfile_table_of_coevolution_tsv: {self.CURRENT_ARGS.file_table_of_coevolution_tsv}'
@@ -170,12 +169,10 @@ class WebConfig:
     def create_command_line(self) -> None:
         if self.CURRENT_ARGS.e_mail:
             e_mail = f'--e_mail {self.CURRENT_ARGS.e_mail} '
-            is_do_not_use_e_mail = f'--is_do_not_use_e_mail {int(self.CURRENT_ARGS.is_do_not_use_e_mail)} '
         else:
-            e_mail = is_do_not_use_e_mail = ''
+            e_mail = ''
         leaf = f'--leaf {self.CURRENT_ARGS.leaf}' if self.CURRENT_ARGS.leaf else ''
         self.COMMAND_LINE = (
-            # f'python {self.BIN_DIR.joinpath("gloome").joinpath("__main__.py")} '
             f'python -m gloome '
             f'--msa_file {self.MSA_FILE} '
             f'--tree_file {self.TREE_FILE} '
@@ -194,7 +191,6 @@ class WebConfig:
             f'--is_optimize_pi_average {int(self.CURRENT_ARGS.is_optimize_pi_average)} '
             f'--is_optimize_alpha {int(self.CURRENT_ARGS.is_optimize_alpha)} '
             f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
-            f'{is_do_not_use_e_mail} '
             f'--file_interactive_tree_html {int(self.CURRENT_ARGS.file_interactive_tree_html)} '
             f'--file_newick_tree_png {int(self.CURRENT_ARGS.file_newick_tree_png)} '
             f'--file_table_of_coevolution_tsv {int(self.CURRENT_ARGS.file_table_of_coevolution_tsv)} '
@@ -215,9 +211,8 @@ class WebConfig:
 
     def get_request_body(self):
         # TODO think about job_name = f'gloome_{self.PROCESS_ID}_{self.JOBS_NUMBER.inc()}'
-        # job_name = f'gloome_{self.PROCESS_ID}_{self.JOBS_NUMBER.inc()}'
+        # TODO think about prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{self.PROCESS_ID}_'
         job_name = f'gloome_{self.PROCESS_ID}'
-        # prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{self.PROCESS_ID}_'
         prefix = f'{self.PROCESS_ID}_'
         cmd = (f'#!/bin/bash\n'
                f'source ~/.bashrc\n'
@@ -285,7 +280,7 @@ class WebConfig:
         request_body = self.get_request_body()
 
         mail_sender = MailSenderSMTPLib(name=WEBSERVER_NAME_CAPITAL, sender_logger=self.JOB_LOGGER)
-        if self.CURRENT_ARGS.e_mail and not self.CURRENT_ARGS.is_do_not_use_e_mail:
+        if self.CURRENT_ARGS.e_mail:
             mail_sender.send_info_by_email(receiver=self.CURRENT_ARGS.e_mail, name=self.PROCESS_ID)
 
         self.CURRENT_JOB = self.SUBMITER.submit_job(json=request_body).get('job_id', self.JOBS_NUMBER.value)
@@ -296,9 +291,7 @@ class WebConfig:
 
         job_state = self.SUBMITER.check_job_state(self, count=REQUESTS_NUMBER, waiting_time=REQUEST_WAITING_TIME)
 
-        if (job_state in ('COMPLETED', )
-                and self.CURRENT_ARGS.e_mail
-                and not self.CURRENT_ARGS.is_do_not_use_e_mail):
+        if job_state in ('COMPLETED', ) and self.CURRENT_ARGS.e_mail:
             mail_sender.send_results_by_email(job_state=job_state,
                                               name=self.PROCESS_ID,
                                               results_files=self.OUT_DIR,
@@ -307,9 +300,7 @@ class WebConfig:
                                               log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
                                               included=('.json', '.zip', '.log', '.html', '.png', '.tsv', '.nwk',
                                                         '.fastas'))
-        if (job_state in ('FAILED', 'EXPIRED')
-                and self.CURRENT_ARGS.e_mail
-                and not self.CURRENT_ARGS.is_do_not_use_e_mail):
+        if job_state in ('FAILED', 'EXPIRED') and self.CURRENT_ARGS.e_mail:
             mail_sender.send_results_by_email(job_state=job_state,
                                               name=self.PROCESS_ID,
                                               results_files=self.OUT_DIR,

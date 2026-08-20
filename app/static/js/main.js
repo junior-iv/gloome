@@ -20,7 +20,6 @@ let objectsDependence = {
     'isOptimizePiAverage': {'dependence': '', 'value': ''},
     'isOptimizeAlpha': {'dependence': '', 'value': ''},
     'isOptimizeBL': {'dependence': '', 'value': ''},
-    // 'isDoNotUseEMail': {'dependence': '', 'value': ''},
     'isDoNotUseCoPAP': {'dependence': '', 'value': ''},
     'fileInteractiveTreeHtml': {'dependence': '', 'value': ''},
     'fileNewickTreePng': {'dependence': '', 'value': ''},
@@ -526,7 +525,6 @@ function makeTree(mode = 0) {
     const isOptimizeAlpha = document.getElementById(`isOptimizeAlpha`)
     const isOptimizeBL = document.getElementById(`isOptimizeBL`)
     const isDoNotUseCoPAP = document.getElementById(`isDoNotUseCoPAP`)
-    // const isDoNotUseEMail = document.getElementById(`isDoNotUseEMail`)
     const fileInteractiveTreeHtml = document.getElementById(`fileInteractiveTreeHtml`)
     const fileNewickTreePng = document.getElementById(`fileNewickTreePng`)
     const fileTableOfCoevolutionTsv = document.getElementById(`fileTableOfCoevolutionTsv`)
@@ -557,7 +555,6 @@ function makeTree(mode = 0) {
     formData.append(`isOptimizeAlpha`, +isOptimizeAlpha.checked);
     formData.append(`isOptimizeBL`, +isOptimizeBL.checked);
     formData.append(`isDoNotUseCoPAP`, +isDoNotUseCoPAP.checked);
-    formData.append(`isDoNotUseEMail`, +!document.getElementById('eMail').value.trim());
     formData.append(`fileInteractiveTreeHtml`, +fileInteractiveTreeHtml.checked);
     formData.append(`fileNewickTreePng`, +fileNewickTreePng.checked);
     formData.append(`fileTableOfCoevolutionTsv`, +fileTableOfCoevolutionTsv.checked);

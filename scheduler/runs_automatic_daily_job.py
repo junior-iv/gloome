@@ -8,9 +8,9 @@ def read_file(file_path: str) -> str:
         return f.read().strip()
 
 
-file_numbe = 1
-kwargs = {'msaText': read_file(f'msa/patternMSA{file_numbe}.msa'),
-          'newickText': read_file(f'tree/newickTree{file_numbe}.tree'),
+file_number = 1
+kwargs = {'msaText': read_file(f'msa/patternMSA{file_number}.msa'),
+          'newickText': read_file(f'tree/newickTree{file_number}.tree'),
           'isOptimizePi': int(DEFAULT_ARGUMENTS.is_optimize_pi),
           'isOptimizePiAverage': int(DEFAULT_ARGUMENTS.is_optimize_pi_average),
           'isOptimizeAlpha': int(DEFAULT_ARGUMENTS.is_optimize_alpha),
