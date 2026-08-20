@@ -330,7 +330,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'Number of simulation events value error [ {number_datasets} ]',
                          f'The value must be between 1 and 1000.'))
 
-    if (not isinstance(e_mail, str) or not e_mail) or not validate_email(e_mail):
+    if e_mail and not validate_email(e_mail):
         err_list.append((f'Invalid email address [ {e_mail} ]', f'Must be valid email address.'))
 
     if not isinstance(is_optimize_pi, bool):
@@ -485,10 +485,11 @@ def check_data(*args) -> List[Tuple[str, str]]:
     return err_list
 
 
-def validate_email(e_mail: str) -> bool:
-    regex = r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}'
+def validate_email(e_mail: Any) -> bool:
+    if not isinstance(e_mail, str):
+        return False
 
-    return bool(re.fullmatch(regex, e_mail))
+    return bool(re.fullmatch(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}', e_mail))
 
 
 def get_function_parameters(func: Callable) -> Tuple[str, ...]:
