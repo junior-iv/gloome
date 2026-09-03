@@ -87,22 +87,24 @@ class WebConfig:
         dct = zip(('categoriesQuantity', 'alpha', 'pi1', 'coefficientBL', 'probabilityLG', 'numberLG', 'numberDatasets',
                    'eMail', 'isOptimizePi', 'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseCoPAP',
                    'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileTableOfCoevolutionTsv',
-                   'fileSimulatedDatasetsFastas', 'fileTableOfPosteriorRatesTsv', 'fileTableOfPearsonCorrelationTsv',
-                   'fileTableOfNodesTsv', 'fileProbabilityPerPosPerBranchesTsv', 'fileTableOfBranchesTsv',
-                   'fileLogLikelihoodTsv', 'fileTableOfAttributesTsv', 'filePhylogeneticTreeNwk', 'rootingMethod',
-                   'leaf'),
+                   'fileSimulatedDatasetsFastas', 'fileBarplotOfCorrelationSvg', 'filePlotDistributionOfCorrelationSvg',
+                   'filePlotDistributionOfCorrelationByRateBinSvg', 'fileTableOfPosteriorRatesTsv',
+                   'fileTableOfPearsonCorrelationTsv', 'fileTableOfNodesTsv', 'fileProbabilityPerPosPerBranchesTsv',
+                   'fileTableOfBranchesTsv', 'fileLogLikelihoodTsv', 'fileTableOfAttributesTsv',
+                   'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'),
                   ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'probability_lg', 'number_lg',
                    'number_datasets', 'e_mail', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_bl',
                    'is_optimize_alpha', 'is_do_not_use_copap', 'file_interactive_tree_html',
                    'file_newick_tree_png', 'file_table_of_coevolution_tsv', 'file_simulated_datasets_fastas',
-                   'file_table_of_posterior_rates_tsv', 'file_table_of_pearson_correlation_tsv',
-                   'file_table_of_nodes_tsv', 'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv',
-                   'file_log_likelihood_tsv', 'file_table_of_attributes_tsv', 'file_phylogenetic_tree_nwk',
-                   'rooting_method', 'leaf'),
+                   'file_barplot_of_correlation_svg', 'file_plot_distribution_of_correlation_svg',
+                   'file_plot_distribution_of_correlation_by_rate_bin_svg', 'file_table_of_posterior_rates_tsv',
+                   'file_table_of_pearson_correlation_tsv', 'file_table_of_nodes_tsv',
+                   'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv', 'file_log_likelihood_tsv',
+                   'file_table_of_attributes_tsv', 'file_phylogenetic_tree_nwk', 'rooting_method', 'leaf'),
                   ((int, ), (float, ), (float, ), (float, ), (float, ), (int, ), (int, ), (str, ), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
-                   (int, bool), (int, bool), (str, ), (str, )))
+                   (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (str, ), (str, )))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -133,6 +135,11 @@ class WebConfig:
                              f'\n\tfile_newick_tree_png: {self.CURRENT_ARGS.file_newick_tree_png}'
                              f'\n\tfile_table_of_coevolution_tsv: {self.CURRENT_ARGS.file_table_of_coevolution_tsv}'
                              f'\n\tfile_simulated_datasets_fastas: {self.CURRENT_ARGS.file_simulated_datasets_fastas}'
+                             f'\n\tfile_barplot_of_correlation_svg: {self.CURRENT_ARGS.file_barplot_of_correlation_svg}'
+                             f'\n\tfile_plot_distribution_of_correlation_svg: '
+                             f'{self.CURRENT_ARGS.file_plot_distribution_of_correlation_svg}'
+                             f'\n\tfile_plot_distribution_of_correlation_by_rate_bin_svg: '
+                             f'{self.CURRENT_ARGS.file_plot_distribution_of_correlation_by_rate_bin_svg}'
                              f'\n\tfile_table_of_posterior_rates_tsv: '
                              f'{self.CURRENT_ARGS.file_table_of_posterior_rates_tsv}'
                              f'\n\tfile_table_of_pearson_correlation_tsv: '
@@ -195,6 +202,11 @@ class WebConfig:
             f'--file_newick_tree_png {int(self.CURRENT_ARGS.file_newick_tree_png)} '
             f'--file_table_of_coevolution_tsv {int(self.CURRENT_ARGS.file_table_of_coevolution_tsv)} '
             f'--file_simulated_datasets_fastas {int(self.CURRENT_ARGS.file_simulated_datasets_fastas)} '
+            f'--file_barplot_of_correlation_svg {int(self.CURRENT_ARGS.file_barplot_of_correlation_svg)} '
+            f'--file_plot_distribution_of_correlation_svg '
+            f'{int(self.CURRENT_ARGS.file_plot_distribution_of_correlation_svg)} '
+            f'--file_plot_distribution_of_correlation_by_rate_bin_svg '
+            f'{int(self.CURRENT_ARGS.file_plot_distribution_of_correlation_by_rate_bin_svg)} '
             f'--file_table_of_posterior_rates_tsv {int(self.CURRENT_ARGS.file_table_of_posterior_rates_tsv)} '
             f'--file_table_of_pearson_correlation_tsv {int(self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv)} '
             f'--file_table_of_nodes_tsv {int(self.CURRENT_ARGS.file_table_of_nodes_tsv)} '
@@ -299,7 +311,7 @@ class WebConfig:
                                               use_attachments=self.USE_ATTACHMENTS,
                                               log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
                                               included=('.json', '.zip', '.log', '.html', '.png', '.tsv', '.nwk',
-                                                        '.fastas'))
+                                                        '.fastas', '.svg', ))
         if job_state in ('FAILED', 'EXPIRED') and self.CURRENT_ARGS.e_mail:
             mail_sender.send_results_by_email(job_state=job_state,
                                               name=self.PROCESS_ID,

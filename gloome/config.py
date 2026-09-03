@@ -86,6 +86,11 @@ class Config:
                           'file_newick_tree_png': self.CURRENT_ARGS.file_newick_tree_png,
                           'file_table_of_coevolution_tsv': self.CURRENT_ARGS.file_table_of_coevolution_tsv,
                           'file_simulated_datasets_fastas': self.CURRENT_ARGS.file_simulated_datasets_fastas,
+                          'file_barplot_of_correlation_svg': self.CURRENT_ARGS.file_barplot_of_correlation_svg,
+                          'file_plot_distribution_of_correlation_svg':
+                              self.CURRENT_ARGS.file_plot_distribution_of_correlation_svg,
+                          'file_plot_distribution_of_correlation_by_rate_bin_svg':
+                              self.CURRENT_ARGS.file_plot_distribution_of_correlation_by_rate_bin_svg,
                           'file_table_of_posterior_rates_tsv': self.CURRENT_ARGS.file_table_of_posterior_rates_tsv,
                           'file_table_of_pearson_correlation_tsv':
                               self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv,
@@ -110,6 +115,11 @@ class Config:
                      'fileNewickTreePng': int(self.CURRENT_ARGS.file_newick_tree_png),
                      'fileTableOfCoevolutionTsv': int(self.CURRENT_ARGS.file_table_of_coevolution_tsv),
                      'fileSimulatedDatasetsFastas': int(self.CURRENT_ARGS.file_simulated_datasets_fastas),
+                     'fileBarplotOfCorrelationSvg': int(DEFAULT_ARGUMENTS.file_barplot_of_correlation_svg),
+                     'filePlotDistributionOfCorrelationSvg':
+                         int(DEFAULT_ARGUMENTS.file_plot_distribution_of_correlation_svg),
+                     'filePlotDistributionOfCorrelationByRateBinSvg':
+                         int(DEFAULT_ARGUMENTS.file_plot_distribution_of_correlation_by_rate_bin_svg),
                      'fileTableOfPosteriorRatesTsv': int(self.CURRENT_ARGS.file_table_of_posterior_rates_tsv),
                      'fileTableOfPearsonCorrelationTsv': int(self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv),
                      'fileTableOfNodesTsv': int(self.CURRENT_ARGS.file_table_of_nodes_tsv),
@@ -212,6 +222,9 @@ class Config:
                                         self.CURRENT_ARGS.file_newick_tree_png,
                                         self.CURRENT_ARGS.file_table_of_coevolution_tsv,
                                         self.CURRENT_ARGS.file_simulated_datasets_fastas,
+                                        self.CURRENT_ARGS.file_barplot_of_correlation_svg,
+                                        self.CURRENT_ARGS.file_plot_distribution_of_correlation_svg,
+                                        self.CURRENT_ARGS.file_plot_distribution_of_correlation_by_rate_bin_svg,
                                         self.CURRENT_ARGS.file_table_of_posterior_rates_tsv,
                                         self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv,
                                         self.CURRENT_ARGS.file_table_of_nodes_tsv,
@@ -406,6 +419,21 @@ class Config:
                             help=f'Specify file_simulated_datasets_fastas (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_simulated_datasets_fastas)}.',
                             default=int(self.CURRENT_ARGS.file_simulated_datasets_fastas))
+        parser.add_argument('--file_barplot_of_correlation_svg',
+                            dest='file_barplot_of_correlation_svg', type=int, required=False,
+                            help=f'Specify file_barplot_of_correlation_svg (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_barplot_of_correlation_svg)}.',
+                            default=int(self.CURRENT_ARGS.file_barplot_of_correlation_svg))
+        parser.add_argument('--file_plot_distribution_of_correlation_svg',
+                            dest='file_plot_distribution_of_correlation_svg', type=int, required=False,
+                            help=f'Specify file_plot_distribution_of_correlation_svg (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_plot_distribution_of_correlation_svg)}.',
+                            default=int(self.CURRENT_ARGS.file_plot_distribution_of_correlation_svg))
+        parser.add_argument('--file_plot_distribution_of_correlation_by_rate_bin_svg',
+                            dest='file_plot_distribution_of_correlation_by_rate_bin_svg', type=int, required=False,
+                            help=f'Specify file_plot_distribution_of_correlation_by_rate_bin_svg (optional). Default is'
+                            f' {int(self.CURRENT_ARGS.file_plot_distribution_of_correlation_by_rate_bin_svg)}.',
+                            default=int(self.CURRENT_ARGS.file_plot_distribution_of_correlation_by_rate_bin_svg))
         parser.add_argument('--file_table_of_posterior_rates_tsv',
                             dest='file_table_of_posterior_rates_tsv', type=int, required=False,
                             help=f'Specify file_table_of_posterior_rates_tsv (optional). Default is '
@@ -463,6 +491,9 @@ class Config:
                                   'file_newick_tree_png',
                                   'file_table_of_coevolution_tsv',
                                   'file_simulated_datasets_fastas',
+                                  'file_barplot_of_correlation_svg',
+                                  'file_plot_distribution_of_correlation_svg',
+                                  'file_plot_distribution_of_correlation_by_rate_bin_svg',
                                   'file_table_of_posterior_rates_tsv',
                                   'file_table_of_pearson_correlation_tsv',
                                   'file_table_of_nodes_tsv',

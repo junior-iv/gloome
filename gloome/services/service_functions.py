@@ -16,6 +16,9 @@ SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_table_of_coevolution_tsv': True,
                   'file_simulated_datasets_fastas': True,
                   'file_table_of_posterior_rates_tsv': True,
+                  'file_barplot_of_correlation_svg': True,
+                  'file_plot_distribution_of_correlation_svg': True,
+                  'file_plot_distribution_of_correlation_by_rate_bin_svg': True,
                   'file_table_of_pearson_correlation_tsv': True,
                   'file_table_of_nodes_tsv': True,
                   'file_probability_per_pos_per_branches_tsv': True,
@@ -179,9 +182,10 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     taking_into_coefficient = newick_tree.coefficient_bl != 1
     use_coevolution_file = selected_files.get('file_table_of_coevolution_tsv', False)
     use_simulated_datasets_file = selected_files.get('file_simulated_datasets_fastas', False)
-    # result.update(newick_tree.tree_to_graph(f'{file_path}/graph.txt', ('dot', 'png', 'svg')))
-    # table = newick_tree.tree_to_table(columns=columns, list_type=list, lists=lists, distance_type=float)
-    # result.update({'Fasta (fasta)': newick_tree.tree_to_fasta_file(f'{file_path}/fasta_file.fasta')})
+    use_barplot_of_correlation_file = selected_files.get('file_barplot_of_correlation_svg', False)
+    use_plot_distribution_of_correlation_file = selected_files.get('file_plot_distribution_of_correlation_svg', False)
+    use_plot_distribution_of_correlation_by_rate_bin_file = selected_files.get(
+        'file_plot_distribution_of_correlation_by_rate_bin_svg', False)
     if selected_files.get('file_interactive_tree_html', False):
         result.update({'Interactive tree (html)':
                        newick_tree.tree_to_interactive_html(file_name=f'{file_path}/InteractiveTree.html',
@@ -230,7 +234,12 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                                                     probability_lg=probability_lg,
                                                     number_lg=number_lg,
                                                     use_simulated_datasets_file=use_simulated_datasets_file,
-                                                    use_coevolution_file=use_coevolution_file))
+                                                    use_coevolution_file=use_coevolution_file,
+                                                    use_barplot_of_correlation_file=use_barplot_of_correlation_file,
+                                                    use_plot_distribution_of_correlation_file=
+                                                    use_plot_distribution_of_correlation_file,
+                                                    use_plot_distribution_of_correlation_by_rate_bin_file=
+                                                    use_plot_distribution_of_correlation_by_rate_bin_file))
 
     if result:
         file_path = get_path(file_path)
@@ -294,15 +303,18 @@ def check_data(*args) -> List[Tuple[str, str]]:
     file_table_of_coevolution_tsv = bool(args[17])
     file_simulated_datasets_fastas = bool(args[18])
     file_table_of_posterior_rates_tsv = bool(args[19])
-    file_table_of_pearson_correlation_tsv = bool(args[20])
-    file_table_of_nodes_tsv = bool(args[21])
-    file_probability_per_pos_per_branches_tsv = bool(args[22])
-    file_table_of_branches_tsv = bool(args[23])
-    file_log_likelihood_tsv = bool(args[24])
-    file_table_of_attributes_tsv = bool(args[25])
-    file_phylogenetic_tree_nwk = bool(args[26])
-    rooting_method = args[27].strip()
-    leaf = args[28].strip()
+    file_barplot_of_correlation_svg = bool(args[20])
+    file_plot_distribution_of_correlation_svg = bool(args[21])
+    file_plot_distribution_of_correlation_by_rate_bin_svg = bool(args[22])
+    file_table_of_pearson_correlation_tsv = bool(args[23])
+    file_table_of_nodes_tsv = bool(args[24])
+    file_probability_per_pos_per_branches_tsv = bool(args[25])
+    file_table_of_branches_tsv = bool(args[26])
+    file_log_likelihood_tsv = bool(args[27])
+    file_table_of_attributes_tsv = bool(args[28])
+    file_phylogenetic_tree_nwk = bool(args[29])
+    rooting_method = args[30].strip()
+    leaf = args[31].strip()
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -372,6 +384,21 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not isinstance(file_table_of_posterior_rates_tsv, bool):
         err_list.append((f'Table of posterior rates (tsv) value error [ {file_table_of_posterior_rates_tsv} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_barplot_of_correlation_svg, bool):
+        err_list.append((f'Barplot of correlation (svg) value error '
+                         f'[ {file_barplot_of_correlation_svg} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_plot_distribution_of_correlation_svg, bool):
+        err_list.append((f'Plot distribution of correlation (svg) value error '
+                         f'[ {file_plot_distribution_of_correlation_svg} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_plot_distribution_of_correlation_by_rate_bin_svg, bool):
+        err_list.append((f'Plot distribution of correlation by rate-bin (svg) value error '
+                         f'[ {file_plot_distribution_of_correlation_by_rate_bin_svg} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(file_table_of_pearson_correlation_tsv, bool):

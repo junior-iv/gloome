@@ -166,6 +166,15 @@ To get the project working, you need to run the command "gloome" or "python3 -m 
     --file_simulated_datasets_fastas <type=int> 
         Specify file_simulated_datasets_fastas. Default is 1.
 
+    --file_barplot_of_correlation_svg <type=int> 
+        Specify file_barplot_of_correlation_svg. Default is 1.
+
+    --file_plot_distribution_of_correlation_svg <type=int> 
+        Specify file_plot_distribution_of_correlation_svg. Default is 1.
+
+    --file_plot_distribution_of_correlation_by_rate_bin_svg <type=int> 
+        Specify file_plot_distribution_of_correlation_by_rate_bin_svg. Default is 1.
+
     --file_table_of_posterior_rates_tsv <type=int> 
         Specify file_table_of_posterior_rates_tsv. Default is 1.
 

@@ -170,6 +170,9 @@ DEFAULT_FORM_ARGUMENTS = {
     'file_newick_tree_png': False,
     'file_table_of_coevolution_tsv': True,
     'file_simulated_datasets_fastas': True,
+    'file_barplot_of_correlation_svg': True,
+    'file_plot_distribution_of_correlation_svg': True,
+    'file_plot_distribution_of_correlation_by_rate_bin_svg': True,
     'file_table_of_posterior_rates_tsv': True,
     'file_table_of_pearson_correlation_tsv': True,
     'file_table_of_nodes_tsv': True,
@@ -274,6 +277,12 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify file_table_of_coevolution_tsv. Default is 1.
 \t\t--file_simulated_datasets_fastas <type=int>
 \t\t\tSpecify file_simulated_datasets_fastas. Default is 1.
+\t\t--file_barplot_of_correlation_svg <type=int>
+\t\t\tSpecify file_barplot_of_correlation_svg. Default is 1.
+\t\t--file_plot_distribution_of_correlation_svg <type=int>
+\t\t\tSpecify file_plot_distribution_of_correlation_svg. Default is 1.
+\t\t--file_plot_distribution_of_correlation_by_rate_bin_svg <type=int>
+\t\t\tSpecify file_plot_distribution_of_correlation_by_rate_bin_svg. Default is 1.
 \t\t--file_table_of_posterior_rates_tsv <type=int>
 \t\t\tSpecify file_table_of_posterior_rates_tsv. Default is 1.
 \t\t--file_table_of_pearson_correlation_tsv <type=int>

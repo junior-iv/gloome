@@ -487,6 +487,45 @@
                                         />
                                     </div>
                                 </div>
+                                <div id="blockFileBarplotOfCorrelationSvg" class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="fileBarplotOfCorrelationSvg" class="h6 text-start text-success-emphasis ms-3">barplot of coevolution (svg)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="fileBarplotOfCorrelationSvg" name="fileBarplotOfCorrelationSvg"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_barplot_of_correlation_svg -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div id="blockFilePlotDistributionOfCorrelationSvg" class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="filePlotDistributionOfCorrelationSvg" class="h6 text-start text-success-emphasis ms-3">plot of distribution of coevolution (svg)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="filePlotDistributionOfCorrelationSvg" name="filePlotDistributionOfCorrelationSvg"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_plot_distribution_of_correlation_svg -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div id="blockFilePlotDistributionOfCorrelationByRateBinSvg" class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="filePlotDistributionOfCorrelationByRateBinSvg" class="h6 text-start text-success-emphasis ms-3">plot of distribution of coevolution by rate-bin categories (svg)</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="filePlotDistributionOfCorrelationByRateBinSvg" name="filePlotDistributionOfCorrelationByRateBinSvg"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_plot_distribution_of_correlation_by_rate_bin_svg -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
                                 <div id="blockFileTableOfPosteriorRatesTsv" class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
                                         <label for="fileTableOfPosteriorRatesTsv" class="h6 text-start text-success-emphasis ms-3">table of posterior rates (tsv)</label>
