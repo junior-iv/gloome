@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
-# import seaborn as sns
+import seaborn as sns
 import re
 
 from shutil import rmtree
@@ -835,9 +835,9 @@ class Tree:
         result = {}
         file_simulated_datasets = f'{file_path}/SimulatedDatasets.fastas'
         file_coevolution = f'{file_path}/Coevolution.tsv'
-        # file_distribution_of_correlation = f'{file_path}/DistributionOfCorrelation.svg'
-        # file_barplot_of_correlation = f'{file_path}/BarplotOfCorrelation.svg'
-        # file_distribution_of_correlation_by_rate_bin = f'{file_path}/DistributionOfCorrelationByRateBin.svg'
+        file_distribution_of_correlation = f'{file_path}/DistributionOfCorrelation.svg'
+        file_barplot_of_correlation = f'{file_path}/BarplotOfCorrelation.svg'
+        file_distribution_of_correlation_by_rate_bin = f'{file_path}/DistributionOfCorrelationByRateBin.svg'
 
         site_rate = np.asarray(self.posterior_rates, dtype=np.float64)
         branch_nodes = [n for n in self.all_nodes_objects if n.father is not None]
@@ -926,49 +926,49 @@ class Tree:
                 df.to_csv(file_coevolution, sep=sep, index=False)
                 result.update({'Table of coevolution (tsv)': file_coevolution})
 
-            # if use_plot_distribution_of_correlation_file:
-            #     sns.kdeplot(df['r'], fill=True, color='blue')
-            #     plt.xlim(-1, 1)
-            #     plt.xlabel('Correlation (r)')
-            #     plt.ylabel('Density')
-            #     plt.title('Distribution of original correlation coefficients')
-            #     plt.savefig(file_distribution_of_correlation, dpi=300, bbox_inches='tight')
-            #     result.update({'Plot of distribution of coevolution (svg)': file_distribution_of_correlation})
-            #
-            # if use_barplot_of_correlation_file:
-            #     sns.histplot(df['r'], bins=20, kde=True, color='green')
-            #     plt.xlim(-1, 1)
-            #     plt.xlabel('Correlation (r)')
-            #     plt.ylabel('Count')
-            #     plt.title('Barplot of original correlation coefficients')
-            #     plt.savefig(file_barplot_of_correlation, dpi=300, bbox_inches='tight')
-            #     result.update({'Barplot of coevolution (svg)': file_barplot_of_correlation})
-            #
-            # if use_plot_distribution_of_correlation_by_rate_bin_file:
-            #     def make_clean_label(tup):
-            #         if isinstance(tup, tuple) and len(tup) == 2:
-            #             return f"{tup[0]:.2f} - {tup[1]:.2f}"
-            #         return str(tup)
-            #
-            #     df['bin_clean'] = df['rate-bin'].apply(make_clean_label)
-            #     plt.figure(figsize=(7, 5))
-            #
-            #     sns.stripplot(x='bin_clean',
-            #                   y='r',
-            #                   data=df,
-            #                   palette='muted',
-            #                   hue='bin_clean',
-            #                   size=6,
-            #                   jitter=0.15,
-            #                   alpha=0.7,
-            #                   )
-            #
-            #     plt.xlabel('Rate-bin categories')
-            #     plt.ylabel('Correlation (r)')
-            #     plt.title('Distribution of original correlation coefficients by rate-bin categories')
-            #     plt.savefig(file_distribution_of_correlation_by_rate_bin, dpi=300, bbox_inches='tight')
-            #     result.update({'Plot of distribution of coevolution by rate-bin categories (svg)':
-            #                    file_distribution_of_correlation_by_rate_bin})
+            if use_plot_distribution_of_correlation_file:
+                sns.kdeplot(df['r'], fill=True, color='blue')
+                plt.xlim(-1, 1)
+                plt.xlabel('Correlation (r)')
+                plt.ylabel('Density')
+                plt.title('Distribution of original correlation coefficients')
+                plt.savefig(file_distribution_of_correlation, dpi=300, bbox_inches='tight')
+                result.update({'Plot of distribution of coevolution (svg)': file_distribution_of_correlation})
+
+            if use_barplot_of_correlation_file:
+                sns.histplot(df['r'], bins=20, kde=True, color='green')
+                plt.xlim(-1, 1)
+                plt.xlabel('Correlation (r)')
+                plt.ylabel('Count')
+                plt.title('Barplot of original correlation coefficients')
+                plt.savefig(file_barplot_of_correlation, dpi=300, bbox_inches='tight')
+                result.update({'Barplot of coevolution (svg)': file_barplot_of_correlation})
+
+            if use_plot_distribution_of_correlation_by_rate_bin_file:
+                def make_clean_label(tup):
+                    if isinstance(tup, tuple) and len(tup) == 2:
+                        return f"{tup[0]:.2f} - {tup[1]:.2f}"
+                    return str(tup)
+
+                df['bin_clean'] = df['rate-bin'].apply(make_clean_label)
+                plt.figure(figsize=(7, 5))
+
+                sns.stripplot(x='bin_clean',
+                              y='r',
+                              data=df,
+                              palette='muted',
+                              hue='bin_clean',
+                              size=6,
+                              jitter=0.15,
+                              alpha=0.7,
+                              )
+
+                plt.xlabel('Rate-bin categories')
+                plt.ylabel('Correlation (r)')
+                plt.title('Distribution of original correlation coefficients by rate-bin categories')
+                plt.savefig(file_distribution_of_correlation_by_rate_bin, dpi=300, bbox_inches='tight')
+                result.update({'Plot of distribution of coevolution by rate-bin categories (svg)':
+                               file_distribution_of_correlation_by_rate_bin})
 
         return result
 
