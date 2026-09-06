@@ -987,8 +987,9 @@ class Tree:
                 df['bin_clean'] = df['rate-bin'].apply(make_clean_label)
                 unique_bins_sorted = sorted(df['rate-bin'].dropna().unique())
                 categories_order = [make_clean_label(b) for b in unique_bins_sorted]
+                bins_quantity = len(unique_bins_sorted)
 
-                fig, ax = plt.subplots(figsize=(7, self.categories_quantity + 1))
+                fig, ax = plt.subplots(figsize=(max(7, int(np.round(bins_quantity * 0.7))), 5))
                 ax.tick_params(axis='both', labelsize=8)
 
                 sns.stripplot(x='bin_clean',
