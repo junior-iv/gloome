@@ -13,7 +13,7 @@ from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
 from Bio.Phylo.NewickIO import Writer
 from numpy import ndarray, dtype, void
-from scipy.stats import gamma, pearsonr, distributions
+from scipy.stats import gamma, pearsonr, distributions, beta as sp_beta
 from scipy.special import gammainc
 from scipy.optimize import minimize_scalar
 from io import StringIO
@@ -22,6 +22,7 @@ from .node import Node
 from .npencoder import NpEncoder
 
 eps = 5e-324
+eps2 = 1e-10
 
 
 class Tree:
@@ -927,25 +928,58 @@ class Tree:
                 result.update({'Table of coevolution (tsv)': file_coevolution})
 
             if use_plot_distribution_of_correlation_file:
-                plt.figure(figsize=(7, 5))
-                plt.tick_params(axis='both', labelsize=8)
-                sns.kdeplot(df['r'], fill=True, color='blue')
-                plt.xlim(-1, 1)
-                plt.xlabel('Correlation (r)')
-                plt.ylabel('Density')
-                plt.title('Distribution of original correlation coefficients')
-                plt.savefig(file_distribution_of_correlation, dpi=300, bbox_inches='tight')
+                fig, ax = plt.subplots(figsize=(7, 5))
+                ax.tick_params(axis='both', labelsize=8)
+                sns.kdeplot(df['r'], fill=True, color='blue', ax=ax)
+                ax.set_xlim(-1, 1)
+                ax.set_xlabel('Correlation (r)')
+                ax.set_ylabel('Density')
+                ax.set_title('Distribution of original correlation coefficients')
+
+                r_data = df['r'].dropna()
+                r_data_clipped = np.clip(r_data, -1 + eps2, 1 - eps2)
+                alpha_est, beta_est, loc_est, scale_est = sp_beta.fit(r_data_clipped, floc=-1, fscale=2)
+                info_text = f'Alpha: {alpha_est:.4f}\nBeta: {beta_est:.4f}'
+
+                ax.text(0.05, 0.95, info_text,
+                        transform=ax.transAxes,
+                        fontsize=9,
+                        verticalalignment='top',
+                        bbox={'boxstyle': 'round,pad=0.5',
+                              'facecolor': 'white',
+                              'alpha': 0.6,
+                              'edgecolor': 'gray'})
+
+                fig.savefig(file_distribution_of_correlation, dpi=300, bbox_inches='tight')
+                plt.close(fig)
+
                 result.update({'Plot of distribution of coevolution (svg)': file_distribution_of_correlation})
 
             if use_barplot_of_correlation_file:
-                plt.figure(figsize=(7, 5))
-                plt.tick_params(axis='both', labelsize=8)
-                sns.histplot(df['r'], bins=20, kde=True, color='green')
-                plt.xlim(-1, 1)
-                plt.xlabel('Correlation (r)')
-                plt.ylabel('Count')
-                plt.title('Barplot of original correlation coefficients')
-                plt.savefig(file_barplot_of_correlation, dpi=300, bbox_inches='tight')
+                fig, ax = plt.subplots(figsize=(7, 5))
+                ax.tick_params(axis='both', labelsize=8)
+                sns.histplot(df['r'], bins=20, kde=True, color='green', ax=ax)
+                ax.set_xlim(-1, 1)
+                ax.set_xlabel('Correlation (r)')
+                ax.set_ylabel('Count')
+                ax.set_title('Barplot of original correlation coefficients')
+
+                r_data = (df['r'].dropna() + 1) / 2
+                r_data_clipped = np.clip(r_data, -1 + eps2, 1 - eps2)
+                alpha_est, beta_est, loc_est, scale_est = sp_beta.fit(r_data_clipped, floc=0, fscale=1)
+                info_text = f'Alpha: {alpha_est:.4f}\nBeta: {beta_est:.4f}'
+                ax.text(0.05, 0.95, info_text,
+                        transform=ax.transAxes,
+                        fontsize=8,
+                        verticalalignment='top',
+                        bbox={'boxstyle': 'round,pad=0.5',
+                              'facecolor': 'white',
+                              'alpha': 0.6,
+                              'edgecolor': 'gray'})
+
+                fig.savefig(file_barplot_of_correlation, dpi=300, bbox_inches='tight')
+                plt.close(fig)
+
                 result.update({'Barplot of coevolution (svg)': file_barplot_of_correlation})
 
             if use_plot_distribution_of_correlation_by_rate_bin_file:
@@ -958,8 +992,8 @@ class Tree:
                 unique_bins_sorted = sorted(df['rate-bin'].dropna().unique())
                 categories_order = [make_clean_label(b) for b in unique_bins_sorted]
 
-                plt.figure(figsize=(7, 5))
-                plt.tick_params(axis='both', labelsize=8)
+                fig, ax = plt.subplots(figsize=(7, 5))
+                ax.tick_params(axis='both', labelsize=8)
 
                 sns.stripplot(x='bin_clean',
                               y='r',
@@ -970,12 +1004,16 @@ class Tree:
                               size=6,
                               jitter=0.15,
                               alpha=0.7,
+                              ax=ax,
                               )
 
-                plt.xlabel('Rate-bin categories')
-                plt.ylabel('Correlation (r)')
-                plt.title('Distribution of original correlation coefficients by rate-bin categories')
-                plt.savefig(file_distribution_of_correlation_by_rate_bin, dpi=300, bbox_inches='tight')
+                ax.set_xlabel('Rate-bin categories')
+                ax.set_ylabel('Correlation (r)')
+                ax.set_title('Distribution of original correlation coefficients by rate-bin categories')
+
+                fig.savefig(file_distribution_of_correlation_by_rate_bin, dpi=300, bbox_inches='tight')
+                plt.close(fig)
+
                 result.update({'Plot of distribution of coevolution by rate-bin categories (svg)':
                                file_distribution_of_correlation_by_rate_bin})
 
@@ -1546,7 +1584,7 @@ class Tree:
             for current_node in phylo_tree.get_list_nodes_info(only_node_list=True,
                                                                filters={'node_type': ['node', 'leaf']}):
                 if current_node.distance_to_father == 0:
-                    current_node.distance_to_father = 1e-10
+                    current_node.distance_to_father = eps2
 
         return phylo_tree.get_newick()
 

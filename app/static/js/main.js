@@ -419,13 +419,15 @@ function copyValue(id, variant = 5) {
 
 function drawFileList(jsonData) {
     let container = ``;
-    Object.entries(jsonData).forEach(([key, value]) => {
-        container += `<div class="grid-container-2">
-                            <div class="p-1 w-auto text-secondary">${key}</div>
-                            <div class="p-1 w-auto">${value[0]}</div>
-                            <div class="p-1 w-auto">${value[1]}</div>
-                       </div>`;
-    });
+    Object.entries(jsonData)
+        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+        .forEach(([key, value]) => {
+            container += `<div class="grid-container-2">
+                    <div class="p-1 w-auto text-secondary">${key}</div>
+                    <div class="p-1 w-auto">${value[0]}</div>
+                    <div class="p-1 w-auto">${value[1]}</div>
+                </div>`;
+        });
     let fileList = `<details open>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
         <span class="arrow">▼</span>
