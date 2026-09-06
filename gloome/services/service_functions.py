@@ -548,7 +548,7 @@ def get_response_design(json_object: Optional[Any], action_name: str, create_lin
                         output_file:  Union[str, Path] = '') -> Optional[Any]:
     if 'create_all_file_types' in action_name and create_link:
         if output_file:
-            json_object.update({'json response file (json)': output_file})
+            json_object.update({'JSON response file (json)': output_file})
 
         json_object = result_design(link_design(json_object), change_value='compute_likelihood_of_tree' in action_name,
                                     change_value_style=False, change_key=True, change_key_style=False)

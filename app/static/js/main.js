@@ -417,10 +417,21 @@ function copyValue(id, variant = 5) {
         });
 }
 
+function getInsideParentheses(str) {
+    const match = str.match(/\(([^)]+)\)/);
+    return match ? match[1] : str;
+}
+
 function drawFileList(jsonData) {
     let container = ``;
     Object.entries(jsonData)
-        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+        .sort(([keyA], [keyB]) => {
+            const bracketA = getInsideParentheses(keyA);
+            const bracketB = getInsideParentheses(keyB);
+            const bracketComparison = bracketA.localeCompare(bracketB);
+
+            return bracketComparison !== 0 ? bracketComparison : keyA.toLowerCase().localeCompare(keyB.toLowerCase());
+        })
         .forEach(([key, value]) => {
             container += `<div class="grid-container-2">
                     <div class="p-1 w-auto text-secondary">${key}</div>
