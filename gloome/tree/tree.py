@@ -927,6 +927,8 @@ class Tree:
                 result.update({'Table of coevolution (tsv)': file_coevolution})
 
             if use_plot_distribution_of_correlation_file:
+                plt.figure(figsize=(7, 5))
+                plt.tick_params(axis='both', labelsize=8)
                 sns.kdeplot(df['r'], fill=True, color='blue')
                 plt.xlim(-1, 1)
                 plt.xlabel('Correlation (r)')
@@ -936,6 +938,8 @@ class Tree:
                 result.update({'Plot of distribution of coevolution (svg)': file_distribution_of_correlation})
 
             if use_barplot_of_correlation_file:
+                plt.figure(figsize=(7, 5))
+                plt.tick_params(axis='both', labelsize=8)
                 sns.histplot(df['r'], bins=20, kde=True, color='green')
                 plt.xlim(-1, 1)
                 plt.xlabel('Correlation (r)')
@@ -947,15 +951,20 @@ class Tree:
             if use_plot_distribution_of_correlation_by_rate_bin_file:
                 def make_clean_label(tup):
                     if isinstance(tup, tuple) and len(tup) == 2:
-                        return f"{tup[0]:.2f} - {tup[1]:.2f}"
+                        return f'({tup[0]:.0f}, {tup[1]:.0f})'
                     return str(tup)
 
                 df['bin_clean'] = df['rate-bin'].apply(make_clean_label)
+                unique_bins_sorted = sorted(df['rate-bin'].dropna().unique())
+                categories_order = [make_clean_label(b) for b in unique_bins_sorted]
+
                 plt.figure(figsize=(7, 5))
+                plt.tick_params(axis='both', labelsize=8)
 
                 sns.stripplot(x='bin_clean',
                               y='r',
                               data=df,
+                              order=categories_order,
                               palette='muted',
                               hue='bin_clean',
                               size=6,
