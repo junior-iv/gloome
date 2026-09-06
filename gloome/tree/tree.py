@@ -923,6 +923,11 @@ class Tree:
             df.sort_values(by=['q-value', 'p-value', 'r'], key=lambda x: x.abs() if x.name == 'r' else x, inplace=True,
                            ascending=[True, True, False])
 
+            r_data = df['r'].dropna()
+            r_data_clipped = np.clip(r_data, -1 + eps2, 1 - eps2)
+            alpha_est, beta_est, loc_est, scale_est = sp_beta.fit(r_data_clipped, floc=-1, fscale=2)
+            info_text = f'Alpha: {alpha_est:.4f}\nBeta: {beta_est:.4f}'
+
             if use_coevolution_file:
                 df.to_csv(file_coevolution, sep=sep, index=False)
                 result.update({'Table of coevolution (tsv)': file_coevolution})
@@ -935,11 +940,6 @@ class Tree:
                 ax.set_xlabel('Correlation (r)')
                 ax.set_ylabel('Density')
                 ax.set_title('Distribution of original correlation coefficients')
-
-                r_data = df['r'].dropna()
-                r_data_clipped = np.clip(r_data, -1 + eps2, 1 - eps2)
-                alpha_est, beta_est, loc_est, scale_est = sp_beta.fit(r_data_clipped, floc=-1, fscale=2)
-                info_text = f'Alpha: {alpha_est:.4f}\nBeta: {beta_est:.4f}'
 
                 ax.text(0.05, 0.95, info_text,
                         transform=ax.transAxes,
@@ -964,10 +964,6 @@ class Tree:
                 ax.set_ylabel('Count')
                 ax.set_title('Barplot of original correlation coefficients')
 
-                r_data = (df['r'].dropna() + 1) / 2
-                r_data_clipped = np.clip(r_data, -1 + eps2, 1 - eps2)
-                alpha_est, beta_est, loc_est, scale_est = sp_beta.fit(r_data_clipped, floc=0, fscale=1)
-                info_text = f'Alpha: {alpha_est:.4f}\nBeta: {beta_est:.4f}'
                 ax.text(0.05, 0.95, info_text,
                         transform=ax.transAxes,
                         fontsize=8,
@@ -992,7 +988,7 @@ class Tree:
                 unique_bins_sorted = sorted(df['rate-bin'].dropna().unique())
                 categories_order = [make_clean_label(b) for b in unique_bins_sorted]
 
-                fig, ax = plt.subplots(figsize=(7, 5))
+                fig, ax = plt.subplots(figsize=(7, self.categories_quantity + 1))
                 ax.tick_params(axis='both', labelsize=8)
 
                 sns.stripplot(x='bin_clean',
