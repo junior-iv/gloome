@@ -4,6 +4,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import seaborn as sns
 import re
+import gc
 
 from shutil import rmtree
 from json import loads, dumps
@@ -923,10 +924,16 @@ class Tree:
             df.sort_values(by=['q-value', 'p-value', 'r'], key=lambda x: x.abs() if x.name == 'r' else x, inplace=True,
                            ascending=[True, True, False])
 
-            r_data = df['r'].dropna()
-            r_data_clipped = np.clip(r_data, -1 + eps2, 1 - eps2)
-            alpha_est, beta_est, loc_est, scale_est = sp_beta.fit(r_data_clipped, floc=-1, fscale=2)
+            del pos1_list, pos2_list, rate_bin_list, r_list, p_value_list, direction_list
+            gc.collect()
+
+            r_data = df['r'].dropna().to_numpy()
+            np.clip(r_data, -1 + eps2, 1 - eps2, out=r_data)
+            alpha_est, beta_est, loc_est, scale_est = sp_beta.fit(r_data, floc=-1, fscale=2)
             info_text = f'Alpha: {alpha_est:.4f}\nBeta: {beta_est:.4f}'
+
+            del r_data
+            gc.collect()
 
             if use_coevolution_file:
                 df.to_csv(file_coevolution, sep=sep, index=False)

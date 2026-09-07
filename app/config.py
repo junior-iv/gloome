@@ -453,7 +453,7 @@ class SawSubmiter:
                 msg = f'HTTP error: {http_err}'
                 print(msg)
                 conf.JOB_LOGGER.info(f'\n\t{msg}\n')
-                if http_err.response is not None and http_err.response.status_code in (404, 500, 502, 503, 504):
+                if http_err.response is not None and http_err.response.status_code in (500, 502, 503, 504):
                     conf.JOB_LOGGER.info("\n\t[Temporary server error, retrying...]\n")
                     count -= 1
                     sleep(waiting_time)
@@ -473,6 +473,7 @@ class SawSubmiter:
                 return job_state
             count -= 1
             sleep(waiting_time)
+
         return 'EXPIRED'
 
 
@@ -577,6 +578,7 @@ class SlurmSubmiter:
             try:
                 job_info = self.get_job(conf.CURRENT_JOB)
             except Exception:
+                count -= 1
                 sleep(waiting_time)
                 continue
 
@@ -596,6 +598,12 @@ class SlurmSubmiter:
                 msg = f'HTTP error: {http_err}'
                 print(msg)
                 conf.JOB_LOGGER.info(f'\n\t{msg}\n')
+                if http_err.response is not None and http_err.response.status_code in (500, 502, 503, 504):
+                    conf.JOB_LOGGER.info("\n\t[Temporary server error, retrying...]\n")
+                    count -= 1
+                    sleep(waiting_time)
+                    continue
+
                 job_state = 'FAILED'
             except requests.exceptions.RequestException as req_err:
                 msg = f'Network or Request error occurred: {req_err}'
@@ -610,7 +618,8 @@ class SlurmSubmiter:
                 return job_state
             count -= 1
             sleep(waiting_time)
-        return ''
+
+        return 'EXPIRED'
 
     @classmethod
     def find_in_json(cls, data: Any, key: Union[bool, int, float, str], value: Optional[Any] = None,
