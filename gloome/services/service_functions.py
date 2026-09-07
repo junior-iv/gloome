@@ -231,8 +231,6 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     if any((use_simulated_datasets_file, use_coevolution_file)) and use_copap:
         result.update(newick_tree.simulate_datasets(file_path=f'{file_path}',
                                                     number_datasets=number_datasets,
-                                                    probability_lg=probability_lg,
-                                                    number_lg=number_lg,
                                                     use_simulated_datasets_file=use_simulated_datasets_file,
                                                     use_coevolution_file=use_coevolution_file,
                                                     use_barplot_of_correlation_file=use_barplot_of_correlation_file,
