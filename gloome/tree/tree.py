@@ -14,7 +14,7 @@ from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo
 from Bio.Phylo.NewickIO import Writer
 from numpy import ndarray, dtype, void
-from scipy.stats import gamma, pearsonr, distributions, beta as sp_beta
+from scipy.stats import gamma, pearsonr, distributions, beta as sp_beta, kstest
 from scipy.special import gammainc
 from scipy.optimize import minimize_scalar
 from io import StringIO
@@ -295,6 +295,11 @@ class Tree:
         return self.get_list_nodes_info(filters={'node_type': ['node', 'root']}, only_node_list=only_node_list,
                                         mode=mode)
 
+    def get_all_non_root_nodes(self, only_node_list: bool = True, mode: Optional[str] = None) -> List[Union[Node, str]]:
+
+        return self.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=only_node_list,
+                                        mode=mode)
+
     def get_all_nodes(self, only_node_list: bool = True, mode: Optional[str] = None) -> List[Union[Node, str]]:
 
         return self.get_list_nodes_info(only_node_list=only_node_list, mode=mode)
@@ -548,7 +553,7 @@ class Tree:
         if self.alphabet and not self.calculated_ancestor_sequence:
             node_list = []
             if not newick_node:
-                node_list = self.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
+                node_list = self.all_nodes_objects[1:]
             else:
                 node_list.append(newick_node)
 
@@ -580,6 +585,10 @@ class Tree:
             current_node.calculate_down(self.rate_vector_length, self.alphabet_length, self.msa_length)
 
     def calculate_up(self) -> None:
+        self.alphabet_length = len(self.alphabet)
+        self.msa_length = len(next(iter(self.msa.values())))
+        self.rate_vector_length = len(self.rate_vector)
+
         self.initialize_leaf_up_vectors()
         self.initialize_node_up_vectors()
 
@@ -618,22 +627,22 @@ class Tree:
     def get_msa_dict(self, msa: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None, only_leaves: bool = True
                      ) -> Dict[str, Union[Tuple[int, ...], str]]:
         node_types = ['leaf'] if only_leaves else ['leaf', 'node', 'root']
-        nodes_info = self.get_list_nodes_info(True, 'pre-order', {'node_type': node_types})
+        node_names = self.get_list_nodes_info(False, 'pre-order', {'node_type': node_types})
         msa_list = msa.strip().split()
         msa_list_size, msa_dict = len(msa_list), dict()
         if msa_list_size == 1:
-            for i, node_info in enumerate(nodes_info):
+            for i, node_name in enumerate(node_names):
                 if alphabet:
                     value = [0] * len(alphabet)
                     value[alphabet.index(msa[i])] = 1
                     value = tuple(value)
                 else:
                     value = msa[i]
-                msa_dict.update({node_info.get('node'): value})
+                msa_dict.update({node_name: value})
         else:
             for j in range(msa_list_size // 2):
                 node_name = msa_list[j + j][1::]
-                if self.find_dict_in_iterable(nodes_info, 'node', node_name):
+                if node_name in node_names:
                     value = msa_list[j + j + 1]
                     value = ''.join(value)
                     msa_dict.update({node_name: value})
@@ -718,8 +727,7 @@ class Tree:
         distance_to_root = f'distance_to_root{suffix}'
         distance_to_nearest = f'distance_to_nearest{suffix}'
 
-        list_nodes = self.all_nodes_objects
-        for current_node in list_nodes:
+        for current_node in self.all_nodes_objects:
             branch_probability_vector = current_node.branch_probability_vector
             for pos, value in enumerate(branch_probability_vector, start=1):
                 for i in range(1, 3):
@@ -758,6 +766,20 @@ class Tree:
 
         return (centered @ centered.T) / np.outer(norms, norms)
 
+    def build_site_event_matrix(self) -> np.ndarray:
+        """Return (msa_length, 2 * n_nodes) a matrix whose row for a site is the concatenation,
+        over every non-root node, of [loss_probability, gain_probability] -- the exact per-site
+        vector ``identify_event_candidates`` builds. Also returns the ordered node list (the root
+        is excluded: it has no incoming branch, hence no gain/loss probability)."""
+        nodes_list = self.all_nodes_objects[1:]
+        loss = np.asarray([n.probability_vector_loss for n in nodes_list], dtype='float64')
+        gain = np.asarray([n.probability_vector_gain for n in nodes_list], dtype='float64')
+
+        site_matrix = np.empty((self.msa_length, 2 * len(nodes_list)), dtype='float64')
+        site_matrix[:, 0::2], site_matrix[:, 1::2] = loss.T, gain.T
+
+        return site_matrix
+
     @staticmethod
     def benjamini_hochberg(p_values: np.ndarray) -> np.ndarray:
         order = np.argsort(p_values)
@@ -781,6 +803,40 @@ class Tree:
 
         return p_value
 
+    @staticmethod
+    def fit_beta_null(null_r: np.ndarray, min_fit: int = 100, gof_alpha: float = 0.01) -> Optional[Tuple[float, float]]:
+        """Returns the shape parameters, or `None` if the sample is too small to fit reliably, its
+        variance is incompatible with any Beta on [-1, 1] (can happen for a degenerate/near-point
+        sample), or the fit fails a goodness-of-fit check against its own bulk. A bad fit must
+        never silently produce an overconfident tail p-value, so the caller falls back to
+        `empirical_p` in that case."""
+        null_r = np.asarray(null_r, dtype='float64')
+        null_r = null_r[np.isfinite(null_r)]
+        if null_r.size < min_fit:
+            return None
+        y = np.clip((null_r + 1.0) / 2.0, eps2, 1 - eps2)
+        mean, var = y.mean(), y.var(ddof=1)
+        max_var = mean * (1 - mean)
+        if not (0.0 < var < max_var):
+            return None
+        common = max_var / var - 1.0
+        a, b = mean * common, (1 - mean) * common
+        if not (np.isfinite(a) and np.isfinite(b) and a > 0 and b > 0):
+            return None
+        _, p_gof = kstest(null_r, 'beta', args=(a, b, -1, 2))
+
+        return None if p_gof < gof_alpha else (a, b)
+
+    @staticmethod
+    def beta_p(r: Any, params: Tuple[float, float]) -> Union[np.float64, float]:
+        """P(|R| >= |r|) under a null Beta(a, b, loc=-1, scale=2) fitted by ``fit_beta_null`` --
+        the continuous analogue of ``empirical_p``'s exceedance count, same [-1, 1] support and
+        the same |r| definition of 'at least as extreme'."""
+        a, b = params
+        r_abs = min(abs(r), 1 - eps2)
+
+        return float(sp_beta.cdf(-r_abs, a, b, loc=-1, scale=2) + sp_beta.sf(r_abs, a, b, loc=-1, scale=2))
+
     def identify_event_candidates(self, event_threshold: Union[np.float64, float] = 0.5
                                   ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Extracts gain/loss matrices, filters candidate sites, and categorizes evolutionary rates.
@@ -794,13 +850,7 @@ class Tree:
                 - candidates (np.ndarray): Indices of variable sites exceeding the threshold.
                 - categories (np.ndarray): Assigned rate categories for each site.
         """
-        nodes_objects = self.all_nodes_objects[1:]
-
-        loss = np.array([n.probability_vector_loss for n in nodes_objects])
-        gain = np.array([n.probability_vector_gain for n in nodes_objects])
-
-        site_matrix = np.empty((self.msa_length, 2 * len(nodes_objects)))
-        site_matrix[:, 0::2], site_matrix[:, 1::2] = loss.T, gain.T
+        site_matrix = self.build_site_event_matrix()
 
         candidates = np.where((site_matrix.max(axis=1) > event_threshold) & (site_matrix.var(axis=1) > 0))[0]
         categories = np.abs(self.posterior_rates[:, None] - np.array(self.rate_vector)[None, :]).argmin(axis=1)
@@ -821,16 +871,24 @@ class Tree:
     def simulate_datasets(self, file_path: str = '',
                           sep: str = '\t',
                           number_datasets: int = 100,
-                          probability_lg: Union[float, np.float64] = 0.5,
-                          number_lg: Union[float, np.float64, int] = 1,
+                          event_threshold: Union[float, np.float64] = 0.5,
+                          p_value_mode: str = 'empirical',
+                          min_fit: int = 100,
                           use_simulated_datasets_file: bool = True,
                           use_coevolution_file: bool = False,
                           use_barplot_of_correlation_file: bool = False,
                           use_plot_distribution_of_correlation_file: bool = False,
                           use_plot_distribution_of_correlation_by_rate_bin_file: bool = False) -> Dict[str, str]:
-
-        if self.correlation_vector is None:
-            self.calculate_correlation(probability_lg=probability_lg, number_lg=number_lg)
+        """
+        Args (new/notable):
+            event_threshold: the actual per-site candidate filter used for the coevolution table
+                (was silently hardcoded to 0.5 regardless of the caller's arguments).
+            p_value_mode: 'empirical' (default, rank-based against the raw per-bin null --
+                resolution floored at 1/(n_in_bin + 1)) or 'beta' (fit a Beta(a, b) to each bin's
+                null and read the tail off the fitted CDF, removing that floor; bins that don't
+                fit/pass goodness-of-fit fall back to 'empirical' automatically -- see
+                ``fit_beta_null``).
+        """
         if self.posterior_rates is None:
             self.set_posterior_rates_vector()
 
@@ -842,8 +900,7 @@ class Tree:
         file_distribution_of_correlation_by_rate_bin = f'{file_path}/DistributionOfCorrelationByRateBin.svg'
 
         site_rate = np.asarray(self.posterior_rates, dtype=np.float64)
-        branch_nodes = [n for n in self.all_nodes_objects if n.father is not None]
-        branch_length = np.asarray([n.distance_to_father for n in branch_nodes], dtype=np.float64)
+        branch_length = np.asarray([n.distance_to_father for n in self.all_nodes_objects[1:]], dtype=np.float64)
 
         a = 1.0 / (2 * (1 - self.pi_1))
         b = 1.0 / (2 * self.pi_1)
@@ -852,7 +909,6 @@ class Tree:
         e = np.exp(-mu * t)
         p01 = a * (1 - e) / mu
         p11 = (a + b * e) / mu
-        event_threshold = 0.5
 
         newick_text = self.get_newick()
 
@@ -864,6 +920,9 @@ class Tree:
 
             null_pool = {current_bin: [] for current_bin in set(bins)}
 
+        phylo_tree = Tree(newick_text, categories_quantity=self.categories_quantity, alpha=self.alpha,
+                          pi_1=self.pi_1, coefficient_bl=self.coefficient_bl)
+
         for i in range(number_datasets):
             header = f'iterations = {i}'
             current_msa = self.generate_msa(msa_type=str,
@@ -872,8 +931,9 @@ class Tree:
                                             sites_quantity=self.msa_length,
                                             branch_length=branch_length,
                                             leaves=self.leaves_objects)
-            phylo_tree = Tree(newick_text, msa=current_msa, categories_quantity=self.categories_quantity,
-                              alpha=self.alpha, pi_1=self.pi_1, coefficient_bl=self.coefficient_bl)
+
+            phylo_tree.msa = phylo_tree.get_msa_dict(current_msa)
+            phylo_tree.calculated_tree = phylo_tree.calculated_likelihood = False
             phylo_tree.calculate_tree()
             phylo_tree.set_posterior_rates_vector()
 
@@ -903,8 +963,27 @@ class Tree:
             p_value_list = []
             direction_list = []
 
-            for i, (current_pair, current_r_value, current_bin) in enumerate(zip(pairs, r_values, bins)):
-                current_p_value = self.empirical_p(current_r_value, current_bin, null_pool)
+            abs_null_by_bin = {k: np.abs(np.asarray(v, dtype=float)) for k, v in null_pool.items()}
+            beta_by_bin: Dict[Any, Optional[Tuple[float, float]]] = {}
+            pooled_beta = None
+            if p_value_mode == 'beta' and abs_null_by_bin:
+                pooled_signed = np.concatenate([np.asarray(v, dtype=float) for v in null_pool.values() if v])
+                pooled_beta = self.fit_beta_null(pooled_signed, min_fit=min_fit) if pooled_signed.size else None
+
+            for current_pair, current_r_value, current_bin in zip(pairs, r_values, bins):
+                params = None
+                if p_value_mode == 'beta':
+                    if current_bin not in beta_by_bin:
+                        beta_by_bin[current_bin] = self.fit_beta_null(
+                            np.asarray(null_pool.get(current_bin, []), dtype=float), min_fit=min_fit)
+                    params = beta_by_bin[current_bin] or pooled_beta
+                if params is not None:
+                    current_p_value = self.beta_p(current_r_value, params)
+                else:
+                    abs_null = abs_null_by_bin.get(current_bin, np.zeros(0))
+                    n_bin = abs_null.size
+                    current_p_value = ((1 + int(np.count_nonzero(abs_null >= abs(current_r_value)))) / (1 + n_bin)
+                                       if n_bin else 1.0)
                 pos1_list.append(current_pair[0])
                 pos2_list.append(current_pair[1])
                 r_list.append(current_r_value)
@@ -1362,7 +1441,7 @@ class Tree:
         if site_rate is None:
             site_rate = np.random.choice(self.rate_vector, 1 if sites_quantity is None else sites_quantity)
         if branch_nodes is None:
-            branch_nodes = [n for n in self.all_nodes_objects if n.father is not None]
+            branch_nodes = self.all_nodes_objects[1:]
         if branch_length is None:
             branch_length = np.asarray([n.distance_to_father for n in branch_nodes], dtype=np.float64)
         if p01 is None or p11 is None:
@@ -1406,67 +1485,38 @@ class Tree:
 
     def set_pearson_correlation_vector(self, probability_lg: Union[float, np.float64] = 0.5,
                                        number_lg: Union[float, np.float64, int] = 1) -> None:
-        nodes_list = self.get_list_nodes_info(filters={'node_type': ['node', 'leaf']}, only_node_list=True)
+        nodes_list = self.all_nodes_objects[1:]
 
-        # 1. Aggregate all node data into a single matrix of shape (2 * len(nodes_list), msa_length)
-        # First, extract loss and gain probability vectors for all nodes
         loss_vectors = np.array([node.probability_vector_loss for node in nodes_list])  # Shape: (nodes, msa)
         gain_vectors = np.array([node.probability_vector_gain for node in nodes_list])  # Shape: (nodes, msa)
 
-        # Interleave vectors (loss1, gain1, loss2, gain2...) along the first axis
-        # To do this, stack them into a 3D array and reshape to 2D
         site_probs_matrix = np.stack((loss_vectors, gain_vectors), axis=1).reshape(-1, self.msa_length)
 
-        # 2. Vectorized site filtering (replaces the first loop)
-        # Evaluate the threshold condition for the entire matrix simultaneously
         condition_mask = site_probs_matrix >= probability_lg
-        # Count True values for each site (axis=0 corresponds to the msa_length axis)
         counts_per_site = np.sum(condition_mask, axis=0)
-        # Get indices of sites where the count satisfies the threshold criteria
         unique_item = np.where(counts_per_site >= number_lg)[0]
 
-        # 3. Generate unique pairs (couples) using upper triangle indices
         idx1, idx2 = np.triu_indices(len(unique_item), k=1)
         couples = np.column_stack((unique_item[idx1], unique_item[idx2]))
 
-        # 4. Fast matrix computation of Pearson correlation (replaces the second loop)
-        # Extract only the filtered sites from the main probability matrix
-        filtered_probs = site_probs_matrix[:, unique_item]  # Shape: (2*nodes, len(unique_item))
+        filtered_probs = site_probs_matrix[:, unique_item]
 
-        # Compute the correlation matrix for all combinations of filtered sites
-        # np.corrcoef expects variables in rows, so we transpose filtered_probs
         corr_matrix = np.corrcoef(filtered_probs.T)
-
-        # Extract correlation coefficients (r) for the targeted pairs
         r_coefficients = corr_matrix[idx1, idx2]
-
-        # 5. Vectorized calculation of p-values for correlation coefficients (safe and precise)
         df = site_probs_matrix.shape[0] - 2
-
-        # Create a mask for elements where the correlation is NOT perfect
-        # (If r == 1 or -1, the p-value is guaranteed to be exactly 0.0)
         valid_r_mask = np.abs(r_coefficients) < 1.0
-
-        # Initialize the t-statistic array, defaulting to zeros
         t_stat = np.zeros_like(r_coefficients)
-
-        # Calculate the t-statistic ONLY for pairs where division by zero will not occur
         t_stat[valid_r_mask] = r_coefficients[valid_r_mask] * np.sqrt(df / (1.0 - r_coefficients[valid_r_mask] ** 2))
 
-        # Calculate the p-values for valid non-perfect correlation values
         p_values = np.zeros_like(r_coefficients)
         p_values[valid_r_mask] = distributions.t.sf(np.abs(t_stat[valid_r_mask]), df) * 2
 
-        # For perfect correlations (where valid_r_mask == False), values will remain exact zeros
-
-        # 6. Assemble the final matrix of results
         correlation_vector = np.zeros((4, len(couples)))
-        correlation_vector[0] = unique_item[idx1]  # Site indices i
-        correlation_vector[1] = unique_item[idx2]  # Site indices j
-        correlation_vector[2] = r_coefficients     # Correlation coefficients r
-        correlation_vector[3] = p_values           # Calculated p-values
+        correlation_vector[0] = unique_item[idx1]
+        correlation_vector[1] = unique_item[idx2]
+        correlation_vector[2] = r_coefficients
+        correlation_vector[3] = p_values
 
-        # print(np.allclose(old_correlation_vector, correlation_vector, atol=1e-12))
         self.correlation_vector = correlation_vector
 
     def generate_site_rates(self, sites_quantity: int) -> np.ndarray:
@@ -1585,8 +1635,7 @@ class Tree:
                 else:
                     newick_data = cls.set_root_by_midpoint(newick_data)
             phylo_tree = cls(newick_data)
-            for current_node in phylo_tree.get_list_nodes_info(only_node_list=True,
-                                                               filters={'node_type': ['node', 'leaf']}):
+            for current_node in phylo_tree.all_nodes_objects[1:]:
                 if current_node.distance_to_father == 0:
                     current_node.distance_to_father = eps2
 
