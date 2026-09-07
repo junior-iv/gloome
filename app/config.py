@@ -221,9 +221,16 @@ class WebConfig:
         self.JOB_LOGGER.info(f'\n\tcreate a command line: '
                              f'\n\tCOMMAND_LINE: {self.COMMAND_LINE}\n')
 
-    def get_request_body(self):
-        # TODO think about job_name = f'gloome_{self.PROCESS_ID}_{self.JOBS_NUMBER.inc()}'
-        # TODO think about prefix = f'{datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")}_{self.PROCESS_ID}_'
+    def get_request_body(self, tasks: int = 1, nodes: int = 1, cpus_per_task: int = 2, memory_per_node: int = 16384,
+                         time_limit: int = 10080):
+        """
+         Args:
+            tasks (int, optional):                      Number of tasks (default: 1),
+            nodes (int, optional):                      Number of nodes (default: 1),
+            cpus_per_task (int, optional):              CPUs per task (default: 2),
+            memory_per_node (int, optional):            Memory per node in MB (default: 16384),
+            time_limit (int, optional):                 Time limit in minutes (default: 10080),
+        """
         job_name = f'gloome_{self.PROCESS_ID}'
         prefix = f'{self.PROCESS_ID}_'
         cmd = (f'#!/bin/bash\n'
@@ -240,11 +247,11 @@ class WebConfig:
                          'name': job_name,
                          'partition': self.PARTITION,
                          'account': self.ACCOUNT,
-                         'tasks': 1,
-                         'nodes': '1',
-                         'cpus_per_task': 1,
-                         'memory_per_node': {'number': 16384, 'set': True},
-                         'time_limit': {'number': 10080, 'set': True},
+                         'tasks': tasks,
+                         'nodes': f'{nodes}',
+                         'cpus_per_task': cpus_per_task,
+                         'memory_per_node': {'number': memory_per_node, 'set': True},
+                         'time_limit': {'number': time_limit, 'set': True},
                          'current_working_directory': f'{self.BIN_DIR}',
                          'standard_output': f'{TMP_DIR.joinpath(f"{prefix}output.txt")}',
                          'standard_error': f'{TMP_DIR.joinpath(f"{prefix}error.txt")}',
@@ -259,12 +266,12 @@ class WebConfig:
                 'script': cmd,
                 'partition': self.PARTITION,
                 'qos': 'owner',
-                'name': f'{job_name}',
-                'tasks': 1,
-                'nodes': 1,
-                'cpus_per_task': 1,
-                'memory_per_node': 16384,
-                'time_limit': 10080,
+                'name': job_name,
+                'tasks': tasks,
+                'nodes': nodes,
+                'cpus_per_task': cpus_per_task,
+                'memory_per_node': memory_per_node,
+                'time_limit': time_limit,
                 'current_working_directory': f'{self.BIN_DIR}',
                 'standard_output': f'{TMP_DIR.joinpath(f"{prefix}output.txt")}',
                 'standard_error': f'{TMP_DIR.joinpath(f"{prefix}error.txt")}',
@@ -403,27 +410,10 @@ class SawSubmiter:
         return self.exec_request(url, **kwargs)
 
     def submit_job(self, **kwargs):
-        """
-            params = {
-                'script':                       '(str, Required) '  'Bash script to execute. This script is
-                                                'automatically wrapped with #!/bin/bash and source ~/.bashrc by the '
-                                                'API, so you do not need to include them manually.',
-                'partition':                    '(str, Required) '  'SLURM partition to use',
-                'tasks':                        '(int) '            'Number of tasks (default: 1)',
-                'name':                         '(str) '            'Job name (default: slurmapi_job)',
-                'nodes':                        '(int) '            'Number of nodes (default: 1)',
-                'cpus_per_task':                '(int) '            'CPUs per task (default: 2)',
-                'memory_per_node':              '(int) '            'Memory per node in MB (default: 1024)',
-                'standard_output':              '(str, Required) '  'Path for standard output',
-                'standard_error':               '(str, Required) '  'Path for standard error',
-                'current_working_directory':    '(str) '            'Working directory (default: /tmp/)',
-                'environment':                  '(str, list) '      'Environment variables (optional)'
-            }
-        """
         url = f'{self.api}/job/submit/'
         response = self.exec_request(url, method='POST', **kwargs)
         if response.status_code == 200:
-            return response.json()  # Assuming the token is returned in JSON format
+            return response.json()
         else:
             raise Exception(f"Error: {response.status_code}, {response.text}")
 
@@ -568,7 +558,7 @@ class SlurmSubmiter:
         url = f'{self.api}/slurm/{self.version}/job/submit'
         response = self.exec_request(url, method='POST', **kwargs)
         if response.status_code == 200:
-            return response.json()  # Assuming the token is returned in JSON format
+            return response.json()
         else:
             raise Exception(f"Error: {response.status_code}, {response.text}")
 

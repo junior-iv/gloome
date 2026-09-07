@@ -264,14 +264,18 @@ class Tree:
 
         return pd.Series([pd.Series(i) for i in nodes_info], index=[i.get('node') for i in nodes_info])
 
-    def get_list_nodes_info(self, with_additional_details: bool = False, mode: Optional[str] = None, filters:
-                            Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None, only_node_list:
-                            bool = False) -> List[Union[Dict[str, Union[float, np.float64, bool, str, np.ndarray,
-                                                  List[float], List[np.float64]]], Node]]:
+    def get_list_nodes_info(self,
+                            with_additional_details: bool = False,
+                            mode: Optional[str] = None,
+                            filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None,
+                            only_node_list: bool = False,
+                            fields: Optional[Set[str]] = None
+                            ) -> List[Union[Dict[str, Union[float, np.float64, bool, str, np.ndarray,
+                                      List[float], List[np.float64]]], Node]]:
         """
         Retrieve a list of all nodes of the tree.
 
-        This function collects all nodes of the tree. The function returns a list of nodes or a list of 
+        This function collects all nodes of the tree. The function returns a list of nodes or a list of
         dictionaries with information about these nodes.
 
         Args:
@@ -279,12 +283,15 @@ class Tree:
             mode (str, optional): `pre-order` (default), 'pre-order', 'in-order', 'post-order', 'level-order'.
             filters (Dict, optional):
             only_node_list (bool, optional): `False` (default).
+            fields (Set[str], optional): `None` (default) builds every field. Restrict to only the keys actually
+                needed -- see ``Node.get_node_info`` -- to skip building/serializing the big per-node tensors
+                (up_vector/down_vector/marginal_vector/marginal_bl_vector/pmatrix) when they won't be used.
 
         Returns:
             list: A list of all nodes of the tree or a list of dictionaries with information about these nodes.
         """
 
-        return self.root.get_list_nodes_info(with_additional_details, mode, filters, only_node_list)
+        return self.root.get_list_nodes_info(with_additional_details, mode, filters, only_node_list, fields)
 
     def get_leaves(self, only_node_list: bool = True, mode: Optional[str] = None) -> List[Union[Node, str]]:
 
@@ -484,8 +491,6 @@ class Tree:
                       [Dict[str, str]] = None, filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] =
                       None, distance_type: type = str, list_type: type = str, lists: Optional[Tuple[str, ...]] = None,
                       taking_into_coefficient: bool = True, decimals: int = 4) -> pd.DataFrame:
-        nodes_info = self.get_list_nodes_info(True, None, filters)
-
         suffix = '_taking_into_coefficient' if taking_into_coefficient else ''
         distance_name = f'distance{suffix}'
         full_distance_name = f'full_distance{suffix}'
@@ -521,6 +526,8 @@ class Tree:
                                      'sequence', 'ancestral_sequence', 'probability_vector_gain',
                                      'probability_vector_loss')
         exceptions = ('sequence', 'ancestral_sequence')
+
+        nodes_info = self.get_list_nodes_info(True, None, filters, fields=set(columns.keys()) | {'father_name'})
 
         for node_info in nodes_info:
             for i in set(node_info.keys()) - set(columns.keys()):

@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import Optional, Dict, Union, List, Tuple, Any
+from typing import Optional, Dict, Union, List, Tuple, Any, Set
 from scipy.linalg import expm
 from json import loads, dumps
 
@@ -102,7 +102,8 @@ class Node:
     def get_list_nodes_info(self, with_additional_details: bool = False,
                             mode: Optional[str] = None,
                             filters: Optional[Dict[str, List[Union[float, int, str, List[float]]]]] = None,
-                            only_node_list: bool = False
+                            only_node_list: bool = False,
+                            fields: Optional[Set[str]] = None
                             ) -> List[Union[Dict[str, Union[float, np.float64, bool, str, np.ndarray, List[float],
                                       List[np.float64]]], 'Node']]:
         """
@@ -116,6 +117,10 @@ class Node:
             mode (str, optional): None (default), 'pre-order', 'in-order', 'post-order', 'level-order'.
             filters (Dict, optional):
             only_node_list (Dict, optional): `False` (default).
+            fields (Set[str], optional): `None` (default) builds every field, as before. When given, only these
+                keys are built (see ``get_node_info``) -- restricting this away from the big per-node arrays
+                (up_vector/down_vector/marginal_vector/marginal_bl_vector/pmatrix) when a caller doesn't need them
+                is the difference between a cheap call and one that JSON round-trips gigabytes of numpy arrays.
         Returns:
             list: A list of descendant nodes from a given node, including the node itself or a list of dictionaries
             with information about these nodes.
@@ -128,7 +133,7 @@ class Node:
             if only_node_list:
                 return trees_node
             if with_additional_details:
-                return trees_node.get_node_info()
+                return trees_node.get_node_info(fields)
             return trees_node.name
 
         def get_list(trees_node: Node) -> None:
@@ -168,8 +173,22 @@ class Node:
 
         return list_result
 
-    def get_node_info(self) -> Dict[str, Union[float, np.float64, bool, str, np.ndarray, List[float],
-                                    List[np.float64]]]:
+    _HEAVY_FIELDS = frozenset({'up_vector', 'down_vector', 'marginal_vector', 'marginal_bl_vector', 'pmatrix'})
+
+    def get_node_info(self, fields: Optional[Set[str]] = None
+                      ) -> Dict[str, Union[float, np.float64, bool, str, np.ndarray, List[float],
+                                List[np.float64]]]:
+        """
+        Args:
+            fields (Set[str], optional): `None` (default) returns every field, as before. When given, only
+                these keys are included -- in particular, skipping the heavy per-node tensors
+                (``_HEAVY_FIELDS``) here means they're never handed to the ``loads(dumps(...))`` round-trip
+                below, which is what actually costs memory: that round-trip turns each packed numpy array
+                into nested Python lists of boxed floats, at several times the array's own footprint, and
+                CPython doesn't return that memory to the OS as calls repeat. A caller that doesn't need
+                these fields (most don't -- see Tree.get_columns) should always pass `fields`.
+        """
+        want = (lambda k: fields is None or k in fields)
 
         result = {'node': self.name,
                   'distance': self.distance_to_father,
@@ -185,14 +204,10 @@ class Node:
                   'full_distance': self.distance_to_root_vector,
                   'full_distance_taking_into_coefficient': self.distance_to_root_vector_taking_into_coefficient,
                   'children': [i.name for i in self.children],
-                  'up_vector': self.up_vector,
-                  'down_vector': self.down_vector,
                   'likelihood': self.likelihood,
                   'sequence_likelihood': self.sequence_likelihood,
                   'log_likelihood': self.log_likelihood,
                   'log_likelihood_vector': self.log_likelihood_vector,
-                  'marginal_vector': self.marginal_vector,
-                  'marginal_bl_vector': self.marginal_bl_vector,
                   'probability_vector': self.probability_vector,
                   'sequence': self.sequence,
                   'probabilities_sequence_characters': self.probabilities_sequence_characters,
@@ -203,8 +218,11 @@ class Node:
                   'alphabet': self.alphabet,
                   'pi_1': self.pi_1,
                   'frequency': self.frequency,
-                  'coefficient_bl': self.coefficient_bl,
-                  'pmatrix': self.pmatrix}
+                  'coefficient_bl': self.coefficient_bl}
+        result = {k: v for k, v in result.items() if want(k)}
+        for key in self._HEAVY_FIELDS:
+            if want(key):
+                result[key] = getattr(self, key)
 
         return loads(dumps(result, cls=NpEncoder))
 
