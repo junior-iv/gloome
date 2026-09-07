@@ -287,7 +287,7 @@ class WebConfig:
 
         return json_object
 
-    def get_response(self) -> Optional[Any]:
+    def get_response(self) -> str:
         self.create_command_line()
         request_body = self.get_request_body()
 
@@ -303,31 +303,31 @@ class WebConfig:
 
         job_state = self.SUBMITER.check_job_state(self, count=REQUESTS_NUMBER, waiting_time=REQUEST_WAITING_TIME)
 
-        if job_state in ('COMPLETED', ) and self.CURRENT_ARGS.e_mail:
-            mail_sender.send_results_by_email(job_state=job_state,
-                                              name=self.PROCESS_ID,
-                                              results_files=self.OUT_DIR,
-                                              receiver=self.CURRENT_ARGS.e_mail,
-                                              use_attachments=self.USE_ATTACHMENTS,
-                                              log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
-                                              included=('.json', '.zip', '.log', '.html', '.png', '.tsv', '.nwk',
-                                                        '.fastas', '.svg', ))
-        if job_state in ('FAILED', 'EXPIRED') and self.CURRENT_ARGS.e_mail:
-            mail_sender.send_results_by_email(job_state=job_state,
-                                              name=self.PROCESS_ID,
-                                              results_files=self.OUT_DIR,
-                                              receiver=self.CURRENT_ARGS.e_mail,
-                                              use_attachments=self.USE_ATTACHMENTS,
-                                              log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
-                                              included=('.log', ))
         if job_state:
             self.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
-            if job_state == 'COMPLETED':
+            if job_state in ('COMPLETED', ) and self.CURRENT_ARGS.e_mail:
                 recompile_json(self.OUTPUT_FILE, self.PROCESS_ID, True)
+                mail_sender.send_results_by_email(job_state=job_state,
+                                                  name=self.PROCESS_ID,
+                                                  results_files=self.OUT_DIR,
+                                                  receiver=self.CURRENT_ARGS.e_mail,
+                                                  use_attachments=self.USE_ATTACHMENTS,
+                                                  log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
+                                                  included=('.json', '.zip', '.log', '.html', '.png', '.tsv', '.nwk',
+                                                            '.fastas', '.svg', ))
 
-                return self.read_response()
+                return 'OK'
 
-        return ''
+            if job_state in ('FAILED', 'EXPIRED', ) and self.CURRENT_ARGS.e_mail:
+                mail_sender.send_results_by_email(job_state=job_state,
+                                                  name=self.PROCESS_ID,
+                                                  results_files=self.OUT_DIR,
+                                                  receiver=self.CURRENT_ARGS.e_mail,
+                                                  use_attachments=self.USE_ATTACHMENTS,
+                                                  log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
+                                                  included=('.log', ))
+
+        return 'FAIL'
 
 
 class SawSubmiter:

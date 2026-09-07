@@ -7,8 +7,8 @@ from gloome.services.service_functions import (get_variables, check_data, get_er
                                                del_bootstrap_values, get_leaves)
 
 
-def write_end_file(process_id: Union[int, str], completed: bool, result_dir: Path) -> Path:
-    file_path = result_dir.joinpath(f'GLOOME_{process_id}.END_{"OK" if completed else "FAIL"}')
+def write_end_file(process_id: Union[int, str], process_status: str, result_dir: Path) -> Path:
+    file_path = result_dir.joinpath(f'GLOOME_{process_id}.END_{process_status}')
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write('')
 
@@ -40,8 +40,7 @@ def run_job(process_id, mode, **kwargs):
     try:
         conf.arguments_filling(mode=mode, **kwargs)
         conf.create_tmp_data_files()
-        conf.get_response()
-        write_end_file(process_id, True, conf.OUT_DIR)
+        write_end_file(process_id, conf.get_response(), conf.OUT_DIR)
     except Exception:
         exception_text = traceback.format_exc()
         header = f'\n\t--- EXCEPTION at execute_request ---'
@@ -51,7 +50,7 @@ def run_job(process_id, mode, **kwargs):
         conf.JOB_LOGGER.info(f'{header}{exception_text}')
         write_log(file_path=TMP_DIR.joinpath(f'execute_request_{conf.PROCESS_ID}_route_debug.log'), header=header,
                   exception_text=exception_text)
-        write_end_file(process_id, False, conf.OUT_DIR)
+        write_end_file(process_id, 'FAIL', conf.OUT_DIR)
         raise  # Re-raise to still return 500
 
 
