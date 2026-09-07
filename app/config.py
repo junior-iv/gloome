@@ -453,7 +453,7 @@ class SawSubmiter:
                 msg = f'HTTP error: {http_err}'
                 print(msg)
                 conf.JOB_LOGGER.info(f'\n\t{msg}\n')
-                if http_err.response is not None and http_err.response.status_code in (500, 502, 503, 504):
+                if http_err.response is not None and http_err.response.status_code in (404, 500, 502, 503, 504):
                     conf.JOB_LOGGER.info("\n\t[Temporary server error, retrying...]\n")
                     count -= 1
                     sleep(waiting_time)
