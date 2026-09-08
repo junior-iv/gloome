@@ -336,9 +336,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'Number of loss/gain events value error [ {number_lg} ]',
                          f'The value must be between 1 and 20.'))
 
-    if not isinstance(number_datasets, int) or not 1 <= number_datasets <= 1000:
+    if not isinstance(number_datasets, int) or not 1 <= number_datasets <= 10000:
         err_list.append((f'Number of simulation events value error [ {number_datasets} ]',
-                         f'The value must be between 1 and 1000.'))
+                         f'The value must be between 1 and 10000.'))
 
     if e_mail and not validate_email(e_mail):
         err_list.append((f'Invalid email address [ {e_mail} ]', f'Must be valid email address.'))
