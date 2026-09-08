@@ -314,7 +314,7 @@
                                     </div>
                                     <div class="w-48 text-start">
                                         <input value="{{number_datasets}}" id="numberDatasets" name="numberDatasets"
-                                               title="The value must be between 1 and 10000" type="number" min="1" max="10000" step="1"
+                                               title="The value must be between 1 and 1000" type="number" min="1" max="1000" step="1"
                                                onchange="validateInput(this.id, {{number_datasets}})"
                                                class="form-control rounded-pill"
                                         />
@@ -435,11 +435,11 @@
                                 <span class="subarrow">▽</span>
                                     Results files
                                 </summary>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileInteractiveTreeHtml" class="h6 text-start text-success-emphasis ms-3">interactive tree (html)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="fileInteractiveTreeHtml" name="fileInteractiveTreeHtml"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_interactive_tree_html -%}
@@ -448,11 +448,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileNewickTreePng" class="h6 text-start text-success-emphasis ms-3">newick tree (png)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="fileNewickTreePng" name="fileNewickTreePng"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_newick_tree_png -%}
@@ -461,11 +461,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div id="blockFileTableOfCoevolutionTsv" class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div id="blockFileTableOfCoevolutionTsv" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileTableOfCoevolutionTsv" class="h6 text-start text-success-emphasis ms-3">table of coevolution (tsv)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="fileTableOfCoevolutionTsv" name="fileTableOfCoevolutionTsv"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_table_of_coevolution_tsv -%}
@@ -474,11 +474,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div id="blockFileSimulatedDatasetsFastas" class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div id="blockFileSimulatedDatasetsFastas" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileSimulatedDatasetsFastas" class="h6 text-start text-success-emphasis ms-3">simulated datasets (fastas)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="fileSimulatedDatasetsFastas" name="fileSimulatedDatasetsFastas"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_simulated_datasets_fastas -%}
@@ -487,11 +487,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div id="blockFileBarplotOfCorrelationSvg" class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div id="blockFileBarplotOfCorrelationSvg" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileBarplotOfCorrelationSvg" class="h6 text-start text-success-emphasis ms-3">barplot of coevolution (svg)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="fileBarplotOfCorrelationSvg" name="fileBarplotOfCorrelationSvg"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_barplot_of_correlation_svg -%}
@@ -500,11 +500,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div id="blockFilePlotDistributionOfCorrelationSvg" class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div id="blockFilePlotDistributionOfCorrelationSvg" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="filePlotDistributionOfCorrelationSvg" class="h6 text-start text-success-emphasis ms-3">plot of distribution of coevolution (svg)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="filePlotDistributionOfCorrelationSvg" name="filePlotDistributionOfCorrelationSvg"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_plot_distribution_of_correlation_svg -%}
@@ -513,11 +513,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div id="blockFilePlotDistributionOfCorrelationByRateBinSvg" class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div id="blockFilePlotDistributionOfCorrelationByRateBinSvg" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="filePlotDistributionOfCorrelationByRateBinSvg" class="h6 text-start text-success-emphasis ms-3">plot of distribution of coevolution by rate-bin categories (svg)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="filePlotDistributionOfCorrelationByRateBinSvg" name="filePlotDistributionOfCorrelationByRateBinSvg"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_plot_distribution_of_correlation_by_rate_bin_svg -%}
@@ -526,11 +526,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div id="blockFileTableOfPosteriorRatesTsv" class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div id="blockFileTableOfPosteriorRatesTsv" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileTableOfPosteriorRatesTsv" class="h6 text-start text-success-emphasis ms-3">table of posterior rates (tsv)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="fileTableOfPosteriorRatesTsv" name="fileTableOfPosteriorRatesTsv"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if is_do_not_use_copap -%}
@@ -542,11 +542,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div id="blockFileTableOfPearsonCorrelationTsv" class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div id="blockFileTableOfPearsonCorrelationTsv" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileTableOfPearsonCorrelationTsv" class="h6 text-start text-success-emphasis ms-3">table of pearson correlation (tsv)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="fileTableOfPearsonCorrelationTsv" name="fileTableOfPearsonCorrelationTsv"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if is_do_not_use_copap -%}
@@ -558,11 +558,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileTableOfNodesTsv" class="h6 text-start text-success-emphasis ms-3">table of nodes (tsv)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="fileTableOfNodesTsv" name="fileTableOfNodesTsv"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_table_of_nodes_tsv -%}
@@ -571,11 +571,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileProbabilityPerPosPerBranchesTsv" class="h6 text-start text-success-emphasis ms-3">probability per positions per branches (tsv)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="fileProbabilityPerPosPerBranchesTsv" name="fileProbabilityPerPosPerBranchesTsv"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_probability_per_pos_per_branches_tsv -%}
@@ -584,11 +584,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileTableOfBranchesTsv" class="h6 text-start text-success-emphasis ms-3">table of branches (tsv)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="fileTableOfBranchesTsv" name="fileTableOfBranchesTsv"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_table_of_branches_tsv -%}
@@ -597,11 +597,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileLogLikelihoodTsv" class="h6 text-start text-success-emphasis ms-3">log-likelihood (tsv)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="fileLogLikelihoodTsv" name="fileLogLikelihoodTsv"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_log_likelihood_tsv -%}
@@ -610,11 +610,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileTableOfAttributesTsv" class="h6 text-start text-success-emphasis ms-3">table of attributes (tsv)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="fileTableOfAttributesTsv" name="fileTableOfAttributesTsv"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_table_of_attributes_tsv -%}
@@ -623,11 +623,11 @@
                                         />
                                     </div>
                                 </div>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
+                                <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="filePhylogeneticTreeNwk" class="h6 text-start text-success-emphasis ms-3">phylogenetic tree (nwk)</label>
                                     </div>
-                                    <div class="w-48 text-start">
+                                    <div class="w-24 text-end">
                                         <input id="filePhylogeneticTreeNwk" name="filePhylogeneticTreeNwk"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_phylogenetic_tree_nwk -%}
