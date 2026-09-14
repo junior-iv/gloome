@@ -25,6 +25,7 @@ SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_table_of_branches_tsv': True,
                   'file_log_likelihood_tsv': True,
                   'file_table_of_attributes_tsv': True,
+                  'file_table_of_parsimony_score_tsv': True,
                   'file_phylogenetic_tree_nwk': True}
 PREFERRED_URL_SCHEME = 'https'
 WEBSERVER_NAME = 'gloome.tau.ac.il'
@@ -222,6 +223,9 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     if selected_files.get('file_table_of_attributes_tsv', False):
         result.update({'Tree attributes (tsv)':
                        newick_tree.attributes_to_tsv(file_name=f'{file_path}/TreeAttributes.tsv')})
+    if selected_files.get('file_table_of_parsimony_score_tsv', False):
+        result.update({'Parsimony score (tsv)':
+                       newick_tree.parsimony_score_to_tsv(file_name=f'{file_path}/ParsimonyScore.tsv')})
     if selected_files.get('file_phylogenetic_tree_nwk', False):
         result.update({'Phylogenetic tree (nwk)':
                        newick_tree.tree_to_newick_file(file_name=f'{file_path}/PhylogeneticTree.nwk',
@@ -310,9 +314,10 @@ def check_data(*args) -> List[Tuple[str, str]]:
     file_table_of_branches_tsv = bool(args[26])
     file_log_likelihood_tsv = bool(args[27])
     file_table_of_attributes_tsv = bool(args[28])
-    file_phylogenetic_tree_nwk = bool(args[29])
-    rooting_method = args[30].strip()
-    leaf = args[31].strip()
+    file_table_of_parsimony_score_tsv = bool(args[29])
+    file_phylogenetic_tree_nwk = bool(args[30])
+    rooting_method = args[31].strip()
+    leaf = args[32].strip()
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -420,7 +425,11 @@ def check_data(*args) -> List[Tuple[str, str]]:
                          f'The value must be boolean type.'))
 
     if not isinstance(file_table_of_attributes_tsv, bool):
-        err_list.append((f'Table of attributes (tsv) value error [ {file_table_of_attributes_tsv} ]',
+        err_list.append((f'Tree attributes (tsv) value error [ {file_table_of_attributes_tsv} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_table_of_parsimony_score_tsv, bool):
+        err_list.append((f'Parsimony score (tsv) value error [ {file_table_of_parsimony_score_tsv} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(file_phylogenetic_tree_nwk, bool):

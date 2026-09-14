@@ -612,12 +612,25 @@
                                 </div>
                                 <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
                                     <div class="w-72 text-start">
-                                        <label for="fileTableOfAttributesTsv" class="h6 text-start text-success-emphasis ms-3">table of attributes (tsv)</label>
+                                        <label for="fileTableOfAttributesTsv" class="h6 text-start text-success-emphasis ms-3">tree attributes (tsv)</label>
                                     </div>
                                     <div class="w-24 text-end">
                                         <input id="fileTableOfAttributesTsv" name="fileTableOfAttributesTsv"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_table_of_attributes_tsv -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
+                                        <label for="fileTableOfParsimonyScore" class="h6 text-start text-success-emphasis ms-3">parsimony score (tsv)</label>
+                                    </div>
+                                    <div class="w-24 text-end">
+                                        <input id="fileTableOfParsimonyScore" name="fileTableOfParsimonyScore"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_table_of_parsimony_score_tsv -%}
                                                    checked
                                                {% endif -%}
                                         />

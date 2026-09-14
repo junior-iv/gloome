@@ -46,6 +46,7 @@ class Tree:
     calculated_likelihood: bool = False
     all_nodes: Dict[str, Node]
     all_nodes_objects: Optional[List[Node]] = None
+    all_nodes_objects_post_order: Optional[List[Node]] = None
     nodes_objects: Optional[List[Node]] = None
     nodes_objects_post_order: Optional[List[Node]] = None
     leaves_objects: Optional[List[Node]] = None
@@ -88,6 +89,7 @@ class Tree:
             self.root = Node('root')
 
         self.all_nodes_objects = self.get_all_nodes()
+        self.all_nodes_objects_post_order = self.get_all_nodes(mode='post-order')
         self.all_nodes = {current_node.name: current_node for current_node in self.all_nodes_objects}
         self.nodes_objects = self.get_nodes()
         self.nodes_objects_post_order = self.get_nodes(mode='post-order')
@@ -119,35 +121,6 @@ class Tree:
                 'all_nodes', 'all_nodes_objects', 'nodes_objects', 'nodes_objects_post_order', 'leaves_objects',
                 'alphabet_length', 'msa_length', 'rate_vector_length']
 
-    def __dict__(self) -> Dict[str, Optional[Union[Node, float, np.float64, int, np.ndarray, bool, Tuple[str, ...],
-                               Tuple[Union[float, np.float64, int], ...], Dict[str, str], List[Node]]]]:
-
-        return {'root': self.root,
-                'alphabet': self.alphabet,
-                'msa': self.msa,
-                'rate_vector': self.rate_vector,
-                'alpha': self.alpha,
-                'categories_quantity': self.categories_quantity,
-                'pi_1': self.pi_1,
-                'coefficient_bl': self.coefficient_bl,
-                'log_likelihood_vector': self.log_likelihood_vector,
-                'log_likelihood': self.log_likelihood,
-                'likelihood_vector': self.likelihood_vector,
-                'likelihood': self.likelihood,
-                'posterior_rates': self.posterior_rates,
-                'correlation_vector': self.correlation_vector,
-                'calculated_ancestor_sequence': self.calculated_ancestor_sequence,
-                'calculated_tree': self.calculated_tree,
-                'calculated_likelihood': self.calculated_likelihood,
-                'all_nodes': self.all_nodes,
-                'all_nodes_objects': self.all_nodes_objects,
-                'nodes_objects': self.nodes_objects,
-                'nodes_objects_post_order': self.nodes_objects_post_order,
-                'leaves_objects': self.leaves_objects,
-                'alphabet_length': self.alphabet_length,
-                'msa_length': self.msa_length,
-                'rate_vector_length': self.rate_vector_length}
-
     def __len__(self) -> int:
 
         return self.get_node_count()
@@ -176,10 +149,39 @@ class Tree:
 
         return self > other or self == other or len(str(self)) > len(str(other))
 
+    def get_dict(self) -> Dict[str, Optional[Union[Node, float, np.float64, int, np.ndarray, bool, Tuple[str, ...],
+                               Tuple[Union[float, np.float64, int], ...], Dict[str, str], List[Node]]]]:
+
+        return {'root': self.root,
+                'alphabet': self.alphabet,
+                'msa': self.msa,
+                'rate_vector': self.rate_vector,
+                'alpha': self.alpha,
+                'categories_quantity': self.categories_quantity,
+                'pi_1': self.pi_1,
+                'coefficient_bl': self.coefficient_bl,
+                'log_likelihood_vector': self.log_likelihood_vector,
+                'log_likelihood': self.log_likelihood,
+                'likelihood_vector': self.likelihood_vector,
+                'likelihood': self.likelihood,
+                'posterior_rates': self.posterior_rates,
+                'correlation_vector': self.correlation_vector,
+                'calculated_ancestor_sequence': self.calculated_ancestor_sequence,
+                'calculated_tree': self.calculated_tree,
+                'calculated_likelihood': self.calculated_likelihood,
+                'all_nodes': self.all_nodes,
+                'all_nodes_objects': self.all_nodes_objects,
+                'nodes_objects': self.nodes_objects,
+                'nodes_objects_post_order': self.nodes_objects_post_order,
+                'leaves_objects': self.leaves_objects,
+                'alphabet_length': self.alphabet_length,
+                'msa_length': self.msa_length,
+                'rate_vector_length': self.rate_vector_length}
+
     def print_args(self, prefix_name: str = '', prefix: str = '', sort: bool = False) -> None:
         if all((prefix_name, prefix)):
             print(f'{prefix_name}\t\t>\t>\t>\t\t{prefix}')
-        items = dict(sorted(self.__dict__().items())).items() if sort else self.__dict__().items()
+        items = dict(sorted(self.get_dict().items())).items() if sort else self.get_dict().items()
         for key, value in items:
             print(f'{key}:\t{value}')
 
@@ -1143,7 +1145,17 @@ class Tree:
                             'coefficient of branch lengths': self.coefficient_bl,
                             'rate vector': self.rate_vector,
                             'alphabet': self.alphabet,
-                            'log_likelihood': self.log_likelihood}, cls=NpEncoder))
+                            'log likelihood': self.log_likelihood}, cls=NpEncoder))
+        df = pd.DataFrame({k: ((v, ) if isinstance(v, (set, tuple, list)) else v) for k, v in data.items()
+                           if v is not None})
+        df.to_csv(file_name, sep=sep, index=False)
+
+        return file_name
+
+    def parsimony_score_to_tsv(self, file_name: str = 'ParsimonyScore.tsv', sep: str = '\t') -> str:
+
+        self.make_dir(file_name)
+        data = loads(dumps(self.get_parsimony_score(), cls=NpEncoder))
         df = pd.DataFrame({k: ((v, ) if isinstance(v, (set, tuple, list)) else v) for k, v in data.items()
                            if v is not None})
         df.to_csv(file_name, sep=sep, index=False)
@@ -1529,6 +1541,47 @@ class Tree:
     def generate_site_rates(self, sites_quantity: int) -> np.ndarray:
 
         return np.random.choice(self.rate_vector, sites_quantity)
+
+    def get_parsimony_score(self) -> Dict[str, Union[float, np.float32, np.float64, int, np.int32, np.int64, str]]:
+        matrix = np.array([list(seq) for seq in self.msa.values()])
+        min_steps = 0
+        for col in range(self.msa_length):
+            unique_states = np.unique(matrix[:, col])
+            min_steps += (len(unique_states) - 1)
+
+        node_states = {}
+        parsimony_score = 0
+
+        for current_node in self.all_nodes_objects_post_order:
+            if current_node.node_type == "leaf" or not current_node.children:
+                seq = self.msa[current_node.name]
+                node_states[current_node] = [{char} for char in seq]
+            else:
+                current_node_sets = []
+
+                for site in range(self.msa_length):
+                    child_sets = [node_states[child][site] for child in current_node.children]
+
+                    intersection = set.intersection(*child_sets)
+
+                    if intersection:
+                        current_node_sets.append(intersection)
+                    else:
+                        union_set = set.union(*child_sets)
+                        current_node_sets.append(union_set)
+                        parsimony_score += 1
+
+                node_states[current_node] = current_node_sets
+
+        homoplasy_score = parsimony_score - min_steps
+        consistency_index = min_steps / parsimony_score if parsimony_score > 0 else 1.0
+
+        return {
+            'Minimum Possible Number Of Steps (M)': min_steps,
+            'Total Parsimony Score (S)': parsimony_score,
+            'Homoplasy Score': homoplasy_score,
+            'Consistency Index (CI)': round(consistency_index, 4)
+        }
 
     @classmethod
     def compute_correlation(cls, num_taxa: int = 8,

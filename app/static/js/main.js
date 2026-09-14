@@ -5,7 +5,7 @@ let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isO
                   `filePlotDistributionOfCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`,
                   `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`,
                   `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`,
-                  `filePhylogeneticTreeNwk`];
+                  `fileTableOfParsimonyScore`, `filePhylogeneticTreeNwk`];
 let lists = [`rootingMethods`, `leaves`]
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
@@ -37,6 +37,7 @@ let objectsDependence = {
     'fileTableOfBranchesTsv': {'dependence': '', 'value': ''},
     'fileLogLikelihoodTsv': {'dependence': '', 'value': ''},
     'fileTableOfAttributesTsv': {'dependence': '', 'value': ''},
+    'fileTableOfParsimonyScore': {'dependence': '', 'value': ''},
     'filePhylogeneticTreeNwk': {'dependence': '', 'value': ''},
     'rootingMethod': {'dependence': '', 'value': ''},
     'leaf': {'dependence': '', 'value': ''},
@@ -557,6 +558,7 @@ function makeTree(mode = 0) {
     const fileTableOfBranchesTsv = document.getElementById(`fileTableOfBranchesTsv`)
     const fileLogLikelihoodTsv = document.getElementById(`fileLogLikelihoodTsv`)
     const fileTableOfAttributesTsv = document.getElementById(`fileTableOfAttributesTsv`)
+    const fileTableOfParsimonyScore = document.getElementById(`fileTableOfParsimonyScore`)
     const filePhylogeneticTreeNwk = document.getElementById(`filePhylogeneticTreeNwk`)
     const rootingMethod = document.getElementById(`rootingMethod`);
     const leaf = document.getElementById(`leaf`);
@@ -590,6 +592,7 @@ function makeTree(mode = 0) {
     formData.append(`fileTableOfBranchesTsv`, +fileTableOfBranchesTsv.checked);
     formData.append(`fileLogLikelihoodTsv`, +fileLogLikelihoodTsv.checked);
     formData.append(`fileTableOfAttributesTsv`, +fileTableOfAttributesTsv.checked);
+    formData.append(`fileTableOfParsimonyScore`, +fileTableOfParsimonyScore.checked);
     formData.append(`filePhylogeneticTreeNwk`, +filePhylogeneticTreeNwk.checked);
     formData.append(`rootingMethod`, rootingMethod.value.trim());
     formData.append(`leaf`, leaf.value.trim());
@@ -662,8 +665,8 @@ function gedIdentifiers(id = ``) {
             `fileSimulatedDatasetsFastas`, `fileBarplotOfCorrelationSvg`, `filePlotDistributionOfCorrelationSvg`,
             `filePlotDistributionOfCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`,
             `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`,
-            `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, 'filePhylogeneticTreeNwk',
-            'rootingMethod', 'leaf'];
+            `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, `fileTableOfParsimonyScore`,
+            'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
     }
 }
 

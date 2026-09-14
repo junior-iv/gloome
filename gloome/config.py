@@ -100,6 +100,7 @@ class Config:
                           'file_table_of_branches_tsv': self.CURRENT_ARGS.file_table_of_branches_tsv,
                           'file_log_likelihood_tsv': self.CURRENT_ARGS.file_log_likelihood_tsv,
                           'file_table_of_attributes_tsv': self.CURRENT_ARGS.file_table_of_attributes_tsv,
+                          'file_table_of_parsimony_score_tsv': self.CURRENT_ARGS.file_table_of_parsimony_score_tsv,
                           'file_phylogenetic_tree_nwk': self.CURRENT_ARGS.file_phylogenetic_tree_nwk}
         return selected_files
 
@@ -128,6 +129,7 @@ class Config:
                      'fileTableOfBranchesTsv': int(self.CURRENT_ARGS.file_table_of_branches_tsv),
                      'fileLogLikelihoodTsv': int(self.CURRENT_ARGS.file_log_likelihood_tsv),
                      'fileTableOfAttributesTsv': int(self.CURRENT_ARGS.file_table_of_attributes_tsv),
+                     'fileTableOfParsimonyScore': int(self.CURRENT_ARGS.file_table_of_parsimony_score_tsv),
                      'filePhylogeneticTreeNwk': int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk),
                      'numberDatasets': self.CURRENT_ARGS.number_datasets,
                      'numberLG': self.CURRENT_ARGS.number_lg,
@@ -232,6 +234,7 @@ class Config:
                                         self.CURRENT_ARGS.file_table_of_branches_tsv,
                                         self.CURRENT_ARGS.file_log_likelihood_tsv,
                                         self.CURRENT_ARGS.file_table_of_attributes_tsv,
+                                        self.CURRENT_ARGS.file_table_of_parsimony_score_tsv,
                                         self.CURRENT_ARGS.file_phylogenetic_tree_nwk,
                                         self.CURRENT_ARGS.rooting_method,
                                         self.CURRENT_ARGS.leaf))
@@ -465,6 +468,10 @@ class Config:
                             required=False, help=f'Specify file_table_of_attributes_tsv (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_table_of_attributes_tsv)}.',
                             default=int(self.CURRENT_ARGS.file_table_of_attributes_tsv))
+        parser.add_argument('--file_table_of_parsimony_score_tsv', dest='file_table_of_parsimony_score_tsv', type=int,
+                            required=False, help=f'Specify file_table_of_parsimony_score_tsv (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_table_of_parsimony_score_tsv)}.',
+                            default=int(self.CURRENT_ARGS.file_table_of_parsimony_score_tsv))
         parser.add_argument('--file_phylogenetic_tree_nwk', dest='file_phylogenetic_tree_nwk', type=int,
                             required=False, help=f'Specify file_phylogenetic_tree_nwk (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk)}.',
@@ -501,6 +508,7 @@ class Config:
                                   'file_table_of_branches_tsv',
                                   'file_log_likelihood_tsv',
                                   'file_table_of_attributes_tsv',
+                                  'file_table_of_parsimony_score_tsv',
                                   'file_phylogenetic_tree_nwk'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))

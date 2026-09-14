@@ -180,6 +180,7 @@ DEFAULT_FORM_ARGUMENTS = {
     'file_table_of_branches_tsv': True,
     'file_log_likelihood_tsv': True,
     'file_table_of_attributes_tsv': True,
+    'file_table_of_parsimony_score_tsv': True,
     'file_phylogenetic_tree_nwk': True
 }
 
@@ -297,6 +298,8 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify file_log_likelihood_tsv. Default is 1.
 \t\t--file_table_of_attributes_tsv <type=int> 
 \t\t\tSpecify file_table_of_attributes_tsv. Default is 1.
+\t\t--file_table_of_parsimony_score_tsv <type=int> 
+\t\t\tSpecify file_table_of_parsimony_score_tsv. Default is 1.
 \t\t--file_phylogenetic_tree_nwk <type=int> 
 \t\t\tSpecify file_phylogenetic_tree_nwk. Default is 1.
 \t\t--rooting_method <type=str> 

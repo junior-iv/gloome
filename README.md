@@ -196,6 +196,9 @@ To get the project working, you need to run the command "gloome" or "python3 -m 
     --file_table_of_attributes_tsv <type=int> 
         Specify file_table_of_attributes_tsv. Default is 1.
 
+    --file_table_of_parsimony_score_tsv <type=int> 
+        Specify file_table_of_parsimony_score_tsv. Default is 1.
+
     --file_phylogenetic_tree_nwk <type=int> 
         Specify file_phylogenetic_tree_nwk. Default is 1.
 
