@@ -1147,7 +1147,7 @@ class Tree:
                             'alphabet': self.alphabet,
                             'log likelihood': self.log_likelihood}, cls=NpEncoder))
         df = pd.DataFrame({k: ((v, ) if isinstance(v, (set, tuple, list)) else v) for k, v in data.items()
-                           if v is not None})
+                           if v is not None}, index=[0])
         df.to_csv(file_name, sep=sep, index=False)
 
         return file_name
@@ -1157,7 +1157,7 @@ class Tree:
         self.make_dir(file_name)
         data = loads(dumps(self.get_parsimony_score(), cls=NpEncoder))
         df = pd.DataFrame({k: ((v, ) if isinstance(v, (set, tuple, list)) else v) for k, v in data.items()
-                           if v is not None})
+                           if v is not None}, index=[0])
         df.to_csv(file_name, sep=sep, index=False)
 
         return file_name
@@ -1579,7 +1579,7 @@ class Tree:
         return {
             'Minimum Possible Number Of Steps (M)': min_steps,
             'Total Parsimony Score (S)': parsimony_score,
-            'Homoplasy Score': homoplasy_score,
+            'Homoplasy Score (homoplasy)': homoplasy_score,
             'Consistency Index (CI)': round(consistency_index, 4)
         }
 
