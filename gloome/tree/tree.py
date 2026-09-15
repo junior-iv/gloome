@@ -727,6 +727,7 @@ class Tree:
 
     def probability_to_tsv(self, file_name: str = 'ProbabilityPerPositionsPerBranches.tsv', sep: str = '\t',
                            taking_into_coefficient: bool = True) -> str:
+        self.make_dir(file_name)
         ancestral_comparison = ['absence', 'loss', 'gain', 'presence']
         probability_limit = 0.05
         rows = []
@@ -898,6 +899,7 @@ class Tree:
                 fit/pass goodness-of-fit fall back to 'empirical' automatically -- see
                 ``fit_beta_null``).
         """
+        self.make_dir(file_path)
         if self.posterior_rates is None:
             self.set_posterior_rates_vector()
 
@@ -1113,6 +1115,7 @@ class Tree:
 
     def posterior_rates_to_tsv(self, file_name: str = 'PosteriorRates.tsv', sep: str = '\t') -> str:
 
+        self.make_dir(file_name)
         if self.posterior_rates is None:
             self.set_posterior_rates_vector()
 
@@ -1126,6 +1129,7 @@ class Tree:
                                    probability_lg: Union[float, np.float64] = 0.5,
                                    number_lg: Union[float, np.float64, int] = 1) -> str:
 
+        self.make_dir(file_name)
         if self.correlation_vector is None:
             self.calculate_correlation(probability_lg=probability_lg, number_lg=number_lg)
 
@@ -1155,9 +1159,7 @@ class Tree:
     def parsimony_score_to_tsv(self, file_name: str = 'ParsimonyScore.tsv', sep: str = '\t') -> str:
 
         self.make_dir(file_name)
-        data = loads(dumps(self.get_parsimony_score(), cls=NpEncoder))
-        df = pd.DataFrame({k: ((v, ) if isinstance(v, (set, tuple, list)) else v) for k, v in data.items()
-                           if v is not None}, index=[0])
+        df = self.get_parsimony_score()
         df.to_csv(file_name, sep=sep, index=False)
 
         return file_name
@@ -1236,6 +1238,7 @@ class Tree:
 
     def tree_to_interactive_html(self, file_name: str = 'InteractiveTree.svg', taking_into_coefficient: bool = True
                                  ) -> str:
+        self.make_dir(file_name)
         self.calculate_tree()
         self.calculate_ancestral_sequence()
         size_factor = min(1 + self.get_leaves_count() // 9, 6)
@@ -1542,46 +1545,58 @@ class Tree:
 
         return np.random.choice(self.rate_vector, sites_quantity)
 
-    def get_parsimony_score(self) -> Dict[str, Union[float, np.float32, np.float64, int, np.int32, np.int64, str]]:
-        matrix = np.array([list(seq) for seq in self.msa.values()])
-        min_steps = 0
-        for col in range(self.msa_length):
-            unique_states = np.unique(matrix[:, col])
-            min_steps += (len(unique_states) - 1)
-
+    def get_parsimony_score(self) -> pd.DataFrame:
+        char_to_bit = {char: 1 << i for i, char in enumerate(self.alphabet)}
+        taxa_names = list(self.msa.keys())
         node_states = {}
-        parsimony_score = 0
+
+        msa_matrix = np.array([[char_to_bit[char] for char in self.msa[name]] for name in taxa_names], dtype=np.int32)
+        combined_site_bits = np.bitwise_or.reduce(msa_matrix, axis=0)
+        count_bits = np.where(combined_site_bits == 3, 2, 1)
+
+        m_vector = np.maximum(0, count_bits - 1)
+        s_vector = np.zeros(self.msa_length, dtype=np.int32)
+
+        msa_dict_bit = {name: np.array([char_to_bit[char] for char in seq], dtype=np.int32)
+                        for name, seq in self.msa.items()}
 
         for current_node in self.all_nodes_objects_post_order:
             if current_node.node_type == "leaf" or not current_node.children:
-                seq = self.msa[current_node.name]
-                node_states[current_node] = [{char} for char in seq]
+                node_states[current_node] = msa_dict_bit[current_node.name]
             else:
-                current_node_sets = []
+                children_matrix = np.array([node_states[child] for child in current_node.children], dtype=np.int32)
+                intersection = np.bitwise_and.reduce(children_matrix, axis=0)
+                union = np.bitwise_or.reduce(children_matrix, axis=0)
+                has_no_intersection = (intersection == 0)
+                node_states[current_node] = np.where(has_no_intersection, union, intersection)
 
-                for site in range(self.msa_length):
-                    child_sets = [node_states[child][site] for child in current_node.children]
+                s_vector += has_no_intersection.astype(np.int32)
 
-                    intersection = set.intersection(*child_sets)
+        homoplasy_vector = s_vector - m_vector
+        ci_vector = np.divide(m_vector, s_vector, out=np.zeros_like(m_vector, dtype=np.float64), where=s_vector > 0)
 
-                    if intersection:
-                        current_node_sets.append(intersection)
-                    else:
-                        union_set = set.union(*child_sets)
-                        current_node_sets.append(union_set)
-                        parsimony_score += 1
+        min_steps = np.sum(m_vector)
+        parsimony_score = np.sum(s_vector)
+        total_homoplasy = np.sum(homoplasy_vector)
+        consistency_index = np.round(min_steps / parsimony_score, 4) if parsimony_score > 0 else 1.0
 
-                node_states[current_node] = current_node_sets
+        df = pd.DataFrame({'POS': range(self.msa_length),
+                           'Minimum Possible Number Of Steps (M)': m_vector,
+                           'Total Parsimony Score (S)': s_vector,
+                           'Homoplasy Score (homoplasy)': homoplasy_vector,
+                           'Consistency Index (CI)': np.round(ci_vector, 4)})
 
-        homoplasy_score = parsimony_score - min_steps
-        consistency_index = min_steps / parsimony_score if parsimony_score > 0 else 1.0
+        df['POS'] = df['POS'].astype(str)
 
-        return {
-            'Minimum Possible Number Of Steps (M)': min_steps,
-            'Total Parsimony Score (S)': parsimony_score,
-            'Homoplasy Score (homoplasy)': homoplasy_score,
-            'Consistency Index (CI)': round(consistency_index, 4)
-        }
+        total_row = {'POS': 'TOTAL',
+                     'Minimum Possible Number Of Steps (M)': min_steps,
+                     'Total Parsimony Score (S)': parsimony_score,
+                     'Homoplasy Score (homoplasy)': total_homoplasy,
+                     'Consistency Index (CI)': consistency_index}
+
+        df_with_total = pd.concat([df, pd.DataFrame([total_row])], ignore_index=True)
+
+        return df_with_total
 
     @classmethod
     def compute_correlation(cls, num_taxa: int = 8,
