@@ -4,7 +4,7 @@ from shutil import rmtree
 
 items_to_delete = []
 for current_directory in (IN_DIR, OUT_DIR, LOGS_DIR, TMP_DIR):
-    items_to_delete += get_items_to_delete(current_directory, CLEANING_DAYS_NUMBER)
+    items_to_delete += get_items_to_delete(current_directory, FILE_RETENTION_DAYS)
 
 items_to_delete.sort(key=lambda x: len(x.parts), reverse=True)
 
