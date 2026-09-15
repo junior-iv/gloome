@@ -17,6 +17,18 @@ formatter = logging.Formatter('%(asctime)s[%(levelname)s][%(filename)s][%(funcNa
 # logger = logging.getLogger('main')
 #
 #
+def get_items_to_delete(directory: Path, days: int = 360) -> List[Path]:
+    items = []
+    target_date = datetime.date.today() - datetime.timedelta(days=days)
+    for item in directory.rglob("*"):
+        item_date = datetime.date.fromtimestamp(item.stat().st_mtime)
+
+        if item_date < target_date:
+            items.append(item)
+
+    return items
+
+
 def init_dir_path():
     chdir(LOGS_DIR)
 
