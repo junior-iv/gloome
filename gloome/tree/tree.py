@@ -1170,7 +1170,12 @@ class Tree:
         self.calculate_likelihood()
         df = pd.DataFrame({'POS': range(len(self.log_likelihood_vector)),
                            'log-likelihood': self.log_likelihood_vector})
-        df.to_csv(file_name, sep=sep, index=False)
+
+        total_row = {'POS': 'TOTAL',
+                     'log-likelihood': self.log_likelihood}
+
+        df_with_total = pd.concat([df, pd.DataFrame([total_row])], ignore_index=True)
+        df_with_total.to_csv(file_name, sep=sep, index=False)
 
         return file_name
 
