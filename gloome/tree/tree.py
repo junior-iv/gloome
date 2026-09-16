@@ -1569,7 +1569,7 @@ class Tree:
             if current_node.node_type == "leaf" or not current_node.children:
                 node_states[current_node] = msa_dict_bit[current_node.name]
             else:
-                children_matrix = np.array([node_states[child] for child in current_node.children], dtype=np.int32)
+                children_matrix = np.array([node_states.pop(child) for child in current_node.children], dtype=np.int32)
                 intersection = np.bitwise_and.reduce(children_matrix, axis=0)
                 union = np.bitwise_or.reduce(children_matrix, axis=0)
                 has_no_intersection = (intersection == 0)
@@ -1578,7 +1578,7 @@ class Tree:
                 s_vector += has_no_intersection.astype(np.int32)
 
         homoplasy_vector = s_vector - m_vector
-        ci_vector = np.divide(m_vector, s_vector, out=np.zeros_like(m_vector, dtype=np.float64), where=s_vector > 0)
+        ci_vector = np.divide(m_vector, s_vector, out=np.ones_like(m_vector, dtype=np.float64), where=s_vector > 0)
 
         min_steps = np.sum(m_vector)
         parsimony_score = np.sum(s_vector)
