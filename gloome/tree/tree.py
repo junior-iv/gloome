@@ -1578,7 +1578,8 @@ class Tree:
                 s_vector += has_no_intersection.astype(np.int32)
 
         homoplasy_vector = s_vector - m_vector
-        ci_vector = np.divide(m_vector, s_vector, out=np.ones_like(m_vector, dtype=np.float64), where=s_vector > 0)
+        ci_vector = np.divide(m_vector, s_vector, out=np.ones_like(m_vector, dtype=np.float64),
+                              where=(m_vector > 0) & (s_vector > 0))
 
         min_steps = np.sum(m_vector)
         parsimony_score = np.sum(s_vector)
