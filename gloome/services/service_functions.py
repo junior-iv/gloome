@@ -185,7 +185,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     use_simulated_datasets_file = selected_files.get('file_simulated_datasets_fastas', False)
     use_barplot_of_correlation_file = selected_files.get('file_barplot_of_correlation_svg', False)
     use_plot_distribution_of_correlation_file = selected_files.get('file_plot_distribution_of_correlation_svg', False)
-    use_plot_correlation_by_rate_bin_file = selected_files.get( 'file_plot_correlation_by_rate_bin_svg', False)
+    use_plot_correlation_by_rate_bin_file = selected_files.get('file_plot_correlation_by_rate_bin_svg', False)
     if selected_files.get('file_interactive_tree_html', False):
         result.update({'Interactive tree (html)':
                        newick_tree.tree_to_interactive_html(file_name=f'{file_path}/InteractiveTree.html',
