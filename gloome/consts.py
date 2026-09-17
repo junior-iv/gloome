@@ -174,15 +174,15 @@ DEFAULT_FORM_ARGUMENTS = {
     'file_simulated_datasets_fastas': True,
     'file_barplot_of_correlation_svg': True,
     'file_plot_distribution_of_correlation_svg': True,
-    'file_plot_distribution_of_correlation_by_rate_bin_svg': True,
+    'file_plot_correlation_by_rate_bin_svg': True,
     'file_table_of_posterior_rates_tsv': True,
     'file_table_of_pearson_correlation_tsv': True,
     'file_table_of_nodes_tsv': True,
-    'file_probability_per_pos_per_branches_tsv': True,
+    'file_branch_position_probabilities_tsv': True,
     'file_table_of_branches_tsv': True,
     'file_log_likelihood_tsv': True,
     'file_table_of_attributes_tsv': True,
-    'file_table_of_parsimony_score_tsv': True,
+    'file_table_of_parsimony_and_homoplasy_scores_tsv': True,
     'file_phylogenetic_tree_nwk': True
 }
 
@@ -284,24 +284,24 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify file_barplot_of_correlation_svg. Default is 1.
 \t\t--file_plot_distribution_of_correlation_svg <type=int>
 \t\t\tSpecify file_plot_distribution_of_correlation_svg. Default is 1.
-\t\t--file_plot_distribution_of_correlation_by_rate_bin_svg <type=int>
-\t\t\tSpecify file_plot_distribution_of_correlation_by_rate_bin_svg. Default is 1.
+\t\t--file_plot_correlation_by_rate_bin_svg <type=int>
+\t\t\tSpecify file_plot_correlation_by_rate_bin_svg. Default is 1.
 \t\t--file_table_of_posterior_rates_tsv <type=int>
 \t\t\tSpecify file_table_of_posterior_rates_tsv. Default is 1.
 \t\t--file_table_of_pearson_correlation_tsv <type=int>
 \t\t\tSpecify file_table_of_pearson_correlation_tsv. Default is 1.
 \t\t--file_table_of_nodes_tsv <type=int>
 \t\t\tSpecify file_table_of_nodes_tsv. Default is 1.
-\t\t--file_probability_per_pos_per_branches_tsv 
-\t\t\tSpecify file_probability_per_pos_per_branches_tsv. Default is 1.
+\t\t--file_branch_position_probabilities_tsv 
+\t\t\tSpecify file_branch_position_probabilities_tsv. Default is 1.
 \t\t--file_table_of_branches_tsv <type=int> 
 \t\t\tSpecify file_table_of_branches_tsv. Default is 1.
 \t\t--file_log_likelihood_tsv <type=int> 
 \t\t\tSpecify file_log_likelihood_tsv. Default is 1.
 \t\t--file_table_of_attributes_tsv <type=int> 
 \t\t\tSpecify file_table_of_attributes_tsv. Default is 1.
-\t\t--file_table_of_parsimony_score_tsv <type=int> 
-\t\t\tSpecify file_table_of_parsimony_score_tsv. Default is 1.
+\t\t--file_table_of_parsimony_and_homoplasy_scores_tsv <type=int> 
+\t\t\tSpecify file_table_of_parsimony_and_homoplasy_scores_tsv. Default is 1.
 \t\t--file_phylogenetic_tree_nwk <type=int> 
 \t\t\tSpecify file_phylogenetic_tree_nwk. Default is 1.
 \t\t--rooting_method <type=str> 

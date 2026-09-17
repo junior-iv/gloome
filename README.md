@@ -172,8 +172,8 @@ To get the project working, you need to run the command "gloome" or "python3 -m 
     --file_plot_distribution_of_correlation_svg <type=int> 
         Specify file_plot_distribution_of_correlation_svg. Default is 1.
 
-    --file_plot_distribution_of_correlation_by_rate_bin_svg <type=int> 
-        Specify file_plot_distribution_of_correlation_by_rate_bin_svg. Default is 1.
+    --file_plot_correlation_by_rate_bin_svg <type=int> 
+        Specify file_plot_correlation_by_rate_bin_svg. Default is 1.
 
     --file_table_of_posterior_rates_tsv <type=int> 
         Specify file_table_of_posterior_rates_tsv. Default is 1.
@@ -184,8 +184,8 @@ To get the project working, you need to run the command "gloome" or "python3 -m 
     --file_table_of_nodes_tsv <type=int> 
         Specify file_table_of_nodes_tsv. Default is 1.
 
-    --file_probability_per_pos_per_branches_tsv <type=int>  
-        Specify file_probability_per_pos_per_branches_tsv. Default is 1.
+    --file_branch_position_probabilities_tsv <type=int>  
+        Specify file_branch_position_probabilities_tsv. Default is 1.
 
     --file_table_of_branches_tsv <type=int> 
         Specify file_table_of_branches_tsv. Default is 1.
@@ -196,8 +196,8 @@ To get the project working, you need to run the command "gloome" or "python3 -m 
     --file_table_of_attributes_tsv <type=int> 
         Specify file_table_of_attributes_tsv. Default is 1.
 
-    --file_table_of_parsimony_score_tsv <type=int> 
-        Specify file_table_of_parsimony_score_tsv. Default is 1.
+    --file_table_of_parsimony_and_homoplasy_scores_tsv <type=int> 
+        Specify file_table_of_parsimony_and_homoplasy_scores_tsv. Default is 1.
 
     --file_phylogenetic_tree_nwk <type=int> 
         Specify file_phylogenetic_tree_nwk. Default is 1.

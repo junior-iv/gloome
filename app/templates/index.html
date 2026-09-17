@@ -489,7 +489,7 @@
                                 </div>
                                 <div id="blockFileBarplotOfCorrelationSvg" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
                                     <div class="w-72 text-start">
-                                        <label for="fileBarplotOfCorrelationSvg" class="h6 text-start text-success-emphasis ms-3">barplot of coevolution (svg)</label>
+                                        <label for="fileBarplotOfCorrelationSvg" class="h6 text-start text-success-emphasis ms-3">barplot of correlation (svg)</label>
                                     </div>
                                     <div class="w-24 text-end">
                                         <input id="fileBarplotOfCorrelationSvg" name="fileBarplotOfCorrelationSvg"
@@ -502,7 +502,7 @@
                                 </div>
                                 <div id="blockFilePlotDistributionOfCorrelationSvg" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
                                     <div class="w-72 text-start">
-                                        <label for="filePlotDistributionOfCorrelationSvg" class="h6 text-start text-success-emphasis ms-3">plot of distribution of coevolution (svg)</label>
+                                        <label for="filePlotDistributionOfCorrelationSvg" class="h6 text-start text-success-emphasis ms-3">plot of correlation (svg)</label>
                                     </div>
                                     <div class="w-24 text-end">
                                         <input id="filePlotDistributionOfCorrelationSvg" name="filePlotDistributionOfCorrelationSvg"
@@ -513,14 +513,14 @@
                                         />
                                     </div>
                                 </div>
-                                <div id="blockFilePlotDistributionOfCorrelationByRateBinSvg" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                <div id="blockFilePlotOfCorrelationByRateBinSvg" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
                                     <div class="w-72 text-start">
-                                        <label for="filePlotDistributionOfCorrelationByRateBinSvg" class="h6 text-start text-success-emphasis ms-3">plot of distribution of coevolution by rate-bin categories (svg)</label>
+                                        <label for="filePlotOfCorrelationByRateBinSvg" class="h6 text-start text-success-emphasis ms-3">plot of correlation by rate-bin (svg)</label>
                                     </div>
                                     <div class="w-24 text-end">
-                                        <input id="filePlotDistributionOfCorrelationByRateBinSvg" name="filePlotDistributionOfCorrelationByRateBinSvg"
+                                        <input id="filePlotOfCorrelationByRateBinSvg" name="filePlotOfCorrelationByRateBinSvg"
                                                type="checkbox" class="form-check-input rounded-1"
-                                               {%- if file_plot_distribution_of_correlation_by_rate_bin_svg -%}
+                                               {%- if file_plot_correlation_by_rate_bin_svg -%}
                                                    checked
                                                {% endif -%}
                                         />
@@ -573,12 +573,12 @@
                                 </div>
                                 <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
                                     <div class="w-72 text-start">
-                                        <label for="fileProbabilityPerPosPerBranchesTsv" class="h6 text-start text-success-emphasis ms-3">probability per positions per branches (tsv)</label>
+                                        <label for="fileBranchPositionProbabilitiesTsv" class="h6 text-start text-success-emphasis ms-3">branch position probabilities (tsv)</label>
                                     </div>
                                     <div class="w-24 text-end">
-                                        <input id="fileProbabilityPerPosPerBranchesTsv" name="fileProbabilityPerPosPerBranchesTsv"
+                                        <input id="fileBranchPositionProbabilitiesTsv" name="fileBranchPositionProbabilitiesTsv"
                                                type="checkbox" class="form-check-input rounded-1"
-                                               {%- if file_probability_per_pos_per_branches_tsv -%}
+                                               {%- if file_branch_position_probabilities_tsv -%}
                                                    checked
                                                {% endif -%}
                                         />
@@ -625,12 +625,12 @@
                                 </div>
                                 <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
                                     <div class="w-72 text-start">
-                                        <label for="fileTableOfParsimonyScore" class="h6 text-start text-success-emphasis ms-3">parsimony score (tsv)</label>
+                                        <label for="fileTableOfParsimonyAndHomoplasyScores" class="h6 text-start text-success-emphasis ms-3">parsimony and homoplasy scores (tsv)</label>
                                     </div>
                                     <div class="w-24 text-end">
-                                        <input id="fileTableOfParsimonyScore" name="fileTableOfParsimonyScore"
+                                        <input id="fileTableOfParsimonyAndHomoplasyScores" name="fileTableOfParsimonyAndHomoplasyScores"
                                                type="checkbox" class="form-check-input rounded-1"
-                                               {%- if file_table_of_parsimony_score_tsv -%}
+                                               {%- if file_table_of_parsimony_and_homoplasy_scores_tsv -%}
                                                    checked
                                                {% endif -%}
                                         />

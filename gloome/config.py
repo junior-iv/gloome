@@ -89,18 +89,19 @@ class Config:
                           'file_barplot_of_correlation_svg': self.CURRENT_ARGS.file_barplot_of_correlation_svg,
                           'file_plot_distribution_of_correlation_svg':
                               self.CURRENT_ARGS.file_plot_distribution_of_correlation_svg,
-                          'file_plot_distribution_of_correlation_by_rate_bin_svg':
-                              self.CURRENT_ARGS.file_plot_distribution_of_correlation_by_rate_bin_svg,
+                          'file_plot_correlation_by_rate_bin_svg':
+                              self.CURRENT_ARGS.file_plot_correlation_by_rate_bin_svg,
                           'file_table_of_posterior_rates_tsv': self.CURRENT_ARGS.file_table_of_posterior_rates_tsv,
                           'file_table_of_pearson_correlation_tsv':
                               self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv,
                           'file_table_of_nodes_tsv': self.CURRENT_ARGS.file_table_of_nodes_tsv,
-                          'file_probability_per_pos_per_branches_tsv':
-                              self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv,
+                          'file_branch_position_probabilities_tsv':
+                              self.CURRENT_ARGS.file_branch_position_probabilities_tsv,
                           'file_table_of_branches_tsv': self.CURRENT_ARGS.file_table_of_branches_tsv,
                           'file_log_likelihood_tsv': self.CURRENT_ARGS.file_log_likelihood_tsv,
                           'file_table_of_attributes_tsv': self.CURRENT_ARGS.file_table_of_attributes_tsv,
-                          'file_table_of_parsimony_score_tsv': self.CURRENT_ARGS.file_table_of_parsimony_score_tsv,
+                          'file_table_of_parsimony_and_homoplasy_scores_tsv':
+                              self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv,
                           'file_phylogenetic_tree_nwk': self.CURRENT_ARGS.file_phylogenetic_tree_nwk}
         return selected_files
 
@@ -119,17 +120,17 @@ class Config:
                      'fileBarplotOfCorrelationSvg': int(DEFAULT_ARGUMENTS.file_barplot_of_correlation_svg),
                      'filePlotDistributionOfCorrelationSvg':
                          int(DEFAULT_ARGUMENTS.file_plot_distribution_of_correlation_svg),
-                     'filePlotDistributionOfCorrelationByRateBinSvg':
-                         int(DEFAULT_ARGUMENTS.file_plot_distribution_of_correlation_by_rate_bin_svg),
+                     'filePlotCorrelationByRateBinSvg': int(DEFAULT_ARGUMENTS.file_plot_correlation_by_rate_bin_svg),
                      'fileTableOfPosteriorRatesTsv': int(self.CURRENT_ARGS.file_table_of_posterior_rates_tsv),
                      'fileTableOfPearsonCorrelationTsv': int(self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv),
                      'fileTableOfNodesTsv': int(self.CURRENT_ARGS.file_table_of_nodes_tsv),
-                     'fileProbabilityPerPosPerBranchesTsv':
-                         int(self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv),
+                     'fileBranchPositionProbabilitiesTsv':
+                         int(self.CURRENT_ARGS.file_branch_position_probabilities_tsv),
                      'fileTableOfBranchesTsv': int(self.CURRENT_ARGS.file_table_of_branches_tsv),
                      'fileLogLikelihoodTsv': int(self.CURRENT_ARGS.file_log_likelihood_tsv),
                      'fileTableOfAttributesTsv': int(self.CURRENT_ARGS.file_table_of_attributes_tsv),
-                     'fileTableOfParsimonyScore': int(self.CURRENT_ARGS.file_table_of_parsimony_score_tsv),
+                     'fileTableOfParsimonyAndHomoplasyScores':
+                         int(self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv),
                      'filePhylogeneticTreeNwk': int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk),
                      'numberDatasets': self.CURRENT_ARGS.number_datasets,
                      'numberLG': self.CURRENT_ARGS.number_lg,
@@ -226,15 +227,15 @@ class Config:
                                         self.CURRENT_ARGS.file_simulated_datasets_fastas,
                                         self.CURRENT_ARGS.file_barplot_of_correlation_svg,
                                         self.CURRENT_ARGS.file_plot_distribution_of_correlation_svg,
-                                        self.CURRENT_ARGS.file_plot_distribution_of_correlation_by_rate_bin_svg,
+                                        self.CURRENT_ARGS.file_plot_correlation_by_rate_bin_svg,
                                         self.CURRENT_ARGS.file_table_of_posterior_rates_tsv,
                                         self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv,
                                         self.CURRENT_ARGS.file_table_of_nodes_tsv,
-                                        self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv,
+                                        self.CURRENT_ARGS.file_branch_position_probabilities_tsv,
                                         self.CURRENT_ARGS.file_table_of_branches_tsv,
                                         self.CURRENT_ARGS.file_log_likelihood_tsv,
                                         self.CURRENT_ARGS.file_table_of_attributes_tsv,
-                                        self.CURRENT_ARGS.file_table_of_parsimony_score_tsv,
+                                        self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv,
                                         self.CURRENT_ARGS.file_phylogenetic_tree_nwk,
                                         self.CURRENT_ARGS.rooting_method,
                                         self.CURRENT_ARGS.leaf))
@@ -432,11 +433,11 @@ class Config:
                             help=f'Specify file_plot_distribution_of_correlation_svg (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_plot_distribution_of_correlation_svg)}.',
                             default=int(self.CURRENT_ARGS.file_plot_distribution_of_correlation_svg))
-        parser.add_argument('--file_plot_distribution_of_correlation_by_rate_bin_svg',
-                            dest='file_plot_distribution_of_correlation_by_rate_bin_svg', type=int, required=False,
-                            help=f'Specify file_plot_distribution_of_correlation_by_rate_bin_svg (optional). Default is'
-                            f' {int(self.CURRENT_ARGS.file_plot_distribution_of_correlation_by_rate_bin_svg)}.',
-                            default=int(self.CURRENT_ARGS.file_plot_distribution_of_correlation_by_rate_bin_svg))
+        parser.add_argument('--file_plot_correlation_by_rate_bin_svg',
+                            dest='file_plot_correlation_by_rate_bin_svg', type=int, required=False,
+                            help=f'Specify file_plot_correlation_by_rate_bin_svg (optional). Default is'
+                            f' {int(self.CURRENT_ARGS.file_plot_correlation_by_rate_bin_svg)}.',
+                            default=int(self.CURRENT_ARGS.file_plot_correlation_by_rate_bin_svg))
         parser.add_argument('--file_table_of_posterior_rates_tsv',
                             dest='file_table_of_posterior_rates_tsv', type=int, required=False,
                             help=f'Specify file_table_of_posterior_rates_tsv (optional). Default is '
@@ -451,11 +452,11 @@ class Config:
                             help=f'Specify file_table_of_nodes_tsv (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_table_of_nodes_tsv)}.',
                             default=int(self.CURRENT_ARGS.file_table_of_nodes_tsv))
-        parser.add_argument('--file_probability_per_pos_per_branches_tsv', type=int, required=False,
-                            dest='file_probability_per_pos_per_branches_tsv', help=f'Specify '
-                            f'file_probability_per_pos_per_branches_tsv (optional). Default is '
-                            f'{int(self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv)}.',
-                            default=int(self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv))
+        parser.add_argument('--file_branch_position_probabilities_tsv', type=int, required=False,
+                            dest='file_branch_position_probabilities_tsv', help=f'Specify '
+                            f'file_branch_position_probabilities_tsv (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_branch_position_probabilities_tsv)}.',
+                            default=int(self.CURRENT_ARGS.file_branch_position_probabilities_tsv))
         parser.add_argument('--file_table_of_branches_tsv', dest='file_table_of_branches_tsv', type=int, required=False,
                             help=f'Specify file_table_of_branches_tsv (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_table_of_branches_tsv)}.',
@@ -468,10 +469,11 @@ class Config:
                             required=False, help=f'Specify file_table_of_attributes_tsv (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_table_of_attributes_tsv)}.',
                             default=int(self.CURRENT_ARGS.file_table_of_attributes_tsv))
-        parser.add_argument('--file_table_of_parsimony_score_tsv', dest='file_table_of_parsimony_score_tsv', type=int,
-                            required=False, help=f'Specify file_table_of_parsimony_score_tsv (optional). Default is '
-                            f'{int(self.CURRENT_ARGS.file_table_of_parsimony_score_tsv)}.',
-                            default=int(self.CURRENT_ARGS.file_table_of_parsimony_score_tsv))
+        parser.add_argument('--file_table_of_parsimony_and_homoplasy_scores_tsv', type=int, required=False,
+                            dest='file_table_of_parsimony_and_homoplasy_scores_tsv',
+                            help=f'Specify file_table_of_parsimony_and_homoplasy_scores_tsv (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv)}.',
+                            default=int(self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv))
         parser.add_argument('--file_phylogenetic_tree_nwk', dest='file_phylogenetic_tree_nwk', type=int,
                             required=False, help=f'Specify file_phylogenetic_tree_nwk (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk)}.',
@@ -500,15 +502,15 @@ class Config:
                                   'file_simulated_datasets_fastas',
                                   'file_barplot_of_correlation_svg',
                                   'file_plot_distribution_of_correlation_svg',
-                                  'file_plot_distribution_of_correlation_by_rate_bin_svg',
+                                  'file_plot_correlation_by_rate_bin_svg',
                                   'file_table_of_posterior_rates_tsv',
                                   'file_table_of_pearson_correlation_tsv',
                                   'file_table_of_nodes_tsv',
-                                  'file_probability_per_pos_per_branches_tsv',
+                                  'file_branch_position_probabilities_tsv',
                                   'file_table_of_branches_tsv',
                                   'file_log_likelihood_tsv',
                                   'file_table_of_attributes_tsv',
-                                  'file_table_of_parsimony_score_tsv',
+                                  'file_table_of_parsimony_and_homoplasy_scores_tsv',
                                   'file_phylogenetic_tree_nwk'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))

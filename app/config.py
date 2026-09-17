@@ -88,20 +88,20 @@ class WebConfig:
                    'eMail', 'isOptimizePi', 'isOptimizePiAverage', 'isOptimizeBL', 'isOptimizeAlpha', 'isDoNotUseCoPAP',
                    'fileInteractiveTreeHtml', 'fileNewickTreePng', 'fileTableOfCoevolutionTsv',
                    'fileSimulatedDatasetsFastas', 'fileBarplotOfCorrelationSvg', 'filePlotDistributionOfCorrelationSvg',
-                   'filePlotDistributionOfCorrelationByRateBinSvg', 'fileTableOfPosteriorRatesTsv',
-                   'fileTableOfPearsonCorrelationTsv', 'fileTableOfNodesTsv', 'fileProbabilityPerPosPerBranchesTsv',
+                   'filePlotCorrelationByRateBinSvg', 'fileTableOfPosteriorRatesTsv',
+                   'fileTableOfPearsonCorrelationTsv', 'fileTableOfNodesTsv', 'fileBranchPositionProbabilitiesTsv',
                    'fileTableOfBranchesTsv', 'fileLogLikelihoodTsv', 'fileTableOfAttributesTsv',
-                   'fileTableOfParsimonyScore', 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'),
+                   'fileTableOfParsimonyAndHomoplasyScores', 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'),
                   ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'probability_lg', 'number_lg',
                    'number_datasets', 'e_mail', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_bl',
                    'is_optimize_alpha', 'is_do_not_use_copap', 'file_interactive_tree_html',
                    'file_newick_tree_png', 'file_table_of_coevolution_tsv', 'file_simulated_datasets_fastas',
                    'file_barplot_of_correlation_svg', 'file_plot_distribution_of_correlation_svg',
-                   'file_plot_distribution_of_correlation_by_rate_bin_svg', 'file_table_of_posterior_rates_tsv',
+                   'file_plot_correlation_by_rate_bin_svg', 'file_table_of_posterior_rates_tsv',
                    'file_table_of_pearson_correlation_tsv', 'file_table_of_nodes_tsv',
-                   'file_probability_per_pos_per_branches_tsv', 'file_table_of_branches_tsv', 'file_log_likelihood_tsv',
-                   'file_table_of_attributes_tsv', 'file_table_of_parsimony_score_tsv', 'file_phylogenetic_tree_nwk',
-                   'rooting_method', 'leaf'),
+                   'file_branch_position_probabilities_tsv', 'file_table_of_branches_tsv', 'file_log_likelihood_tsv',
+                   'file_table_of_attributes_tsv', 'file_table_of_parsimony_and_homoplasy_scores_tsv',
+                   'file_phylogenetic_tree_nwk', 'rooting_method', 'leaf'),
                   ((int, ), (float, ), (float, ), (float, ), (float, ), (int, ), (int, ), (str, ), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
@@ -139,20 +139,20 @@ class WebConfig:
                              f'\n\tfile_barplot_of_correlation_svg: {self.CURRENT_ARGS.file_barplot_of_correlation_svg}'
                              f'\n\tfile_plot_distribution_of_correlation_svg: '
                              f'{self.CURRENT_ARGS.file_plot_distribution_of_correlation_svg}'
-                             f'\n\tfile_plot_distribution_of_correlation_by_rate_bin_svg: '
-                             f'{self.CURRENT_ARGS.file_plot_distribution_of_correlation_by_rate_bin_svg}'
+                             f'\n\tfile_plot_correlation_by_rate_bin_svg: '
+                             f'{self.CURRENT_ARGS.file_plot_correlation_by_rate_bin_svg}'
                              f'\n\tfile_table_of_posterior_rates_tsv: '
                              f'{self.CURRENT_ARGS.file_table_of_posterior_rates_tsv}'
                              f'\n\tfile_table_of_pearson_correlation_tsv: '
                              f'{self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv}'
                              f'\n\tfile_table_of_nodes_tsv: {self.CURRENT_ARGS.file_table_of_nodes_tsv}'
-                             f'\n\tfile_probability_per_pos_per_branches_tsv: '
-                             f'{self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv}'
+                             f'\n\tfile_branch_position_probabilities_tsv: '
+                             f'{self.CURRENT_ARGS.file_branch_position_probabilities_tsv}'
                              f'\n\tfile_table_of_branches_tsv: {self.CURRENT_ARGS.file_table_of_branches_tsv}'
                              f'\n\tfile_log_likelihood_tsv: {self.CURRENT_ARGS.file_log_likelihood_tsv}'
                              f'\n\tfile_table_of_attributes_tsv: {self.CURRENT_ARGS.file_table_of_attributes_tsv}'
-                             f'\n\tfile_table_of_parsimony_score_tsv: '
-                             f'{self.CURRENT_ARGS.file_table_of_parsimony_score_tsv}'
+                             f'\n\tfile_table_of_parsimony_and_homoplasy_scores_tsv: '
+                             f'{self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv}'
                              f'\n\tfile_phylogenetic_tree_nwk: {self.CURRENT_ARGS.file_phylogenetic_tree_nwk}'
                              f'\n\tnewick_text: {self.CALCULATED_ARGS.newick_text}'
                              f'\n\tmsa: {self.CALCULATED_ARGS.msa}'
@@ -208,17 +208,17 @@ class WebConfig:
             f'--file_barplot_of_correlation_svg {int(self.CURRENT_ARGS.file_barplot_of_correlation_svg)} '
             f'--file_plot_distribution_of_correlation_svg '
             f'{int(self.CURRENT_ARGS.file_plot_distribution_of_correlation_svg)} '
-            f'--file_plot_distribution_of_correlation_by_rate_bin_svg '
-            f'{int(self.CURRENT_ARGS.file_plot_distribution_of_correlation_by_rate_bin_svg)} '
+            f'--file_plot_correlation_by_rate_bin_svg {int(self.CURRENT_ARGS.file_plot_correlation_by_rate_bin_svg)} '
             f'--file_table_of_posterior_rates_tsv {int(self.CURRENT_ARGS.file_table_of_posterior_rates_tsv)} '
             f'--file_table_of_pearson_correlation_tsv {int(self.CURRENT_ARGS.file_table_of_pearson_correlation_tsv)} '
             f'--file_table_of_nodes_tsv {int(self.CURRENT_ARGS.file_table_of_nodes_tsv)} '
-            f'--file_probability_per_pos_per_branches_tsv '
-            f'{int(self.CURRENT_ARGS.file_probability_per_pos_per_branches_tsv)} '
+            f'--file_branch_position_probabilities_tsv '
+            f'{int(self.CURRENT_ARGS.file_branch_position_probabilities_tsv)} '
             f'--file_table_of_branches_tsv {int(self.CURRENT_ARGS.file_table_of_branches_tsv)} '
             f'--file_log_likelihood_tsv {int(self.CURRENT_ARGS.file_log_likelihood_tsv)} '
             f'--file_table_of_attributes_tsv {int(self.CURRENT_ARGS.file_table_of_attributes_tsv)} '
-            f'--file_table_of_parsimony_score_tsv {int(self.CURRENT_ARGS.file_table_of_parsimony_score_tsv)} '
+            f'--file_table_of_parsimony_and_homoplasy_scores_tsv '
+            f'{int(self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv)} '
             f'--file_phylogenetic_tree_nwk {int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk)} '
             f'--rooting_method {self.CURRENT_ARGS.rooting_method} '
             f'{leaf}')

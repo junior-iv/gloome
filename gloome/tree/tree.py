@@ -725,7 +725,7 @@ class Tree:
 
         return self.write_file(file_name, fasta_text)
 
-    def probability_to_tsv(self, file_name: str = 'ProbabilityPerPositionsPerBranches.tsv', sep: str = '\t',
+    def probability_to_tsv(self, file_name: str = 'BranchPositionProbabilities.tsv', sep: str = '\t',
                            taking_into_coefficient: bool = True) -> str:
         self.make_dir(file_name)
         ancestral_comparison = ['absence', 'loss', 'gain', 'presence']
@@ -739,7 +739,7 @@ class Tree:
 
         for current_node in self.all_nodes_objects:
             branch_probability_vector = current_node.branch_probability_vector
-            for pos, value in enumerate(branch_probability_vector, start=1):
+            for pos, value in enumerate(branch_probability_vector):
                 for i in range(1, 3):
                     row = {
                         'G/L': ancestral_comparison[i],
@@ -888,7 +888,7 @@ class Tree:
                           use_coevolution_file: bool = False,
                           use_barplot_of_correlation_file: bool = False,
                           use_plot_distribution_of_correlation_file: bool = False,
-                          use_plot_distribution_of_correlation_by_rate_bin_file: bool = False) -> Dict[str, str]:
+                          use_plot_correlation_by_rate_bin_file: bool = False) -> Dict[str, str]:
         """
         Args (new/notable):
             event_threshold: the actual per-site candidate filter used for the coevolution table
@@ -908,7 +908,7 @@ class Tree:
         file_coevolution = f'{file_path}/Coevolution.tsv'
         file_distribution_of_correlation = f'{file_path}/DistributionOfCorrelation.svg'
         file_barplot_of_correlation = f'{file_path}/BarplotOfCorrelation.svg'
-        file_distribution_of_correlation_by_rate_bin = f'{file_path}/DistributionOfCorrelationByRateBin.svg'
+        file_correlation_by_rate_bin = f'{file_path}/CorrelationByRateBin.svg'
 
         site_rate = np.asarray(self.posterior_rates, dtype=np.float64)
         branch_length = np.asarray([n.distance_to_father for n in self.all_nodes_objects[1:]], dtype=np.float64)
@@ -966,7 +966,7 @@ class Tree:
             result.update({'Simulated datasets (fastas)': file_simulated_datasets})
 
         if any((use_coevolution_file, use_barplot_of_correlation_file, use_plot_distribution_of_correlation_file,
-                use_plot_distribution_of_correlation_by_rate_bin_file)):
+                use_plot_correlation_by_rate_bin_file)):
             pos1_list = []
             pos2_list = []
             rate_bin_list = []
@@ -1050,7 +1050,7 @@ class Tree:
                 fig.savefig(file_distribution_of_correlation, dpi=300, bbox_inches='tight')
                 plt.close(fig)
 
-                result.update({'Plot of distribution of coevolution (svg)': file_distribution_of_correlation})
+                result.update({'Plot of distribution of correlation (svg)': file_distribution_of_correlation})
 
             if use_barplot_of_correlation_file:
                 fig, ax = plt.subplots(figsize=(7, 5))
@@ -1073,9 +1073,9 @@ class Tree:
                 fig.savefig(file_barplot_of_correlation, dpi=300, bbox_inches='tight')
                 plt.close(fig)
 
-                result.update({'Barplot of coevolution (svg)': file_barplot_of_correlation})
+                result.update({'Barplot of correlation (svg)': file_barplot_of_correlation})
 
-            if use_plot_distribution_of_correlation_by_rate_bin_file:
+            if use_plot_correlation_by_rate_bin_file:
                 def make_clean_label(tup):
                     if isinstance(tup, tuple) and len(tup) == 2:
                         return f'({tup[0]:.0f}, {tup[1]:.0f})'
@@ -1105,11 +1105,10 @@ class Tree:
                 ax.set_ylabel('Correlation (r)')
                 ax.set_title('Distribution of original correlation coefficients by rate-bin categories')
 
-                fig.savefig(file_distribution_of_correlation_by_rate_bin, dpi=300, bbox_inches='tight')
+                fig.savefig(file_correlation_by_rate_bin, dpi=300, bbox_inches='tight')
                 plt.close(fig)
 
-                result.update({'Plot of distribution of coevolution by rate-bin categories (svg)':
-                               file_distribution_of_correlation_by_rate_bin})
+                result.update({'Plot of correlation by rate-bin (svg)': file_correlation_by_rate_bin})
 
         return result
 
@@ -1156,7 +1155,7 @@ class Tree:
 
         return file_name
 
-    def parsimony_score_to_tsv(self, file_name: str = 'ParsimonyScore.tsv', sep: str = '\t') -> str:
+    def parsimony_score_to_tsv(self, file_name: str = 'ParsimonyAndHomoplasyScores.tsv', sep: str = '\t') -> str:
 
         self.make_dir(file_name)
         df = self.get_parsimony_score()
@@ -1551,31 +1550,40 @@ class Tree:
         return np.random.choice(self.rate_vector, sites_quantity)
 
     def get_parsimony_score(self) -> pd.DataFrame:
-        char_to_bit = {char: 1 << i for i, char in enumerate(self.alphabet)}
-        taxa_names = list(self.msa.keys())
-        node_states = {}
+        alphabet = self.alphabet
+        leaves = self.leaves_objects
+        n_leaves, msa_length = len(leaves), self.msa_length
 
-        msa_matrix = np.array([[char_to_bit[char] for char in self.msa[name]] for name in taxa_names], dtype=np.int32)
-        combined_site_bits = np.bitwise_or.reduce(msa_matrix, axis=0)
-        count_bits = np.where(combined_site_bits == 3, 2, 1)
+        raw = np.frombuffer(''.join(self.msa[leaf.name] for leaf in leaves).encode('ascii'),
+                            dtype=np.uint8).reshape(n_leaves, msa_length)
 
-        m_vector = np.maximum(0, count_bits - 1)
+        has_state = [np.any(raw == ord(char), axis=0) for char in alphabet]
+        m_vector = np.maximum(0, np.sum(has_state, axis=0) - 1)
+
+        full_mask = (1 << len(alphabet)) - 1
+        msa_matrix = np.full(raw.shape, full_mask, dtype=np.int32)
+        for i, char in enumerate(alphabet):
+            msa_matrix[raw == ord(char)] = 1 << i
+
+        node_states: Dict[Node, np.ndarray] = {leaf: msa_matrix[i] for i, leaf in enumerate(leaves)}
         s_vector = np.zeros(self.msa_length, dtype=np.int32)
 
-        msa_dict_bit = {name: np.array([char_to_bit[char] for char in seq], dtype=np.int32)
-                        for name, seq in self.msa.items()}
-
         for current_node in self.all_nodes_objects_post_order:
-            if current_node.node_type == "leaf" or not current_node.children:
-                node_states[current_node] = msa_dict_bit[current_node.name]
+            children = current_node.children
+            if not children:
+                continue
+
+            if len(children) == 2:
+                first, second = node_states.pop(children[0]), node_states.pop(children[1])
+                intersection, union = first & second, first | second
             else:
-                children_matrix = np.array([node_states.pop(child) for child in current_node.children], dtype=np.int32)
+                children_matrix = np.array([node_states.pop(child) for child in children], dtype=np.int32)
                 intersection = np.bitwise_and.reduce(children_matrix, axis=0)
                 union = np.bitwise_or.reduce(children_matrix, axis=0)
-                has_no_intersection = (intersection == 0)
-                node_states[current_node] = np.where(has_no_intersection, union, intersection)
 
-                s_vector += has_no_intersection.astype(np.int32)
+            has_no_intersection = intersection == 0
+            node_states[current_node] = np.where(has_no_intersection, union, intersection)
+            s_vector += has_no_intersection.astype(np.int32)
 
         homoplasy_vector = s_vector - m_vector
         ci_vector = np.divide(m_vector, s_vector, out=np.ones_like(m_vector, dtype=np.float64),
@@ -1588,17 +1596,17 @@ class Tree:
 
         df = pd.DataFrame({'POS': range(self.msa_length),
                            'Minimum Possible Number Of Steps (M)': m_vector,
-                           'Total Parsimony Score (S)': s_vector,
-                           'Homoplasy Score (homoplasy)': homoplasy_vector,
-                           'Consistency Index (CI)': np.round(ci_vector, 4)})
+                           'Parsimony Score (S)': s_vector,
+                           'Homoplasy Score (H = S - M)': homoplasy_vector,
+                           'Consistency Index (CI = M/S)': np.round(ci_vector, 4)})
 
         df['POS'] = df['POS'].astype(str)
 
         total_row = {'POS': 'TOTAL',
                      'Minimum Possible Number Of Steps (M)': min_steps,
-                     'Total Parsimony Score (S)': parsimony_score,
-                     'Homoplasy Score (homoplasy)': total_homoplasy,
-                     'Consistency Index (CI)': consistency_index}
+                     'Parsimony Score (S)': parsimony_score,
+                     'Homoplasy Score (H = S - M)': total_homoplasy,
+                     'Consistency Index (CI = M/S)': consistency_index}
 
         df_with_total = pd.concat([df, pd.DataFrame([total_row])], ignore_index=True)
 

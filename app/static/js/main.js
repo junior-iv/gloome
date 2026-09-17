@@ -2,10 +2,10 @@ let jsonTreeData = null
 let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`,  `isDoNotUseCoPAP`,
                   `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfCoevolutionTsv`,
                   `fileSimulatedDatasetsFastas`, `fileBarplotOfCorrelationSvg`, `filePlotDistributionOfCorrelationSvg`,
-                  `filePlotDistributionOfCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`,
-                  `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`,
-                  `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`,
-                  `fileTableOfParsimonyScore`, `filePhylogeneticTreeNwk`];
+                  `filePlotCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`,
+                  `fileTableOfNodesTsv`, `fileBranchPositionProbabilitiesTsv`, `fileTableOfBranchesTsv`,
+                  `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, `fileTableOfParsimonyAndHomoplasyScores`,
+                  `filePhylogeneticTreeNwk`];
 let lists = [`rootingMethods`, `leaves`]
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
@@ -29,15 +29,15 @@ let objectsDependence = {
     'fileSimulatedDatasetsFastas': {'dependence': '', 'value': ''},
     'fileBarplotOfCorrelationSvg': {'dependence': '', 'value': ''},
     'filePlotDistributionOfCorrelationSvg': {'dependence': '', 'value': ''},
-    'filePlotDistributionOfCorrelationByRateBinSvg': {'dependence': '', 'value': ''},
+    'filePlotCorrelationByRateBinSvg': {'dependence': '', 'value': ''},
     'fileTableOfPosteriorRatesTsv': {'dependence': '', 'value': ''},
     'fileTableOfPearsonCorrelationTsv': {'dependence': '', 'value': ''},
     'fileTableOfNodesTsv': {'dependence': '', 'value': ''},
-    'fileProbabilityPerPosPerBranchesTsv': {'dependence': '', 'value': ''},
+    'fileBranchPositionProbabilitiesTsv': {'dependence': '', 'value': ''},
     'fileTableOfBranchesTsv': {'dependence': '', 'value': ''},
     'fileLogLikelihoodTsv': {'dependence': '', 'value': ''},
     'fileTableOfAttributesTsv': {'dependence': '', 'value': ''},
-    'fileTableOfParsimonyScore': {'dependence': '', 'value': ''},
+    'fileTableOfParsimonyAndHomoplasyScores': {'dependence': '', 'value': ''},
     'filePhylogeneticTreeNwk': {'dependence': '', 'value': ''},
     'rootingMethod': {'dependence': '', 'value': ''},
     'leaf': {'dependence': '', 'value': ''},
@@ -550,15 +550,15 @@ function makeTree(mode = 0) {
     const fileSimulatedDatasetsFastas = document.getElementById(`fileSimulatedDatasetsFastas`)
     const fileBarplotOfCorrelationSvg = document.getElementById(`fileBarplotOfCorrelationSvg`)
     const filePlotDistributionOfCorrelationSvg = document.getElementById(`filePlotDistributionOfCorrelationSvg`)
-    const filePlotDistributionOfCorrelationByRateBinSvg = document.getElementById(`filePlotDistributionOfCorrelationByRateBinSvg`)
+    const filePlotCorrelationByRateBinSvg = document.getElementById(`filePlotCorrelationByRateBinSvg`)
     const fileTableOfPosteriorRatesTsv = document.getElementById(`fileTableOfPosteriorRatesTsv`)
     const fileTableOfPearsonCorrelationTsv = document.getElementById(`fileTableOfPearsonCorrelationTsv`)
     const fileTableOfNodesTsv = document.getElementById(`fileTableOfNodesTsv`)
-    const fileProbabilityPerPosPerBranchesTsv = document.getElementById(`fileProbabilityPerPosPerBranchesTsv`)
+    const fileBranchPositionProbabilitiesTsv = document.getElementById(`fileBranchPositionProbabilitiesTsv`)
     const fileTableOfBranchesTsv = document.getElementById(`fileTableOfBranchesTsv`)
     const fileLogLikelihoodTsv = document.getElementById(`fileLogLikelihoodTsv`)
     const fileTableOfAttributesTsv = document.getElementById(`fileTableOfAttributesTsv`)
-    const fileTableOfParsimonyScore = document.getElementById(`fileTableOfParsimonyScore`)
+    const fileTableOfParsimonyAndHomoplasyScores = document.getElementById(`fileTableOfParsimonyAndHomoplasyScores`)
     const filePhylogeneticTreeNwk = document.getElementById(`filePhylogeneticTreeNwk`)
     const rootingMethod = document.getElementById(`rootingMethod`);
     const leaf = document.getElementById(`leaf`);
@@ -584,15 +584,15 @@ function makeTree(mode = 0) {
     formData.append(`fileSimulatedDatasetsFastas`, +fileSimulatedDatasetsFastas.checked);
     formData.append(`fileBarplotOfCorrelationSvg`, +fileBarplotOfCorrelationSvg.checked);
     formData.append(`filePlotDistributionOfCorrelationSvg`, +filePlotDistributionOfCorrelationSvg.checked);
-    formData.append(`filePlotDistributionOfCorrelationByRateBinSvg`, +filePlotDistributionOfCorrelationByRateBinSvg.checked);
+    formData.append(`filePlotCorrelationByRateBinSvg`, +filePlotCorrelationByRateBinSvg.checked);
     formData.append(`fileTableOfPosteriorRatesTsv`, +fileTableOfPosteriorRatesTsv.checked);
     formData.append(`fileTableOfPearsonCorrelationTsv`, +fileTableOfPearsonCorrelationTsv.checked);
     formData.append(`fileTableOfNodesTsv`, +fileTableOfNodesTsv.checked);
-    formData.append(`fileProbabilityPerPosPerBranchesTsv`, +fileProbabilityPerPosPerBranchesTsv.checked);
+    formData.append(`fileBranchPositionProbabilitiesTsv`, +fileBranchPositionProbabilitiesTsv.checked);
     formData.append(`fileTableOfBranchesTsv`, +fileTableOfBranchesTsv.checked);
     formData.append(`fileLogLikelihoodTsv`, +fileLogLikelihoodTsv.checked);
     formData.append(`fileTableOfAttributesTsv`, +fileTableOfAttributesTsv.checked);
-    formData.append(`fileTableOfParsimonyScore`, +fileTableOfParsimonyScore.checked);
+    formData.append(`fileTableOfParsimonyAndHomoplasyScores`, +fileTableOfParsimonyAndHomoplasyScores.checked);
     formData.append(`filePhylogeneticTreeNwk`, +filePhylogeneticTreeNwk.checked);
     formData.append(`rootingMethod`, rootingMethod.value.trim());
     formData.append(`leaf`, leaf.value.trim());
@@ -663,9 +663,9 @@ function gedIdentifiers(id = ``) {
             `numberDatasets`, `eMail`, `isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`,
             `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfCoevolutionTsv`,
             `fileSimulatedDatasetsFastas`, `fileBarplotOfCorrelationSvg`, `filePlotDistributionOfCorrelationSvg`,
-            `filePlotDistributionOfCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`,
-            `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`, `fileProbabilityPerPosPerBranchesTsv`,
-            `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, `fileTableOfParsimonyScore`,
+            `filePlotCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`,
+            `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`, `fileBranchPositionProbabilitiesTsv`,
+            `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, `fileTableOfParsimonyAndHomoplasyScores`,
             'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
     }
 }
@@ -749,7 +749,7 @@ function onChangingCheckbox(id, value) {
         'blockFileTableOfCoevolutionTsv': ['isDoNotUseCoPAP'],
         'blockFileBarplotOfCorrelationSvg': ['isDoNotUseCoPAP'],
         'blockFilePlotDistributionOfCorrelationSvg': ['isDoNotUseCoPAP'],
-        'blockFilePlotDistributionOfCorrelationByRateBinSvg': ['isDoNotUseCoPAP']};
+        'blockFilePlotCorrelationByRateBinSvg': ['isDoNotUseCoPAP']};
     if (checkboxes.includes(id)) {
         Object.entries(checkboxesAccessibilityGroups).forEach(([key, valueList]) => {
             if (valueList.includes(id)) {

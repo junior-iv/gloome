@@ -18,14 +18,14 @@ SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_table_of_posterior_rates_tsv': True,
                   'file_barplot_of_correlation_svg': True,
                   'file_plot_distribution_of_correlation_svg': True,
-                  'file_plot_distribution_of_correlation_by_rate_bin_svg': True,
+                  'file_plot_correlation_by_rate_bin_svg': True,
                   'file_table_of_pearson_correlation_tsv': True,
                   'file_table_of_nodes_tsv': True,
-                  'file_probability_per_pos_per_branches_tsv': True,
+                  'file_branch_position_probabilities_tsv': True,
                   'file_table_of_branches_tsv': True,
                   'file_log_likelihood_tsv': True,
                   'file_table_of_attributes_tsv': True,
-                  'file_table_of_parsimony_score_tsv': True,
+                  'file_table_of_parsimony_and_homoplasy_scores_tsv': True,
                   'file_phylogenetic_tree_nwk': True}
 PREFERRED_URL_SCHEME = 'https'
 WEBSERVER_NAME = 'gloome.tau.ac.il'
@@ -185,8 +185,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     use_simulated_datasets_file = selected_files.get('file_simulated_datasets_fastas', False)
     use_barplot_of_correlation_file = selected_files.get('file_barplot_of_correlation_svg', False)
     use_plot_distribution_of_correlation_file = selected_files.get('file_plot_distribution_of_correlation_svg', False)
-    use_plot_distribution_of_correlation_by_rate_bin_file = selected_files.get(
-        'file_plot_distribution_of_correlation_by_rate_bin_svg', False)
+    use_plot_correlation_by_rate_bin_file = selected_files.get( 'file_plot_correlation_by_rate_bin_svg', False)
     if selected_files.get('file_interactive_tree_html', False):
         result.update({'Interactive tree (html)':
                        newick_tree.tree_to_interactive_html(file_name=f'{file_path}/InteractiveTree.html',
@@ -208,9 +207,9 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                        newick_tree.tree_to_tsv(file_name=f'{file_path}/Nodes.tsv',
                                                taking_into_coefficient=taking_into_coefficient,
                                                mode='node_tsv')})
-    if selected_files.get('file_probability_per_pos_per_branches_tsv', False):
-        result.update({'Probability per positions per branches (tsv)':
-                       newick_tree.probability_to_tsv(file_name=f'{file_path}/ProbabilityPerPositionsPerBranches.tsv',
+    if selected_files.get('file_branch_position_probabilities_tsv', False):
+        result.update({'Branch position probabilities (tsv)':
+                       newick_tree.probability_to_tsv(file_name=f'{file_path}/BranchPositionProbabilities.tsv',
                                                       taking_into_coefficient=taking_into_coefficient)})
     if selected_files.get('file_table_of_branches_tsv', False):
         result.update({'Table of branches (tsv)':
@@ -223,9 +222,9 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     if selected_files.get('file_table_of_attributes_tsv', False):
         result.update({'Tree attributes (tsv)':
                        newick_tree.attributes_to_tsv(file_name=f'{file_path}/TreeAttributes.tsv')})
-    if selected_files.get('file_table_of_parsimony_score_tsv', False):
-        result.update({'Parsimony score (tsv)':
-                       newick_tree.parsimony_score_to_tsv(file_name=f'{file_path}/ParsimonyScore.tsv')})
+    if selected_files.get('file_table_of_parsimony_and_homoplasy_scores_tsv', False):
+        result.update({'Parsimony and homoplasy scores (tsv)':
+                       newick_tree.parsimony_score_to_tsv(file_name=f'{file_path}/ParsimonyAndHomoplasyScores.tsv')})
     if selected_files.get('file_phylogenetic_tree_nwk', False):
         result.update({'Phylogenetic tree (nwk)':
                        newick_tree.tree_to_newick_file(file_name=f'{file_path}/PhylogeneticTree.nwk',
@@ -240,8 +239,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                                                     use_barplot_of_correlation_file=use_barplot_of_correlation_file,
                                                     use_plot_distribution_of_correlation_file=
                                                     use_plot_distribution_of_correlation_file,
-                                                    use_plot_distribution_of_correlation_by_rate_bin_file=
-                                                    use_plot_distribution_of_correlation_by_rate_bin_file))
+                                                    use_plot_correlation_by_rate_bin_file=
+                                                    use_plot_correlation_by_rate_bin_file))
 
     if result:
         file_path = get_path(file_path)
@@ -307,14 +306,14 @@ def check_data(*args) -> List[Tuple[str, str]]:
     file_table_of_posterior_rates_tsv = bool(args[19])
     file_barplot_of_correlation_svg = bool(args[20])
     file_plot_distribution_of_correlation_svg = bool(args[21])
-    file_plot_distribution_of_correlation_by_rate_bin_svg = bool(args[22])
+    file_plot_correlation_by_rate_bin_svg = bool(args[22])
     file_table_of_pearson_correlation_tsv = bool(args[23])
     file_table_of_nodes_tsv = bool(args[24])
-    file_probability_per_pos_per_branches_tsv = bool(args[25])
+    file_branch_position_probabilities_tsv = bool(args[25])
     file_table_of_branches_tsv = bool(args[26])
     file_log_likelihood_tsv = bool(args[27])
     file_table_of_attributes_tsv = bool(args[28])
-    file_table_of_parsimony_score_tsv = bool(args[29])
+    file_table_of_parsimony_and_homoplasy_scores_tsv = bool(args[29])
     file_phylogenetic_tree_nwk = bool(args[30])
     rooting_method = args[31].strip()
     leaf = args[32].strip()
@@ -395,13 +394,13 @@ def check_data(*args) -> List[Tuple[str, str]]:
                          f'The value must be boolean type.'))
 
     if not isinstance(file_plot_distribution_of_correlation_svg, bool):
-        err_list.append((f'Plot distribution of correlation (svg) value error '
+        err_list.append((f'Plot of distribution of correlation (svg) value error '
                          f'[ {file_plot_distribution_of_correlation_svg} ]',
                          f'The value must be boolean type.'))
 
-    if not isinstance(file_plot_distribution_of_correlation_by_rate_bin_svg, bool):
-        err_list.append((f'Plot distribution of correlation by rate-bin (svg) value error '
-                         f'[ {file_plot_distribution_of_correlation_by_rate_bin_svg} ]',
+    if not isinstance(file_plot_correlation_by_rate_bin_svg, bool):
+        err_list.append((f'Plot of correlation by rate-bin (svg) value error '
+                         f'[ {file_plot_correlation_by_rate_bin_svg} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(file_table_of_pearson_correlation_tsv, bool):
@@ -412,9 +411,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'Table of nodes (tsv) value error [ {file_table_of_nodes_tsv} ]',
                          f'The value must be boolean type.'))
 
-    if not isinstance(file_probability_per_pos_per_branches_tsv, bool):
-        err_list.append((f'Probability per positions per branches (tsv) value error [ '
-                         f'{file_probability_per_pos_per_branches_tsv} ]', f'The value must be boolean type.'))
+    if not isinstance(file_branch_position_probabilities_tsv, bool):
+        err_list.append((f'Branch position probabilities (tsv) value error [ '
+                         f'{file_branch_position_probabilities_tsv} ]', f'The value must be boolean type.'))
 
     if not isinstance(file_table_of_branches_tsv, bool):
         err_list.append((f'Table of branches (tsv) value error [ {file_table_of_branches_tsv} ]',
@@ -428,8 +427,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'Tree attributes (tsv) value error [ {file_table_of_attributes_tsv} ]',
                          f'The value must be boolean type.'))
 
-    if not isinstance(file_table_of_parsimony_score_tsv, bool):
-        err_list.append((f'Parsimony score (tsv) value error [ {file_table_of_parsimony_score_tsv} ]',
+    if not isinstance(file_table_of_parsimony_and_homoplasy_scores_tsv, bool):
+        err_list.append((f'Parsimony and homoplasy scores (tsv) value error [ '
+                         f'{file_table_of_parsimony_and_homoplasy_scores_tsv} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(file_phylogenetic_tree_nwk, bool):
