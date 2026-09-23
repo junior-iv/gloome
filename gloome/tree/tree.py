@@ -531,32 +531,71 @@ class Tree:
 
         nodes_info = self.get_list_nodes_info(True, None, filters, fields=set(columns.keys()) | {'father_name'})
 
-        for node_info in nodes_info:
-            for i in set(node_info.keys()) - set(columns.keys()):
-                node_info.pop(i)
-            if not node_info.get('father_name'):
-                node_info.update({'father_name': 'root'})
-            if columns.get(distance_name):
-                distance_value = node_info.pop(distance_name)
-                if distance_type is str:
-                    distance_value = f'{distance_value:.10f}'.ljust(decimal_length, "0"
-                                                                    ) if distance_value else ' ' * decimal_length
-                else:
-                    distance_value = distance_type(distance_value)
-                node_info.update({distance_name: distance_value})
-            for i in lists:
-                if columns.get(i):
-                    node_info.update({i: self.get_list_decimals(node_info.get(i), list_type, decimals,
-                                                                i in exceptions)})
+        tree_table = pd.DataFrame(nodes_info)
+        if tree_table.empty:
+            return pd.DataFrame(columns=np.asarray(columns.values()))
 
-        tree_table = pd.DataFrame([i for i in nodes_info], index=None)
+        existing_cols = [c for c in columns.keys() if c in tree_table.columns]
+        tree_table = tree_table[existing_cols].copy()
+
+        if 'father_name' in tree_table.columns:
+            tree_table['father_name'] = tree_table['father_name'].fillna('root').replace('', 'root')
+
+        if distance_name in tree_table.columns and distance_name in columns:
+            if distance_type is str:
+                blank_pad = ' ' * decimal_length
+                tree_table[distance_name] = tree_table[distance_name].apply(
+                    lambda x: f'{x:.10f}'.ljust(decimal_length, "0") if pd.notna(x) and x != '' else blank_pad
+                )
+            else:
+                tree_table[distance_name] = tree_table[distance_name].astype(distance_type, errors='ignore')
+
+        active_lists = [curr_col for curr_col in lists if curr_col in tree_table.columns and curr_col in columns]
+        for col_name in active_lists:
+            is_exception = col_name in exceptions
+            tree_table[col_name] = tree_table[col_name].apply(
+                lambda val: self.get_list_decimals(val, list_type, decimals, is_exception)
+            )
+
         tree_table = tree_table.rename(columns=columns)
         tree_table = tree_table.reindex(columns=columns.values())
-        if isinstance(list_type, (list, tuple, set)):
-            lists_names = [v for k, v in columns.items() if k in lists]
-            sort_values_by = tuple([i for i in sort_values_by if i not in lists_names])
 
-        return tree_table.sort_values(by=list(sort_values_by)) if sort_values_by else tree_table
+        if sort_values_by:
+            if isinstance(list_type, (list, tuple, set)):
+                lists_names = {columns[k] for k in active_lists}
+                sort_values_by = tuple(i for i in sort_values_by if i not in lists_names)
+
+            if sort_values_by:
+                tree_table = tree_table.sort_values(by=list(sort_values_by))
+
+        return tree_table
+        #
+        # for node_info in nodes_info:
+        #     for i in set(node_info.keys()) - set(columns.keys()):
+        #         node_info.pop(i)
+        #     if not node_info.get('father_name'):
+        #         node_info.update({'father_name': 'root'})
+        #     if columns.get(distance_name):
+        #         distance_value = node_info.pop(distance_name)
+        #         if distance_type is str:
+        #             distance_value = f'{distance_value:.10f}'.ljust(decimal_length, "0"
+        #                                                             ) if distance_value else ' ' * decimal_length
+        #         else:
+        #             distance_value = distance_type(distance_value)
+        #         node_info.update({distance_name: distance_value})
+        #     for i in lists:
+        #         if columns.get(i):
+        #             node_info.update({i: self.get_list_decimals(node_info.get(i), list_type, decimals,
+        #                                                         i in exceptions)})
+        #
+        # tree_table = pd.DataFrame([i for i in nodes_info], index=None)
+        # tree_table = tree_table.rename(columns=columns)
+        # tree_table = tree_table.reindex(columns=columns.values())
+        # if isinstance(list_type, (list, tuple, set)):
+        #     lists_names = [v for k, v in columns.items() if k in lists]
+        #     sort_values_by = tuple([i for i in sort_values_by if i not in lists_names])
+        #
+        # return tree_table.sort_values(by=list(sort_values_by)) if sort_values_by else tree_table
 
     def calculate_ancestral_sequence(self, newick_node: Optional[Union[Node, str]] = None) -> str:
         if self.alphabet and not self.calculated_ancestor_sequence:
@@ -765,7 +804,7 @@ class Tree:
         df['probability'] = df['probability'].astype(float)
         df = df.sort_values(by=['POS', 'branch', 'G/L'])
         df = df.query(f'probability > {probability_limit} and `G/L` in {ancestral_comparison[1:3]}')
-        df.to_csv(file_name, sep=sep, index=False)
+        df.to_csv(file_name, sep=sep, index=False, float_format='%.8f', chunksize=50000)
 
         return file_name
 
@@ -891,8 +930,7 @@ class Tree:
                           use_plot_correlation_by_rate_bin_file: bool = False) -> Dict[str, str]:
         """
         Args (new/notable):
-            event_threshold: the actual per-site candidate filter used for the coevolution table
-                (was silently hardcoded to 0.5 regardless of the caller's arguments).
+            event_threshold: the actual per-site candidate filter used for the coevolution table.
             p_value_mode: 'empirical' (default, rank-based against the raw per-bin null --
                 resolution floored at 1/(n_in_bin + 1)) or 'beta' (fit a Beta(a, b) to each bin's
                 null and read the tail off the fitted CDF, removing that floor; bins that don't
@@ -1026,7 +1064,7 @@ class Tree:
             gc.collect()
 
             if use_coevolution_file:
-                df.to_csv(file_coevolution, sep=sep, index=False)
+                df.to_csv(file_coevolution, sep=sep, index=False, float_format='%.8f', chunksize=50000)
                 result.update({'Table of coevolution (tsv)': file_coevolution})
 
             if use_plot_distribution_of_correlation_file:
@@ -1120,7 +1158,7 @@ class Tree:
 
         df = pd.DataFrame({'POS': range(len(self.posterior_rates)),
                            'rate': self.posterior_rates})
-        df.to_csv(file_name, sep=sep, index=False)
+        df.to_csv(file_name, sep=sep, index=False, float_format='%.8f', chunksize=50000)
 
         return file_name
 
@@ -1135,7 +1173,7 @@ class Tree:
         df = pd.DataFrame({'POS1': np.int32(self.correlation_vector[0]),
                            'POS2': np.int32(self.correlation_vector[1]),
                            'correlation': self.correlation_vector[2]})
-        df.to_csv(file_name, sep=sep, index=False)
+        df.to_csv(file_name, sep=sep, index=False, float_format='%.8f', chunksize=50000)
 
         return file_name
 
@@ -1151,7 +1189,7 @@ class Tree:
                             'log likelihood': self.log_likelihood}, cls=NpEncoder))
         df = pd.DataFrame({k: ((v, ) if isinstance(v, (set, tuple, list)) else v) for k, v in data.items()
                            if v is not None}, index=[0])
-        df.to_csv(file_name, sep=sep, index=False)
+        df.to_csv(file_name, sep=sep, index=False, float_format='%.8f', chunksize=50000)
 
         return file_name
 
@@ -1159,7 +1197,7 @@ class Tree:
 
         self.make_dir(file_name)
         df = self.get_parsimony_score()
-        df.to_csv(file_name, sep=sep, index=False)
+        df.to_csv(file_name, sep=sep, index=False, float_format='%.8f', chunksize=50000)
 
         return file_name
 
@@ -1174,7 +1212,7 @@ class Tree:
                      'log-likelihood': self.log_likelihood}
 
         df_with_total = pd.concat([df, pd.DataFrame([total_row])], ignore_index=True)
-        df_with_total.to_csv(file_name, sep=sep, index=False)
+        df_with_total.to_csv(file_name, sep=sep, index=False, float_format='%.8f', chunksize=50000)
 
         return file_name
 
@@ -1198,7 +1236,8 @@ class Tree:
             kwargs.update(decimals=decimals)
 
         table = self.tree_to_table(taking_into_coefficient=taking_into_coefficient, **kwargs)
-        table.to_csv(file_name, index=False, sep=sep)
+
+        table.to_csv(file_name, index=False, sep=sep, float_format='%.8f', chunksize=50000)
 
         return file_name
 
@@ -1943,18 +1982,22 @@ class Tree:
     @staticmethod
     def get_list_decimals(obj: Union[int, float, np.float64, np.ndarray], list_type: type = str, decimals: int = 4,
                           return_list: bool = False) -> Any:
-        if list_type in (list, tuple, set):
-            if return_list:
-                return list_type(map(lambda x: Tree.get_round(x, decimals) if (isinstance(x, (int, float, np.float64,
-                                                                               np.ndarray))) else x, obj))
-            if isinstance(obj, (list, tuple, set)):
-                return list_type(map(lambda x: Tree.get_round(x, decimals)
-                                     if isinstance(x, (int, float, np.float64, np.ndarray))
-                                     else Tree.get_list_decimals(x, list_type, decimals), obj))
-            else:
-                return obj
-        else:
-            return ' '.join(map(str, obj))
+        if isinstance(obj, (int, float, np.float64)):
+            return round(obj, decimals)
+
+        if isinstance(obj, np.ndarray):
+            if np.issubdtype(obj.dtype, np.number):
+                return obj.round(decimals).tolist()
+
+            if obj.dtype == object:
+                vectorized_round = np.vectorize(
+                    lambda x: Tree.get_list_decimals(x, list_type, decimals, return_list), otypes=[object])
+                return vectorized_round(obj).tolist()
+
+        if isinstance(obj, (list, tuple, set)):
+            return [Tree.get_list_decimals(x, list_type, decimals, return_list) for x in obj]
+
+        return obj
 
     @staticmethod
     def is_bootstrap_value(number_str: str, lower: Union[float, np.float64, int] = 0,

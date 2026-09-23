@@ -403,7 +403,7 @@ function drawLogLikelihood(jsonData) {
     let result = `<div class="w-100 flex-row form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill" 
         onclick="copyValue('logLikelihoodValue', 7)" title="click here to copy the value of log-likelihood to the clipboard">
         Log-likelihood of the phylogenetic tree: <input id="logLikelihoodValue" title="click here to copy the value of log-likelihood to the clipboard" 
-        class="badge bg-success border-0" onclick="copyValue(this.id, 7)" name="Log-likelihood of the phylogenetic tree" type="submit" value="${jsonData[0]}"/> 
+        class="btn btn-outline-success bg-success-subtle border-0 p-0 fw-semibold" onclick="copyValue(this.id, 7)" name="Log-likelihood of the phylogenetic tree" type="submit" value="${jsonData[0]}"/> 
     </div>`
     document.getElementById('logLikelihood').innerHTML = result;
     return result;

@@ -201,7 +201,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     if selected_files.get('file_table_of_pearson_correlation_tsv', False) and use_copap:
         result.update({'Table of pearson correlation (tsv)':
                        newick_tree.pearson_correlation_to_tsv(file_name=f'{file_path}/PearsonCorrelation.tsv',
-                                                              probability_lg=probability_lg, number_lg=number_lg)})
+                                                              probability_lg=probability_lg,
+                                                              number_lg=number_lg)})
     if selected_files.get('file_table_of_nodes_tsv', False):
         result.update({'Table of nodes (tsv)':
                        newick_tree.tree_to_tsv(file_name=f'{file_path}/Nodes.tsv',

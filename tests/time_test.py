@@ -1,12 +1,32 @@
 from typing import Union, Any
 from pathlib import Path
-# from importlib.resources import files
 from json import dumps
 from line_profiler import LineProfiler
 from gloome.tree.tree import Tree
-# from gloome.services.service_functions import draw_tree, compute_likelihood_of_tree, create_all_file_types
 
 BIN_DIR = Path.cwd().parent
+
+use_line_profiler = True
+
+check_file_creation_time = True
+check_correlation_calculation_time = True
+check_ancestral_sequence_calculation_time = True
+check_dataset_simulation_time = True
+dirname = BIN_DIR
+
+categories_quantity = 4
+alpha = 0.5
+pi_1 = 0.5
+coefficient_bl = 1
+is_optimize_pi = True
+is_optimize_pi_average = False
+is_optimize_alpha = True
+is_optimize_bl = True
+
+probability_lg = 0.5
+number_lg = 1
+
+number_datasets = 100
 
 
 def read_file(file_path: Path) -> str:
@@ -26,103 +46,73 @@ def write_file(file_path: Path, data: Union[str, Any]):
 
 
 def main():
-    dirname = BIN_DIR
-    categories_quantity = 4
-    alpha = 0.5
-    pi_1 = 0.5
-    coefficient_bl = 1
-    is_optimize_pi = True
-    is_optimize_pi_average = False
-    is_optimize_alpha = True
-    is_optimize_bl = True
-    # msa_file = f'{dirname}/gloome/data/initial_data/msa/patternMSA11.fasta'
-    # tree_file = f'{dirname}/gloome/data/initial_data/tree/newickTree11.nwk'
-    # file_path = f'{dirname}/results/out/test_11_op/'
-    # msa_file = f'{dirname}/gloome/data/initial_data/msa/patternMSA10.fasta'
-    # tree_file = f'{dirname}/gloome/data/initial_data/tree/newickTree10.nwk'
-    # file_path = f'{dirname}/results/out/test_10_op/'
-    # msa_file = f'{dirname}/gloome/data/initial_data/msa/patternMSA1.msa'
-    # tree_file = f'{dirname}/gloome/data/initial_data/tree/newickTree1.tree'
-    # file_path = f'{dirname}/results/out/test_1_op/'
-    msa_file = dirname.joinpath('gloome/data/initial_data/msa/patternMSA0.msa')
-    tree_file = dirname.joinpath('gloome/data/initial_data/tree/newickTree0.tree')
-    # file_path = dirname.joinpath('g/')
-    # log_file = file_path.joinpath('log.log')
-    form_data = {'msaText': read_file(msa_file),
-                 'newickText': read_file(tree_file),
-                 'isOptimizePi': is_optimize_pi,
-                 'isOptimizePiAverage': is_optimize_pi_average,
-                 'isOptimizeAlpha': is_optimize_alpha,
-                 'isOptimizeBL': is_optimize_bl,
-                 'isDoNotUseCoPAP': True,
-                 'coefficientBL': coefficient_bl,
-                 'pi1': pi_1,
+    msa_file = dirname.joinpath('gloome/data/initial_data/msa/patternMSA11.msa')
+    tree_file = dirname.joinpath('gloome/data/initial_data/tree/newickTree11.tree')
+    file_path = dirname.joinpath('results/correlation_test')
+    fasta_text = read_file(msa_file)
+    newick_text = read_file(tree_file)
+    tree_data = {'pi_1': pi_1,
                  'alpha': alpha,
-                 'categoriesQuantity': categories_quantity,
-                 'eMail': ''}
-    # print(msa_file, tree_file, form_data)
+                 'categories_quantity': categories_quantity,
+                 'coefficient_bl': coefficient_bl,
+                 'is_optimize_pi': is_optimize_pi,
+                 'is_optimize_pi_average': is_optimize_pi_average,
+                 'is_optimize_alpha': is_optimize_alpha,
+                 'is_optimize_bl': is_optimize_bl,
+                 }
 
-    newick_tree = Tree(form_data.get('newickText'))
-    Tree.rename_nodes(newick_tree)
-    newick_tree.set_tree_data(msa=form_data.get('msaText'),
-                              categories_quantity=categories_quantity,
-                              alpha=alpha, pi_1=pi_1,
-                              coefficient_bl=coefficient_bl,
-                              is_optimize_pi=is_optimize_pi,
-                              is_optimize_pi_average=is_optimize_pi_average,
-                              is_optimize_alpha=is_optimize_alpha,
-                              is_optimize_bl=is_optimize_bl)
-    # newick_tree.calculate_likelihood()
-    # print(newick_tree.root.up_vector, newick_tree.log_likelihood_vector, newick_tree.log_likelihood, sep='\n')
-    # newick_tree.calculate_up2()
-    # print(newick_tree.root.up_vector2, newick_tree.log_likelihood_vector, newick_tree.log_likelihood, sep='\n')
-    # leaves = newick_tree.get_leaves()
-    # likelihood = 0
-    # for i in range(newick_tree.msa_length):
-    #     likelihood += newick_tree.calculate_up(msa=''.join([newick_tree.msa.get(leaf.name)[i] for leaf in leaves]))
-    #     newick_tree.calculate_down()
-    #     newick_tree.calculate_marginal()
-    #     newick_tree.calculate_gl_probability()
+    gloome_tree = Tree(newick_text, msa=fasta_text, **tree_data)
+    Tree.rename_nodes(gloome_tree)
 
-    # print(likelihood)
-    # print(newick_tree.root.children[1].marginal_vector, sep='\n')
-    # print(newick_tree.root.probability_vector, sep='\n')
-    # print(newick_tree.root.probabilities_sequence_characters, sep='\n')
-    # print(newick_tree.root.sequence, sep='\n')
-    # print(newick_tree.root.children[1].branch_probability_vector, sep='\n')
-    #
-    newick_tree.calculate_likelihood()
-    print(newick_tree.log_likelihood)
-    newick_tree.calculate_down()
-    newick_tree.calculate_marginal()
-    # print(newick_tree.root.children[1].branch_probability_vector2, sep='\n')
-    # print('final', newick_tree.likelihood)
-    # print(newick_tree.root.probability_vector2, sep='\n')
-    # print(newick_tree.root.probabilities_sequence_characters2, sep='\n')
-    # print(newick_tree.root.sequence, sep='\n')
-    # print(newick_tree.root.pmatrix)
-    # print(newick_tree.root.up_vector2)
-    # print(newick_tree.root.down_vector2)
-    # newick_tree.calculate_down2()
-    # print(newick_tree.root.down_vector2)
-    # for node in newick_tree.get_all_nodes():
-    #     print(node.name, node.up_vector_vectorized)
-    #
-    # newick_tree.calculate_tree()
-    # newick_tree.calculate_ancestral_sequence()
-    # draw_tree(newick_tree)
-    # compute_likelihood_of_tree(newick_tree)
-    # selected_files = {'file_probability_per_pos_per_branches_tsv': True,
-    #                   'file_table_of_branches_tsv': True,
-    #                   'file_log_likelihood_tsv': True,
-    #                   'file_table_of_attributes_tsv': True,
-    #                   'file_phylogenetic_tree_nwk': True}
-    # create_all_file_types(newick_tree, file_path=file_path, log_file=log_file, with_internal_nodes=True,
-    #                       selected_files=selected_files)
-    # # newick_tree.print_args('END')
+    gloome_tree.calculate_likelihood()
+    gloome_tree.calculate_down()
+    gloome_tree.calculate_marginal()
 
+    if check_ancestral_sequence_calculation_time:
+        gloome_tree.calculate_ancestral_sequence()
 
-use_line_profiler = True
+    if check_correlation_calculation_time:
+        gloome_tree.calculate_correlation(probability_lg=probability_lg, number_lg=number_lg)
+
+    if check_file_creation_time:
+        taking_into_coefficient = gloome_tree.coefficient_bl != 1
+        with_internal_nodes = True
+
+        gloome_tree.tree_to_interactive_html(file_name=f'{file_path}/InteractiveTree.html',
+                                             taking_into_coefficient=taking_into_coefficient)
+        gloome_tree.tree_to_visual_format(file_name=f'{file_path}/VisualTree.svg',
+                                          with_internal_nodes=with_internal_nodes,
+                                          taking_into_coefficient=taking_into_coefficient,
+                                          file_extensions=('png', ))
+        gloome_tree.posterior_rates_to_tsv(file_name=f'{file_path}/PosteriorRates.tsv')
+        gloome_tree.pearson_correlation_to_tsv(file_name=f'{file_path}/PearsonCorrelation.tsv',
+                                               probability_lg=probability_lg,
+                                               number_lg=number_lg)
+        gloome_tree.tree_to_tsv(file_name=f'{file_path}/Nodes.tsv',
+                                taking_into_coefficient=taking_into_coefficient,
+                                mode='node_tsv')
+        gloome_tree.probability_to_tsv(file_name=f'{file_path}/BranchPositionProbabilities.tsv',
+                                       taking_into_coefficient=taking_into_coefficient)
+        gloome_tree.tree_to_tsv(file_name=f'{file_path}/Branches.tsv',
+                                taking_into_coefficient=taking_into_coefficient,
+                                mode='branch_tsv')
+        gloome_tree.likelihood_to_tsv(file_name=f'{file_path}/LogLikelihood.tsv')
+        gloome_tree.attributes_to_tsv(file_name=f'{file_path}/TreeAttributes.tsv')
+        gloome_tree.parsimony_score_to_tsv(file_name=f'{file_path}/ParsimonyAndHomoplasyScores.tsv')
+        gloome_tree.tree_to_newick_file(file_name=f'{file_path}/PhylogeneticTree.nwk',
+                                        taking_into_coefficient=taking_into_coefficient,
+                                        with_internal_nodes=True,
+                                        decimal_length=0)
+
+    if check_dataset_simulation_time:
+        gloome_tree.simulate_datasets(file_path=f'{file_path}',
+                                      number_datasets=number_datasets,
+                                      use_simulated_datasets_file=check_file_creation_time,
+                                      use_coevolution_file=check_file_creation_time,
+                                      use_barplot_of_correlation_file=check_file_creation_time,
+                                      use_plot_distribution_of_correlation_file=check_file_creation_time,
+                                      use_plot_correlation_by_rate_bin_file=check_file_creation_time)
+
 
 if use_line_profiler:
     lp = LineProfiler()

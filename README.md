@@ -40,13 +40,10 @@ gloome
 │   │   ├── table.html
 │   │   └── under_construction.html
 │   ├── __init__.py
-│   ├── config.py
 │   ├── app.py
+│   ├── config.py
 │   ├── flask_config.py
-│   ├── http_utils.py
-│   ├── mail.py
-│   ├── runs_automatic_report_sending.py
-│   └── runs_automatic_report_sending.sh
+│   └── http_utils.py
 ├── gloome
 │   ├── data
 │   │   └── initial_data
@@ -75,11 +72,20 @@ gloome
 │   ├── consts.py
 │   └── utils.py
 ├── logs
+├── mail
+│   ├── __init__.py
+│   └── mail.py
 ├── results
 │   ├── out
 │   └── in
+├── scheduler
+│   ├── __init__.py
+│   ├── runs_automatic_daily_cleaning.py
+│   ├── runs_automatic_daily_job.py
+│   └── runs_automatic_report_sending.py
 ├── tests
 │   ├── __init__.py
+│   ├── correlation_test.py
 │   └── time_test.py
 ├── Pipfile
 ├── README.md
