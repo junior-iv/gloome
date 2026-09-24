@@ -50,13 +50,13 @@ gloome
 │   │       ├── tree
 │   │       │   ├── newickTree0.tree
 │   │       │   ├── newickTree1.tree
-│   │       │   ├── newickTree10.nwk
-│   │       │   └── newickTree11.nwk
+│   │       │   ├── newickTree10.tree
+│   │       │   └── newickTree11.tree
 │   │       └── msa
 │   │           ├── patternMSA0.msa
 │   │           ├── patternMSA1.msa
-│   │           ├── patternMSA10.fasta
-│   │           └── patternMSA11.fasta
+│   │           ├── patternMSA10.msa
+│   │           └── patternMSA11.msa
 │   ├── services
 │   │   ├── __init__.py
 │   │   ├── design_functions.py
