@@ -553,9 +553,10 @@ class Tree:
         active_lists = [curr_col for curr_col in lists if curr_col in tree_table.columns and curr_col in columns]
         for col_name in active_lists:
             is_exception = col_name in exceptions
-            tree_table[col_name] = tree_table[col_name].apply(
-                lambda val: self.get_list_decimals(val, list_type, decimals, is_exception)
-            )
+            tree_table[col_name] = [
+                self.get_list_decimals(val, list_type, decimals, is_exception=is_exception, force_list=True)
+                for val in tree_table[col_name]
+            ]
 
         tree_table = tree_table.rename(columns=columns)
         tree_table = tree_table.reindex(columns=columns.values())
@@ -569,33 +570,7 @@ class Tree:
                 tree_table = tree_table.sort_values(by=list(sort_values_by))
 
         return tree_table
-        #
-        # for node_info in nodes_info:
-        #     for i in set(node_info.keys()) - set(columns.keys()):
-        #         node_info.pop(i)
-        #     if not node_info.get('father_name'):
-        #         node_info.update({'father_name': 'root'})
-        #     if columns.get(distance_name):
-        #         distance_value = node_info.pop(distance_name)
-        #         if distance_type is str:
-        #             distance_value = f'{distance_value:.10f}'.ljust(decimal_length, "0"
-        #                                                             ) if distance_value else ' ' * decimal_length
-        #         else:
-        #             distance_value = distance_type(distance_value)
-        #         node_info.update({distance_name: distance_value})
-        #     for i in lists:
-        #         if columns.get(i):
-        #             node_info.update({i: self.get_list_decimals(node_info.get(i), list_type, decimals,
-        #                                                         i in exceptions)})
-        #
-        # tree_table = pd.DataFrame([i for i in nodes_info], index=None)
-        # tree_table = tree_table.rename(columns=columns)
-        # tree_table = tree_table.reindex(columns=columns.values())
-        # if isinstance(list_type, (list, tuple, set)):
-        #     lists_names = [v for k, v in columns.items() if k in lists]
-        #     sort_values_by = tuple([i for i in sort_values_by if i not in lists_names])
-        #
-        # return tree_table.sort_values(by=list(sort_values_by)) if sort_values_by else tree_table
+
 
     def calculate_ancestral_sequence(self, newick_node: Optional[Union[Node, str]] = None) -> str:
         if self.alphabet and not self.calculated_ancestor_sequence:
@@ -1980,22 +1955,35 @@ class Tree:
         return float(np.round(obj, decimals))
 
     @staticmethod
-    def get_list_decimals(obj: Union[int, float, np.float64, np.ndarray], list_type: type = str, decimals: int = 4,
-                          return_list: bool = False) -> Any:
+    def get_list_decimals(obj: Any, list_type: type = str, decimals: int = 4,
+                          is_exception: bool = False, force_list: bool = False) -> Any:
         if isinstance(obj, (int, float, np.float64)):
             return round(obj, decimals)
 
         if isinstance(obj, np.ndarray):
             if np.issubdtype(obj.dtype, np.number):
-                return obj.round(decimals).tolist()
-
-            if obj.dtype == object:
+                obj = obj.round(decimals).tolist()
+            elif obj.dtype == object:
                 vectorized_round = np.vectorize(
-                    lambda x: Tree.get_list_decimals(x, list_type, decimals, return_list), otypes=[object])
-                return vectorized_round(obj).tolist()
+                    lambda x: Tree.get_list_decimals(x, list_type, decimals, is_exception, force_list),
+                    otypes=[object]
+                )
+                obj = vectorized_round(obj).tolist()
+            else:
+                obj = obj.tolist()
+
+        if isinstance(obj, str):
+            if len(obj) <= 1:
+                return obj
+
+            if force_list:
+                obj = obj.split() if ' ' in obj.strip() else list(obj)
 
         if isinstance(obj, (list, tuple, set)):
-            return [Tree.get_list_decimals(x, list_type, decimals, return_list) for x in obj]
+            processed = [Tree.get_list_decimals(x, list_type, decimals, is_exception, force_list=False) for x in obj]
+
+            target_type = list_type if list_type in (list, tuple, set) else list
+            return target_type(processed)
 
         return obj
 
