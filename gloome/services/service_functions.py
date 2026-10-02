@@ -447,75 +447,97 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append(('MSA error', 'No MSA was provided.'))
     elif not msa.startswith('>'):
         err_list.append(('MSA error', 'Wrong MSA format. Please provide MSA in FASTA format.'))
-    elif len(msa.split('\n')) / 2 < 2:
-        err_list.append(('MSA error', 'There should be at least two sequences in the MSA.'))
     else:
-        len_list = []
-        incorrect_characters = ''
-        for i, current_line in enumerate(msa.split()):
-            if i % 2:
-                current_line = current_line.strip()
-                len_list.append(len(current_line))
-                for j in current_line:
-                    if j not in '01':
-                        incorrect_characters += f'{j} '
-
-        if min(len_list) != max(len_list):
-            err_list.append((f'MSA error', f'The MSA contains sequences of different lengths.'))
-        if incorrect_characters:
-            err_list.append(('MSA error',
-                             f'MSA file contains an illegal character(s) [ {incorrect_characters.strip()} ]. '
-                             f'Please note that “0” and “1” are the only allowed characters in the phyletic MSAs.'))
-
-        msa_list = msa.strip().split()
-        msa_taxa_info = [msa_list[j + j][1::] for j in range(len(msa_list) // 2)]
-
-        if len(msa_taxa_info) != len(msa_taxa_info):
-            err_list.append((f'MSA error', f'Duplicate taxa names found.'))
-
-        if not newick_text:
-            err_list.append((f'TREE error', f'No Phylogenetic tree was provided.'))
-        elif (not (newick_text.startswith('(') and newick_text.endswith(';')) or
-              (newick_text.count('(') != newick_text.count(')'))):
-            err_list.append((f'TREE error', f'Wrong Phylogenetic tree format. Please provide a tree in Newick format.'))
+        msa_list = msa.split()
+        if len(msa_list) / 2 < 2:
+            err_list.append(('MSA error', 'There should be at least two sequences in the MSA.'))
         else:
-            try:
-                current_tree = Tree(newick_text)
-                Tree.rename_nodes(current_tree)
-            except ValueError:
-                current_tree = None
+            allowed = set('01?')
+            all_chars = set()
+            msa_taxa_set = set()
 
-            if current_tree:
-                for current_node in current_tree.get_list_nodes_info(with_additional_details=True, filters={'distance':
-                                                                     [0.0, ]}, only_node_list=True):
-                    current_node.distance_to_father = float(f'{current_node.distance_to_father:.4f}1')
-                edges_distances_list = current_tree.tree_to_table(filters={'node_type': ['leaf', 'node']},
-                                                                  columns={'distance': 'distance'},
-                                                                  distance_type=float,
-                                                                  taking_into_coefficient=False).T.values[0].tolist()
-                if not all(edges_distances_list):
-                    err_list.append((f'TREE error',
-                                     f'One or more branches in the tree have zero length.\n'
-                                     f'{edges_distances_list}'))
-                if not (current_tree.get_leaves_count() == len(msa.split('\n')) / 2 == msa.count('>')):
-                    err_list.append((f'MSA error',
-                                     f'A discrepancy exists between the number of leaves in the phylogenetic tree and '
-                                     f'the number of sequences present in the MSA data.'))
+            first_len = None
+            is_different_lengths = False
+            has_duplicate_taxa = False
 
-                tree_taxa_info = current_tree.tree_to_table(filters={'node_type': ['leaf']}, columns={'node': 'node'},
-                                                            taking_into_coefficient=False).T.values[0].tolist()
+            for i in range(0, len(msa_list), 2):
+                taxa = msa_list[i][1:]
+                if taxa in msa_taxa_set:
+                    has_duplicate_taxa = True
+                msa_taxa_set.add(taxa)
 
-                if len(tree_taxa_info) != len(set(tree_taxa_info)):
-                    err_list.append((f'TREE error', f'Duplicate taxa names found.'))
+                if i + 1 < len(msa_list):
+                    line = msa_list[i + 1]
+                    current_len = len(line)
 
-                if set(tree_taxa_info).difference(set(msa_taxa_info)):
-                    err_list.append((f'DATA MISMATCH error',
-                                     f'Taxa names in the MSA and phylogenetic tree do not match.'))
-                if not current_tree.all_nodes.get(leaf) and rooting_method == 'outgroup':
-                    err_list.append((f'TREE error', f'Leaf {leaf} not found.'))
-            else:
+                    if first_len is None:
+                        first_len = current_len
+                    elif current_len != first_len:
+                        is_different_lengths = True
+
+                    all_chars.update(line)
+
+            unique_incorrect = all_chars - allowed
+            incorrect_characters = ' '.join(unique_incorrect)
+
+            if is_different_lengths:
+                err_list.append(('MSA error', 'The MSA contains sequences of different lengths.'))
+
+            if incorrect_characters:
+                err_list.append(('MSA error',
+                                 f'MSA file contains an illegal character(s) [ {incorrect_characters} ]. '
+                                 f'Please note that “0”, “1” and “?” (missing data) are the only allowed characters '
+                                 f'in the phyletic MSAs.'))
+
+            if has_duplicate_taxa:
+                err_list.append(('MSA error', 'Duplicate taxa names found.'))
+
+            if not newick_text:
+                err_list.append((f'TREE error', f'No Phylogenetic tree was provided.'))
+            elif (not (newick_text.startswith('(') and newick_text.endswith(';')) or
+                  (newick_text.count('(') != newick_text.count(')'))):
                 err_list.append((f'TREE error',
-                                 f'Wrong Phylogenetic tree format. Please provide a tree in Newick format.'))
+                                 'Wrong Phylogenetic tree format. Please provide a tree in Newick format.'))
+            else:
+                try:
+                    current_tree = Tree(newick_text)
+                    Tree.rename_nodes(current_tree)
+                except ValueError:
+                    current_tree = None
+
+                if current_tree:
+                    for current_node in current_tree.get_list_nodes_info(with_additional_details=True,
+                                                                         filters={'distance': [0.0, ]},
+                                                                         only_node_list=True):
+                        current_node.distance_to_father = float(f'{current_node.distance_to_father:.4f}1')
+                    edges_distances_list = current_tree.tree_to_table(filters={'node_type': ['leaf', 'node']},
+                                                                      columns={'distance': 'distance'},
+                                                                      distance_type=float,
+                                                                      taking_into_coefficient=False
+                                                                      ).T.values[0].tolist()
+                    if not all(edges_distances_list):
+                        err_list.append((f'TREE error',
+                                         f'One or more branches in the tree have zero length.\n'
+                                         f'{edges_distances_list}'))
+                    if not (current_tree.get_leaves_count() == len(msa.split('\n')) / 2 == msa.count('>')):
+                        err_list.append((f'MSA error',
+                                         f'A discrepancy exists between the number of leaves in the phylogenetic tree '
+                                         f'and the number of sequences present in the MSA data.'))
+
+                    tree_taxa_info = current_tree.get_leaves(only_node_list=False)
+
+                    tree_taxa_set = set(tree_taxa_info)
+                    if len(tree_taxa_info) != len(tree_taxa_set):
+                        err_list.append((f'TREE error', f'Duplicate taxa names found.'))
+
+                    if tree_taxa_set.difference(msa_taxa_set):
+                        err_list.append((f'DATA MISMATCH error',
+                                         f'Taxa names in the MSA and phylogenetic tree do not match.'))
+                    if not current_tree.all_nodes.get(leaf) and rooting_method == 'outgroup':
+                        err_list.append((f'TREE error', f'Leaf {leaf} not found.'))
+                else:
+                    err_list.append((f'TREE error',
+                                     f'Wrong Phylogenetic tree format. Please provide a tree in Newick format.'))
 
     return err_list
 

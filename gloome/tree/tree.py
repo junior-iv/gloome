@@ -571,7 +571,6 @@ class Tree:
 
         return tree_table
 
-
     def calculate_ancestral_sequence(self, newick_node: Optional[Union[Node, str]] = None) -> str:
         if self.alphabet and not self.calculated_ancestor_sequence:
             node_list = []
@@ -642,7 +641,7 @@ class Tree:
             up_vector[:, 0, mask_0] = 1.0
             up_vector[:, 1, mask_1] = 1.0
 
-            mask_gap = (sequence == '-') | (sequence == '?')
+            mask_gap = np.isin(sequence, ('-', ) + self.get_unknown_characters())
             up_vector[:, :, mask_gap] = 1.0
 
             leaf.up_vector = up_vector
@@ -1400,7 +1399,8 @@ class Tree:
         elif is_optimize_pi_average:
             all_lines_list = list(self.msa.values())
             all_lines = ''.join(all_lines_list)
-            self.pi_1 = all_lines.count(self.alphabet[mode]) / len(all_lines)
+            known_characters_count = sum(all_lines.count(char) for char in self.alphabet)
+            self.pi_1 = all_lines.count(self.alphabet[mode]) / known_characters_count
             self.set_vars()
 
     def clean_all(self):
@@ -2068,7 +2068,12 @@ class Tree:
         for sequence in msa_dict.values():
             character_list += [i for i in sequence]
 
-        return cls.get_alphabet(set(character_list))
+        return cls.get_alphabet(set(character_list) - set(cls.get_unknown_characters()))
+
+    @staticmethod
+    def get_unknown_characters() -> Tuple[str, ...]:
+
+        return '?',
 
     @staticmethod
     def get_columns_list_for_sorting(mode: str = 'node') -> Dict[str, List[str]]:
