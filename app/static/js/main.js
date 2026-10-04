@@ -433,7 +433,7 @@ function drawFileList(jsonData) {
         console.log('NEW data version detected (list-compatible)');
         jsonData.forEach(file => {
             const downloadBtn = `<a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-warning zoomable-element border-1 rounded-pill" href="${file['download_url']}" target="_blank">download</a>`
-            const viewBtn = `<a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-info zoomable-element border-1 rounded-pill" href="${file['download_url']}" target="_blank">view</a>`
+            const viewBtn = `<a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-info zoomable-element border-1 rounded-pill" href="${file['view_url']}" target="_blank">view</a>`
 
             container += `<div class="grid-container-2">
                     <div class="p-1 w-auto text-secondary">${file['name']}</div>
