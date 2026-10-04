@@ -606,10 +606,12 @@ def get_response_design(json_object: Optional[Any], action_name: str, create_lin
         url_list = []
         for key in FILE_LIST:
             current_file = json_object.get(key, '')
+            if not current_file:
+                continue
             url_list.append({'name': key,
                              'download_url': create_url(file_path=current_file, mode="download"),
                              'view_url': create_url(file_path=current_file, mode="view")})
-        json_object = url_list
+        return url_list
 
     return json_object
 
