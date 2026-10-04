@@ -11,6 +11,29 @@ from numpy import ndarray
 from gloome.tree.tree import Tree
 from gloome.services.design_functions import *
 
+FILE_LIST = [
+    'Log-likelihood (tsv)',
+    'Table of nodes (tsv)',
+    'Table of branches (tsv)',
+    'Branch position probabilities (tsv)',
+    'Table of coevolution (tsv)',
+    'Parsimony and homoplasy scores (tsv)',
+    'Table of posterior rates (tsv)',
+    'Table of pearson correlation (tsv)',
+    'Tree attributes (tsv)',
+    'Phylogenetic tree (nwk)',
+    'Simulated datasets (fastas)',
+    'Log-File (log)',
+    'JSON response file (json)',
+    'Barplot of correlation (svg)',
+    'Plot of correlation by rate-bin (svg)',
+    'Plot of distribution of correlation (svg)',
+    'Interactive tree (html)',
+    'Newick tree (svg)',
+    'Newick tree (png)',
+    'Newick tree (txt)',
+    'Archive (zip)'
+]
 SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_newick_tree_png': True,
                   'file_table_of_coevolution_tsv': True,
@@ -580,8 +603,13 @@ def get_response_design(json_object: Optional[Any], action_name: str, create_lin
         if output_file:
             json_object.update({'JSON response file (json)': output_file})
 
-        json_object = result_design(link_design(json_object), change_value='compute_likelihood_of_tree' in action_name,
-                                    change_value_style=False, change_key=True, change_key_style=False)
+        url_list = []
+        for key in FILE_LIST:
+            current_file = json_object.get(key, '')
+            url_list.append({'name': key,
+                             'download_url': create_url(file_path=current_file, mode="download"),
+                             'view_url': create_url(file_path=current_file, mode="view")})
+        json_object = url_list
 
     return json_object
 
@@ -589,23 +617,6 @@ def get_response_design(json_object: Optional[Any], action_name: str, create_lin
 def create_url(file_path: Path, mode: str = 'view'):
 
     return f'{WEBSERVER_URL}/get_file?file_path={str(file_path).replace("/", "%2F")}&mode={mode}'
-
-
-def link_design(json_object: Any) -> Any:
-    for key, value in json_object.items():
-        if key == 'execution_time':
-            continue
-        json_object.update(
-            {f'{key}': [f'<a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-warning zoomable-element '
-                        f'border-1 rounded-pill" href="{create_url(file_path=value, mode="download")}" target="_blank">'
-                        f'download'
-                        f'</a>',
-                        f'<a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-info zoomable-element '
-                        f'border-1 rounded-pill" href="{create_url(file_path=value, mode="view")}" target="_blank">'
-                        f'view'
-                        f'</a>']})
-
-    return json_object
 
 
 def get_error(err_list: List[Tuple[str, str]]) -> str:

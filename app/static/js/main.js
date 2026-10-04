@@ -429,21 +429,44 @@ function getInsideParentheses(str) {
 
 function drawFileList(jsonData) {
     let container = ``;
-    Object.entries(jsonData)
-        .sort(([keyA], [keyB]) => {
-            const bracketA = getInsideParentheses(keyA);
-            const bracketB = getInsideParentheses(keyB);
-            const bracketComparison = bracketA.localeCompare(bracketB);
+    if (Array.isArray(jsonData)) {
+        console.log('NEW data version detected (list-compatible)');
+        jsonData.forEach(file => {
+            const downloadBtn = document.createElement('a');
+            downloadBtn.className = 'w-auto mw-auto form-control bg-secondary-subtle btn btn-warning zoomable-element border-1 rounded-pill';
+            downloadBtn.href = file['download_url'];
+            downloadBtn.target = '_blank';
+            downloadBtn.textContent = 'download';
 
-            return bracketComparison !== 0 ? bracketComparison : keyA.toLowerCase().localeCompare(keyB.toLowerCase());
-        })
-        .forEach(([key, value]) => {
+            const viewBtn = document.createElement('a');
+            viewBtn.className = 'w-auto mw-auto form-control bg-secondary-subtle btn btn-info zoomable-element border-1 rounded-pill';
+            viewBtn.href = file['view_url'];
+            viewBtn.target = '_blank';
+            viewBtn.textContent = 'view';
+
             container += `<div class="grid-container-2">
-                    <div class="p-1 w-auto text-secondary">${key}</div>
-                    <div class="p-1 w-auto">${value[0]}</div>
-                    <div class="p-1 w-auto">${value[1]}</div>
+                    <div class="p-1 w-auto text-secondary">${file['name']}</div>
+                    <div class="p-1 w-auto">${downloadBtn}</div>
+                    <div class="p-1 w-auto">${viewBtn}</div>
                 </div>`;
         });
+    } else if (typeof jsonData === 'object' && jsonData !== null) {
+        console.log('OLD data version detected (dict-compatible)');
+        Object.entries(jsonData)
+            .sort(([keyA], [keyB]) => {
+                const bracketA = getInsideParentheses(keyA);
+                const bracketB = getInsideParentheses(keyB);
+                const bracketComparison = bracketA.localeCompare(bracketB);
+
+                return bracketComparison !== 0 ? bracketComparison : keyA.toLowerCase().localeCompare(keyB.toLowerCase());
+            })
+            .forEach(([key, value]) => {
+                container += `<div class="grid-container-2">
+                        <div class="p-1 w-auto text-secondary">${key}</div>
+                        <div class="p-1 w-auto">${value[0]}</div>
+                        <div class="p-1 w-auto">${value[1]}</div>
+                    </div>`;
+            });}
     let fileList = `<details open>
         <summary class="w-100 form-control btn btn-outline-success bg-success-subtle text-success border-0 rounded-pill">
         <span class="arrow">▼</span>
