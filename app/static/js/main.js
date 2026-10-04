@@ -446,8 +446,8 @@ function drawFileList(jsonData) {
 
             container += `<div class="grid-container-2">
                     <div class="p-1 w-auto text-secondary">${file['name']}</div>
-                    <div class="p-1 w-auto">${downloadBtn}</div>
-                    <div class="p-1 w-auto">${viewBtn}</div>
+                    <div class="p-1 w-auto">${downloadBtn.innerHTML}</div>
+                    <div class="p-1 w-auto">${viewBtn.innerHTML}</div>
                 </div>`;
         });
     } else if (typeof jsonData === 'object' && jsonData !== null) {
