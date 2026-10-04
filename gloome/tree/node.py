@@ -432,24 +432,3 @@ class Node:
             return True
 
         return any(self.get_filter_value(key) == value for key, values in filters.items() for value in values)
-
-    @staticmethod
-    def get_integer(data: Union[str, int, float]) -> int:
-        result = float(data) * 10
-
-        return int(result - 1 if result == 10 else result)
-
-    @staticmethod
-    def draw_html_table(data: str) -> str:
-
-        return f'<table class="w-97 p-4 tooltip">{data}</table>'
-
-    @staticmethod
-    def draw_row_html_table(name: str, data: str) -> str:
-
-        return f'<tr><th class="p-2 h7 ">{name}:</th><th>{data}</td></th></tr>'
-
-    @staticmethod
-    def draw_cell_html_table(color: str, data: str) -> str:
-
-        return f'<td style="color: {color}" class="h7 w-auto text-center">{data}</td>'

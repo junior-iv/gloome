@@ -66,6 +66,10 @@ function getInteger(data) {
     return result === 10 ? 9 : result
 }
 
+function getShownCharacter(cell) {
+    return typeof cell === `string` && cell.endsWith(`)`) ? cell.charAt(cell.length - 2) : cell
+}
+
 function setVisibility(id = 'result', visible = true) {
     let element = document.getElementById(id)
     if (visible) {
@@ -359,12 +363,12 @@ function drawInformation(jsonData, sortingList, summary = true, mode = 0, sequen
         result += `<tr><th class="p-2 w-auto tborder-2">${header}</th>`;
         if (typeof jsonValue === "object" && !headersForShortColorList.includes(header))
             {Object.values(jsonValue).forEach(i => {
-                value += `<td style="color: ${fullColorList[getInteger(i)]}" class="w-auto text-center">${i}</td>`;
+                value += `<td style="color: ${fullColorList[getInteger(getShownCharacter(i))]}" class="w-auto text-center">${i}</td>`;
                 })
             }
         else if (typeof jsonValue === "object" && headersForShortColorList.includes(header))
             {Object.values(jsonValue).forEach(i => {
-                value += `<td style="color: ${shortColorList[i]}" class="w-auto text-center">${i}</td>`;
+                value += `<td style="color: ${shortColorList[getShownCharacter(i)]}" class="w-auto text-center">${i}</td>`;
         }
             )}
         else {value = `<td class="w-auto text-center">${jsonValue}</td>`}
@@ -813,26 +817,4 @@ function formCleaning(args) {
         document.getElementById(key).value = value;
     });
     showMessage(``, -1);
-}
-
-function test(testData) {
-    const formData = new FormData();
-    formData.append(`svgData`, testData);
-
-    showMessage(``, -1);
-    setVisibilityLoader(true);
-
-    fetch(`/test`, {
-        method: `POST`,
-        body: formData
-    })
-        .then(response => response.json())
-        .then(data => {
-            // document.getElementById('tree').data = data.message;
-        })
-        .catch(error => {
-            setVisibilityLoader(false);
-            console.error(`Error:`, error);
-            showAlert(error.message, 8000);
-        });
 }

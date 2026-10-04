@@ -558,6 +558,8 @@ class Tree:
                 for val in tree_table[col_name]
             ]
 
+        self.mark_unknown_characters(tree_table)
+
         tree_table = tree_table.rename(columns=columns)
         tree_table = tree_table.reindex(columns=columns.values())
 
@@ -570,6 +572,27 @@ class Tree:
                 tree_table = tree_table.sort_values(by=list(sort_values_by))
 
         return tree_table
+
+    def mark_unknown_characters(self, tree_table: pd.DataFrame) -> None:
+        if not self.msa or 'node' not in tree_table.columns:
+            return
+        unknown_characters = self.get_unknown_characters()
+        for col_name in ('sequence', 'ancestral_sequence'):
+            if col_name not in tree_table.columns:
+                continue
+            values = tree_table[col_name].tolist()
+            for row, node_name in enumerate(tree_table['node']):
+                observed = self.msa.get(node_name)
+                if not observed or not any(char in observed for char in unknown_characters):
+                    continue
+                value = values[row]
+                if isinstance(value, list) and len(value) == len(observed):
+                    values[row] = [f'{char} ({j})' if char in unknown_characters else j
+                                   for char, j in zip(observed, value)]
+                elif isinstance(value, str) and len(value) == len(observed):
+                    values[row] = ''.join(char if char in unknown_characters else j
+                                          for char, j in zip(observed, value))
+            tree_table[col_name] = values
 
     def calculate_ancestral_sequence(self, newick_node: Optional[Union[Node, str]] = None) -> str:
         if self.alphabet and not self.calculated_ancestor_sequence:
@@ -782,13 +805,6 @@ class Tree:
 
         return file_name
 
-    @staticmethod
-    def get_row_correlations(matrix: np.ndarray) -> np.ndarray:
-        centered = matrix - matrix.mean(axis=1, keepdims=True)
-        norms = np.sqrt((centered ** 2).sum(axis=1))
-
-        return (centered @ centered.T) / np.outer(norms, norms)
-
     def build_site_event_matrix(self) -> np.ndarray:
         """Return (msa_length, 2 * n_nodes) a matrix whose row for a site is the concatenation,
         over every non-root node, of [loss_probability, gain_probability] -- the exact per-site
@@ -802,63 +818,6 @@ class Tree:
         site_matrix[:, 0::2], site_matrix[:, 1::2] = loss.T, gain.T
 
         return site_matrix
-
-    @staticmethod
-    def benjamini_hochberg(p_values: np.ndarray) -> np.ndarray:
-        order = np.argsort(p_values)
-        ranked = p_values[order]
-        scale = len(p_values) / np.arange(1, len(p_values) + 1)
-        q_sorted = np.minimum.accumulate((ranked * scale)[::-1])[::-1]
-        q = np.empty_like(q_sorted)
-        q[order] = np.clip(q_sorted, 0, 1)
-
-        return q
-
-    @staticmethod
-    def empirical_p(r: Any, bin_key: str, null_pool: Any) -> Union[np.float64, float]:
-        if bin_key not in null_pool or len(null_pool[bin_key]) == 0:
-            return 1.0
-
-        null_distribution = np.asarray(null_pool[bin_key], dtype=float)
-        n = null_distribution.size
-        count_extreme = np.sum(np.abs(null_distribution) >= np.abs(r))
-        p_value = (count_extreme + 1) / (n + 1)
-
-        return p_value
-
-    @staticmethod
-    def fit_beta_null(null_r: np.ndarray, min_fit: int = 100, gof_alpha: float = 0.01) -> Optional[Tuple[float, float]]:
-        """Returns the shape parameters, or `None` if the sample is too small to fit reliably, its
-        variance is incompatible with any Beta on [-1, 1] (can happen for a degenerate/near-point
-        sample), or the fit fails a goodness-of-fit check against its own bulk. A bad fit must
-        never silently produce an overconfident tail p-value, so the caller falls back to
-        `empirical_p` in that case."""
-        null_r = np.asarray(null_r, dtype='float64')
-        null_r = null_r[np.isfinite(null_r)]
-        if null_r.size < min_fit:
-            return None
-        y = np.clip((null_r + 1.0) / 2.0, eps2, 1 - eps2)
-        mean, var = y.mean(), y.var(ddof=1)
-        max_var = mean * (1 - mean)
-        if not (0.0 < var < max_var):
-            return None
-        common = max_var / var - 1.0
-        a, b = mean * common, (1 - mean) * common
-        if not (np.isfinite(a) and np.isfinite(b) and a > 0 and b > 0):
-            return None
-        _, p_gof = kstest(null_r, 'beta', args=(a, b, -1, 2))
-
-        return None if p_gof < gof_alpha else (a, b)
-
-    @staticmethod
-    def beta_p(r: Any, params: Tuple[float, float]) -> Union[np.float64, float]:
-        """P(|R| >= |r|) under a null Beta(a, b, loc=-1, scale=2) fitted by ``fit_beta_null`` --
-        the continuous analogue of ``empirical_p``'s exceedance count, same [-1, 1] support and
-        the same |r| definition of 'at least as extreme'."""
-        a, b = params
-        r_abs = min(abs(r), 1 - eps2)
-
-        return float(sp_beta.cdf(-r_abs, a, b, loc=-1, scale=2) + sp_beta.sf(r_abs, a, b, loc=-1, scale=2))
 
     def identify_event_candidates(self, event_threshold: Union[np.float64, float] = 0.5
                                   ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -1287,18 +1246,18 @@ class Tree:
                   'dodgerblue', 'slateblue', 'darkviolet']
         colors_as = {'A': 'crimson', 'L': 'darkorange', 'G': 'forestgreen', 'P': 'slateblue'}
         for i in df_copy.T:
-            probability_coefficient = ancestral_sequence = ''
-            sequence = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], j)
+            ancestral_sequence = ''
+            sequence = ''.join([self.draw_cell_html_table(colors[self.get_integer(self.get_shown_character(j))], j)
                                 for j in df_copy['sequence'][i]])
-            sequence = Node.draw_row_html_table('Sequence', sequence)
+            sequence = self.draw_row_html_table('Sequence', sequence)
+            probability_coefficient = ''.join([self.draw_cell_html_table(colors[self.get_integer(j)], f'{j:.3f}')
+                                              for j in df_copy['prob_characters'][i]])
+            probability_coefficient = self.draw_row_html_table('Probability coefficient', probability_coefficient)
             if df_copy['node_type'][i] != 'root':
-                ancestral_sequence = ''.join([Node.draw_cell_html_table(colors_as[j], j)
+                ancestral_sequence = ''.join([self.draw_cell_html_table(colors_as[self.get_shown_character(j)], j)
                                               for j in df_copy['ancestral_sequence'][i]])
-                ancestral_sequence = Node.draw_row_html_table('Ancestral Comparison', ancestral_sequence)
+                ancestral_sequence = self.draw_row_html_table('Ancestral Comparison', ancestral_sequence)
             if df_copy['node_type'][i] != 'leaf':
-                probability_coefficient = ''.join([Node.draw_cell_html_table(colors[Node.get_integer(j)], f'{j:.3f}')
-                                                  for j in df_copy['prob_characters'][i]])
-                probability_coefficient = Node.draw_row_html_table('Probability coefficient', probability_coefficient)
                 if df_copy['node_type'][i] == 'node':
                     d3.node_properties.get(df_copy['target'][i])['color'] = 'darkorange'
                     d3.node_properties.get(df_copy['target'][i])['size'] = 15 / size_factor
@@ -1309,9 +1268,9 @@ class Tree:
                 d3.node_properties.get(df_copy['target'][i])['color'] = 'forestgreen'
                 d3.node_properties.get(df_copy['target'][i])['size'] = 10 / size_factor
             distance = f'<td class="h7 w-auto text-center">{df_copy["weight"][i]}</td>'
-            info = (f'{Node.draw_row_html_table("Distance", distance)}{sequence}{probability_coefficient}'
+            info = (f'{self.draw_row_html_table("Distance", distance)}{sequence}{probability_coefficient}'
                     f'{ancestral_sequence}')
-            d3.node_properties.get(df_copy['target'][i])['tooltip'] = Node.draw_html_table(info)
+            d3.node_properties.get(df_copy['target'][i])['tooltip'] = self.draw_html_table(info)
             d3.font.update({'type': 'Anonymous Pro'})
 
         d3.set_edge_properties(df)
@@ -1626,124 +1585,6 @@ class Tree:
 
         return df_with_total
 
-    @classmethod
-    def compute_correlation(cls, num_taxa: int = 8,
-                            sites_quantity: int = 100,
-                            categories_quantity: int = 4,
-                            alpha: float = 0.5,
-                            pi_1: Union[float, np.float64, int] = 0.5,
-                            branch_lengths: Union[float, np.float64, int] = 0.5,
-                            seed: Optional[int] = None,
-                            newick_text: Optional[str] = None,
-                            fasta_text: Optional[str] = None) -> Tuple[float, float, np.asarray, np.ndarray]:
-        if not newick_text:
-            newick_text = cls.build_symmetric_newick(num_taxa, branch_lengths)
-
-        newick_tree = cls(newick_text)
-
-        if fasta_text:
-            msa = newick_tree.get_msa_dict(fasta_text)
-            sites_quantity = len(next(iter(msa.values())))
-
-        tree_data = {'pi_1': pi_1,
-                     'alpha': alpha,
-                     'categories_quantity': categories_quantity,
-                     'seed': seed}
-        newick_tree.set_tree_data(**tree_data)
-
-        true_rates = newick_tree.generate_site_rates(sites_quantity)
-
-        print(f'\ttrue_rates: {[round(float(r), 4) for r in true_rates]}')
-
-        if not fasta_text:
-            fasta_text = newick_tree.generate_msa(msa_type=str, site_rate=true_rates)
-
-        gloome_tree = cls(newick_text, msa=fasta_text, **tree_data)
-
-        print(f'\trate_vector (4 Gamma categories): {[round(float(r), 4) for r in gloome_tree.rate_vector]}')
-
-        gloome_tree.set_posterior_rates_vector()
-        print(true_rates, gloome_tree.posterior_rates, sep='\n')
-        r_val, p_val = pearsonr(true_rates, gloome_tree.posterior_rates)
-
-        print(f'\tPearson r = {r_val:.4f}  (p = {p_val:.3e})\n')
-
-        return r_val, p_val, true_rates, gloome_tree.posterior_rates
-
-    @classmethod
-    def generate_scatter_plot(cls, taxa_list: Union[List[int], Tuple[int, ...], np.ndarray],
-                              sites_quantity: int = 100,
-                              categories_quantity: int = 4,
-                              alpha: float = 0.5,
-                              pi_1: Union[float, np.float64, int] = 0.5,
-                              branch_lengths: Union[float, np.float64, int] = 0.5,
-                              seed: Optional[int] = None,
-                              newick_text: Optional[str] = None,
-                              fasta_text: Optional[str] = None,
-                              out_path: Optional[str] = None) -> None:
-
-        print(f'Correlation estimation. Args: alpha={alpha}, sites={sites_quantity}, branch lengths={branch_lengths}, '
-              f'π1={pi_1}, Gamma categories={categories_quantity}, seed for randomizer={seed} \n')
-
-        results = {}
-        for num_taxa in taxa_list:
-            print(f"\nN = {num_taxa} taxa")
-            results[num_taxa] = cls.compute_correlation(num_taxa, sites_quantity, categories_quantity, alpha, pi_1,
-                                                        branch_lengths, seed, newick_text, fasta_text)
-
-        fig, axes = plt.subplots(2, 3, figsize=(10, 8))
-        fig.suptitle(f'True vs. estimated site rates  (alpha={alpha}, sites={sites_quantity}, '
-                     f'branch lengths={branch_lengths})', fontsize=13)
-
-        for ax, num_taxa in zip(axes.flat, taxa_list):
-            r_val, p_val, true_rates, est_rates = results[num_taxa]
-            ax.scatter(true_rates, est_rates, alpha=0.55, s=25, color='steelblue', edgecolors='none')
-            lim = [0, max(true_rates.max(), est_rates.max()) * 1.05]
-            ax.plot(lim, lim, 'r--', lw=1, alpha=0.6, label='y = x')
-            ax.set_xlim(lim)
-            ax.set_ylim(lim)
-            ax.set_xlabel('True rate', fontsize=10)
-            ax.set_ylabel('E(r|D)  posterior mean', fontsize=10)
-            ax.set_title(f'Taxa = {num_taxa};  Pearson r = {r_val:.3f}  (p = {p_val:.2e})', fontsize=9)
-            ax.legend(fontsize=8)
-
-        plt.tight_layout()
-        if out_path:
-            plt.savefig(out_path, dpi=150, bbox_inches='tight')
-            print(f"Plot saved → {out_path}")
-        else:
-            plt.show()
-
-    @classmethod
-    def set_root(cls, newick_data: str, rooting_method: str = 'midpoint', leaf: Optional[Union[str, Node]] = None
-                 ) -> str:
-        """
-        Args:
-            newick_data (str): A Newick formatted string representing the tree structure.
-            rooting_method (str, optional): `mad` (Minimal Ancestor Deviation), `mvr`(Minimum Variance Rooting),
-            `midpoint` (Midpoint Rooting, default), `outgroup` (Outgroup Rooting)
-            leaf (str, Node, optional): `None` (default)
-
-        Returns:
-            str: A Newick formatted string representing the tree structure.
-        """
-        rooting_method = rooting_method.strip().lower()
-        phylo_tree = cls(newick_data)
-        if len(phylo_tree.root.children) > 2:
-            if leaf and rooting_method == 'outgroup':
-                newick_data = cls.set_root_by_outgroup(newick_data, leaf.name if isinstance(leaf, Node) else leaf)
-            else:
-                if rooting_method in ('mad', 'mvr'):
-                    newick_data = cls.set_root_by_minimum(newick_data, rooting_method)
-                else:
-                    newick_data = cls.set_root_by_midpoint(newick_data)
-            phylo_tree = cls(newick_data)
-            for current_node in phylo_tree.all_nodes_objects[1:]:
-                if current_node.distance_to_father == 0:
-                    current_node.distance_to_father = eps2
-
-        return phylo_tree.get_newick()
-
     @staticmethod
     def del_bootstrap_values(newick_text: str) -> str:
         pattern = r'\)(100|[1-9]\d|\d)(?=[;:, \)])'
@@ -1864,49 +1705,6 @@ class Tree:
             root_distances.append(d_root)
 
         return np.var(root_distances)
-
-    @classmethod
-    def set_root_by_minimum(cls, newick_data: str, rooting_method: str) -> str:
-        """
-        Args:
-            newick_data (str): A Newick formatted string representing the tree structure.
-            rooting_method (str): `mad` (Minimal Ancestor Deviation), `mvr`(Minimum Variance Rooting)
-
-        Returns:
-            str: A Newick formatted string representing the tree structure.
-        """
-        phylo_tree = Phylo.read(StringIO(newick_data), 'newick')
-        all_leaves = phylo_tree.get_terminals()
-        dists = {leaf1: {leaf2: phylo_tree.distance(leaf1, leaf2) for leaf2 in all_leaves} for leaf1 in all_leaves}
-
-        best_score = float('inf')
-        best_clade = None
-        best_x = 0
-
-        for clade in phylo_tree.find_clades():
-            if clade != phylo_tree.root:
-                if rooting_method == 'mad':
-                    x_opt = cls.calculate_mad_x(clade, dists)
-                    score = cls.calculate_mad_score(clade, x_opt, dists)
-                else:
-                    x_opt = cls.calculate_mvr_x(phylo_tree, clade, dists)
-                    score = cls.calculate_mvr_score(phylo_tree, clade, x_opt, dists)
-
-                if score < best_score:
-                    best_score = score
-                    best_clade = clade
-                    best_x = x_opt
-
-        if best_clade and best_clade != phylo_tree.root:
-            remaining_dist = max(0.0, (best_clade.branch_length or 0.0) - best_x)
-            outgroup_leaves = best_clade.get_terminals()
-            og = outgroup_leaves if len(outgroup_leaves) > 1 else outgroup_leaves[0]
-            phylo_tree.root_with_outgroup(og, outgroup_branch_length=best_x)
-            for clade in phylo_tree.root.clades:
-                if clade != best_clade:
-                    clade.branch_length = remaining_dist
-
-        return ''.join(Writer((phylo_tree, )).to_strings(format_branch_length='%1.10f'))
 
     @staticmethod
     def build_symmetric_newick(num_taxa: int, branch_length: Union[float, np.float64, int] = 0.5) -> str:
@@ -2062,14 +1860,6 @@ class Tree:
 
         return file_name
 
-    @classmethod
-    def get_alphabet_from_dict(cls, msa_dict: Dict[str, str]) -> Tuple[str, ...]:
-        character_list = []
-        for sequence in msa_dict.values():
-            character_list += [i for i in sequence]
-
-        return cls.get_alphabet(set(character_list) - set(cls.get_unknown_characters()))
-
     @staticmethod
     def get_unknown_characters() -> Tuple[str, ...]:
 
@@ -2130,13 +1920,6 @@ class Tree:
             dir_path.mkdir(mode=kwargs.get('mode', 0o777), parents=kwargs.get('parents', True),
                            exist_ok=kwargs.get('exist_ok', True))
 
-    @classmethod
-    def check_tree(cls, phylo_tree: Union[str, 'Tree']) -> 'Tree':
-        if isinstance(phylo_tree, str):
-            phylo_tree = cls(phylo_tree)
-
-        return phylo_tree
-
     @staticmethod
     def check_file_extensions_tuple(file_extensions: Optional[Union[str, Tuple[str, ...]]] = None, default_value: str =
                                     'txt') -> Tuple[str, ...]:
@@ -2169,6 +1952,165 @@ class Tree:
 
         return newick_node
 
+    @staticmethod
+    def __counter():
+        count = 0
+
+        def sub_function():
+            nonlocal count
+            count += 1
+            return count
+
+        return sub_function
+
+    @staticmethod
+    def get_row_correlations(matrix: np.ndarray) -> np.ndarray:
+        centered = matrix - matrix.mean(axis=1, keepdims=True)
+        norms = np.sqrt((centered ** 2).sum(axis=1))
+
+        return (centered @ centered.T) / np.outer(norms, norms)
+
+    @staticmethod
+    def benjamini_hochberg(p_values: np.ndarray) -> np.ndarray:
+        order = np.argsort(p_values)
+        ranked = p_values[order]
+        scale = len(p_values) / np.arange(1, len(p_values) + 1)
+        q_sorted = np.minimum.accumulate((ranked * scale)[::-1])[::-1]
+        q = np.empty_like(q_sorted)
+        q[order] = np.clip(q_sorted, 0, 1)
+
+        return q
+
+    @staticmethod
+    def empirical_p(r: Any, bin_key: str, null_pool: Any) -> Union[np.float64, float]:
+        if bin_key not in null_pool or len(null_pool[bin_key]) == 0:
+            return 1.0
+
+        null_distribution = np.asarray(null_pool[bin_key], dtype=float)
+        n = null_distribution.size
+        count_extreme = np.sum(np.abs(null_distribution) >= np.abs(r))
+        p_value = (count_extreme + 1) / (n + 1)
+
+        return p_value
+
+    @staticmethod
+    def fit_beta_null(null_r: np.ndarray, min_fit: int = 100, gof_alpha: float = 0.01) -> Optional[Tuple[float, float]]:
+        """Returns the shape parameters, or `None` if the sample is too small to fit reliably, its
+        variance is incompatible with any Beta on [-1, 1] (can happen for a degenerate/near-point
+        sample), or the fit fails a goodness-of-fit check against its own bulk. A bad fit must
+        never silently produce an overconfident tail p-value, so the caller falls back to
+        `empirical_p` in that case."""
+        null_r = np.asarray(null_r, dtype='float64')
+        null_r = null_r[np.isfinite(null_r)]
+        if null_r.size < min_fit:
+            return None
+        y = np.clip((null_r + 1.0) / 2.0, eps2, 1 - eps2)
+        mean, var = y.mean(), y.var(ddof=1)
+        max_var = mean * (1 - mean)
+        if not (0.0 < var < max_var):
+            return None
+        common = max_var / var - 1.0
+        a, b = mean * common, (1 - mean) * common
+        if not (np.isfinite(a) and np.isfinite(b) and a > 0 and b > 0):
+            return None
+        _, p_gof = kstest(null_r, 'beta', args=(a, b, -1, 2))
+
+        return None if p_gof < gof_alpha else (a, b)
+
+    @staticmethod
+    def beta_p(r: Any, params: Tuple[float, float]) -> Union[np.float64, float]:
+        """P(|R| >= |r|) under a null Beta(a, b, loc=-1, scale=2) fitted by ``fit_beta_null`` --
+        the continuous analogue of ``empirical_p``'s exceedance count, same [-1, 1] support and
+        the same |r| definition of 'at least as extreme'."""
+        a, b = params
+        r_abs = min(abs(r), 1 - eps2)
+
+        return float(sp_beta.cdf(-r_abs, a, b, loc=-1, scale=2) + sp_beta.sf(r_abs, a, b, loc=-1, scale=2))
+
+    @staticmethod
+    def get_integer(data: Union[str, int, float]) -> int:
+        result = float(data) * 10
+
+        return int(result - 1 if result == 10 else result)
+
+    @staticmethod
+    def draw_html_table(data: str) -> str:
+
+        return f'<table class="w-97 p-4 tooltip">{data}</table>'
+
+    @staticmethod
+    def draw_row_html_table(name: str, data: str) -> str:
+
+        return f'<tr><th class="p-2 h7 ">{name}:</th><th>{data}</td></th></tr>'
+
+    @staticmethod
+    def draw_cell_html_table(color: str, data: str) -> str:
+
+        return f'<td style="color: {color}" class="h7 w-auto text-center">{data}</td>'
+
+    @staticmethod
+    def get_shown_character(cell: str) -> str:
+
+        return cell[-2] if cell.endswith(')') else cell
+
+    @classmethod
+    def set_root_by_minimum(cls, newick_data: str, rooting_method: str) -> str:
+        """
+        Args:
+            newick_data (str): A Newick formatted string representing the tree structure.
+            rooting_method (str): `mad` (Minimal Ancestor Deviation), `mvr`(Minimum Variance Rooting)
+
+        Returns:
+            str: A Newick formatted string representing the tree structure.
+        """
+        phylo_tree = Phylo.read(StringIO(newick_data), 'newick')
+        all_leaves = phylo_tree.get_terminals()
+        dists = {leaf1: {leaf2: phylo_tree.distance(leaf1, leaf2) for leaf2 in all_leaves} for leaf1 in all_leaves}
+
+        best_score = float('inf')
+        best_clade = None
+        best_x = 0
+
+        for clade in phylo_tree.find_clades():
+            if clade != phylo_tree.root:
+                if rooting_method == 'mad':
+                    x_opt = cls.calculate_mad_x(clade, dists)
+                    score = cls.calculate_mad_score(clade, x_opt, dists)
+                else:
+                    x_opt = cls.calculate_mvr_x(phylo_tree, clade, dists)
+                    score = cls.calculate_mvr_score(phylo_tree, clade, x_opt, dists)
+
+                if score < best_score:
+                    best_score = score
+                    best_clade = clade
+                    best_x = x_opt
+
+        if best_clade and best_clade != phylo_tree.root:
+            remaining_dist = max(0.0, (best_clade.branch_length or 0.0) - best_x)
+            outgroup_leaves = best_clade.get_terminals()
+            og = outgroup_leaves if len(outgroup_leaves) > 1 else outgroup_leaves[0]
+            phylo_tree.root_with_outgroup(og, outgroup_branch_length=best_x)
+            for clade in phylo_tree.root.clades:
+                if clade != best_clade:
+                    clade.branch_length = remaining_dist
+
+        return ''.join(Writer((phylo_tree, )).to_strings(format_branch_length='%1.10f'))
+
+    @classmethod
+    def get_alphabet_from_dict(cls, msa_dict: Dict[str, str]) -> Tuple[str, ...]:
+        character_list = []
+        for sequence in msa_dict.values():
+            character_list += [i for i in sequence]
+
+        return cls.get_alphabet(set(character_list) - set(cls.get_unknown_characters()))
+
+    @classmethod
+    def check_tree(cls, phylo_tree: Union[str, 'Tree']) -> 'Tree':
+        if isinstance(phylo_tree, str):
+            phylo_tree = cls(phylo_tree)
+
+        return phylo_tree
+
     @classmethod
     def rename_nodes(cls, phylo_tree: Union[str, 'Tree'], node_name: str = 'N', fill_character: str = '0',
                      number_length: int = 0) -> 'Tree':
@@ -2183,16 +2125,123 @@ class Tree:
 
         return phylo_tree
 
-    @staticmethod
-    def __counter():
-        count = 0
+    @classmethod
+    def compute_correlation(cls, num_taxa: int = 8,
+                            sites_quantity: int = 100,
+                            categories_quantity: int = 4,
+                            alpha: float = 0.5,
+                            pi_1: Union[float, np.float64, int] = 0.5,
+                            branch_lengths: Union[float, np.float64, int] = 0.5,
+                            seed: Optional[int] = None,
+                            newick_text: Optional[str] = None,
+                            fasta_text: Optional[str] = None) -> Tuple[float, float, np.asarray, np.ndarray]:
+        if not newick_text:
+            newick_text = cls.build_symmetric_newick(num_taxa, branch_lengths)
 
-        def sub_function():
-            nonlocal count
-            count += 1
-            return count
+        newick_tree = cls(newick_text)
 
-        return sub_function
+        if fasta_text:
+            msa = newick_tree.get_msa_dict(fasta_text)
+            sites_quantity = len(next(iter(msa.values())))
+
+        tree_data = {'pi_1': pi_1,
+                     'alpha': alpha,
+                     'categories_quantity': categories_quantity,
+                     'seed': seed}
+        newick_tree.set_tree_data(**tree_data)
+
+        true_rates = newick_tree.generate_site_rates(sites_quantity)
+
+        print(f'\ttrue_rates: {[round(float(r), 4) for r in true_rates]}')
+
+        if not fasta_text:
+            fasta_text = newick_tree.generate_msa(msa_type=str, site_rate=true_rates)
+
+        gloome_tree = cls(newick_text, msa=fasta_text, **tree_data)
+
+        print(f'\trate_vector (4 Gamma categories): {[round(float(r), 4) for r in gloome_tree.rate_vector]}')
+
+        gloome_tree.set_posterior_rates_vector()
+        print(true_rates, gloome_tree.posterior_rates, sep='\n')
+        r_val, p_val = pearsonr(true_rates, gloome_tree.posterior_rates)
+
+        print(f'\tPearson r = {r_val:.4f}  (p = {p_val:.3e})\n')
+
+        return r_val, p_val, true_rates, gloome_tree.posterior_rates
+
+    @classmethod
+    def generate_scatter_plot(cls, taxa_list: Union[List[int], Tuple[int, ...], np.ndarray],
+                              sites_quantity: int = 100,
+                              categories_quantity: int = 4,
+                              alpha: float = 0.5,
+                              pi_1: Union[float, np.float64, int] = 0.5,
+                              branch_lengths: Union[float, np.float64, int] = 0.5,
+                              seed: Optional[int] = None,
+                              newick_text: Optional[str] = None,
+                              fasta_text: Optional[str] = None,
+                              out_path: Optional[str] = None) -> None:
+
+        print(f'Correlation estimation. Args: alpha={alpha}, sites={sites_quantity}, branch lengths={branch_lengths}, '
+              f'π1={pi_1}, Gamma categories={categories_quantity}, seed for randomizer={seed} \n')
+
+        results = {}
+        for num_taxa in taxa_list:
+            print(f"\nN = {num_taxa} taxa")
+            results[num_taxa] = cls.compute_correlation(num_taxa, sites_quantity, categories_quantity, alpha, pi_1,
+                                                        branch_lengths, seed, newick_text, fasta_text)
+
+        fig, axes = plt.subplots(2, 3, figsize=(10, 8))
+        fig.suptitle(f'True vs. estimated site rates  (alpha={alpha}, sites={sites_quantity}, '
+                     f'branch lengths={branch_lengths})', fontsize=13)
+
+        for ax, num_taxa in zip(axes.flat, taxa_list):
+            r_val, p_val, true_rates, est_rates = results[num_taxa]
+            ax.scatter(true_rates, est_rates, alpha=0.55, s=25, color='steelblue', edgecolors='none')
+            lim = [0, max(true_rates.max(), est_rates.max()) * 1.05]
+            ax.plot(lim, lim, 'r--', lw=1, alpha=0.6, label='y = x')
+            ax.set_xlim(lim)
+            ax.set_ylim(lim)
+            ax.set_xlabel('True rate', fontsize=10)
+            ax.set_ylabel('E(r|D)  posterior mean', fontsize=10)
+            ax.set_title(f'Taxa = {num_taxa};  Pearson r = {r_val:.3f}  (p = {p_val:.2e})', fontsize=9)
+            ax.legend(fontsize=8)
+
+        plt.tight_layout()
+        if out_path:
+            plt.savefig(out_path, dpi=150, bbox_inches='tight')
+            print(f"Plot saved → {out_path}")
+        else:
+            plt.show()
+
+    @classmethod
+    def set_root(cls, newick_data: str, rooting_method: str = 'midpoint', leaf: Optional[Union[str, Node]] = None
+                 ) -> str:
+        """
+        Args:
+            newick_data (str): A Newick formatted string representing the tree structure.
+            rooting_method (str, optional): `mad` (Minimal Ancestor Deviation), `mvr`(Minimum Variance Rooting),
+            `midpoint` (Midpoint Rooting, default), `outgroup` (Outgroup Rooting)
+            leaf (str, Node, optional): `None` (default)
+
+        Returns:
+            str: A Newick formatted string representing the tree structure.
+        """
+        rooting_method = rooting_method.strip().lower()
+        phylo_tree = cls(newick_data)
+        if len(phylo_tree.root.children) > 2:
+            if leaf and rooting_method == 'outgroup':
+                newick_data = cls.set_root_by_outgroup(newick_data, leaf.name if isinstance(leaf, Node) else leaf)
+            else:
+                if rooting_method in ('mad', 'mvr'):
+                    newick_data = cls.set_root_by_minimum(newick_data, rooting_method)
+                else:
+                    newick_data = cls.set_root_by_midpoint(newick_data)
+            phylo_tree = cls(newick_data)
+            for current_node in phylo_tree.all_nodes_objects[1:]:
+                if current_node.distance_to_father == 0:
+                    current_node.distance_to_father = eps2
+
+        return phylo_tree.get_newick()
 
     @classmethod
     def __get_html_tree(cls, structure: dict, status: str) -> str:
