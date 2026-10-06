@@ -101,7 +101,7 @@ def main():
         gloome_tree.parsimony_score_to_tsv(file_name=f'{file_path}/ParsimonyAndHomoplasyScores.tsv')
         gloome_tree.tree_to_newick_file(file_name=f'{file_path}/PhylogeneticTree.nwk',
                                         taking_into_coefficient=taking_into_coefficient,
-                                        with_internal_nodes=True,
+                                        with_internal_nodes=with_internal_nodes,
                                         decimal_length=0)
 
     if check_dataset_simulation_time:

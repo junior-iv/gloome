@@ -254,7 +254,6 @@ class Node:
 
         likelihood_per_site = np.sum(np.mean(weighted_vector, axis=0), axis=0)
 
-        # invalid_mask = (likelihood_per_site == 0.0) | np.isnan(likelihood_per_site) | np.isinf(likelihood_per_site)
         invalid_mask = (likelihood_per_site <= 0.0) | np.isnan(likelihood_per_site)
         likelihood_per_site = np.where(invalid_mask, eps, likelihood_per_site)
 
@@ -278,8 +277,6 @@ class Node:
                 father_contrib = np.einsum('rji,ril->rjl', self.father.pmatrix, self.father.down_vector)
                 total_down *= father_contrib
 
-        # sum_vector = np.sum(accumulated_down, axis=-1, keepdims=True)
-        # self.down_vector2 = accumulated_down + 1e-300
         self.down_vector = total_down
 
     def calculate_marginal(self, rate_vector_length: int, msa_length: int) -> None:

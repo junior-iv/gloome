@@ -332,9 +332,6 @@ class Config:
                                       'create_all_file_types': True})
         if not self.CURRENT_ARGS.is_do_not_use_copap:
             self.DEFAULT_ACTIONS.update({'calculate_correlation': True})
-        # else:
-        #     self.CURRENT_ARGS.update({'file_table_of_posterior_rates_tsv': False,
-        #                               'file_table_of_pearson_correlation_tsv': False})
 
     def parse_arguments(self):
         """parse arguments and fill out the relevant Variable Class properties"""

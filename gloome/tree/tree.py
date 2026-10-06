@@ -111,7 +111,7 @@ class Tree:
 
     def __str__(self) -> str:
 
-        return self.get_newick()
+        return self.get_newick(with_internal_nodes=True)
 
     def __dir__(self) -> List[str]:
 
@@ -892,11 +892,12 @@ class Tree:
         p01 = a * (1 - e) / mu
         p11 = (a + b * e) / mu
 
-        newick_text = self.get_newick()
+        newick_text = self.get_newick(with_internal_nodes=True)
 
         null_pool, pairs, r_values, bins = {}, None, None, None
 
-        if use_coevolution_file:
+        if any((use_coevolution_file, use_barplot_of_correlation_file, use_plot_distribution_of_correlation_file,
+                use_plot_correlation_by_rate_bin_file)):
             site_matrix, candidates, categories = self.identify_event_candidates(event_threshold)
             pairs, r_values, bins = self.get_bins(site_matrix, candidates, categories)
 
@@ -919,7 +920,8 @@ class Tree:
             phylo_tree.calculate_tree()
             phylo_tree.set_posterior_rates_vector()
 
-            if use_coevolution_file:
+            if any((use_coevolution_file, use_barplot_of_correlation_file, use_plot_distribution_of_correlation_file,
+                    use_plot_correlation_by_rate_bin_file)):
                 current_site_matrix, current_candidates, current_categories = (
                     phylo_tree.identify_event_candidates(event_threshold))
                 current_pairs, current_r_values, current_bins = phylo_tree.get_bins(current_site_matrix,
@@ -1465,7 +1467,8 @@ class Tree:
         return self.get_fasta_text(msa) if msa_type == str else msa
 
     def set_posterior_rates_vector(self, prior: Optional[np.ndarray] = None) -> None:
-        prior = np.ones(self.rate_vector_length) / self.rate_vector_length if prior is None else prior
+        if prior is None:
+            prior = np.ones(self.rate_vector_length) / self.rate_vector_length
         prior = np.asarray(prior, dtype=np.float64)
         assert len(prior) == self.rate_vector_length, 'prior length must match number of rate categories'
 
@@ -1484,10 +1487,13 @@ class Tree:
 
     def set_pearson_correlation_vector(self, probability_lg: Union[float, np.float64] = 0.5,
                                        number_lg: Union[float, np.float64, int] = 1) -> None:
+        if self.msa_length < 2:
+            return None
+
         nodes_list = self.all_nodes_objects[1:]
 
-        loss_vectors = np.array([node.probability_vector_loss for node in nodes_list])  # Shape: (nodes, msa)
-        gain_vectors = np.array([node.probability_vector_gain for node in nodes_list])  # Shape: (nodes, msa)
+        loss_vectors = np.array([node.probability_vector_loss for node in nodes_list])
+        gain_vectors = np.array([node.probability_vector_gain for node in nodes_list])
 
         site_probs_matrix = np.stack((loss_vectors, gain_vectors), axis=1).reshape(-1, self.msa_length)
 
@@ -1587,19 +1593,41 @@ class Tree:
 
     @staticmethod
     def del_bootstrap_values(newick_text: str) -> str:
-        pattern = r'\)(100|[1-9]\d|\d)(?=[;:, \)])'
-        matches_list = re.findall(pattern, newick_text)
-        matches_list.sort()
-        matches_set = set(matches_list)
-        list_length = len(matches_list)
-        set_length = len(matches_set)
+        pattern = r'(?<=\))([^:,()]+)(?=[:;])'
 
-        if any((list_length != set_length,
-                all((matches_list != list(range(1, list_length + 1)),
-                     matches_list != list(range(0, list_length)))))):
-            newick_text = re.sub(pattern, lambda x: ')', newick_text)
+        raw_matches = re.findall(pattern, newick_text)
+        if not raw_matches:
+            return newick_text
 
-        return newick_text
+        only_integers = [int(re.sub(r'^[\[\'](\d+)[\]\']$', r'\1', val)) for val in raw_matches if
+                         val.isdigit() or re.sub(r'^[\[\'](\d+)[\]\']$', r'\1', val).isdigit()]
+
+        is_random_node_ids = False
+        if only_integers:
+            list_length = len(only_integers)
+            set_length = len(set(only_integers))
+            if list_length == set_length:
+                is_random_node_ids = True
+
+        def replacer(match):
+            val = match.group(1)
+
+            if '/' in val or val in ['*', '#']:
+                return ''
+
+            if is_random_node_ids and val.isdigit():
+                return val
+
+            try:
+                num = float(val)
+                if num > 1000:
+                    return val
+                else:
+                    return ''
+            except ValueError:
+                return val
+
+        return re.sub(pattern, replacer, newick_text)
 
     @staticmethod
     def set_root_by_outgroup(newick_data: str, leaf_name: str) -> str:
@@ -2120,6 +2148,10 @@ class Tree:
         for current_node in nodes_list:
             if re.fullmatch(r'^nd\d{4}$', current_node.name):
                 current_node.name = f'{node_name}{str(num()).rjust(number_length, fill_character)}'
+            # if re.search(r'^[\'\"](.*)[\'\"]$', current_node.name):
+            #     current_node.name = re.sub(r'^[\'\"](.*)[\'\"]$', r'\1', current_node.name)
+            if re.search(r'[\'\"]', current_node.name):
+                current_node.name = re.sub(r'[\'\"]', '', current_node.name)
 
         phylo_tree.all_nodes = {current_node.name: current_node for current_node in phylo_tree.all_nodes_objects}
 
@@ -2241,7 +2273,7 @@ class Tree:
                 if current_node.distance_to_father == 0:
                     current_node.distance_to_father = eps2
 
-        return phylo_tree.get_newick()
+        return phylo_tree.get_newick(with_internal_nodes=True)
 
     @classmethod
     def __get_html_tree(cls, structure: dict, status: str) -> str:

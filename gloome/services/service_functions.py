@@ -204,11 +204,21 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     result = {}
     newick_tree = Tree.check_tree(newick_tree)
     taking_into_coefficient = newick_tree.coefficient_bl != 1
-    use_coevolution_file = selected_files.get('file_table_of_coevolution_tsv', False)
+    use_correlation = newick_tree.msa_length > 1
+    use_rates = newick_tree.rate_vector_length > 1
     use_simulated_datasets_file = selected_files.get('file_simulated_datasets_fastas', False)
-    use_barplot_of_correlation_file = selected_files.get('file_barplot_of_correlation_svg', False)
-    use_plot_distribution_of_correlation_file = selected_files.get('file_plot_distribution_of_correlation_svg', False)
-    use_plot_correlation_by_rate_bin_file = selected_files.get('file_plot_correlation_by_rate_bin_svg', False)
+    if use_correlation:
+        use_coevolution_file = selected_files.get('file_table_of_coevolution_tsv', False)
+        use_barplot_of_correlation_file = selected_files.get('file_barplot_of_correlation_svg', False)
+        use_plot_distribution_of_correlation_file = selected_files.get('file_plot_distribution_of_correlation_svg',
+                                                                       False)
+        use_plot_correlation_by_rate_bin_file = selected_files.get('file_plot_correlation_by_rate_bin_svg', False)
+    else:
+        use_coevolution_file = False
+        use_barplot_of_correlation_file = False
+        use_plot_distribution_of_correlation_file = False
+        use_plot_correlation_by_rate_bin_file = False
+
     if selected_files.get('file_interactive_tree_html', False):
         result.update({'Interactive tree (html)':
                        newick_tree.tree_to_interactive_html(file_name=f'{file_path}/InteractiveTree.html',
@@ -218,10 +228,10 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                                                         with_internal_nodes=with_internal_nodes,
                                                         taking_into_coefficient=taking_into_coefficient,
                                                         file_extensions=('png', )))
-    if selected_files.get('file_table_of_posterior_rates_tsv', False) and use_copap:
+    if selected_files.get('file_table_of_posterior_rates_tsv', False) and use_copap and use_rates:
         result.update({'Table of posterior rates (tsv)':
                        newick_tree.posterior_rates_to_tsv(file_name=f'{file_path}/PosteriorRates.tsv')})
-    if selected_files.get('file_table_of_pearson_correlation_tsv', False) and use_copap:
+    if selected_files.get('file_table_of_pearson_correlation_tsv', False) and use_copap and use_correlation:
         result.update({'Table of pearson correlation (tsv)':
                        newick_tree.pearson_correlation_to_tsv(file_name=f'{file_path}/PearsonCorrelation.tsv',
                                                               probability_lg=probability_lg,
@@ -253,9 +263,10 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
         result.update({'Phylogenetic tree (nwk)':
                        newick_tree.tree_to_newick_file(file_name=f'{file_path}/PhylogeneticTree.nwk',
                                                        taking_into_coefficient=taking_into_coefficient,
-                                                       with_internal_nodes=True,
+                                                       with_internal_nodes=with_internal_nodes,
                                                        decimal_length=0)})
-    if any((use_simulated_datasets_file, use_coevolution_file)) and use_copap:
+    if any((use_simulated_datasets_file, use_coevolution_file, use_barplot_of_correlation_file,
+            use_plot_distribution_of_correlation_file, use_plot_correlation_by_rate_bin_file)) and use_copap:
         result.update(newick_tree.simulate_datasets(file_path=f'{file_path}',
                                                     number_datasets=number_datasets,
                                                     use_simulated_datasets_file=use_simulated_datasets_file,
