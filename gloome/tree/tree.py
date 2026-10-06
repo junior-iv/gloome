@@ -2273,7 +2273,7 @@ class Tree:
                 if current_node.distance_to_father == 0:
                     current_node.distance_to_father = eps2
 
-        return phylo_tree.get_newick(with_internal_nodes=True)
+        return phylo_tree.get_newick()
 
     @classmethod
     def __get_html_tree(cls, structure: dict, status: str) -> str:
