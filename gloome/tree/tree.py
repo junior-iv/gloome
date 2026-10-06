@@ -2258,9 +2258,9 @@ class Tree:
         Returns:
             str: A Newick formatted string representing the tree structure.
         """
-        rooting_method = rooting_method.strip().lower()
         phylo_tree = cls(newick_data)
         if len(phylo_tree.root.children) > 2:
+            rooting_method = rooting_method.strip().lower()
             if leaf and rooting_method == 'outgroup':
                 newick_data = cls.set_root_by_outgroup(newick_data, leaf.name if isinstance(leaf, Node) else leaf)
             else:
@@ -2273,7 +2273,9 @@ class Tree:
                 if current_node.distance_to_father == 0:
                     current_node.distance_to_father = eps2
 
-        return phylo_tree.get_newick()
+            return phylo_tree.get_newick()
+
+        return newick_data
 
     @classmethod
     def __get_html_tree(cls, structure: dict, status: str) -> str:
