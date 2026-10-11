@@ -318,7 +318,7 @@ class Config:
                                          'calculate_ancestral_sequence': True,
                                          'execute_all_actions': True})
             self.MAIN_ACTIONS.update({'draw_tree': True})
-        if 'create_all_file_types' in self.MODE or 'execute_all_actions' in self.MODE:
+        if 'create_all_file_types' in self.MODE:
             self.DEFAULT_ACTIONS.update({'calculate_tree': True,
                                          'calculate_ancestral_sequence': True,
                                          'execute_all_actions': True})
