@@ -337,6 +337,7 @@ How to read `Coevolution.tsv`:
 |------------------------|----------------------------------------------------------------------------------------------------------------|
 | `InteractiveTree.html` | Standalone interactive tree that opens in a browser (off by default).                                          |
 | `VisualTree.png`       | Static picture of the tree (off by default).                                                                   |
+| `result.json`          | Full JSON response of the run. It can be loaded back into the webserver to view the results again (see below). |
 | `*.log`                | Log of the run, with parameters and timings.                                                                   |
 | `<process_id>.zip`     | Archive of all output files.                                                                                   |
 
