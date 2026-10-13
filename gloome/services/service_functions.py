@@ -482,8 +482,11 @@ def check_data(*args) -> List[Tuple[str, str]]:
     elif not msa.startswith('>'):
         err_list.append(('MSA error', 'Wrong MSA format. Please provide MSA in FASTA format.'))
     else:
+        replace_mask_pattern = r'[\'\"]'
+        msa = re.sub(replace_mask_pattern, '', msa)
         msa_list = msa.split()
-        if len(msa_list) / 2 < 2:
+        msa_list_size = len(msa_list)
+        if msa_list_size / 2 < 2:
             err_list.append(('MSA error', 'There should be at least two sequences in the MSA.'))
         else:
             allowed = set('01?')
@@ -494,13 +497,13 @@ def check_data(*args) -> List[Tuple[str, str]]:
             is_different_lengths = False
             has_duplicate_taxa = False
 
-            for i in range(0, len(msa_list), 2):
+            for i in range(0, msa_list_size, 2):
                 taxa = msa_list[i][1:]
                 if taxa in msa_taxa_set:
                     has_duplicate_taxa = True
                 msa_taxa_set.add(taxa)
 
-                if i + 1 < len(msa_list):
+                if i + 1 < msa_list_size:
                     line = msa_list[i + 1]
                     current_len = len(line)
 

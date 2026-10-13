@@ -202,6 +202,8 @@ class Tree:
             np.random.seed(seed)
 
         if isinstance(msa, str):
+            replace_mask_pattern = r'[\'\"]'
+            msa = re.sub(replace_mask_pattern, '', msa)
             self.msa = self.get_msa_dict(msa)
         elif isinstance(msa, dict):
             self.msa = msa
@@ -390,8 +392,10 @@ class Tree:
             list_end = [i for i in range(len_newick) if newick[i:i + 1] == ')']
             list_start = [i for i in range(len_newick) if newick[i:i + 1] == '(']
             list_children = []
-
-            num = self.__counter()
+            pattern = r'(?<=[(),])nd(\d+)(?=:|[),;])'
+            node_ids_list = np.asarray(pd.Series(re.findall(pattern, newick))).astype(int)
+            max_ids = node_ids_list.max() if len(node_ids_list) else 0
+            num = self.__counter(max_ids)
 
             while list_start:
                 int_start = list_start.pop(-1)
@@ -403,7 +407,7 @@ class Tree:
                                                                           newick.find(';', int_end), newick.find(')',
                                                                           int_end)] if x >= 0])]
 
-                (visibility, node_name) = (True, node_name) if node_name else (False, 'nd' + str(num()).rjust(4, '0'))
+                (visibility, node_name) = (True, node_name) if node_name else (False, f'nd{num()}')
 
                 sub_str = newick[int_start:int_end]
                 list_children.append({'children': sub_str, 'node': node_name, 'distance_to_father': distance_to_father,
@@ -429,7 +433,7 @@ class Tree:
                 current_node.set_levels_and_distance_to_nearest()
                 current_node.aliases = {'node': 'name', 'distance': 'distance_to_father'}
                 if current_node.node_type in ('node', ) and self.is_bootstrap_value(current_node.name):
-                    current_node.name = 'nd' + str(num()).rjust(4, '0')
+                    current_node.name = f'nd{num()}'
 
             return self
 
@@ -465,7 +469,7 @@ class Tree:
 
         return list_result
 
-    def __set_children_list_from_string(self, str_children: str, father: Node, num) -> None:
+    def __set_children_list_from_string(self, str_children: str, father: Node, num: Callable) -> None:
         str_children = str_children[1:-1] if str_children.startswith('(') and str_children.endswith(
             ')') else str_children
         lst_nodes = str_children.split(',')
@@ -1592,23 +1596,27 @@ class Tree:
 
     @staticmethod
     def del_bootstrap_values(newick_text: str) -> str:
-        pattern = r'(?<=\))([^:,()]+)(?=[:;])'
+        replace_mask_pattern = r'[\'\"]'
+        newick_text = re.sub(replace_mask_pattern, '', newick_text)
 
+        pattern = r'(?<=\))([^:,()]+)(?=[:;])'
         raw_matches = re.findall(pattern, newick_text)
         if not raw_matches:
             return newick_text
 
-        only_integers = [int(re.sub(r'^[\[\'](\d+)[\]\']$', r'\1', val)) for val in raw_matches if
-                         val.isdigit() or re.sub(r'^[\[\'](\d+)[\]\']$', r'\1', val).isdigit()]
+        only_int_pattern = r'^[\[\'](\d+)[\]\']$'
+        only_int = [int(re.sub(only_int_pattern, r'\1', val)) for val in raw_matches if val.isdigit() or
+                    re.sub(only_int_pattern, r'\1', val).isdigit()]
 
         is_random_node_ids = False
-        if only_integers:
-            list_length = len(only_integers)
-            set_length = len(set(only_integers))
+        if only_int:
+            list_length = len(only_int)
+            set_length = len(set(only_int))
             if list_length == set_length:
                 is_random_node_ids = True
 
         def replacer(match):
+            nonlocal is_random_node_ids
             val = match.group(1)
 
             if '/' in val or val in ['*', '#']:
@@ -1967,13 +1975,13 @@ class Tree:
     def __set_node(node_str: str, num: Callable) -> Node:
         if node_str.find(':') > -1:
             node_data: List[Union[str, int, float]] = node_str.split(':')
-            node_data[0] = node_data[0] if node_data[0] else 'nd' + str(num()).rjust(4, '0')
+            node_data[0] = node_data[0] if node_data[0] else f'nd{num()}'
             try:
                 node_data[1] = float(node_data[1])
             except ValueError:
                 node_data[1] = 0.0
         else:
-            node_data = [node_str if node_str else 'nd' + str(num()).rjust(4, '0'), 0.0]
+            node_data = [node_str if node_str else f'nd{num()}', 0.0]
 
         newick_node = Node(node_data[0])
         newick_node.distance_to_father = float(node_data[1])
@@ -1981,10 +1989,9 @@ class Tree:
         return newick_node
 
     @staticmethod
-    def __counter():
-        count = 0
+    def __counter(count: int = 0) -> Callable:
 
-        def sub_function():
+        def sub_function() -> int:
             nonlocal count
             count += 1
             return count
@@ -2140,18 +2147,27 @@ class Tree:
         return phylo_tree
 
     @classmethod
-    def rename_nodes(cls, phylo_tree: Union[str, 'Tree'], node_name: str = 'N', fill_character: str = '0',
-                     number_length: int = 0) -> 'Tree':
+    def rename_nodes(cls, phylo_tree: Union[str, 'Tree'], node_name: str = 'N') -> 'Tree':
         phylo_tree = cls.check_tree(phylo_tree)
-        nodes_list = phylo_tree.nodes_objects
-        num = phylo_tree.__counter()
-        for current_node in nodes_list:
-            if re.fullmatch(r'^nd\d{4}$', current_node.name):
-                current_node.name = f'{node_name}{str(num()).rjust(number_length, fill_character)}'
-            # if re.search(r'^[\'\"](.*)[\'\"]$', current_node.name):
-            #     current_node.name = re.sub(r'^[\'\"](.*)[\'\"]$', r'\1', current_node.name)
-            if re.search(r'[\'\"]', current_node.name):
-                current_node.name = re.sub(r'[\'\"]', '', current_node.name)
+
+        nodes_list = pd.Series(phylo_tree.get_nodes(only_node_list=False))
+        change_mask_pattern = r'^nd\d+$'
+        name_change_mask = nodes_list.str.match(change_mask_pattern)
+
+        leaves_list = pd.Series(phylo_tree.get_leaves(only_node_list=False))
+        check_mask_pattern = r'^N(\d+)$'
+        leaves_ids_numbers = leaves_list.str.extract(check_mask_pattern).dropna()[0].astype(int)
+        max_leaves_ids = leaves_ids_numbers.max() if len(leaves_ids_numbers) else 0
+
+        pattern = r'(?<=[(),])N(\d+)(?=:|[),;])'
+        ids = np.asarray(pd.Series(re.findall(pattern, phylo_tree.get_newick(True), flags=re.IGNORECASE))).astype(int)
+        max_ids = ids.max() if len(ids) else 0
+        max_ids = max(max_ids, max_leaves_ids)
+        num = phylo_tree.__counter(max_ids)
+
+        for current_nodename in nodes_list[name_change_mask]:
+            current_node = phylo_tree.all_nodes[current_nodename]
+            current_node.name = f'{node_name}{num()}'
 
         phylo_tree.all_nodes = {current_node.name: current_node for current_node in phylo_tree.all_nodes_objects}
 
