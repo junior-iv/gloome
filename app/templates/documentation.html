@@ -1,0 +1,843 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ super() }}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% endblock %}
+
+{% block menu %}
+{{ super() }}
+{% endblock %}
+
+{% block header %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+<div class="d-flex gap-2 flex-row my-5 justify-content-center">
+    <div class="h6 text-secondary">
+        <div><article class="markdown-body entry-content container-lg" itemprop="text"><div  class="markdown-heading d-flex" dir="auto"><a id="gloome-gain-loss-mapping-engine" class="anchor" aria-label="Permalink: GLOOME: Gain Loss Mapping Engine" href="#gloome-gain-loss-mapping-engine"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16"  width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h1 tabindex="-1" class="heading-element" dir="auto">GLOOME: Gain Loss Mapping Engine</h1></div>
+<p dir="auto">A high-performance bioinformatics tool for analyzing gene gain and loss events, and the co-evolution of
+presence-absence patterns, along a phylogeny.</p>
+<p dir="auto">GLOOME provides evolutionary analysis of presence and absence profiles (phyletic patterns). These patterns are assumed
+to result from gain and loss dynamics along a phylogenetic tree. Examples of characters represented by phyletic patterns
+include:</p>
+<ul dir="auto">
+<li>Restriction sites</li>
+<li>Gene families</li>
+<li>Introns</li>
+<li>Indels</li>
+</ul>
+<p dir="auto">The primary purpose of GLOOME is to infer branch-specific and site-specific gain and loss events, and to analyze the
+co-evolution of presence-absence patterns (CoPAP). For every branch and every site, GLOOME computes the exact posterior
+probability of a gain (0 → 1) and of a loss (1 → 0) under a continuous-time two-state model with gamma-distributed
+rate variation among sites.</p>
+<div  class="markdown-heading d-flex" dir="auto"><a id="features" class="anchor" aria-label="Permalink: Features" href="#features"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Features</h3></div>
+<ul dir="auto">
+<li><strong>Gain and loss inference</strong>: exact posterior probabilities of gain and loss events per branch and per site</li>
+<li><strong>Ancestral reconstruction</strong> of presence/absence at every internal node</li>
+<li><strong>Posterior rate estimation</strong> per character (site)</li>
+<li><strong>CoPAP analysis</strong> (co-evolution of presence-absence patterns), with p-values from a simulation-based null
+distribution and Benjamini-Hochberg q-values</li>
+<li><strong>Parameter optimization</strong> of π1 (frequency of presence), the gamma α parameter and a branch-length scaling coefficient</li>
+<li><strong>Parsimony and homoplasy scores</strong> per character (parsimony score, minimum steps, homoplasy, consistency index)</li>
+<li><strong>Tree rooting</strong> by MAD, MVR, midpoint or outgroup</li>
+<li><strong>High-performance computing</strong> powered by NumPy vectorization</li>
+</ul>
+<div class="markdown-heading d-flex" dir="auto"><a id="project-structure" class="anchor" aria-label="Permalink: Project structure" href="#project-structure"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Project structure</h3></div>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto d-flex"><pre lang="text" class="notranslate"><code>gloome
+├── app                                     # Flask webserver
+│   ├── static
+│   │   ├── css
+│   │   │   └── main.css
+│   │   └── js
+│   │       └── main.js                     # interactive tree and result tables
+│   ├── templates
+│   │   ├── 404.html
+│   │   ├── base.html
+│   │   ├── base_newick_tools.html
+│   │   ├── citing_and_credits.html
+│   │   ├── documentation.html
+│   │   ├── gallery.html
+│   │   ├── index.html
+│   │   ├── overview.html
+│   │   ├── read_json_response.html
+│   │   ├── source_code.html
+│   │   ├── table.html
+│   │   └── under_construction.html
+│   ├── __init__.py                         # routes
+│   ├── app.py
+│   ├── config.py
+│   ├── flask_config.py
+│   └── http_utils.py
+├── gloome                                  # computational engine and command-line interface
+│   ├── data
+│   │   └── initial_data                    # example inputs
+│   │       ├── tree
+│   │       │   ├── newickTree0.tree
+│   │       │   ├── newickTree1.tree
+│   │       │   ├── newickTree2.tree
+│   │       │   ├── newickTree3.tree
+│   │       │   ├── newickTree4.tree
+│   │       │   ├── newickTree5.tree
+│   │       │   ├── newickTree6.tree
+│   │       │   ├── newickTree7.tree
+│   │       │   ├── newickTree8.tree
+│   │       │   ├── newickTree9.tree
+│   │       │   └── newickTree10.tree
+│   │       └── msa
+│   │           ├── patternMSA0.msa
+│   │           ├── patternMSA1.msa
+│   │           ├── patternMSA2.msa
+│   │           ├── patternMSA3.msa
+│   │           ├── patternMSA4.msa
+│   │           ├── patternMSA5.msa
+│   │           ├── patternMSA6.msa
+│   │           ├── patternMSA7.msa
+│   │           ├── patternMSA8.msa
+│   │           ├── patternMSA9.msa
+│   │           └── patternMSA10.msa
+│   ├── services
+│   │   ├── __init__.py
+│   │   ├── design_functions.py
+│   │   └── service_functions.py
+│   ├── tree
+│   │   ├── __init__.py
+│   │   ├── node.py
+│   │   ├── npencoder.py
+│   │   └── tree.py
+│   ├── __init__.py
+│   ├── __main__.py
+│   ├── config.py
+│   ├── consts.py
+│   └── utils.py
+├── logs
+├── mail
+│   ├── __init__.py
+│   └── mail.py
+├── results
+│   ├── out
+│   └── in
+├── scheduler
+│   ├── __init__.py
+│   ├── runs_automatic_daily_cleaning.py
+│   ├── runs_automatic_daily_job.py
+│   └── runs_automatic_report_sending.py
+├── tests
+│   ├── __init__.py
+│   ├── correlation_test.py
+│   └── time_test.py
+├── Pipfile
+├── README.md
+└── requirements.txt
+</code></pre><div class="zeroclipboard-container">
+    <button class="copy-button" data-text-to-copy="gloome
+├── app                                     # Flask webserver
+│   ├── static
+│   │   ├── css
+│   │   │   └── main.css
+│   │   └── js
+│   │       └── main.js                     # interactive tree and result tables
+│   ├── templates
+│   │   ├── 404.html
+│   │   ├── base.html
+│   │   ├── base_newick_tools.html
+│   │   ├── citing_and_credits.html
+│   │   ├── documentation.html
+│   │   ├── gallery.html
+│   │   ├── index.html
+│   │   ├── overview.html
+│   │   ├── read_json_response.html
+│   │   ├── source_code.html
+│   │   ├── table.html
+│   │   └── under_construction.html
+│   ├── __init__.py                         # routes
+│   ├── app.py
+│   ├── config.py
+│   ├── flask_config.py
+│   └── http_utils.py
+├── gloome                                  # computational engine and command-line interface
+│   ├── data
+│   │   └── initial_data                    # example inputs
+│   │       ├── tree
+│   │       │   ├── newickTree0.tree
+│   │       │   ├── newickTree1.tree
+│   │       │   ├── newickTree2.tree
+│   │       │   ├── newickTree3.tree
+│   │       │   ├── newickTree4.tree
+│   │       │   ├── newickTree5.tree
+│   │       │   ├── newickTree6.tree
+│   │       │   ├── newickTree7.tree
+│   │       │   ├── newickTree8.tree
+│   │       │   ├── newickTree9.tree
+│   │       │   └── newickTree10.tree
+│   │       └── msa
+│   │           ├── patternMSA0.msa
+│   │           ├── patternMSA1.msa
+│   │           ├── patternMSA2.msa
+│   │           ├── patternMSA3.msa
+│   │           ├── patternMSA4.msa
+│   │           ├── patternMSA5.msa
+│   │           ├── patternMSA6.msa
+│   │           ├── patternMSA7.msa
+│   │           ├── patternMSA8.msa
+│   │           ├── patternMSA9.msa
+│   │           └── patternMSA10.msa
+│   ├── services
+│   │   ├── __init__.py
+│   │   ├── design_functions.py
+│   │   └── service_functions.py
+│   ├── tree
+│   │   ├── __init__.py
+│   │   ├── node.py
+│   │   ├── npencoder.py
+│   │   └── tree.py
+│   ├── __init__.py
+│   ├── __main__.py
+│   ├── config.py
+│   ├── consts.py
+│   └── utils.py
+├── logs
+├── mail
+│   ├── __init__.py
+│   └── mail.py
+├── results
+│   ├── out
+│   └── in
+├── scheduler
+│   ├── __init__.py
+│   ├── runs_automatic_daily_cleaning.py
+│   ├── runs_automatic_daily_job.py
+│   └── runs_automatic_report_sending.py
+├── tests
+│   ├── __init__.py
+│   ├── correlation_test.py
+│   └── time_test.py
+├── Pipfile
+├── README.md
+└── requirements.txt">
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon color-fg-success">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+        </svg>
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+        </svg>
+        <span class="js-clipboard-copied-text color-fg-success d-none"></span>
+    </button>
+</div></div>
+<p dir="auto">This manual covers input formats, command-line usage, the webserver, and how to interpret the results.</p>
+<div  class="markdown-heading d-flex" dir="auto"><a id="input" class="anchor" aria-label="Permalink: Input" href="#input"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h2 tabindex="-1" class="heading-element" dir="auto">Input</h2></div>
+<ul dir="auto">
+<li><strong>MSA</strong> (<code>--msa_file</code>): phyletic patterns in FASTA format. Each sequence is a 0/1 string
+(<code>1</code> = presence, <code>0</code> = absence, <code>?</code> = missing data). All sequences must have the same length, and sequence names
+must match the leaf names of the tree.</li>
+<li><strong>Tree</strong> (<code>--tree_file</code>): a phylogenetic tree in Newick format with branch lengths. Bootstrap values are removed
+automatically, and the tree is rooted with the selected <code>--rooting_method</code>.</li>
+</ul>
+<p dir="auto">Example:</p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto d-flex"><pre lang="text" class="notranslate"><code>&gt;A
+11101010111000101011111011111
+&gt;B1
+...
+</code></pre><div class="zeroclipboard-container">
+    <button class="copy-button" data-text-to-copy="&gt;A
+11101010111000101011111011111
+&gt;B1
+...">
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon color-fg-success">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+        </svg>
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+        </svg>
+        <span class="js-clipboard-copied-text color-fg-success d-none"></span>
+    </button>
+</div></div>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto d-flex"><pre lang="text" class="notranslate"><code>(A:0.1,((E:0.1,(F1:0.1,F2:0.1):0.2):0.2,((D1:1.1,D2:0.1):0.12,((B1:0.1,B2:0.1):0.2,C:0.1):0.2):0.2):0.2);
+</code></pre><div class="zeroclipboard-container">
+    <button class="copy-button" data-text-to-copy="(A:0.1,((E:0.1,(F1:0.1,F2:0.1):0.2):0.2,((D1:1.1,D2:0.1):0.12,((B1:0.1,B2:0.1):0.2,C:0.1):0.2):0.2):0.2);">
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon color-fg-success">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+        </svg>
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+        </svg>
+        <span class="js-clipboard-copied-text color-fg-success d-none"></span>
+    </button>
+</div></div>
+<div  class="markdown-heading d-flex" dir="auto"><a id="installation" class="anchor" aria-label="Permalink: Installation" href="#installation"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h2 tabindex="-1" class="heading-element" dir="auto">Installation</h2></div>
+<p dir="auto">GLOOME is available on <a href="https://pypi.org/project/gloome/" rel="nofollow">PyPI</a> and requires Python 3.9 or later:</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto d-flex" dir="auto"><pre>pip install gloome</pre><div class="zeroclipboard-container">
+    <button class="copy-button" data-text-to-copy="pip install gloome">
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon color-fg-success">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+        </svg>
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+        </svg>
+        <span class="js-clipboard-copied-text color-fg-success d-none"></span>
+    </button>
+</div></div>
+<p dir="auto">This installs all required dependencies and the <code>gloome</code> command.</p>
+<div  class="markdown-heading d-flex" dir="auto"><a id="command-line-usage" class="anchor" aria-label="Permalink: Command-line usage" href="#command-line-usage"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h2 tabindex="-1" class="heading-element" dir="auto">Command-line usage</h2></div>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto d-flex" dir="auto"><pre>gloome --msa_file patterns.fasta --tree_file tree.nwk --out_dir results</pre><div class="zeroclipboard-container">
+    <button class="copy-button" data-text-to-copy="gloome --msa_file patterns.fasta --tree_file tree.nwk --out_dir results">
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon color-fg-success">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+        </svg>
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+        </svg>
+        <span class="js-clipboard-copied-text color-fg-success d-none"></span>
+    </button>
+</div></div>
+<p dir="auto"><code>python -m gloome</code> works as well.</p>
+<p dir="auto">Results are written to <code>&lt;out_dir&gt;/&lt;process_id&gt;/</code>. If <code>--process_id</code> is not given, one is generated.</p>
+<div  class="markdown-heading d-flex" dir="auto"><a id="required-parameters" class="anchor" aria-label="Permalink: Required parameters" href="#required-parameters"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h4 tabindex="-1" class="heading-element" dir="auto">Required parameters</h4></div>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto d-flex"><pre lang="text" class="notranslate"><code>    --msa_file &lt;type=str&gt;
+        Path to the MSA in FASTA format. Input must be a 0/1 binary matrix
+        ('1' for presence, '0' for absence, and '?' for missing data).
+
+    --tree_file &lt;type=str&gt;
+        Path to the tree in Newick format.
+</code></pre><div class="zeroclipboard-container">
+    <button class="copy-button" data-text-to-copy="    --msa_file &lt;type=str&gt;
+        Path to the MSA in FASTA format. Input must be a 0/1 binary matrix
+        ('1' for presence, '0' for absence, and '?' for missing data).
+
+    --tree_file &lt;type=str&gt;
+        Path to the tree in Newick format.
+">
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon color-fg-success">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+        </svg>
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+        </svg>
+        <span class="js-clipboard-copied-text color-fg-success d-none"></span>
+    </button>
+</div></div>
+<div  class="markdown-heading d-flex" dir="auto"><a id="optional-parameters" class="anchor" aria-label="Permalink: Optional parameters" href="#optional-parameters"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h4 tabindex="-1" class="heading-element" dir="auto">Optional parameters</h4></div>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto d-flex"><pre lang="text" class="notranslate"><code>    --out_dir &lt;type=str&gt;
+        Output directory.
+
+    --process_id &lt;type=str&gt;
+        Process ID (name of the result subdirectory). Generated automatically if omitted.
+
+    --with_internal_nodes &lt;type=int&gt;
+        Write internal node names into the output Newick tree (0/1). Default is 1.
+
+    --rooting_method &lt;type=str&gt;
+        Tree rooting method. Possible options: ('mad', 'mvr', 'midpoint', 'outgroup').
+        mad - Minimal Ancestor Deviation
+        mvr - Minimum Variance Rooting
+        midpoint - Midpoint Rooting
+        outgroup - Outgroup Rooting
+        Default is 'midpoint'.
+
+    --leaf &lt;type=str&gt;
+        Leaf to use as the outgroup when --rooting_method is 'outgroup'. Default is ''.
+</code></pre><div class="zeroclipboard-container">
+    <button class="copy-button" data-text-to-copy="    --out_dir &lt;type=str&gt;
+        Output directory.
+
+    --process_id &lt;type=str&gt;
+        Process ID (name of the result subdirectory). Generated automatically if omitted.
+
+    --with_internal_nodes &lt;type=int&gt;
+        Write internal node names into the output Newick tree (0/1). Default is 1.
+
+    --rooting_method &lt;type=str&gt;
+        Tree rooting method. Possible options: ('mad', 'mvr', 'midpoint', 'outgroup').
+        mad - Minimal Ancestor Deviation
+        mvr - Minimum Variance Rooting
+        midpoint - Midpoint Rooting
+        outgroup - Outgroup Rooting
+        Default is 'midpoint'.
+
+    --leaf &lt;type=str&gt;
+        Leaf to use as the outgroup when --rooting_method is 'outgroup'. Default is ''.
+">
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon color-fg-success">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+        </svg>
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+        </svg>
+        <span class="js-clipboard-copied-text color-fg-success d-none"></span>
+    </button>
+</div></div>
+<p dir="auto">Model parameters:</p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto d-flex"><pre lang="text" class="notranslate"><code>    --pi_1 &lt;type=float&gt;
+        π1, the stationary frequency of presence (state '1'), between 0.001 and 0.999. Default is 0.5.
+
+    --alpha &lt;type=float&gt;
+        Shape parameter α of the gamma distribution of rates among sites, between 0.1 and 20. Default is 0.5.
+
+    --categories_quantity &lt;type=int&gt;
+        Number of discrete gamma rate categories, between 1 and 16. Default is 4.
+
+    --coefficient_bl &lt;type=float&gt;
+        Scaling coefficient applied to all branch lengths, between 0.1 and 10. Default is 1.0.
+
+    --is_optimize_pi &lt;type=int&gt;
+        Optimize π1 by maximum likelihood (0/1). Default is 1.
+
+    --is_optimize_pi_average &lt;type=int&gt;
+        Set π1 to the observed frequency of '1' in the MSA (0/1). Used only when --is_optimize_pi is 0.
+        Default is 0.
+
+    --is_optimize_alpha &lt;type=int&gt;
+        Optimize α by maximum likelihood (0/1). Default is 1.
+
+    --is_optimize_bl &lt;type=int&gt;
+        Optimize the branch-length coefficient by maximum likelihood (0/1). Default is 1.
+</code></pre><div class="zeroclipboard-container">
+    <button class="copy-button" data-text-to-copy="    --pi_1 &lt;type=float&gt;
+        π1, the stationary frequency of presence (state '1'), between 0.001 and 0.999. Default is 0.5.
+
+    --alpha &lt;type=float&gt;
+        Shape parameter α of the gamma distribution of rates among sites, between 0.1 and 20. Default is 0.5.
+
+    --categories_quantity &lt;type=int&gt;
+        Number of discrete gamma rate categories, between 1 and 16. Default is 4.
+
+    --coefficient_bl &lt;type=float&gt;
+        Scaling coefficient applied to all branch lengths, between 0.1 and 10. Default is 1.0.
+
+    --is_optimize_pi &lt;type=int&gt;
+        Optimize π1 by maximum likelihood (0/1). Default is 1.
+
+    --is_optimize_pi_average &lt;type=int&gt;
+        Set π1 to the observed frequency of '1' in the MSA (0/1). Used only when --is_optimize_pi is 0.
+        Default is 0.
+
+    --is_optimize_alpha &lt;type=int&gt;
+        Optimize α by maximum likelihood (0/1). Default is 1.
+
+    --is_optimize_bl &lt;type=int&gt;
+        Optimize the branch-length coefficient by maximum likelihood (0/1). Default is 1.
+">
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon color-fg-success">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+        </svg>
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+        </svg>
+        <span class="js-clipboard-copied-text color-fg-success d-none"></span>
+    </button>
+</div></div>
+<p dir="auto">CoPAP parameters:</p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto d-flex"><pre lang="text" class="notranslate"><code>    --is_do_not_use_copap &lt;type=int&gt;
+        Skip the CoPAP analysis (0/1). Default is 0.
+
+    --probability_lg &lt;type=float&gt;
+        Minimum gain/loss probability for an event to count on a branch, between 0.01 and 0.99.
+        Used to select the sites for the Pearson correlation table. Default is 0.5.
+
+    --number_lg &lt;type=int&gt;
+        Minimum number of such gain/loss events a site needs to be included in the Pearson
+        correlation table, between 1 and 20. Default is 1.
+
+    --number_datasets &lt;type=int&gt;
+        Number of datasets simulated under the fitted model to build the null distribution
+        for the coevolution p-values, between 1 and 1000. Default is 100.
+</code></pre><div class="zeroclipboard-container">
+    <button class="copy-button" data-text-to-copy="    --is_do_not_use_copap &lt;type=int&gt;
+        Skip the CoPAP analysis (0/1). Default is 0.
+
+    --probability_lg &lt;type=float&gt;
+        Minimum gain/loss probability for an event to count on a branch, between 0.01 and 0.99.
+        Used to select the sites for the Pearson correlation table. Default is 0.5.
+
+    --number_lg &lt;type=int&gt;
+        Minimum number of such gain/loss events a site needs to be included in the Pearson
+        correlation table, between 1 and 20. Default is 1.
+
+    --number_datasets &lt;type=int&gt;
+        Number of datasets simulated under the fitted model to build the null distribution
+        for the coevolution p-values, between 1 and 1000. Default is 100.
+">
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon color-fg-success">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+        </svg>
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+        </svg>
+        <span class="js-clipboard-copied-text color-fg-success d-none"></span>
+    </button>
+</div></div>
+<p dir="auto">Output files (each flag is 0/1 and turns one output file on or off; see <a href="#output-files">Output files</a>):</p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto d-flex"><pre lang="text" class="notranslate"><code>    --file_interactive_tree_html &lt;type=int&gt;                          Default is 0.
+    --file_newick_tree_png &lt;type=int&gt;                                Default is 0.
+    --file_table_of_coevolution_tsv &lt;type=int&gt;                       Default is 1.
+    --file_simulated_datasets_fastas &lt;type=int&gt;                      Default is 1.
+    --file_barplot_of_correlation_svg &lt;type=int&gt;                     Default is 1.
+    --file_plot_distribution_of_correlation_svg &lt;type=int&gt;           Default is 1.
+    --file_plot_correlation_by_rate_bin_svg &lt;type=int&gt;               Default is 1.
+    --file_table_of_posterior_rates_tsv &lt;type=int&gt;                   Default is 1.
+    --file_table_of_pearson_correlation_tsv &lt;type=int&gt;               Default is 1.
+    --file_table_of_nodes_tsv &lt;type=int&gt;                             Default is 1.
+    --file_branch_position_probabilities_tsv &lt;type=int&gt;              Default is 1.
+    --file_table_of_branches_tsv &lt;type=int&gt;                          Default is 1.
+    --file_log_likelihood_tsv &lt;type=int&gt;                             Default is 1.
+    --file_table_of_attributes_tsv &lt;type=int&gt;                        Default is 1.
+    --file_table_of_parsimony_and_homoplasy_scores_tsv &lt;type=int&gt;    Default is 1.
+    --file_phylogenetic_tree_nwk &lt;type=int&gt;                          Default is 1.
+</code></pre><div class="zeroclipboard-container">
+    <button class="copy-button" data-text-to-copy="    --file_interactive_tree_html &lt;type=int&gt;                          Default is 0.
+    --file_newick_tree_png &lt;type=int&gt;                                Default is 0.
+    --file_table_of_coevolution_tsv &lt;type=int&gt;                       Default is 1.
+    --file_simulated_datasets_fastas &lt;type=int&gt;                      Default is 1.
+    --file_barplot_of_correlation_svg &lt;type=int&gt;                     Default is 1.
+    --file_plot_distribution_of_correlation_svg &lt;type=int&gt;           Default is 1.
+    --file_plot_correlation_by_rate_bin_svg &lt;type=int&gt;               Default is 1.
+    --file_table_of_posterior_rates_tsv &lt;type=int&gt;                   Default is 1.
+    --file_table_of_pearson_correlation_tsv &lt;type=int&gt;               Default is 1.
+    --file_table_of_nodes_tsv &lt;type=int&gt;                             Default is 1.
+    --file_branch_position_probabilities_tsv &lt;type=int&gt;              Default is 1.
+    --file_table_of_branches_tsv &lt;type=int&gt;                          Default is 1.
+    --file_log_likelihood_tsv &lt;type=int&gt;                             Default is 1.
+    --file_table_of_attributes_tsv &lt;type=int&gt;                        Default is 1.
+    --file_table_of_parsimony_and_homoplasy_scores_tsv &lt;type=int&gt;    Default is 1.
+    --file_phylogenetic_tree_nwk &lt;type=int&gt;                          Default is 1.
+">
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon color-fg-success">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+        </svg>
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+        </svg>
+        <span class="js-clipboard-copied-text color-fg-success d-none"></span>
+    </button>
+</div></div>
+<div  class="markdown-heading d-flex" dir="auto"><a id="output-files" class="anchor" aria-label="Permalink: Output files" href="#output-files"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h2 tabindex="-1" class="heading-element" dir="auto">Output files</h2></div>
+<p dir="auto">All tables are tab-separated. <strong>Positions (<code>POS</code>) are 0-based</strong>: <code>POS 0</code> is the first column of the MSA.
+Branches are named after their child node, so "branch <code>N3</code>" means the branch leading from the parent of <code>N3</code> to <code>N3</code>.
+Internal nodes are named <code>N1</code>, <code>N2</code>, … in the output tree.</p>
+<p dir="auto">The CoPAP files (coevolution, Pearson correlation, posterior rates, simulated datasets and correlation plots) are
+created only when CoPAP is enabled and the MSA has more than one position. The posterior rates table needs more than
+one rate category.</p>
+<div  class="markdown-heading d-flex" dir="auto"><a id="model-and-likelihood" class="anchor" aria-label="Permalink: Model and likelihood" href="#model-and-likelihood"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Model and likelihood</h3></div>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TreeAttributes.tsv</code></td>
+<td>Final model parameters after optimization: π1, gamma α, number of rate categories, branch-length coefficient, the rate of each gamma category, the alphabet and the total log-likelihood.</td>
+</tr>
+<tr>
+<td><code>LogLikelihood.tsv</code></td>
+<td>Log-likelihood (natural log) of each position, plus a <code>TOTAL</code> row with the log-likelihood of the whole dataset. Positions with very low values fit the model poorly.</td>
+</tr>
+<tr>
+<td><code>PosteriorRates.tsv</code></td>
+<td><code>POS</code>, <code>rate</code>: posterior mean evolutionary rate of each position. Rates above 1 mean the character changes faster than average, rates near 0 mean it is nearly conserved.</td>
+</tr>
+<tr>
+<td><code>PhylogeneticTree.nwk</code></td>
+<td>The rooted tree used in the analysis, with internal node names and branch lengths after scaling by the coefficient.</td>
+</tr>
+</tbody>
+</table>
+<div  class="markdown-heading d-flex" dir="auto"><a id="gain-and-loss" class="anchor" aria-label="Permalink: Gain and loss" href="#gain-and-loss"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Gain and loss</h3></div>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Branches.tsv</code></td>
+<td>One row per branch: <code>Parent node</code>, <code>Child node</code>, <code>Branch length</code>, then per-position lists: <code>Gain probability</code> P(0→1), <code>Loss probability</code> P(1→0), and <code>Branch probability vector</code>, which holds four probabilities per position in the order [absence maintained (0→0), loss (1→0), gain (0→1), presence maintained (1→1)]. The four values add up to 1.</td>
+</tr>
+<tr>
+<td><code>BranchPositionProbabilities.tsv</code></td>
+<td>The same gain/loss probabilities in long format, one row per (position, branch, event): <code>G/L</code> (<code>gain</code> or <code>loss</code>), <code>POS</code>, <code>branch</code>, <code>branchLength</code>, <code>distance2root</code>, <code>distance2NearestOTU</code>, <code>numOfNodes2NearestOTU</code>, <code>probability</code>. Only rows with probability &gt; 0.05 are written. Use this file to filter events, e.g. all gains with probability &gt; 0.9, or to count the expected number of gains/losses per site or per branch by summing <code>probability</code>.</td>
+</tr>
+<tr>
+<td><code>Nodes.tsv</code></td>
+<td>One row per node: <code>Name</code>, <code>Parent</code>, <code>Distance to parent</code>, <code>Children</code>, <code>Sequence</code> (reconstructed presence/absence pattern, most probable state at each position), <code>Probability coefficient</code> (posterior probability of that reconstructed state), <code>Ancestral comparison</code> (change from parent, see below), plus the technical likelihood vectors (<code>P matrix</code>, <code>Up vector</code>, <code>Down vector</code>, <code>Marginal vector</code>, <code>Vector of current conditional likelihood (subtree)</code>, <code>Vector of current conditional log-likelihood (ln, subtree)</code>).</td>
+</tr>
+</tbody>
+</table>
+<p dir="auto"><code>Ancestral comparison</code> codes, per position, compare a node's reconstructed state with its parent's:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>A</code></td>
+<td>absence maintained (0 → 0)</td>
+</tr>
+<tr>
+<td><code>L</code></td>
+<td>loss (1 → 0)</td>
+</tr>
+<tr>
+<td><code>G</code></td>
+<td>gain (0 → 1)</td>
+</tr>
+<tr>
+<td><code>P</code></td>
+<td>presence maintained (1 → 1)</td>
+</tr>
+</tbody>
+</table>
+<p dir="auto">The codes come from the most probable states, so they give a single best reconstruction. For uncertain events, use
+the probabilities in <code>Branches.tsv</code> or <code>BranchPositionProbabilities.tsv</code>.</p>
+<div  class="markdown-heading d-flex" dir="auto"><a id="co-evolution-copap" class="anchor" aria-label="Permalink: Co-evolution (CoPAP)" href="#co-evolution-copap"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Co-evolution (CoPAP)</h3></div>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Coevolution.tsv</code></td>
+<td>Main CoPAP result, one row per pair of positions: <code>POS1</code>, <code>POS2</code>, <code>r</code> (Pearson correlation of the two positions' gain/loss probability profiles across all branches), <code>rate-bin</code> (pair of gamma rate categories of the two positions), <code>p-value</code>, <code>q-value</code>, <code>direction</code>. Sorted by q-value, so the most significant pairs come first.</td>
+</tr>
+<tr>
+<td><code>PearsonCorrelation.tsv</code></td>
+<td><code>POS1</code>, <code>POS2</code>, <code>correlation</code>: raw Pearson correlation of gain/loss profiles for pairs of positions that have at least <code>--number_lg</code> events with probability ≥ <code>--probability_lg</code>. No significance test; use <code>Coevolution.tsv</code> for that.</td>
+</tr>
+<tr>
+<td><code>SimulatedDatasets.fastas</code></td>
+<td>The <code>--number_datasets</code> MSAs simulated on the same tree under the fitted model (each position keeps its posterior rate), separated by <code>iterations = i</code> headers. They form the null distribution for the p-values.</td>
+</tr>
+<tr>
+<td><code>DistributionOfCorrelation.svg</code></td>
+<td>Density (KDE) of <code>r</code> over all tested pairs, with the α and β of a Beta distribution fitted to it.</td>
+</tr>
+<tr>
+<td><code>BarplotOfCorrelation.svg</code></td>
+<td>Histogram of <code>r</code> over all tested pairs, with the same Beta fit.</td>
+</tr>
+<tr>
+<td><code>CorrelationByRateBin.svg</code></td>
+<td><code>r</code> of every pair, grouped by rate-bin. Shows whether strong correlations concentrate in particular rate classes.</td>
+</tr>
+</tbody>
+</table>
+<p dir="auto">How to read <code>Coevolution.tsv</code>:</p>
+<ul dir="auto">
+<li>Only positions that vary and have at least one gain or loss with probability &gt; 0.5 are tested.</li>
+<li><code>r</code> &gt; 0, <code>direction = co-occurrence</code>: the two characters tend to be gained and lost on the same branches.
+<code>r</code> &lt; 0, <code>direction = avoidance</code>: when one is gained or lost, the other tends not to be.</li>
+<li><code>p-value</code> is empirical: the fraction of simulated pairs <strong>in the same rate-bin</strong> with |r| at least as large as the
+observed one. Comparing within a rate-bin corrects for the fact that fast-evolving characters correlate more by
+chance. The smallest possible p-value is 1 / (number of null pairs in that bin + 1), so more simulated datasets
+give finer p-values.</li>
+<li><code>q-value</code> is the Benjamini-Hochberg false discovery rate. A common cutoff is q &lt; 0.05.</li>
+</ul>
+<div  class="markdown-heading d-flex" dir="auto"><a id="parsimony" class="anchor" aria-label="Permalink: Parsimony" href="#parsimony"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Parsimony</h3></div>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ParsimonyAndHomoplasyScores.tsv</code></td>
+<td>Per position: <code>Minimum Possible Number Of Steps (M)</code> (number of states observed minus 1), <code>Parsimony Score (S)</code> (minimum number of changes on this tree, Fitch algorithm), <code>Homoplasy Score (H = S - M)</code> (extra changes caused by convergence or reversal), <code>Consistency Index (CI = M/S)</code> (1 means no homoplasy). A <code>TOTAL</code> row sums M, S and H over all positions and gives the ensemble CI.</td>
+</tr>
+</tbody>
+</table>
+<div  class="markdown-heading d-flex" dir="auto"><a id="other-files" class="anchor" aria-label="Permalink: Other files" href="#other-files"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Other files</h3></div>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>InteractiveTree.html</code></td>
+<td>Standalone interactive tree that opens in a browser (off by default).</td>
+</tr>
+<tr>
+<td><code>VisualTree.png</code></td>
+<td>Static picture of the tree (off by default).</td>
+</tr>
+<tr>
+<td><code>result.json</code></td>
+<td>Full JSON response of the run. It can be loaded back into the webserver to view the results again (see below).</td>
+</tr>
+<tr>
+<td><code>*.log</code></td>
+<td>Log of the run, with parameters and timings.</td>
+</tr>
+<tr>
+<td><code>&lt;process_id&gt;.zip</code></td>
+<td>Archive of all output files.</td>
+</tr>
+</tbody>
+</table>
+<div  class="markdown-heading d-flex" dir="auto"><a id="webserver" class="anchor" aria-label="Permalink: Webserver" href="#webserver"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h2 tabindex="-1" class="heading-element" dir="auto">Webserver</h2></div>
+<p dir="auto">GLOOME is available as a webserver at <a href="https://gloome.tau.ac.il" rel="nofollow">gloome.tau.ac.il</a>.</p>
+<div  class="markdown-heading d-flex" dir="auto"><a id="running-an-analysis" class="anchor" aria-label="Permalink: Running an analysis" href="#running-an-analysis"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Running an analysis</h3></div>
+<ol dir="auto">
+<li>Paste a phyletic pattern MSA (FASTA) and a Newick tree into the text boxes, or upload files. <strong>Load an example</strong>
+fills in an example dataset, <strong>Clear</strong> resets the form.</li>
+<li>Optionally adjust the model parameters, the CoPAP parameters, the rooting method (for outgroup rooting, choose a
+leaf from the list, which fills in from the tree) and the output files. These options match the
+<a href="#command-line-usage">command-line parameters</a>.</li>
+<li>Optionally enter an e-mail address to get a notification when the job finishes.</li>
+<li>Click <strong>SUBMIT</strong>. The page checks the job status every few seconds and shows the results when it finishes.
+Each run has its own results page at <code>/results/&lt;process_id&gt;</code>, which you can bookmark.</li>
+</ol>
+<div  class="markdown-heading d-flex" dir="auto"><a id="results-page" class="anchor" aria-label="Permalink: Results page" href="#results-page"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Results page</h3></div>
+<p dir="auto">The results page has four parts.</p>
+<p dir="auto"><strong>Log-likelihood bar.</strong> Shows the total log-likelihood of the tree. Click it to copy the value to the clipboard.</p>
+<p dir="auto"><strong>Interactive tree.</strong></p>
+<ul dir="auto">
+<li>Node colors: red = root, orange = internal node, green = leaf.</li>
+<li><strong>Hover over a node</strong> to see a short summary of the node in a tooltip. The node grows and changes color.</li>
+<li><strong>Hover over a branch</strong> to see a short summary of the branch in a tooltip. The branch turns dark red.</li>
+<li><strong>Click a node</strong> to open the <strong>Node information</strong> table below the tree.</li>
+<li><strong>Click a branch</strong> to open the <strong>Branch information</strong> table below the tree.</li>
+<li>Zoom with the mouse wheel or a two-finger trackpad pinch, and drag to move the tree.</li>
+<li><strong>show distance to parent</strong> writes each branch length next to its node.</li>
+<li><strong>show radial tree</strong> switches between a rectangular and a circular layout.</li>
+</ul>
+<p dir="auto"><strong>Node information table</strong> (one column per position; the last row, <code>Index</code>, gives the 0-based position):</p>
+<table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Name</code>, <code>Node type</code></td>
+<td>Node name and type (root, node or leaf).</td>
+</tr>
+<tr>
+<td><code>Distance to parent</code></td>
+<td>Length of the branch above the node.</td>
+</tr>
+<tr>
+<td><code>Sequence</code></td>
+<td>Presence/absence at each position: observed for leaves, reconstructed for internal nodes.</td>
+</tr>
+<tr>
+<td><code>Probability coefficient</code></td>
+<td>Posterior probability of the shown state, colored on a scale from red (low) to violet (high). Values near 0.5 mean the reconstruction is uncertain.</td>
+</tr>
+<tr>
+<td><code>Ancestral Comparison</code></td>
+<td>Change from the parent at each position: <code>A</code> absence maintained, <code>L</code> loss, <code>G</code> gain, <code>P</code> presence maintained (see the legend next to the tree).</td>
+</tr>
+</tbody>
+</table>
+<p dir="auto">Missing data (<code>?</code>) in a leaf is shown as <code>? (x)</code>, where <code>x</code> is the state GLOOME reconstructed for that position.</p>
+<p dir="auto"><strong>Branch information table</strong> (one column per position):</p>
+<table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Parent node</code>, <code>Child node</code></td>
+<td>The two ends of the branch.</td>
+</tr>
+<tr>
+<td><code>Branch length</code></td>
+<td>Length of the branch.</td>
+</tr>
+<tr>
+<td><code>Gain probability</code></td>
+<td>Posterior probability of a gain (0 → 1) on this branch at each position.</td>
+</tr>
+<tr>
+<td><code>Loss probability</code></td>
+<td>Posterior probability of a loss (1 → 0) on this branch at each position.</td>
+</tr>
+</tbody>
+</table>
+<p dir="auto">Probabilities are colored from red (near 0) to violet (near 1), so likely events stand out when you scan a row.
+These rows contain the same values as <code>Branches.tsv</code>.</p>
+<p dir="auto"><strong>View/Download Results.</strong> Lists every output file described in <a href="#output-files">Output files</a>.
+<strong>view</strong> opens a file in the browser, <strong>download</strong> saves it. The archive (zip) contains all files.</p>
+<div  class="markdown-heading d-flex" dir="auto"><a id="loading-previous-results" class="anchor" aria-label="Permalink: Loading previous results" href="#loading-previous-results"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Loading previous results</h3></div>
+<p dir="auto">Use <strong>read JSON response file</strong> to upload the <code>result.json</code> from an earlier run. The page then shows that run's tree,
+tables and log-likelihood again without recomputing anything.</p>
+<div  class="markdown-heading d-flex" dir="auto"><a id="citing" class="anchor" aria-label="Permalink: Citing" href="#citing"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h2 tabindex="-1" class="heading-element" dir="auto">Citing</h2></div>
+<p dir="auto">If you use GLOOME for your research, please cite the following publication:</p>
+<p dir="auto">Cohen, O., Ashkenazy, H., Belinky, F., Huchon, D., and Pupko, T. 2010. GLOOME: gain loss mapping engine.
+Bioinformatics 26(22):2914-2915. <a href="https://www.tau.ac.il/~talp/publications/GLOOME.pdf" rel="nofollow">pdf</a> <a href="https://academic.oup.com/bioinformatics/article/26/22/2914/228050" rel="nofollow">abs</a></p>
+<div  class="markdown-heading d-flex" dir="auto"><a id="bibtex" class="anchor" aria-label="Permalink: BibTeX" href="#bibtex"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">BibTeX</h3></div>
+<p dir="auto">Proper citation helps support the development and maintenance of this tool.</p>
+<div class="highlight highlight-text-bibtex notranslate position-relative overflow-auto d-flex" dir="auto"><pre><span class="pl-k">@article</span>{<span class="pl-en">cohen2010gloome</span>,
+  <span class="pl-e">author</span> = <span class="pl-s"><span class="pl-pds">{</span>Cohen, Ofir and Ashkenazy, Haim and Belinky, Frida and Huchon, Doroth{\'e}e and Pupko, Tal<span class="pl-pds">}</span></span>,
+  <span class="pl-e">title</span> = <span class="pl-s"><span class="pl-pds">{</span>GLOOME: gain loss mapping engine<span class="pl-pds">}</span></span>,
+  <span class="pl-e">journal</span> = <span class="pl-s"><span class="pl-pds">{</span>Bioinformatics<span class="pl-pds">}</span></span>,
+  <span class="pl-e">volume</span> = <span class="pl-s"><span class="pl-pds">{</span>26<span class="pl-pds">}</span></span>,
+  <span class="pl-e">number</span> = <span class="pl-s"><span class="pl-pds">{</span>22<span class="pl-pds">}</span></span>,
+  <span class="pl-e">pages</span> = <span class="pl-s"><span class="pl-pds">{</span>2914--2915<span class="pl-pds">}</span></span>,
+  <span class="pl-e">year</span> = <span class="pl-s"><span class="pl-pds">{</span>2010<span class="pl-pds">}</span></span>,
+  <span class="pl-e">publisher</span> = <span class="pl-s"><span class="pl-pds">{</span>Oxford University Press<span class="pl-pds">}</span></span>
+}</pre><div class="zeroclipboard-container">
+    <button class="copy-button" data-text-to-copy="@article{cohen2010gloome,
+  author = {Cohen, Ofir and Ashkenazy, Haim and Belinky, Frida and Huchon, Doroth{\'e}e and Pupko, Tal},
+  title = {GLOOME: gain loss mapping engine},
+  journal = {Bioinformatics},
+  volume = {26},
+  number = {22},
+  pages = {2914--2915},
+  year = {2010},
+  publisher = {Oxford University Press}
+}">
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon color-fg-success">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+        </svg>
+        <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-check js-clipboard-check-icon color-fg-success d-none">
+            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+        </svg>
+        <span class="js-clipboard-copied-text color-fg-success d-none"></span>
+    </button>
+</div></div>
+<div  class="markdown-heading d-flex" dir="auto"><a id="contact" class="anchor" aria-label="Permalink: Contact" href="#contact"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h2 tabindex="-1" class="heading-element" dir="auto">Contact</h2></div>
+<p dir="auto">For questions, issues, or contributions, please open an issue on the repository or contact the maintainer directly.</p>
+</article></div>
+    </div>
+</div>
+{% endblock %}
+{% block messages %}
+{{ super() }}
+{% endblock %}

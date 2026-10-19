@@ -1,3 +1,50 @@
+document.querySelectorAll('.copy-button').forEach(button => {
+    let timeoutId;
+
+    button.addEventListener('click', async () => {
+        const copyIcon = button.querySelector('.js-clipboard-copy-icon');
+        const checkIcon = button.querySelector('.js-clipboard-check-icon');
+        const copiedText = button.querySelector('.js-clipboard-copied-text');
+
+        const textToCopy = button.getAttribute('data-text-to-copy');
+
+        try {
+            await navigator.clipboard.writeText(textToCopy);
+
+            clearTimeout(timeoutId);
+
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+            copiedText.innerHTML = 'Copied!'
+            copiedText.classList.remove('d-none');
+
+            timeoutId = setTimeout(() => {
+                copyIcon.classList.remove('d-none');
+                checkIcon.classList.add('d-none');
+                copiedText.innerHTML = ''
+                copiedText.classList.add('d-none');
+            }, 2000);
+
+        } catch (err) {
+            console.error('An error occurred while copying value to clipboard: ', err);
+        }
+    });
+    button.addEventListener('mouseover', function () {
+        const copiedText = button.querySelector('.js-clipboard-copied-text');
+        if (copiedText.innerHTML === '') {
+            copiedText.innerHTML = 'Copy code to clipboard'
+            copiedText.classList.remove('d-none');
+        }
+    });
+    button.addEventListener('mouseout', function () {
+        const copiedText = button.querySelector('.js-clipboard-copied-text');
+        if (copiedText.innerHTML === 'Copy code to clipboard') {
+            copiedText.innerHTML = ''
+            copiedText.classList.add('d-none');
+        }
+    });
+});
+
 let jsonTreeData = null
 let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`,  `isDoNotUseCoPAP`,
                   `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfCoevolutionTsv`,
@@ -184,10 +231,20 @@ function loadExample(mode = 0) {
 }
 
 function getNodeStyle(d, nodeType, mode = 0, sizeFactor = 1){
-    let sizes = [parseInt(20 / sizeFactor), parseInt(15 / sizeFactor), parseInt(10 / sizeFactor)];
-    let sizes_with_side = [2 + sizes[0], 2 + sizes[1], 2 + sizes[2]];
-    const answers = [["crimson", "darkorange", "forestgreen"], ["coral", "gold", "limegreen"], sizes, sizes_with_side];
-    if (nodeType === "root"){
+    const sizes = [
+        Math.trunc(20 / sizeFactor),
+        Math.trunc(15 / sizeFactor),
+        Math.trunc(10 / sizeFactor)
+    ];
+
+    const sizes_with_side = [2 + sizes[0], 2 + sizes[1], 2 + sizes[2]];
+
+    const answers = [
+        ["crimson", "darkorange", "forestgreen"],
+        ["coral", "gold", "limegreen"],
+        sizes,
+        sizes_with_side
+    ];    if (nodeType === "root"){
         return answers[mode][0];
     }
     else if (d.children && nodeType !== "root") {
@@ -314,7 +371,7 @@ function drawPhylogeneticTree(jsonData) {
 
     nodes
         .append(`text`)
-        .style(`font-size`, d => !d.children ? parseInt(12 / sizeFactor) : parseInt(16 / sizeFactor))
+        .style(`font-size`, d => !d.children ? Math.trunc(12 / sizeFactor) : Math.trunc(16 / sizeFactor))
         .style(`font-family`, `Verdana`)
         .style(`text-anchor`, d => d.children ? `start` : `start`)
         .style(`font-weight`, d => !d.children ? `normal` : `bold`)
@@ -323,19 +380,19 @@ function drawPhylogeneticTree(jsonData) {
             else if (jsonData[1][d.data.name][`Node type`] === `node`) { return `navy` }
             else { return `black` }
         })
-        .attr(`dy`, d => !d.children ? parseInt(3 / sizeFactor) : parseInt(6 / sizeFactor))
-        .attr(`dx`, d => !d.children ? parseInt(18 / sizeFactor) : parseInt(24 / sizeFactor))
+        .attr(`dy`, d => !d.children ? Math.trunc(3 / sizeFactor) : Math.trunc(6 / sizeFactor))
+        .attr(`dx`, d => !d.children ? Math.trunc(18 / sizeFactor) : Math.trunc(24 / sizeFactor))
         .text(d => d.data.name);
     if (showDistanceToParent) {
         nodes
             .append(`text`)
-            .style(`font-size`, parseInt(10 / sizeFactor))
+            .style(`font-size`, Math.trunc(10 / sizeFactor))
             .style(`font-family`, `sans-serif`)
             .style(`text-anchor`, `end`)
             .style(`font-weight`, `normal`)
             .style(`fill`, `darkcyan`)
-            .attr(`dy`, d => !d.children ? parseInt(3 / sizeFactor) : parseInt(6 / sizeFactor))
-            .attr(`dx`, d => !d.children ? -parseInt(18 / sizeFactor) : -parseInt(24 / sizeFactor))
+            .attr(`dy`, d => !d.children ? Math.trunc(3 / sizeFactor) : Math.trunc(6 / sizeFactor))
+            .attr(`dx`, d => !d.children ? -Math.trunc(18 / sizeFactor) : -Math.trunc(24 / sizeFactor))
             .text(d => jsonData[1][d.data.name][`Node type`] !== `root` ? `[${parseFloat(d.data.distance)}]` : ``);
     }
 }
@@ -354,7 +411,7 @@ function drawInformation(jsonData, sortingList, summary = true, mode = 0, sequen
     const shortColorList = {"A": "crimson", "L": "darkorange", "G": "forestgreen", "P": "slateblue"}
     const headersForShortColorList = ["Ancestral Comparison", ]
     const informationObjects = ['Node', 'Branch']
-    let table = '';
+    let table;
     let result = '';
 
     sortingList.forEach(header => {
@@ -413,13 +470,14 @@ function drawLogLikelihood(jsonData) {
     return result;
 }
 
-function copyValue(id, variant = 5) {
+async function copyValue(id, variant = 5) {
     let element = document.getElementById(id)
-    navigator.clipboard.writeText(element.value).then(function() {
-            showAlert(`${element.name} successfully copied to clipboard<br><br>${element.value}`, 7000, variant);
-        }, function(err) {
-            showAlert(`An error occurred while copying tree log-likelihood: ${err}`);
-        });
+    try {
+        await navigator.clipboard.writeText(element.value);
+        showAlert(`${element.name} successfully copied to clipboard<br><br>${element.value}`, 7000, variant);
+    } catch (err) {
+        showAlert(`An error occurred while copying tree log-likelihood: ${err}`);
+    }
 }
 
 function getInsideParentheses(str) {
@@ -511,14 +569,16 @@ async function makeRequest(absolutePath, formData, mode) {
         const response = await fetch(absolutePath, {method: `POST`, body: formData});
         const data = await response.json();
         if (data.success) {
-            const processID = data.data.processID;
+            const { processID } = data.data;
+
             const interval = setInterval(async () => {
                 let jobResult = await getJobResult(processID);
-                console.log(jobResult.status)
+                console.log(jobResult.status);
+
                 if ([`failed`, `finished`].includes(jobResult.status)) {
+                    clearInterval(interval); // Важливо: очищуємо інтервал ОДРАЗУ, до виклику інших функцій
                     setVisibilityLoader(false);
                     setAccessibility(``, false);
-                    clearInterval(interval);
                     showResponse(jobResult.result, mode);
                 }
             }, 5000);
@@ -528,22 +588,6 @@ async function makeRequest(absolutePath, formData, mode) {
     } catch (error) {
         processError(error);
     }
-}
-
-function sendReports() {
-    showMessage(``, -1);
-
-    fetch(`/send_reports`, {
-        method: 'GET',
-    })
-        .then(response => response.json())
-        .then(data => {
-            showAlert(data.message, 8000, 0);
-        })
-        .catch(error => {
-            console.error(`Error:`, error);
-            showAlert(error.message, 8000);
-        });
 }
 
 function makeTree(mode = 0) {
@@ -591,27 +635,27 @@ function makeTree(mode = 0) {
     formData.append(`numberLG`, numberLG.value.trim());
     formData.append(`numberDatasets`, numberDatasets.value.trim());
     formData.append(`eMail`, eMail.value.trim());
-    formData.append(`isOptimizePi`, +isOptimizePi.checked);
-    formData.append(`isOptimizePiAverage`, +isOptimizePiAverage.checked);
-    formData.append(`isOptimizeAlpha`, +isOptimizeAlpha.checked);
-    formData.append(`isOptimizeBL`, +isOptimizeBL.checked);
-    formData.append(`isDoNotUseCoPAP`, +isDoNotUseCoPAP.checked);
-    formData.append(`fileInteractiveTreeHtml`, +fileInteractiveTreeHtml.checked);
-    formData.append(`fileNewickTreePng`, +fileNewickTreePng.checked);
-    formData.append(`fileTableOfCoevolutionTsv`, +fileTableOfCoevolutionTsv.checked);
-    formData.append(`fileSimulatedDatasetsFastas`, +fileSimulatedDatasetsFastas.checked);
-    formData.append(`fileBarplotOfCorrelationSvg`, +fileBarplotOfCorrelationSvg.checked);
-    formData.append(`filePlotDistributionOfCorrelationSvg`, +filePlotDistributionOfCorrelationSvg.checked);
-    formData.append(`filePlotCorrelationByRateBinSvg`, +filePlotCorrelationByRateBinSvg.checked);
-    formData.append(`fileTableOfPosteriorRatesTsv`, +fileTableOfPosteriorRatesTsv.checked);
-    formData.append(`fileTableOfPearsonCorrelationTsv`, +fileTableOfPearsonCorrelationTsv.checked);
-    formData.append(`fileTableOfNodesTsv`, +fileTableOfNodesTsv.checked);
-    formData.append(`fileBranchPositionProbabilitiesTsv`, +fileBranchPositionProbabilitiesTsv.checked);
-    formData.append(`fileTableOfBranchesTsv`, +fileTableOfBranchesTsv.checked);
-    formData.append(`fileLogLikelihoodTsv`, +fileLogLikelihoodTsv.checked);
-    formData.append(`fileTableOfAttributesTsv`, +fileTableOfAttributesTsv.checked);
-    formData.append(`fileTableOfParsimonyAndHomoplasyScores`, +fileTableOfParsimonyAndHomoplasyScores.checked);
-    formData.append(`filePhylogeneticTreeNwk`, +filePhylogeneticTreeNwk.checked);
+    formData.append(`isOptimizePi`, `${+isOptimizePi.checked}`);
+    formData.append(`isOptimizePiAverage`, `${+isOptimizePiAverage.checked}`);
+    formData.append(`isOptimizeAlpha`, `${+isOptimizeAlpha.checked}`);
+    formData.append(`isOptimizeBL`, `${+isOptimizeBL.checked}`);
+    formData.append(`isDoNotUseCoPAP`, `${+isDoNotUseCoPAP.checked}`);
+    formData.append(`fileInteractiveTreeHtml`, `${+fileInteractiveTreeHtml.checked}`);
+    formData.append(`fileNewickTreePng`, `${+fileNewickTreePng.checked}`);
+    formData.append(`fileTableOfCoevolutionTsv`, `${+fileTableOfCoevolutionTsv.checked}`);
+    formData.append(`fileSimulatedDatasetsFastas`, `${+fileSimulatedDatasetsFastas.checked}`);
+    formData.append(`fileBarplotOfCorrelationSvg`, `${+fileBarplotOfCorrelationSvg.checked}`);
+    formData.append(`filePlotDistributionOfCorrelationSvg`, `${+filePlotDistributionOfCorrelationSvg.checked}`);
+    formData.append(`filePlotCorrelationByRateBinSvg`, `${+filePlotCorrelationByRateBinSvg.checked}`);
+    formData.append(`fileTableOfPosteriorRatesTsv`, `${+fileTableOfPosteriorRatesTsv.checked}`);
+    formData.append(`fileTableOfPearsonCorrelationTsv`, `${+fileTableOfPearsonCorrelationTsv.checked}`);
+    formData.append(`fileTableOfNodesTsv`, `${+fileTableOfNodesTsv.checked}`);
+    formData.append(`fileBranchPositionProbabilitiesTsv`, `${+fileBranchPositionProbabilitiesTsv.checked}`);
+    formData.append(`fileTableOfBranchesTsv`, `${+fileTableOfBranchesTsv.checked}`);
+    formData.append(`fileLogLikelihoodTsv`, `${+fileLogLikelihoodTsv.checked}`);
+    formData.append(`fileTableOfAttributesTsv`, `${+fileTableOfAttributesTsv.checked}`);
+    formData.append(`fileTableOfParsimonyAndHomoplasyScores`, `${+fileTableOfParsimonyAndHomoplasyScores.checked}`);
+    formData.append(`filePhylogeneticTreeNwk`, `${+filePhylogeneticTreeNwk.checked}`);
     formData.append(`rootingMethod`, rootingMethod.value.trim());
     formData.append(`leaf`, leaf.value.trim());
 
@@ -651,8 +695,9 @@ function readJson(id = `jsonFile`) {
             }
             reader.readAsText(jsonFile);
         });
-        promise.then(jsonString => {
-            let jsonObject = JSON.parse(jsonString);
+        promise.then(/** string */ jsonString => {
+            /** @type {any} */
+            const jsonObject = JSON.parse(jsonString);
             showResponse(jsonObject, actions.indexOf(jsonObject['action_name']))
     });
 }
@@ -832,3 +877,19 @@ function formCleaning(args) {
     });
     showMessage(``, -1);
 }
+//
+// function sendReports() {
+//     showMessage(``, -1);
+//
+//     fetch(`/send_reports`, {
+//         method: 'GET',
+//     })
+//         .then(response => response.json())
+//         .then(data => {
+//             showAlert(data.message, 8000, 0);
+//         })
+//         .catch(error => {
+//             console.error(`Error:`, error);
+//             showAlert(error.message, 8000);
+//         });
+// }

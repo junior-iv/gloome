@@ -45,9 +45,9 @@ def overview():
     return render_template('overview.html', menu=MENU, title=(':', f'  {MENU[1].get("title")}'))
 
 
-@app.route('/faq', methods=['GET'])
-def faq():
-    return render_template('faq.html', menu=MENU, title=(':', f'  {MENU[2].get("title")}'))
+@app.route('/documentation', methods=['GET'])
+def documentation():
+    return render_template('documentation.html', menu=MENU, title=(':', f'  {MENU[2].get("title")}'))
 
 
 @app.route('/gallery', methods=['GET'])

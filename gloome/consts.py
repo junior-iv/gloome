@@ -322,8 +322,8 @@ MENU = ({'name': 'Home', 'url': 'index',
         {'name': 'Overview', 'url': 'overview',
          'submenu': (), 'title': 'Overview'
          },
-        {'name': 'Faq', 'url': 'faq',
-         'submenu': (), 'title': 'Faq'
+        {'name': 'Documentation', 'url': 'documentation',
+         'submenu': (), 'title': 'Documentation'
          },
         {'name': 'Gallery', 'url': 'gallery',
          'submenu': (), 'title': 'Gallery'

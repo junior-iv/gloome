@@ -809,10 +809,12 @@ class Tree:
         return file_name
 
     def build_site_event_matrix(self) -> np.ndarray:
-        """Return (msa_length, 2 * n_nodes) a matrix whose row for a site is the concatenation,
+        """
+        Return (msa_length, 2 * n_nodes) a matrix whose row for a site is the concatenation,
         over every non-root node, of [loss_probability, gain_probability] -- the exact per-site
         vector ``identify_event_candidates`` builds. Also returns the ordered node list (the root
-        is excluded: it has no incoming branch, hence no gain/loss probability)."""
+        is excluded: it has no incoming branch, hence no gain/loss probability).
+        """
         nodes_list = self.all_nodes_objects[1:]
         loss = np.asarray([n.probability_vector_loss for n in nodes_list], dtype='float64')
         gain = np.asarray([n.probability_vector_gain for n in nodes_list], dtype='float64')
@@ -824,7 +826,8 @@ class Tree:
 
     def identify_event_candidates(self, event_threshold: Union[np.float64, float] = 0.5
                                   ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Extracts gain/loss matrices, filters candidate sites, and categorizes evolutionary rates.
+        """
+        Extracts gain/loss matrices, filters candidate sites, and categorizes evolutionary rates.
 
         Args:
             event_threshold: The minimum probability threshold to consider a site as an event.
@@ -865,13 +868,38 @@ class Tree:
                           use_plot_distribution_of_correlation_file: bool = False,
                           use_plot_correlation_by_rate_bin_file: bool = False) -> Dict[str, str]:
         """
-        Args (new/notable):
-            event_threshold: the actual per-site candidate filter used for the coevolution table.
+        Simulates multiple datasets to perform evolutionary analysis and build null distributions.
+
+        Args:
+            file_path: Target directory path where output files and plots will be created.
+            sep: Delimiter character used to save the coevolution table (e.g., '\t' for TSV).
+            number_datasets: Total number of iterations/MSA datasets to simulate.
+            event_threshold: The actual per-site candidate filter used for the coevolution table.
             p_value_mode: 'empirical' (default, rank-based against the raw per-bin null --
                 resolution floored at 1/(n_in_bin + 1)) or 'beta' (fit a Beta(a, b) to each bin's
                 null and read the tail off the fitted CDF, removing that floor; bins that don't
                 fit/pass goodness-of-fit fall back to 'empirical' automatically -- see
                 ``fit_beta_null``).
+            min_fit: Minimum number of data points required in a bin to attempt fitting a Beta distribution.
+            use_simulated_datasets_file: If True, writes the generated MSA datasets into
+                '{file_path}/SimulatedDatasets.fastas'.
+            use_coevolution_file: If True, calculates statistics (p-values, q-values, directions)
+                and saves the table into '{file_path}/Coevolution.tsv'.
+            use_barplot_of_correlation_file: If True, triggers coevolution analysis and reserves
+                the logic for generating '{file_path}/BarplotOfCorrelation.svg'.
+            use_plot_distribution_of_correlation_file: If True, triggers coevolution analysis and reserves
+                the logic for generating '{file_path}/DistributionOfCorrelation.svg'.
+            use_plot_correlation_by_rate_bin_file: If True, triggers coevolution analysis and reserves
+                the logic for generating '{file_path}/CorrelationByRateBin.svg'.
+
+        Returns:
+            Dict[str, str]: A dictionary containing paths to the generated files.
+                Possible keys include:
+                - 'Simulated datasets (fastas)': Path to SimulatedDatasets.fastas
+                - 'Table of coevolution (tsv)': Path to Coevolution.tsv
+                - 'Plot of distribution of correlation (svg)': Path to DistributionOfCorrelation.svg
+                - 'Barplot of correlation (svg)': Path to BarplotOfCorrelation.svg
+                - 'Plot of correlation by rate-bin (svg)': Path to CorrelationByRateBin.svg
         """
         self.make_dir(file_path)
         if self.posterior_rates is None:
@@ -2030,11 +2058,13 @@ class Tree:
 
     @staticmethod
     def fit_beta_null(null_r: np.ndarray, min_fit: int = 100, gof_alpha: float = 0.01) -> Optional[Tuple[float, float]]:
-        """Returns the shape parameters, or `None` if the sample is too small to fit reliably, its
+        """
+        Returns the shape parameters, or `None` if the sample is too small to fit reliably, its
         variance is incompatible with any Beta on [-1, 1] (can happen for a degenerate/near-point
         sample), or the fit fails a goodness-of-fit check against its own bulk. A bad fit must
         never silently produce an overconfident tail p-value, so the caller falls back to
-        `empirical_p` in that case."""
+        `empirical_p` in that case.
+        """
         null_r = np.asarray(null_r, dtype='float64')
         null_r = null_r[np.isfinite(null_r)]
         if null_r.size < min_fit:
@@ -2054,9 +2084,11 @@ class Tree:
 
     @staticmethod
     def beta_p(r: Any, params: Tuple[float, float]) -> Union[np.float64, float]:
-        """P(|R| >= |r|) under a null Beta(a, b, loc=-1, scale=2) fitted by ``fit_beta_null`` --
+        """
+        P(|R| >= |r|) under a null Beta(a, b, loc=-1, scale=2) fitted by ``fit_beta_null`` --
         the continuous analogue of ``empirical_p``'s exceedance count, same [-1, 1] support and
-        the same |r| definition of 'at least as extreme'."""
+        the same |r| definition of 'at least as extreme'.
+        """
         a, b = params
         r_abs = min(abs(r), 1 - eps2)
 

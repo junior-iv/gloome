@@ -42,7 +42,7 @@ gloome
 │   │   ├── base.html
 │   │   ├── base_newick_tools.html
 │   │   ├── citing_and_credits.html
-│   │   ├── faq.html
+│   │   ├── documentation.html
 │   │   ├── gallery.html
 │   │   ├── index.html
 │   │   ├── overview.html

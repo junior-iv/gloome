@@ -209,15 +209,14 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     use_simulated_datasets_file = selected_files.get('file_simulated_datasets_fastas', False)
     if use_correlation:
         use_coevolution_file = selected_files.get('file_table_of_coevolution_tsv', False)
-        use_barplot_of_correlation_file = selected_files.get('file_barplot_of_correlation_svg', False)
-        use_plot_distribution_of_correlation_file = selected_files.get('file_plot_distribution_of_correlation_svg',
-                                                                       False)
-        use_plot_correlation_by_rate_bin_file = selected_files.get('file_plot_correlation_by_rate_bin_svg', False)
+        use_barplot_of_corr_file = selected_files.get('file_barplot_of_correlation_svg', False)
+        use_plot_distribution_of_corr_file = selected_files.get('file_plot_distribution_of_correlation_svg', False)
+        use_plot_corr_by_rate_bin_file = selected_files.get('file_plot_correlation_by_rate_bin_svg', False)
     else:
         use_coevolution_file = False
-        use_barplot_of_correlation_file = False
-        use_plot_distribution_of_correlation_file = False
-        use_plot_correlation_by_rate_bin_file = False
+        use_barplot_of_corr_file = False
+        use_plot_distribution_of_corr_file = False
+        use_plot_corr_by_rate_bin_file = False
 
     if selected_files.get('file_interactive_tree_html', False):
         result.update({'Interactive tree (html)':
@@ -265,17 +264,16 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                                                        taking_into_coefficient=taking_into_coefficient,
                                                        with_internal_nodes=with_internal_nodes,
                                                        decimal_length=0)})
-    if any((use_simulated_datasets_file, use_coevolution_file, use_barplot_of_correlation_file,
-            use_plot_distribution_of_correlation_file, use_plot_correlation_by_rate_bin_file)) and use_copap:
-        result.update(newick_tree.simulate_datasets(file_path=f'{file_path}',
-                                                    number_datasets=number_datasets,
-                                                    use_simulated_datasets_file=use_simulated_datasets_file,
-                                                    use_coevolution_file=use_coevolution_file,
-                                                    use_barplot_of_correlation_file=use_barplot_of_correlation_file,
-                                                    use_plot_distribution_of_correlation_file=
-                                                    use_plot_distribution_of_correlation_file,
-                                                    use_plot_correlation_by_rate_bin_file=
-                                                    use_plot_correlation_by_rate_bin_file))
+    if any((use_simulated_datasets_file, use_coevolution_file, use_barplot_of_corr_file,
+            use_plot_distribution_of_corr_file, use_plot_corr_by_rate_bin_file)) and use_copap:
+        result.update(
+            newick_tree.simulate_datasets(file_path=f'{file_path}',
+                                          number_datasets=number_datasets,
+                                          use_simulated_datasets_file=use_simulated_datasets_file,
+                                          use_coevolution_file=use_coevolution_file,
+                                          use_barplot_of_correlation_file=use_barplot_of_corr_file,
+                                          use_plot_distribution_of_correlation_file=use_plot_distribution_of_corr_file,
+                                          use_plot_correlation_by_rate_bin_file=use_plot_corr_by_rate_bin_file))
 
     if result:
         file_path = get_path(file_path)
