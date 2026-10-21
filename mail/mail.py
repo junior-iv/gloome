@@ -63,9 +63,9 @@ class MailSenderSMTPLib:
                    body: str, use_attachments: bool = False, receiver: Optional[str] = None, is_error: bool = False
                    ) -> None:
         message = MIMEMultipart()
-        message["From"] = self.sender
-        message["To"] = self.receiver if receiver is None else receiver
-        message["Subject"] = subject
+        message['From'] = self.sender
+        message['To'] = self.receiver if receiver is None else receiver
+        message['Subject'] = subject
 
         if isinstance(attachments, (tuple, list)):
             if is_error:
@@ -137,7 +137,7 @@ class MailSenderSMTPLib:
         body = f'{subject}\n'
         attachments = {'successful runs': [], 'failed runs': [], 'incomplete runs': []}
         for entry in self.log_files_dir.iterdir():
-            if start_date <= entry.stat().st_ctime < end_date and bool(re.fullmatch(r"\d{14}\.log", entry.name)):
+            if start_date <= entry.stat().st_ctime < end_date and bool(re.fullmatch(r'\d{14}\.log', entry.name)):
                 process_id = entry.stem
                 if self.out_dir.joinpath(process_id).joinpath(f'GLOOME_{process_id}.END_FAIL').exists():
                     self.add_attachment_to_list(entry, attachments.get('failed runs'), excluded, included)
@@ -165,13 +165,13 @@ class MailSenderSMTPLib:
 
     @staticmethod
     def add_attachment_to_email(attachment_path: Path, message: MIMEMultipart) -> None:
-        with open(attachment_path, "rb") as attachment:
-            part = MIMEBase("application", "octet-stream")
+        with open(attachment_path, 'rb') as attachment:
+            part = MIMEBase('application', 'octet-stream')
             part.set_payload(attachment.read().strip())
 
         encoders.encode_base64(part)
         part.add_header(
-            "Content-Disposition",
-            f"attachment; filename= {attachment_path.name}",
+            'Content-Disposition',
+            f'attachment; filename= {attachment_path.name}',
         )
         message.attach(part)

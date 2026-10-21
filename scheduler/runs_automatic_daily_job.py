@@ -4,7 +4,7 @@ from gloome.consts import *
 
 def read_file(file_path: str) -> str:
     full_file_name = f'{INITIAL_DATA_DIR}/{file_path}'
-    with open(full_file_name, 'r') as f:
+    with open(full_file_name, 'r', encoding='utf-8') as f:
         return f.read().strip()
 
 

@@ -6,7 +6,6 @@ import seaborn as sns
 import re
 import gc
 
-from shutil import rmtree
 from json import loads, dumps
 from pathlib import Path
 from d3blocks import D3Blocks
@@ -53,6 +52,11 @@ class Tree:
     alphabet_length: int
     msa_length: int
     rate_vector_length: int
+    site_pattern_index: Optional[np.ndarray] = None
+    pattern_weights: Optional[np.ndarray] = None
+    patterns_length: int = 0
+    leaf_pattern_vectors: Optional[Dict[str, np.ndarray]] = None
+    site_patterns_source: Optional[Tuple[Tuple[str, ...], int]] = None
 
     def __init__(self, data: Optional[Union[str, Node]] = None, node_name: Optional[str] = None, **kwargs) -> None:
         """
@@ -101,6 +105,7 @@ class Tree:
         self.pi_1, self.coefficient_bl = None, 1
         self.log_likelihood_vector = self.likelihood_vector = self.correlation_vector = self.posterior_rates = None
         self.log_likelihood = self.likelihood = 0.0
+        self.site_pattern_index = self.pattern_weights = self.leaf_pattern_vectors = self.site_patterns_source = None
 
         self.calculated_ancestor_sequence = self.calculated_tree = self.calculated_likelihood = False
 
@@ -119,7 +124,8 @@ class Tree:
                 'log_likelihood_vector', 'log_likelihood', 'likelihood_vector', 'likelihood', 'posterior_rates',
                 'correlation_vector', 'calculated_ancestor_sequence', 'calculated_tree', 'calculated_likelihood',
                 'all_nodes', 'all_nodes_objects', 'nodes_objects', 'nodes_objects_post_order', 'leaves_objects',
-                'alphabet_length', 'msa_length', 'rate_vector_length']
+                'alphabet_length', 'msa_length', 'rate_vector_length', 'site_pattern_index', 'pattern_weights',
+                'patterns_length']
 
     def __len__(self) -> int:
 
@@ -176,7 +182,10 @@ class Tree:
                 'leaves_objects': self.leaves_objects,
                 'alphabet_length': self.alphabet_length,
                 'msa_length': self.msa_length,
-                'rate_vector_length': self.rate_vector_length}
+                'rate_vector_length': self.rate_vector_length,
+                'site_pattern_index': self.site_pattern_index,
+                'pattern_weights': self.pattern_weights,
+                'patterns_length': self.patterns_length}
 
     def print_args(self, prefix_name: str = '', prefix: str = '', sort: bool = False) -> None:
         if all((prefix_name, prefix)):
@@ -626,19 +635,21 @@ class Tree:
 
     def calculate_marginal(self) -> None:
         for current_node in self.all_nodes_objects:
-            current_node.calculate_marginal(self.rate_vector_length, self.msa_length)
+            current_node.calculate_marginal(self.rate_vector_length, self.patterns_length)
 
     def calculate_down(self) -> None:
         for current_node in self.all_nodes_objects:
-            current_node.calculate_down(self.rate_vector_length, self.alphabet_length, self.msa_length)
+            current_node.calculate_down(self.rate_vector_length, self.alphabet_length, self.patterns_length)
 
     def calculate_up(self) -> None:
         self.alphabet_length = len(self.alphabet)
         self.msa_length = len(next(iter(self.msa.values())))
         self.rate_vector_length = len(self.rate_vector)
 
+        self.set_site_patterns()
         self.initialize_leaf_up_vectors()
         self.initialize_node_up_vectors()
+        self.root.calculate_likelihood()
 
         self.likelihood_vector = self.root.likelihood_vector
         self.likelihood = self.root.likelihood
@@ -655,22 +666,47 @@ class Tree:
 
     def initialize_node_up_vectors(self) -> None:
         for current_node in self.nodes_objects_post_order:
-            current_node.calculate_up(self.rate_vector_length, self.alphabet_length, self.msa_length)
+            current_node.calculate_up(self.rate_vector_length, self.alphabet_length, self.patterns_length)
 
     def initialize_leaf_up_vectors(self) -> None:
+        shape = (self.rate_vector_length, self.alphabet_length, self.patterns_length)
         for leaf in self.leaves_objects:
-            sequence = np.asarray(list(self.msa[leaf.name]))
-            up_vector = np.zeros((self.rate_vector_length, self.alphabet_length, self.msa_length), dtype=np.float64)
-            mask_0 = (sequence == '0')
-            mask_1 = (sequence == '1')
+            leaf.up_vector = np.broadcast_to(self.leaf_pattern_vectors[leaf.name], shape)
 
-            up_vector[:, 0, mask_0] = 1.0
-            up_vector[:, 1, mask_1] = 1.0
+    def set_site_patterns(self) -> None:
+        """
+        Compress the MSA columns to unique site patterns. The engine (up/down/marginal) runs once per pattern and
+        per-site outputs are expanded back through `site_pattern_index`; `pattern_weights` counts each pattern's
+        sites. Also builds each leaf's (alphabet, pattern) state vector. Rebuilt only when the leaf sequences
+        change: they are held by reference, so reassigning `msa` or any of its sequences triggers a rebuild.
+        """
+        sequences = tuple(self.msa[leaf.name] for leaf in self.leaves_objects)
+        if self.site_patterns_source is not None:
+            cached_sequences, cached_alphabet_length = self.site_patterns_source
+            if (cached_alphabet_length == self.alphabet_length and len(cached_sequences) == len(sequences)
+                    and all(cached is current for cached, current in zip(cached_sequences, sequences))):
+                return
 
-            mask_gap = np.isin(sequence, ('-', ) + self.get_unknown_characters())
-            up_vector[:, :, mask_gap] = 1.0
+        raw = np.frombuffer(''.join(sequences).encode('utf-32-le'), dtype=np.uint32).reshape(len(sequences),
+                                                                                             self.msa_length)
+        patterns, site_pattern_index, pattern_weights = np.unique(raw, axis=1, return_inverse=True,
+                                                                  return_counts=True)
+        self.site_pattern_index = site_pattern_index.reshape(-1)
+        self.pattern_weights = pattern_weights
+        self.patterns_length = patterns.shape[1]
 
-            leaf.up_vector = up_vector
+        gap_codes = [ord(char) for char in ('-', ) + self.get_unknown_characters()]
+        self.leaf_pattern_vectors = {}
+        for leaf, pattern_row in zip(self.leaves_objects, patterns):
+            leaf_vector = np.zeros((self.alphabet_length, self.patterns_length), dtype=np.float64)
+            leaf_vector[0, pattern_row == ord('0')] = 1.0
+            leaf_vector[1, pattern_row == ord('1')] = 1.0
+            leaf_vector[:, np.isin(pattern_row, gap_codes)] = 1.0
+            self.leaf_pattern_vectors[leaf.name] = leaf_vector
+
+        for current_node in self.all_nodes_objects:
+            current_node.site_pattern_index = self.site_pattern_index
+        self.site_patterns_source = (sequences, self.alphabet_length)
 
     def get_msa_dict(self, msa: str, alphabet: Optional[Union[Tuple[str, ...], str]] = None, only_leaves: bool = True
                      ) -> Dict[str, Union[Tuple[int, ...], str]]:
@@ -707,6 +743,9 @@ class Tree:
             self.clean_all()
 
             self.calculate_up()
+            for current_node in self.nodes_objects:
+                if current_node.likelihood_vector is None:
+                    current_node.calculate_likelihood()
             self.calculate_down()
             self.calculate_marginal()
 
@@ -730,7 +769,7 @@ class Tree:
                            columns: Optional[Dict[str, str]] = None,
                            mode: str = 'node',
                            taking_into_coefficient: bool = True
-                           ) -> Dict[str, Union[List[str], str]]:
+                           ) -> Dict[str, Any]:
         """
         Args:
             return_table (bool, optional): `False` (default).
@@ -757,7 +796,7 @@ class Tree:
         else:
             dict_json = self.root.node_to_json()
 
-        return loads(dumps(dict_json, cls=NpEncoder).replace(f'\'', r'"'))
+        return loads(dumps(dict_json, cls=NpEncoder))
 
     def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
         fasta_text = self.get_fasta_text()
@@ -1216,32 +1255,38 @@ class Tree:
     def tree_to_visual_format(self, file_name: str = 'VisualTree.svg', with_internal_nodes: bool = False,
                               file_extensions: Optional[Union[str, Tuple[str, ...]]] = None, show_axes: bool = False,
                               taking_into_coefficient: bool = True) -> Dict[str, str]:
+
         file_extensions = self.check_file_extensions_tuple(file_extensions, 'svg')
 
-        self.make_dir(file_name)
-        tmp_dir = Path(file_name).parent.joinpath('tmp')
-        tmp_file = f'{tmp_dir.joinpath(f"{self.get_random_name()}.tree")}'
-        self.make_dir(tmp_file)
-        self.tree_to_newick_file(tmp_file, with_internal_nodes, taking_into_coefficient)
-        phylogenetic_tree = Phylo.read(tmp_file, 'newick')
+        base_path = Path(file_name)
+        base_path.parent.mkdir(parents=True, exist_ok=True)
 
-        j = file_name[::-1].find('.')
-        file_names = dict()
+        newick_data = self.get_newick(with_internal_nodes, decimal_length=0,
+                                      taking_into_coefficient=taking_into_coefficient)
+
+        with StringIO(newick_data) as string_buffer:
+            phylo_tree = Phylo.read(string_buffer, 'newick')
+
+        file_names = {}
+        plt_axis_mode = 'on' if show_axes else 'off'
+
         for file_extension in file_extensions:
-            file_name = f'{file_name[:-(j + 1)]}.{file_extension}' if len(file_name) > j > -1 else (f'{file_name}.'
-                                                                                                    f'{file_extension}')
-            file_names.update({f'Newick tree ({file_extension})': file_name})
+            current_file_path = base_path.with_suffix(f'.{file_extension}')
+            file_names[f'Newick tree ({file_extension})'] = str(current_file_path)
+
             if file_extension == 'txt':
-                with open(file_name, 'w') as f:
-                    Phylo.draw_ascii(phylogenetic_tree, f)
+                with open(current_file_path, 'w', encoding='utf-8') as f:
+                    Phylo.draw_ascii(phylo_tree, f)
             else:
-                Phylo.draw(phylogenetic_tree, do_show=False)
-                plt.axis('on' if show_axes else 'off')
-                kwargs = {'format': file_extension, 'bbox_inches': 'tight', 'dpi': 300} if (
-                        file_extension == 'svg') else {'format': file_extension}
-                plt.savefig(file_name, **kwargs)
+                Phylo.draw(phylo_tree, do_show=False)
+                plt.axis(plt_axis_mode)
+
+                kwargs = {'format': file_extension}
+                if file_extension == 'svg':
+                    kwargs.update({'bbox_inches': 'tight', 'dpi': 300})
+
+                plt.savefig(current_file_path, **kwargs)
                 plt.close()
-        rmtree(tmp_dir, ignore_errors=True)
 
         return file_names
 
@@ -1446,12 +1491,20 @@ class Tree:
             frequency = (1 - self.pi_1, self.pi_1)
         else:
             frequency = (1 / self.alphabet_length, 1 / self.alphabet_length)
-        for current_node in self.all_nodes_objects:
+        frequency = np.asarray(frequency, dtype=np.float64)
+
+        # Every node's (rate, parent, child) P-matrix in one vectorized call.
+        distances = np.asarray([current_node.distance_to_father for current_node in self.all_nodes_objects],
+                               dtype=np.float64)
+        branch_lengths = distances[:, np.newaxis] * self.coefficient_bl * np.asarray(self.rate_vector)[np.newaxis, :]
+        pmatrices = Node.get_two_state_pmatrix(self.pi_1, branch_lengths)
+
+        for current_node, pmatrix in zip(self.all_nodes_objects, pmatrices):
             current_node.alphabet = self.alphabet
-            current_node.frequency = np.asarray(frequency, dtype=np.float64)
+            current_node.frequency = frequency
             current_node.pi_1 = self.pi_1
             current_node.coefficient_bl = self.coefficient_bl
-            current_node.pmatrix = np.asarray([current_node.get_pmatrix(r) for r in self.rate_vector], dtype=np.float64)
+            current_node.pmatrix = pmatrix
 
     def get_gamma_distribution_percent_point(self) -> List[float]:
         probability_vector = np.linspace(0, 1, self.categories_quantity + 1)
@@ -1514,7 +1567,7 @@ class Tree:
         numerator = np.einsum('r,ri->i', self.rate_vector, weighted)
         posterior = np.divide(numerator, weighted_sum, where=(weighted_sum > 0), out=np.zeros_like(numerator))
 
-        self.posterior_rates = posterior
+        self.posterior_rates = posterior[self.site_pattern_index]
 
     def set_pearson_correlation_vector(self, probability_lg: Union[float, np.float64] = 0.5,
                                        number_lg: Union[float, np.float64, int] = 1) -> None:
@@ -1674,7 +1727,9 @@ class Tree:
         Returns:
             str: A Newick formatted string representing the tree structure.
         """
-        phylo_tree = Phylo.read(StringIO(newick_data), 'newick')
+        with StringIO(newick_data) as string_buffer:
+            phylo_tree = Phylo.read(string_buffer, 'newick')
+
         phylo_tree.root_with_outgroup(leaf_name)
 
         return ''.join(Writer((phylo_tree, )).to_strings(format_branch_length='%1.10f'))
@@ -1804,7 +1859,9 @@ class Tree:
             str: A Newick formatted string representing the tree structure.
         """
 
-        phylo_tree = Phylo.read(StringIO(newick_data), 'newick')
+        with StringIO(newick_data) as string_buffer:
+            phylo_tree = Phylo.read(string_buffer, 'newick')
+
         if len(phylo_tree.root.clades) > 2:
             phylo_tree.root_at_midpoint()
 
@@ -1916,7 +1973,7 @@ class Tree:
     def write_file(file_name: str, file_text: str) -> str:
         try:
             Tree.make_dir(file_name)
-            with open(file_name, 'w') as f:
+            with open(file_name, 'w', encoding='utf-8') as f:
                 f.write(file_text)
         except Exception as e:
             print(f'An error occurred while saving the file: {e}')
@@ -2130,7 +2187,9 @@ class Tree:
         Returns:
             str: A Newick formatted string representing the tree structure.
         """
-        phylo_tree = Phylo.read(StringIO(newick_data), 'newick')
+        with StringIO(newick_data) as string_buffer:
+            phylo_tree = Phylo.read(string_buffer, 'newick')
+
         all_leaves = phylo_tree.get_terminals()
         dists = {leaf1: {leaf2: phylo_tree.distance(leaf1, leaf2) for leaf2 in all_leaves} for leaf1 in all_leaves}
 

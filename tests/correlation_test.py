@@ -8,14 +8,14 @@ BIN_DIR = Path.cwd().parent
 
 def read_file(file_path: Path) -> str:
     if file_path.is_file():
-        with open(file_path, 'r') as f:
+        with open(file_path, 'r', encoding='utf-8') as f:
             return f.read()
     return ''
 
 
 def write_file(file_path: Path, data: Union[str, Any]):
     file_path = file_path.parent.joinpath(f'{file_path.stem}_new{file_path.suffix}')
-    with open(file_path, 'w') as f:
+    with open(file_path, 'w', encoding='utf-8') as f:
         if isinstance(data, str):
             f.write(data)
         else:

@@ -102,28 +102,29 @@ def del_file(file_path: Union[str, Path]) -> None:
 def read_file(file_path: Union[str, Path], mode: str = 'r') -> str:
     file_path = get_path(file_path)
     if file_path.is_file():
-        with open(file_path, mode) as f:
+        kwargs = {'file': file_path, 'mode': mode}
+        if 'b' in mode:
+            kwargs['encoding'] = 'utf-8'
+        with open(**kwargs) as f:
             return f.read()
 
     return ''
 
 
 def save_file(file_path: Union[str, Path], data: Union[str, Any], mode: str = 'w') -> None:
-    with open(file_path, mode) as f:
+    kwargs = {'file': file_path, 'mode': mode}
+    if 'b' in mode:
+        kwargs['encoding'] = 'utf-8'
+    with open(**kwargs) as f:
         if isinstance(data, str):
             f.write(data)
         else:
-            f.write(dumps_json(data))
+            json.dump(data, f, indent=4, ensure_ascii=False)
 
 
 def loads_json(data: str) -> Any:
 
     return json.loads(data)
-
-
-def dumps_json(data: Any) -> str:
-
-    return json.dumps(data)
 
 
 def del_files(file_list: Union[Union[str, Path], Tuple[Union[str, Path], ...]]) -> None:
@@ -168,6 +169,11 @@ def execute_all_actions(newick_tree: Union[str, Tree], file_path: Union[str, Pat
                         number_datasets: int = 100
                         ) -> Union[Dict[str, str], Path]:
     result_data = {}
+    # ToDo modes[0]
+    # modes = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions']
+    # modes.pop(modes.index('draw_tree'))
+    # modes.pop(modes.index('compute_likelihood_of_tree'))
+    # modes.pop(modes.index('create_all_file_types'))
     if actions is None or actions.get('draw_tree', False):
         result_data.update({'draw_tree': draw_tree(newick_tree)})
     if actions is None or actions.get('compute_likelihood_of_tree', False):

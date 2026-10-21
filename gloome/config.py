@@ -188,7 +188,7 @@ class Config:
 
     def check_arguments_for_errors(self) -> bool:
         if self.TREE_FILE.is_file():
-            with open(self.TREE_FILE, 'r') as f:
+            with open(self.TREE_FILE, 'r', encoding='utf-8') as f:
                 if self.VALIDATION_ACTIONS.get('del_bootstrap_values', False):
                     self.CALCULATED_ARGS.newick_text = self.ACTIONS.del_bootstrap_values(f.read().strip())
                 else:
@@ -198,7 +198,7 @@ class Config:
                                                   f'File "{self.TREE_FILE}" does not exist '))
 
         if self.MSA_FILE.is_file():
-            with open(self.MSA_FILE, 'r') as f:
+            with open(self.MSA_FILE, 'r', encoding='utf-8') as f:
                 self.CALCULATED_ARGS.msa = f.read().strip()
         else:
             self.CALCULATED_ARGS.err_list.append((f'The File does not exist',

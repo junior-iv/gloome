@@ -72,7 +72,7 @@ def get_exemple():
         result = []
         for i in (f'msa/patternMSA{mode}.msa', f'tree/newickTree{mode}.tree'):
             full_file_name = f'{INITIAL_DATA_DIR}/{i}'
-            with open(full_file_name, 'r') as f:
+            with open(full_file_name, 'r', encoding='utf-8') as f:
                 result.append(f.read().strip())
 
         return jsonify(message=result)

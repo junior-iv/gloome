@@ -160,9 +160,9 @@ class WebConfig:
                              f'\n\tleaf: {self.CURRENT_ARGS.leaf}\n')
 
     def texts_filling(self) -> None:
-        with open(self.TREE_FILE, 'r') as f:
+        with open(self.TREE_FILE, 'r', encoding='utf-8') as f:
             self.CALCULATED_ARGS.newick_text = f.read().strip()
-        with open(self.MSA_FILE, 'r') as f:
+        with open(self.MSA_FILE, 'r', encoding='utf-8') as f:
             self.CALCULATED_ARGS.msa = f.read().strip()
 
     def create_tmp_data_files(self) -> None:
