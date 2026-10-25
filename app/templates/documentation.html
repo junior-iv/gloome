@@ -43,7 +43,8 @@ rate variation among sites.</p>
 <li><strong>Posterior rate estimation</strong> per character (site)</li>
 <li><strong>CoPAP analysis</strong> (co-evolution of presence-absence patterns), with p-values from a simulation-based null
 distribution and Benjamini-Hochberg q-values</li>
-<li><strong>Parameter optimization</strong> of π1 (frequency of presence), the gamma α parameter and a branch-length scaling coefficient</li>
+<li><strong>Parameter optimization</strong> of π1 (frequency of presence), the gamma α parameter and a branch-length scaling coefficient,
+or of every branch length separately (see <a href="#per-branch-branch-lengths">Per-branch branch lengths</a>)</li>
 <li><strong>Parsimony and homoplasy scores</strong> per character (parsimony score, minimum steps, homoplasy, consistency index)</li>
 <li><strong>Tree rooting</strong> by MAD, MVR, midpoint or outgroup</li>
 <li><strong>High-performance computing</strong> powered by NumPy vectorization</li>
@@ -403,6 +404,11 @@ automatically, and the tree is rooted with the selected <code>--rooting_method</
 
     --is_optimize_bl &lt;type=int&gt;
         Optimize the branch-length coefficient by maximum likelihood (0/1). Default is 1.
+
+    --is_optimize_bl_per_branch &lt;type=int&gt;
+        Optimize every branch length separately by maximum likelihood, instead of one coefficient (0/1).
+        When set, it replaces --is_optimize_bl and also writes BranchLengthModels.tsv. Slower than the
+        coefficient. Default is 0.
 </code></pre><div class="zeroclipboard-container">
     <button class="copy-button" data-text-to-copy="    --pi_1 &lt;type=float&gt;
         π1, the stationary frequency of presence (state '1'), between 0.001 and 0.999. Default is 0.5.
@@ -428,6 +434,11 @@ automatically, and the tree is rooted with the selected <code>--rooting_method</
 
     --is_optimize_bl &lt;type=int&gt;
         Optimize the branch-length coefficient by maximum likelihood (0/1). Default is 1.
+
+    --is_optimize_bl_per_branch &lt;type=int&gt;
+        Optimize every branch length separately by maximum likelihood, instead of one coefficient (0/1).
+        When set, it replaces --is_optimize_bl and also writes BranchLengthModels.tsv. Slower than the
+        coefficient. Default is 0.
 ">
         <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" width="16" data-view-component="true" class="octicon octicon-copy js-clipboard-copy-icon color-fg-success">
             <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
@@ -543,7 +554,7 @@ one rate category.</p>
 <tbody>
 <tr>
 <td><code>TreeAttributes.tsv</code></td>
-<td>Final model parameters after optimization: π1, gamma α, number of rate categories, branch-length coefficient, the rate of each gamma category, the alphabet and the total log-likelihood.</td>
+<td>Final model parameters after optimization: π1, gamma α, number of rate categories, branch-length coefficient, the rate of each gamma category, the alphabet and the total log-likelihood. With per-branch branch lengths the coefficient is 1.</td>
 </tr>
 <tr>
 <td><code>LogLikelihood.tsv</code></td>
@@ -555,7 +566,69 @@ one rate category.</p>
 </tr>
 <tr>
 <td><code>PhylogeneticTree.nwk</code></td>
-<td>The rooted tree used in the analysis, with internal node names and branch lengths after scaling by the coefficient.</td>
+<td>The rooted tree used in the analysis, with internal node names and branch lengths after scaling by the coefficient (or the fitted branch lengths, with per-branch branch lengths).</td>
+</tr>
+<tr>
+<td><code>BranchLengthModels.tsv</code></td>
+<td>Written only with <code>--is_optimize_bl_per_branch</code>. Compares the single-coefficient fit with the per-branch fit, see below.</td>
+</tr>
+</tbody>
+</table>
+<div  class="markdown-heading d-flex" dir="auto"><a id="per-branch-branch-lengths" class="anchor" aria-label="Permalink: Per-branch branch lengths" href="#per-branch-branch-lengths"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h4 tabindex="-1" class="heading-element" dir="auto">Per-branch branch lengths</h4></div>
+<p dir="auto">By default GLOOME keeps the relative branch lengths of the input tree and fits one coefficient that scales all of them.
+With <code>--is_optimize_bl_per_branch 1</code> (web form: <strong>optimize each branch length</strong>) every branch length is fitted
+separately, together with π1 and α. This is useful when the input branch lengths come from other data, for example
+from sequences, and may not describe how the presence/absence characters evolve.</p>
+<ul dir="auto">
+<li>Branch lengths are fitted by L-BFGS-B with an exact gradient, alternating with the π1 and α optimization, and are
+kept between 0.000001 and 50. The two branches below a bifurcating root cannot be told apart from their sum, so
+their ratio is kept as in the input tree.</li>
+<li>Different starting points can end in different local optima, so the fit runs from 5 starts: the input lengths, the
+single-coefficient fit and 3 random variations of it (with a fixed seed, so runs are reproducible). The best one is
+kept. Each start alternates at most 10 rounds of branch lengths and π1/α.</li>
+<li>All results (log-likelihood, gain/loss probabilities, ancestral states, CoPAP) then use the fitted branch lengths.</li>
+<li>It takes longer: seconds for the small examples, about an hour for the largest example (<code>patternMSA10</code>).</li>
+</ul>
+<p dir="auto"><code>BranchLengthModels.tsv</code> has three rows: <code>single coefficient</code>, <code>per-branch</code>, and their <code>difference</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>log-likelihood</code>, <code>free parameters</code>, <code>AIC</code>, <code>BIC</code></td>
+<td>Fit of each model. The per-branch model has one free parameter per branch instead of one coefficient. Lower AIC/BIC is better.</td>
+</tr>
+<tr>
+<td><code>pi_1</code>, <code>alpha</code>, <code>coefficient of branch lengths</code></td>
+<td>Fitted parameters of each model.</td>
+</tr>
+<tr>
+<td><code>total tree length</code></td>
+<td>Sum of the branch lengths (after scaling).</td>
+</tr>
+<tr>
+<td><code>branches at lower bound</code>, <code>branches at upper bound</code></td>
+<td>Branches fitted to 0.000001 or to 50. A branch at the upper bound is saturated: the data cannot tell its length apart from a very long one.</td>
+</tr>
+<tr>
+<td><code>starts</code>, <code>starts log-likelihood range</code>, <code>starts reaching the best</code>, <code>best start</code></td>
+<td>How many starts ran, how far apart their results ended, how many reached the best log-likelihood (within 0.1) and which start gave it. If few starts reach the best, the likelihood surface has several optima.</td>
+</tr>
+<tr>
+<td><code>rounds</code>, <code>converged</code></td>
+<td>Rounds used by the best start, and whether it converged or stopped at the 10-round limit.</td>
+</tr>
+<tr>
+<td><code>LRT statistic</code>, <code>LRT p-value</code></td>
+<td>(difference row) Likelihood-ratio test of the single coefficient against per-branch lengths. A small p-value means per-branch lengths fit significantly better. The p-value is conservative when branches are at the lower bound.</td>
+</tr>
+<tr>
+<td><code>preferred by AIC</code>, <code>preferred by BIC</code></td>
+<td>(difference row) The model with the lower AIC/BIC.</td>
 </tr>
 </tbody>
 </table>
@@ -709,7 +782,8 @@ give finer p-values.</li>
 <ol dir="auto">
 <li>Paste a phyletic pattern MSA (FASTA) and a Newick tree into the text boxes, or upload files. <strong>Load an example</strong>
 fills in an example dataset, <strong>Clear</strong> resets the form.</li>
-<li>Optionally adjust the model parameters, the CoPAP parameters, the rooting method (for outgroup rooting, choose a
+<li>Optionally adjust the model parameters (<strong>optimize BL coefficient</strong> and <strong>optimize each branch length</strong> are
+alternatives: checking one unchecks the other), the CoPAP parameters, the rooting method (for outgroup rooting, choose a
 leaf from the list, which fills in from the tree) and the output files. These options match the
 <a href="#command-line-usage">command-line parameters</a>.</li>
 <li>Optionally enter an e-mail address to get a notification when the job finishes.</li>

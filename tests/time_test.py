@@ -48,7 +48,8 @@ coefficient_bl = 1
 is_optimize_pi = True
 is_optimize_pi_average = False
 is_optimize_alpha = True
-is_optimize_bl = True
+is_optimize_bl = False
+is_optimize_bl_per_branch = True
 
 probability_lg = 0.5
 number_lg = 1

@@ -22,7 +22,8 @@ rate variation among sites.
 * **Posterior rate estimation** per character (site)
 * **CoPAP analysis** (co-evolution of presence-absence patterns), with p-values from a simulation-based null
   distribution and Benjamini-Hochberg q-values
-* **Parameter optimization** of π1 (frequency of presence), the gamma α parameter and a branch-length scaling coefficient
+* **Parameter optimization** of π1 (frequency of presence), the gamma α parameter and a branch-length scaling coefficient,
+  or of every branch length separately (see [Per-branch branch lengths](#per-branch-branch-lengths))
 * **Parsimony and homoplasy scores** per character (parsimony score, minimum steps, homoplasy, consistency index)
 * **Tree rooting** by MAD, MVR, midpoint or outgroup
 * **High-performance computing** powered by NumPy vectorization
@@ -222,6 +223,11 @@ Model parameters:
 
     --is_optimize_bl <type=int>
         Optimize the branch-length coefficient by maximum likelihood (0/1). Default is 1.
+
+    --is_optimize_bl_per_branch <type=int>
+        Optimize every branch length separately by maximum likelihood, instead of one coefficient (0/1).
+        When set, it replaces --is_optimize_bl and also writes BranchLengthModels.tsv. Slower than the
+        coefficient. Default is 0.
 ```
 
 CoPAP parameters:
@@ -278,10 +284,40 @@ one rate category.
 
 | File                   | Contents                                                                                                                                                                                  |
 |------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `TreeAttributes.tsv`   | Final model parameters after optimization: π1, gamma α, number of rate categories, branch-length coefficient, the rate of each gamma category, the alphabet and the total log-likelihood. |
+| `TreeAttributes.tsv`   | Final model parameters after optimization: π1, gamma α, number of rate categories, branch-length coefficient, the rate of each gamma category, the alphabet and the total log-likelihood. With per-branch branch lengths the coefficient is 1. |
 | `LogLikelihood.tsv`    | Log-likelihood (natural log) of each position, plus a `TOTAL` row with the log-likelihood of the whole dataset. Positions with very low values fit the model poorly.                      |
 | `PosteriorRates.tsv`   | `POS`, `rate`: posterior mean evolutionary rate of each position. Rates above 1 mean the character changes faster than average, rates near 0 mean it is nearly conserved.                 |
-| `PhylogeneticTree.nwk` | The rooted tree used in the analysis, with internal node names and branch lengths after scaling by the coefficient.                                                                       |
+| `PhylogeneticTree.nwk` | The rooted tree used in the analysis, with internal node names and branch lengths after scaling by the coefficient (or the fitted branch lengths, with per-branch branch lengths). |
+| `BranchLengthModels.tsv` | Written only with `--is_optimize_bl_per_branch`. Compares the single-coefficient fit with the per-branch fit, see below. |
+
+#### Per-branch branch lengths
+
+By default GLOOME keeps the relative branch lengths of the input tree and fits one coefficient that scales all of them.
+With `--is_optimize_bl_per_branch 1` (web form: **optimize each branch length**) every branch length is fitted
+separately, together with π1 and α. This is useful when the input branch lengths come from other data, for example
+from sequences, and may not describe how the presence/absence characters evolve.
+
+* Branch lengths are fitted by L-BFGS-B with an exact gradient, alternating with the π1 and α optimization, and are
+  kept between 0.000001 and 50. The two branches below a bifurcating root cannot be told apart from their sum, so
+  their ratio is kept as in the input tree.
+* Different starting points can end in different local optima, so the fit runs from 5 starts: the input lengths, the
+  single-coefficient fit and 3 random variations of it (with a fixed seed, so runs are reproducible). The best one is
+  kept. Each start alternates at most 10 rounds of branch lengths and π1/α.
+* All results (log-likelihood, gain/loss probabilities, ancestral states, CoPAP) then use the fitted branch lengths.
+* It takes longer: seconds for the small examples, about an hour for the largest example (`patternMSA10`).
+
+`BranchLengthModels.tsv` has three rows: `single coefficient`, `per-branch`, and their `difference`.
+
+| Column                                                         | Meaning                                                                                                                                                       |
+|----------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `log-likelihood`, `free parameters`, `AIC`, `BIC`              | Fit of each model. The per-branch model has one free parameter per branch instead of one coefficient. Lower AIC/BIC is better.                                 |
+| `pi_1`, `alpha`, `coefficient of branch lengths`               | Fitted parameters of each model.                                                                                                                               |
+| `total tree length`                                            | Sum of the branch lengths (after scaling).                                                                                                                     |
+| `branches at lower bound`, `branches at upper bound`           | Branches fitted to 0.000001 or to 50. A branch at the upper bound is saturated: the data cannot tell its length apart from a very long one.                    |
+| `starts`, `starts log-likelihood range`, `starts reaching the best`, `best start` | How many starts ran, how far apart their results ended, how many reached the best log-likelihood (within 0.1) and which start gave it. If few starts reach the best, the likelihood surface has several optima. |
+| `rounds`, `converged`                                          | Rounds used by the best start, and whether it converged or stopped at the 10-round limit.                                                                     |
+| `LRT statistic`, `LRT p-value`                                 | (difference row) Likelihood-ratio test of the single coefficient against per-branch lengths. A small p-value means per-branch lengths fit significantly better. The p-value is conservative when branches are at the lower bound. |
+| `preferred by AIC`, `preferred by BIC`                         | (difference row) The model with the lower AIC/BIC.                                                                                                             |
 
 ### Gain and loss
 
@@ -349,7 +385,8 @@ GLOOME is available as a webserver at [gloome.tau.ac.il](https://gloome.tau.ac.i
 
 1. Paste a phyletic pattern MSA (FASTA) and a Newick tree into the text boxes, or upload files. **Load an example**
    fills in an example dataset, **Clear** resets the form.
-2. Optionally adjust the model parameters, the CoPAP parameters, the rooting method (for outgroup rooting, choose a
+2. Optionally adjust the model parameters (**optimize BL coefficient** and **optimize each branch length** are
+   alternatives: checking one unchecks the other), the CoPAP parameters, the rooting method (for outgroup rooting, choose a
    leaf from the list, which fills in from the tree) and the output files. These options match the
    [command-line parameters](#command-line-usage).
 3. Optionally enter an e-mail address to get a notification when the job finishes.

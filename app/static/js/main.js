@@ -46,8 +46,8 @@ document.querySelectorAll('.copy-button').forEach(button => {
 });
 
 let jsonTreeData = null
-let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`,  `isDoNotUseCoPAP`,
-                  `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfCoevolutionTsv`,
+let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isOptimizeBLPerBranch`,
+                  `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfCoevolutionTsv`,
                   `fileSimulatedDatasetsFastas`, `fileBarplotOfCorrelationSvg`, `filePlotDistributionOfCorrelationSvg`,
                   `filePlotCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`,
                   `fileTableOfNodesTsv`, `fileBranchPositionProbabilitiesTsv`, `fileTableOfBranchesTsv`,
@@ -60,7 +60,7 @@ let objectsDependence = {
     'pi1': {'dependence': ['isOptimizePi', 'isOptimizePiAverage'], 'value': ''},
     'alpha': {'dependence': ['isOptimizeAlpha'], 'value': ''},
     'categoriesQuantity': {'dependence': '', 'value': ''},
-    'coefficientBL': {'dependence': ['isOptimizeBL'], 'value': ''},
+    'coefficientBL': {'dependence': ['isOptimizeBL', 'isOptimizeBLPerBranch'], 'value': ''},
     'probabilityLG': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
     'numberLG': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
     'numberDatasets': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
@@ -69,6 +69,7 @@ let objectsDependence = {
     'isOptimizePiAverage': {'dependence': '', 'value': ''},
     'isOptimizeAlpha': {'dependence': '', 'value': ''},
     'isOptimizeBL': {'dependence': '', 'value': ''},
+    'isOptimizeBLPerBranch': {'dependence': '', 'value': ''},
     'isDoNotUseCoPAP': {'dependence': '', 'value': ''},
     'fileInteractiveTreeHtml': {'dependence': '', 'value': ''},
     'fileNewickTreePng': {'dependence': '', 'value': ''},
@@ -605,6 +606,7 @@ function makeTree(mode = 0) {
     const isOptimizePiAverage = document.getElementById(`isOptimizePiAverage`)
     const isOptimizeAlpha = document.getElementById(`isOptimizeAlpha`)
     const isOptimizeBL = document.getElementById(`isOptimizeBL`)
+    const isOptimizeBLPerBranch = document.getElementById(`isOptimizeBLPerBranch`)
     const isDoNotUseCoPAP = document.getElementById(`isDoNotUseCoPAP`)
     const fileInteractiveTreeHtml = document.getElementById(`fileInteractiveTreeHtml`)
     const fileNewickTreePng = document.getElementById(`fileNewickTreePng`)
@@ -658,6 +660,7 @@ function makeTree(mode = 0) {
     formData.append(`filePhylogeneticTreeNwk`, `${+filePhylogeneticTreeNwk.checked}`);
     formData.append(`rootingMethod`, rootingMethod.value.trim());
     formData.append(`leaf`, leaf.value.trim());
+    formData.append(`isOptimizeBLPerBranch`, `${+isOptimizeBLPerBranch.checked}`);
 
     jsonTreeData = null
 
@@ -724,12 +727,12 @@ function gedIdentifiers(id = ``) {
         return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`, `newickText`,
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `probabilityLG`, `numberLG`,
             `numberDatasets`, `eMail`, `isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`,
-            `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfCoevolutionTsv`,
-            `fileSimulatedDatasetsFastas`, `fileBarplotOfCorrelationSvg`, `filePlotDistributionOfCorrelationSvg`,
-            `filePlotCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`,
+            `isOptimizeBLPerBranch`, `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`,
+            `fileTableOfCoevolutionTsv`, `fileSimulatedDatasetsFastas`, `fileBarplotOfCorrelationSvg`,
+            `filePlotDistributionOfCorrelationSvg`, `filePlotCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`,
             `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`, `fileBranchPositionProbabilitiesTsv`,
-            `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, `fileTableOfParsimonyAndHomoplasyScores`,
-            'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
+            `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`,
+            `fileTableOfParsimonyAndHomoplasyScores`, 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
     }
 }
 
@@ -800,7 +803,7 @@ function onChangingCheckbox(id, value) {
     let checkboxesAccessibilityGroups = {
         'pi1': ['isOptimizePi', 'isOptimizePiAverage'],
         'alpha': ['isOptimizeAlpha'],
-        'coefficientBL': ['isOptimizeBL'],
+        'coefficientBL': ['isOptimizeBL', 'isOptimizeBLPerBranch'],
         'probabilityLG': ['isDoNotUseCoPAP'],
         'numberLG': ['isDoNotUseCoPAP'],
         'numberDatasets': ['isDoNotUseCoPAP']

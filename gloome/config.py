@@ -112,6 +112,7 @@ class Config:
                      'isOptimizePiAverage': int(self.CURRENT_ARGS.is_optimize_pi_average),
                      'isOptimizeAlpha': int(self.CURRENT_ARGS.is_optimize_alpha),
                      'isOptimizeBL': int(self.CURRENT_ARGS.is_optimize_bl),
+                     'isOptimizeBLPerBranch': int(self.CURRENT_ARGS.is_optimize_bl_per_branch),
                      'isDoNotUseCoPAP': int(self.CURRENT_ARGS.is_do_not_use_copap),
                      'fileInteractiveTreeHtml': int(self.CURRENT_ARGS.file_interactive_tree_html),
                      'fileNewickTreePng': int(self.CURRENT_ARGS.file_newick_tree_png),
@@ -238,7 +239,8 @@ class Config:
                                         self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv,
                                         self.CURRENT_ARGS.file_phylogenetic_tree_nwk,
                                         self.CURRENT_ARGS.rooting_method,
-                                        self.CURRENT_ARGS.leaf))
+                                        self.CURRENT_ARGS.leaf,
+                                        self.CURRENT_ARGS.is_optimize_bl_per_branch))
 
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('set_root', False):
             try:
@@ -263,7 +265,8 @@ class Config:
                                            is_optimize_pi=self.CURRENT_ARGS.is_optimize_pi,
                                            is_optimize_pi_average=self.CURRENT_ARGS.is_optimize_pi_average,
                                            is_optimize_alpha=self.CURRENT_ARGS.is_optimize_alpha,
-                                           is_optimize_bl=self.CURRENT_ARGS.is_optimize_bl)
+                                           is_optimize_bl=self.CURRENT_ARGS.is_optimize_bl,
+                                           is_optimize_bl_per_branch=self.CURRENT_ARGS.is_optimize_bl_per_branch)
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'MSA error',
                                                       f'Wrong MSA format. Please provide MSA in FASTA format.'))
@@ -283,7 +286,8 @@ class Config:
                 self.CALCULATED_ARGS.err_list.append((f'Strange error',
                                                       f'Strange error.'))
 
-        if not self.CALCULATED_ARGS.err_list and self.CURRENT_ARGS.is_optimize_bl:
+        if not self.CALCULATED_ARGS.err_list and (self.CURRENT_ARGS.is_optimize_bl or
+                                                  self.CURRENT_ARGS.is_optimize_bl_per_branch):
             try:
                 self.CURRENT_ARGS.coefficient_bl = self.CALCULATED_ARGS.newick_tree.coefficient_bl
             except ValueError:
@@ -398,6 +402,11 @@ class Config:
         parser.add_argument('--is_optimize_bl', dest='is_optimize_bl', type=int, required=False,
                             help=f'Specify is_optimize_bl (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_optimize_bl)}.', default=int(self.CURRENT_ARGS.is_optimize_bl))
+        parser.add_argument('--is_optimize_bl_per_branch', dest='is_optimize_bl_per_branch', type=int, required=False,
+                            help=f'Specify is_optimize_bl_per_branch (optional): optimize every branch length instead '
+                            f'of one coefficient (takes precedence over is_optimize_bl) and write '
+                            f'BranchLengthModels.tsv. Default is {int(self.CURRENT_ARGS.is_optimize_bl_per_branch)}.',
+                            default=int(self.CURRENT_ARGS.is_optimize_bl_per_branch))
         parser.add_argument('--is_do_not_use_copap', dest='is_do_not_use_copap', type=int, required=False,
                             help=f'Specify is_do_not_use_copap (optional). Default is '
                             f'{int(self.CURRENT_ARGS.is_do_not_use_copap)}.',
@@ -492,6 +501,7 @@ class Config:
                                   'is_optimize_pi_average',
                                   'is_optimize_alpha',
                                   'is_optimize_bl',
+                                  'is_optimize_bl_per_branch',
                                   'is_do_not_use_copap',
                                   'file_interactive_tree_html',
                                   'file_newick_tree_png',

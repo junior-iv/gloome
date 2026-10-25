@@ -15,7 +15,7 @@ from Bio.Phylo.NewickIO import Writer
 from numpy import ndarray, dtype, void
 from scipy.stats import gamma, pearsonr, distributions, beta as sp_beta, kstest
 from scipy.special import gammainc
-from scipy.optimize import minimize_scalar
+from scipy.optimize import minimize, minimize_scalar
 from io import StringIO
 
 from .node import Node
@@ -23,6 +23,12 @@ from .npencoder import NpEncoder
 
 eps = 5e-324
 eps2 = 1e-10
+# Bounds of every optimized branch length (per-branch optimization).
+branch_length_bounds = (1e-6, 50.0)
+# Per-branch optimization: starting points (input lengths, single-coefficient fit, the rest random) and the cap on
+# branch-lengths <-> pi_1 / alpha rounds per start.
+branch_length_starts_quantity = 5
+branch_length_max_rounds = 10
 
 
 class Tree:
@@ -57,6 +63,8 @@ class Tree:
     patterns_length: int = 0
     leaf_pattern_vectors: Optional[Dict[str, np.ndarray]] = None
     site_patterns_source: Optional[Tuple[Tuple[str, ...], int]] = None
+    branch_length_starts: Optional[List[Dict[str, Any]]] = None
+    single_coefficient_fit: Optional[Dict[str, Any]] = None
 
     def __init__(self, data: Optional[Union[str, Node]] = None, node_name: Optional[str] = None, **kwargs) -> None:
         """
@@ -74,10 +82,14 @@ class Tree:
             is_optimize_pi_average (bool, optional): `None` (default)
             is_optimize_alpha (bool, optional): `None` (default)
             is_optimize_bl (bool, optional): `None` (default)
+            is_optimize_bl_per_branch (bool, optional): `None` (default)
+            bl_starts_quantity (int, optional): `None` (default) -- starting points of the per-branch optimization;
+                `None` means `branch_length_starts_quantity`
+            seed (int, optional): `None` (default)
         """
         available_parameters = {'data', 'node_name', 'msa', 'categories_quantity', 'alpha', 'beta', 'pi_0', 'pi_1',
                                 'coefficient_bl', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_alpha',
-                                'is_optimize_bl', 'seed'}
+                                'is_optimize_bl', 'is_optimize_bl_per_branch', 'bl_starts_quantity', 'seed'}
         invalid_parameters = set(kwargs.keys()) - available_parameters
         for key in invalid_parameters:
             del kwargs[key]
@@ -106,6 +118,7 @@ class Tree:
         self.log_likelihood_vector = self.likelihood_vector = self.correlation_vector = self.posterior_rates = None
         self.log_likelihood = self.likelihood = 0.0
         self.site_pattern_index = self.pattern_weights = self.leaf_pattern_vectors = self.site_patterns_source = None
+        self.branch_length_starts = self.single_coefficient_fit = None
 
         self.calculated_ancestor_sequence = self.calculated_tree = self.calculated_likelihood = False
 
@@ -205,6 +218,8 @@ class Tree:
                       is_optimize_pi_average: Optional[bool] = None,
                       is_optimize_alpha: Optional[bool] = None,
                       is_optimize_bl: Optional[bool] = None,
+                      is_optimize_bl_per_branch: Optional[bool] = None,
+                      bl_starts_quantity: Optional[int] = None,
                       seed: Optional[int] = None) -> None:
 
         if seed is not None:
@@ -228,16 +243,22 @@ class Tree:
 
         self.set_all(categories_quantity, alpha, beta, pi_0, pi_1, coefficient_bl)
 
-        self.optimize_coefficient_bl(is_optimize_bl)
-        self.optimize_pi(is_optimize_pi, is_optimize_pi_average)
-        self.optimize_alpha(is_optimize_alpha)
-
-        if (is_optimize_alpha or is_optimize_pi or is_optimize_pi_average) and is_optimize_bl:
+        if is_optimize_bl_per_branch:
+            self.optimize_branch_lengths_and_parameters(is_optimize_pi, is_optimize_pi_average, is_optimize_alpha,
+                                                        bl_starts_quantity, seed=seed)
+        else:
             self.optimize_coefficient_bl(is_optimize_bl)
+            self.optimize_pi(is_optimize_pi, is_optimize_pi_average)
+            self.optimize_alpha(is_optimize_alpha)
+
+            if (is_optimize_alpha or is_optimize_pi or is_optimize_pi_average) and is_optimize_bl:
+                self.optimize_coefficient_bl(is_optimize_bl)
 
         self.set_all(categories_quantity=self.categories_quantity, alpha=self.alpha, pi_1=self.pi_1,
                      coefficient_bl=self.coefficient_bl)
         self.set_distance_taking_into_coefficient()
+        self.clean_all()
+        self.calculated_likelihood = self.calculated_tree = False
 
     def set_distance_taking_into_coefficient(self) -> None:
         for current_node in self.all_nodes_objects:
@@ -670,8 +691,10 @@ class Tree:
 
     def initialize_leaf_up_vectors(self) -> None:
         shape = (self.rate_vector_length, self.alphabet_length, self.patterns_length)
+        no_scaling = np.zeros((self.rate_vector_length, self.patterns_length), dtype=np.float64)
         for leaf in self.leaves_objects:
             leaf.up_vector = np.broadcast_to(self.leaf_pattern_vectors[leaf.name], shape)
+            leaf.up_log_scale = no_scaling
 
     def set_site_patterns(self) -> None:
         """
@@ -1421,9 +1444,284 @@ class Tree:
                                                 result_fild='x')
             self.set_vars()
 
+    def get_branch_log_likelihood_gradient(self) -> np.ndarray:
+        """
+        d logL / d t for the branch above every non-root node (in `all_nodes_objects[1:]` order), where
+        t = distance_to_father * coefficient_bl. For each branch, L_site = mean_r sum_ij pi_i down_i P_ij(t r) up_j
+        holds with every other branch fixed, so replacing P with dP/dt gives the derivative. Numerator and
+        denominator use the branch's own (rescaled) up/down vectors, so the scale factors cancel. All branches come
+        from a single up + down pass: run calculate_up() and calculate_down() on the current branch lengths first.
+        """
+        rates = np.asarray(self.rate_vector, dtype=np.float64)
+
+        branch_nodes = self.all_nodes_objects[1:]
+        distances = np.asarray([current_node.distance_to_father for current_node in branch_nodes], dtype=np.float64)
+        branch_lengths = distances[:, np.newaxis] * self.coefficient_bl * rates[np.newaxis, :]
+        d_pmatrices = (rates[np.newaxis, :, np.newaxis, np.newaxis] *
+                       Node.get_two_state_pmatrix_derivative(self.pi_1, branch_lengths))
+
+        gradient = np.empty(len(branch_nodes), dtype=np.float64)
+        for k, (current_node, d_pmatrix) in enumerate(zip(branch_nodes, d_pmatrices)):
+            parent_term = current_node.frequency[np.newaxis, :, np.newaxis] * current_node.down_vector
+            rate_weights = Node.get_rate_weights(current_node.up_log_scale + current_node.down_log_scale)
+            if rate_weights is not None:
+                parent_term = parent_term * rate_weights[:, np.newaxis, :]
+            derivative_per_pattern = np.sum(parent_term * np.matmul(d_pmatrix, current_node.up_vector), axis=(0, 1))
+            likelihood_per_pattern = np.sum(parent_term * np.matmul(current_node.pmatrix, current_node.up_vector),
+                                            axis=(0, 1))
+            likelihood_per_pattern = np.where(likelihood_per_pattern > 0.0, likelihood_per_pattern, eps)
+            gradient[k] = self.pattern_weights @ (derivative_per_pattern / likelihood_per_pattern)
+
+        return gradient
+
+    def optimize_branch_lengths(self, is_optimize_bl_per_branch: Optional[bool] = None,
+                                bounds: Tuple[float, float] = branch_length_bounds, max_iterations: int = 2000,
+                                tolerance: float = 1e-5) -> bool:
+        """
+        Maximum-likelihood length for every branch at once: L-BFGS-B over the branch lengths with the analytic
+        gradient (`get_branch_log_likelihood_gradient`). The lengths themselves are the parameters (not their logs),
+        so branches whose optimum is ~0 settle on the lower bound at once. `coefficient_bl` is folded into the branch
+        lengths and reset to 1, so `distance_to_father` holds the optimized lengths afterwards.
+
+        The model is reversible with a stationary root, so for a bifurcating root only the SUM of the root's two
+        branches is identifiable: they are optimized as one parameter and keep their original ratio.
+
+        Returns:
+            bool: whether L-BFGS-B converged within `max_iterations`.
+        """
+        if not is_optimize_bl_per_branch:
+            return False
+
+        branch_nodes = self.all_nodes_objects[1:]
+        lengths = np.asarray([current_node.distance_to_father for current_node in branch_nodes], dtype=np.float64)
+        lengths = np.clip(lengths * self.coefficient_bl, *bounds)
+        self.set_coefficient_bl(1.0)
+
+        free = np.ones(len(branch_nodes), dtype=bool)
+        tied = None
+        if len(self.root.children) == 2:
+            tied = tuple(branch_nodes.index(child) for child in self.root.children)
+            share = lengths[tied[0]] / (lengths[tied[0]] + lengths[tied[1]])
+            lengths[tied[0]] += lengths[tied[1]]
+            free[tied[1]] = False
+
+        def negative_log_likelihood(free_lengths: np.ndarray) -> Tuple[float, np.ndarray]:
+            all_lengths = np.empty(len(branch_nodes), dtype=np.float64)
+            all_lengths[free] = free_lengths
+            if tied:
+                root_sum = all_lengths[tied[0]]
+                all_lengths[tied[0]], all_lengths[tied[1]] = root_sum * share, root_sum * (1 - share)
+            for current_node, length in zip(branch_nodes, all_lengths):
+                current_node.distance_to_father = length
+
+            self.set_vars()
+            self.calculate_up()
+            self.calculate_down()
+            gradient = self.get_branch_log_likelihood_gradient()
+            if tied:
+                gradient[tied[0]] = share * gradient[tied[0]] + (1 - share) * gradient[tied[1]]
+
+            return -self.log_likelihood, -gradient[free]
+
+        # Stop when an iteration gains less than `tolerance` log-likelihood units (scipy's ftol is relative to |f|).
+        start_value, _ = negative_log_likelihood(lengths[free])
+        result = minimize(negative_log_likelihood, lengths[free], jac=True, method='L-BFGS-B',
+                          bounds=[bounds] * int(free.sum()),
+                          options={'maxiter': max_iterations,
+                                   'maxcor': 20,
+                                   'ftol': tolerance / max(abs(start_value), 1.0),
+                                   'gtol': 1e-3})
+        negative_log_likelihood(result.x)
+        self.set_distances_to_root()
+
+        return bool(result.success)
+
+    def get_branch_lengths(self) -> np.ndarray:
+        """Length of the branch above every non-root node (`all_nodes_objects[1:]` order), coefficient included."""
+
+        return np.asarray([current_node.distance_to_father for current_node in self.all_nodes_objects[1:]],
+                          dtype=np.float64) * self.coefficient_bl
+
+    def set_parameters_state(self, branch_lengths: np.ndarray, pi_1: Union[float, np.float64],
+                             alpha: Union[float, np.float64]) -> None:
+        """Set every branch length (coefficient reset to 1), pi_1 and alpha, and rebuild the P-matrices."""
+        for current_node, length in zip(self.all_nodes_objects[1:], branch_lengths):
+            current_node.distance_to_father = length
+        self.clean_all()
+        self.set_all(categories_quantity=self.categories_quantity, alpha=alpha, pi_1=pi_1, coefficient_bl=1.0)
+        self.set_distances_to_root()
+
+    def optimize_branch_lengths_and_parameters(self, is_optimize_pi: Optional[bool] = None,
+                                               is_optimize_pi_average: Optional[bool] = None,
+                                               is_optimize_alpha: Optional[bool] = None,
+                                               starts_quantity: Optional[int] = None,
+                                               max_rounds: int = branch_length_max_rounds, tolerance: float = 1e-2,
+                                               seed: Optional[int] = None) -> None:
+        """
+        Per-branch lengths with pi_1 / alpha, from several starting points; the best fit is kept. The likelihood
+        over branch lengths has several local optima, so the starts are: the input lengths; the single-coefficient
+        fit (input lengths times the optimized coefficient, with its pi_1 / alpha); and random ones, the
+        single-coefficient lengths each multiplied by exp(N(0, 1)). Random starts are reproducible: `seed`, or 0.
+
+        From each start, branch lengths and pi_1 / alpha are optimized in turn until a round gains less than
+        `tolerance` log-likelihood units, for at most `max_rounds` rounds. (Optimizing pi_1 and alpha inside the
+        same L-BFGS-B run converged worse: they trade off strongly against the branch lengths.)
+
+        `branch_length_starts` records every start: its log-likelihood, rounds, and whether it converged (the gain
+        fell below `tolerance`, or -- without pi_1 / alpha -- L-BFGS-B converged) rather than hitting a cap.
+        `single_coefficient_fit` records the single-coefficient fit (always run, as the nested model of the
+        comparison report, `get_branch_length_models_table`); it is the final model only if the user did not ask for
+        per-branch lengths.
+        """
+        starts_quantity = branch_length_starts_quantity if starts_quantity is None else max(1, int(starts_quantity))
+        optimizes_parameters = bool(is_optimize_pi or is_optimize_pi_average or is_optimize_alpha)
+
+        input_state = (self.get_branch_lengths(), self.pi_1, self.alpha)
+        starts = [('input lengths', input_state)]
+
+        self.optimize_coefficient_bl(True)
+        self.optimize_pi(is_optimize_pi, is_optimize_pi_average)
+        self.optimize_alpha(is_optimize_alpha)
+        if optimizes_parameters:
+            self.optimize_coefficient_bl(True)
+        coefficient_bl = self.coefficient_bl
+        single_state = (input_state[0] * coefficient_bl, self.pi_1, self.alpha)
+        self.set_parameters_state(*single_state)
+        self.single_coefficient_fit = {'log-likelihood': self.get_log_likelihood(), 'pi_1': self.pi_1,
+                                       'alpha': self.alpha, 'coefficient_bl': coefficient_bl,
+                                       'branch_lengths': single_state[0],
+                                       'is_optimize_pi': bool(is_optimize_pi or is_optimize_pi_average),
+                                       'is_optimize_alpha': bool(is_optimize_alpha)}
+
+        if starts_quantity > 1:
+            starts.append(('single coefficient', single_state))
+            random_generator = np.random.default_rng(0 if seed is None else seed)
+            for number in range(1, starts_quantity - 1):
+                lengths = single_state[0] * np.exp(random_generator.standard_normal(len(single_state[0])))
+                starts.append((f'random {number}', (np.clip(lengths, *branch_length_bounds), ) + single_state[1:]))
+
+        self.branch_length_starts, best_state = [], None
+        for name, state in starts:
+            self.set_parameters_state(*state)
+            previous_log_likelihood, converged, rounds = None, False, 0
+            for rounds in range(1, max_rounds + 1):
+                converged = self.optimize_branch_lengths(True)
+                if not optimizes_parameters:
+                    break
+
+                self.optimize_pi(is_optimize_pi, is_optimize_pi_average)
+                self.optimize_alpha(is_optimize_alpha)
+                self.set_all(categories_quantity=self.categories_quantity, alpha=self.alpha, pi_1=self.pi_1,
+                             coefficient_bl=self.coefficient_bl)
+                current_log_likelihood = self.get_log_likelihood()
+                converged = (previous_log_likelihood is not None and
+                             current_log_likelihood - previous_log_likelihood < tolerance)
+                if converged:
+                    break
+                previous_log_likelihood = current_log_likelihood
+
+            log_likelihood = self.get_log_likelihood()
+            self.branch_length_starts.append({'start': name, 'log-likelihood': log_likelihood, 'rounds': rounds,
+                                              'converged': converged})
+            if best_state is None or log_likelihood > best_state[0]:
+                best_state = (log_likelihood, (self.get_branch_lengths(), self.pi_1, self.alpha))
+
+        self.set_parameters_state(*best_state[1])
+        self.get_log_likelihood()
+
+    def get_free_parameters_count(self, per_branch: bool, is_optimize_pi: Optional[bool] = None,
+                                  is_optimize_alpha: Optional[bool] = None) -> int:
+        """
+        Free parameters of a fit: one branch-length coefficient, or every branch length (the bifurcating root's two
+        branches count once -- only their sum is identifiable), plus pi_1 and alpha when they were estimated.
+        """
+        branches_count = len(self.all_nodes_objects) - 1 - (1 if len(self.root.children) == 2 else 0)
+
+        return (branches_count if per_branch else 1) + int(bool(is_optimize_pi)) + int(bool(is_optimize_alpha))
+
+    def get_branch_length_models_table(self) -> pd.DataFrame:
+        """
+        Compare the two branch-length models of a per-branch fit (`is_optimize_bl_per_branch`): input branch lengths
+        times one optimized coefficient (`single_coefficient_fit`), and every branch length optimized (this tree). The
+        per-branch row also reports how many starts ran, how far apart their log-likelihoods ended, how many reached
+        the best one (within 0.1), and whether the best start converged or stopped at the round cap. Branches on the
+        upper bound are saturated: the data cannot tell their length apart from infinity. The single-coefficient
+        model is nested in the per-branch one, so the table reports the likelihood-ratio test with AIC and BIC.
+        Branches resting on the lower bound make the chi-square p-value conservative (the exact null is a
+        chi-bar-square mixture).
+
+        Returns:
+            pd.DataFrame: rows for the two models and their difference.
+        """
+        if self.single_coefficient_fit is None:
+            raise ValueError('No per-branch fit: build the tree with is_optimize_bl_per_branch=True.')
+        single = self.single_coefficient_fit
+        estimates_pi, estimates_alpha = single['is_optimize_pi'], single['is_optimize_alpha']
+
+        start_log_likelihoods = np.asarray([start['log-likelihood'] for start in self.branch_length_starts])
+        best_start = self.branch_length_starts[int(np.argmax(start_log_likelihoods))]
+        models = (('single coefficient', single['log-likelihood'], single['pi_1'], single['alpha'],
+                   single['coefficient_bl'], single['branch_lengths'], False,
+                   {'starts': 1, 'starts log-likelihood range': 0.0, 'starts reaching the best': 1,
+                    'best start': 'input lengths', 'rounds': None, 'converged': True}),
+                  ('per-branch', self.get_log_likelihood(), self.pi_1, self.alpha, self.coefficient_bl,
+                   self.get_branch_lengths(), True,
+                   {'starts': len(start_log_likelihoods),
+                    'starts log-likelihood range': np.ptp(start_log_likelihoods),
+                    'starts reaching the best': int(np.sum(start_log_likelihoods >= start_log_likelihoods.max() - 0.1)),
+                    'best start': best_start['start'],
+                    'rounds': best_start['rounds'],
+                    'converged': best_start['converged']}))
+
+        rows = []
+        for name, log_likelihood, pi_1, alpha, coefficient_bl, lengths, is_per_branch, summary in models:
+            parameters_count = self.get_free_parameters_count(is_per_branch, estimates_pi, estimates_alpha)
+            rows.append({'model': name,
+                         'log-likelihood': log_likelihood,
+                         'free parameters': parameters_count,
+                         'AIC': 2 * parameters_count - 2 * log_likelihood,
+                         'BIC': parameters_count * np.log(self.msa_length) - 2 * log_likelihood,
+                         'pi_1': pi_1,
+                         'alpha': alpha,
+                         'coefficient of branch lengths': coefficient_bl,
+                         'total tree length': lengths.sum(),
+                         'branches at lower bound': int(np.sum(lengths <= branch_length_bounds[0] * (1 + 1e-9))),
+                         'branches at upper bound': int(np.sum(lengths >= branch_length_bounds[1] * (1 - 1e-9))),
+                         **summary})
+
+        likelihood_ratio = max(2 * (rows[1]['log-likelihood'] - rows[0]['log-likelihood']), 0.0)
+        degrees_of_freedom = rows[1]['free parameters'] - rows[0]['free parameters']
+        difference = {'model': 'difference (per-branch - single coefficient)'}
+        for key in ('log-likelihood', 'free parameters', 'AIC', 'BIC', 'total tree length', 'branches at lower bound',
+                    'branches at upper bound'):
+            difference[key] = rows[1][key] - rows[0][key]
+        difference.update({'LRT statistic': likelihood_ratio,
+                           'LRT p-value': distributions.chi2.sf(likelihood_ratio, degrees_of_freedom),
+                           'preferred by AIC': rows[int(difference['AIC'] < 0)]['model'],
+                           'preferred by BIC': rows[int(difference['BIC'] < 0)]['model']})
+        rows.append(difference)
+
+        return pd.DataFrame(rows)
+
+    def branch_length_models_to_tsv(self, file_name: str = 'BranchLengthModels.tsv', sep: str = '\t') -> str:
+        self.make_dir(file_name)
+        self.get_branch_length_models_table().to_csv(file_name, index=False, sep=sep, float_format='%.8f')
+
+        return file_name
+
+    def set_distances_to_root(self) -> None:
+        for current_node in self.all_nodes_objects:
+            if current_node.father:
+                current_node.distance_to_root_vector = (current_node.father.distance_to_root_vector +
+                                                        [current_node.distance_to_father])
+                current_node.distance_to_root = round(sum(current_node.distance_to_root_vector), 14)
+        for current_node in self.all_nodes_objects:
+            current_node.set_levels_and_distance_to_nearest()
+
     def optimize_alpha(self, is_optimize_alpha: Optional[bool] = None) -> None:
         if is_optimize_alpha:
             self.alpha = self.optimize(func=self.alpha_optimization, bracket=(0.5, ), bounds=(0.1, 20), result_fild='x')
+            self.set_gamma_distribution_categories_vector(self.alpha)
             self.set_vars()
 
     def optimize_pi(self, is_optimize_pi: Optional[bool] = None, is_optimize_pi_average: Optional[bool] = None,
@@ -1560,6 +1858,9 @@ class Tree:
             self.calculate_up()
 
         likelihoods_per_rate = np.einsum('j,rji->ri', self.root.frequency, self.root.up_vector)
+        rate_weights = Node.get_rate_weights(self.root.up_log_scale)
+        if rate_weights is not None:
+            likelihoods_per_rate = likelihoods_per_rate * rate_weights
         invalid_mask = (likelihoods_per_rate <= 0.0) | np.isnan(likelihoods_per_rate)
         likelihoods_per_rate = np.where(invalid_mask, eps, likelihoods_per_rate)
         weighted = likelihoods_per_rate * prior[:, np.newaxis]

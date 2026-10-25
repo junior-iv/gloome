@@ -25,9 +25,9 @@
 }
 
 #output-files, #command-line-usage, #gloome-gain-loss-mapping-engine, #features, #project-structure, #input,
-#installation, #required-parameters, #optional-parameters, #model-and-likelihood, #gain-and-loss, #co-evolution-copap,
-#parsimony, #other-files, #webserver, #running-an-analysis, #results-page, #loading-previous-results, #citing,
-#bibtex, #contact
+#installation, #required-parameters, #optional-parameters, #model-and-likelihood, #per-branch-branch-lengths,
+#gain-and-loss, #co-evolution-copap, #parsimony, #other-files, #webserver, #running-an-analysis, #results-page,
+#loading-previous-results, #citing, #bibtex, #contact
 {
   scroll-margin-top: 80px;
 }

@@ -91,7 +91,8 @@ class WebConfig:
                    'filePlotCorrelationByRateBinSvg', 'fileTableOfPosteriorRatesTsv',
                    'fileTableOfPearsonCorrelationTsv', 'fileTableOfNodesTsv', 'fileBranchPositionProbabilitiesTsv',
                    'fileTableOfBranchesTsv', 'fileLogLikelihoodTsv', 'fileTableOfAttributesTsv',
-                   'fileTableOfParsimonyAndHomoplasyScores', 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'),
+                   'fileTableOfParsimonyAndHomoplasyScores', 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf',
+                   'isOptimizeBLPerBranch'),
                   ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'probability_lg', 'number_lg',
                    'number_datasets', 'e_mail', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_bl',
                    'is_optimize_alpha', 'is_do_not_use_copap', 'file_interactive_tree_html',
@@ -101,11 +102,12 @@ class WebConfig:
                    'file_table_of_pearson_correlation_tsv', 'file_table_of_nodes_tsv',
                    'file_branch_position_probabilities_tsv', 'file_table_of_branches_tsv', 'file_log_likelihood_tsv',
                    'file_table_of_attributes_tsv', 'file_table_of_parsimony_and_homoplasy_scores_tsv',
-                   'file_phylogenetic_tree_nwk', 'rooting_method', 'leaf'),
+                   'file_phylogenetic_tree_nwk', 'rooting_method', 'leaf', 'is_optimize_bl_per_branch'),
                   ((int, ), (float, ), (float, ), (float, ), (float, ), (int, ), (int, ), (str, ), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
-                   (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (str, ), (str, )))
+                   (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (str, ), (str, ),
+                   (int, bool)))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -131,6 +133,7 @@ class WebConfig:
                              f'\n\tis_optimize_pi_average: {self.CURRENT_ARGS.is_optimize_pi_average}'
                              f'\n\tis_optimize_alpha: {self.CURRENT_ARGS.is_optimize_alpha}'
                              f'\n\tis_optimize_bl: {self.CURRENT_ARGS.is_optimize_bl}'
+                             f'\n\tis_optimize_bl_per_branch: {self.CURRENT_ARGS.is_optimize_bl_per_branch}'
                              f'\n\tis_do_not_use_copap: {self.CURRENT_ARGS.is_do_not_use_copap}'
                              f'\n\tfile_interactive_tree_html: {self.CURRENT_ARGS.file_interactive_tree_html}'
                              f'\n\tfile_newick_tree_png: {self.CURRENT_ARGS.file_newick_tree_png}'
@@ -201,6 +204,7 @@ class WebConfig:
             f'--is_optimize_pi_average {int(self.CURRENT_ARGS.is_optimize_pi_average)} '
             f'--is_optimize_alpha {int(self.CURRENT_ARGS.is_optimize_alpha)} '
             f'--is_optimize_bl {int(self.CURRENT_ARGS.is_optimize_bl)} '
+            f'--is_optimize_bl_per_branch {int(self.CURRENT_ARGS.is_optimize_bl_per_branch)} '
             f'--file_interactive_tree_html {int(self.CURRENT_ARGS.file_interactive_tree_html)} '
             f'--file_newick_tree_png {int(self.CURRENT_ARGS.file_newick_tree_png)} '
             f'--file_table_of_coevolution_tsv {int(self.CURRENT_ARGS.file_table_of_coevolution_tsv)} '

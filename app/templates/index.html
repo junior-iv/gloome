@@ -251,7 +251,7 @@
                                                title="The value must be between 0.1 and 10" type="number" min="0.1" max="10" step="0.1"
                                                onchange="validateInput(this.id, {{coefficient_bl}})"
                                                class="form-control rounded-pill"
-                                            {%- if is_optimize_bl -%}
+                                            {%- if is_optimize_bl or is_optimize_bl_per_branch -%}
                                                 disabled
                                             {% endif -%}
                                         />
@@ -265,6 +265,20 @@
                                         <input id="isOptimizeBL" name="isOptimizeBL" onchange="onChangingCheckbox(this.id, this.checked)"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if is_optimize_bl -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="isOptimizeBLPerBranch" class="h6 text-start text-success-emphasis ms-3"
+                                               title="Optimize every branch length separately instead of one coefficient. Also writes a table comparing both models (BranchLengthModels.tsv). Slower on large trees.">optimize each branch length</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="isOptimizeBLPerBranch" name="isOptimizeBLPerBranch" onchange="onChangingCheckbox(this.id, this.checked)"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if is_optimize_bl_per_branch -%}
                                                    checked
                                                {% endif -%}
                                         />

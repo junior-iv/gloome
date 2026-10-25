@@ -21,6 +21,7 @@ FILE_LIST = [
     'Table of posterior rates (tsv)',
     'Table of pearson correlation (tsv)',
     'Tree attributes (tsv)',
+    'Branch length models (tsv)',
     'Phylogenetic tree (nwk)',
     'Simulated datasets (fastas)',
     'Log-File (log)',
@@ -258,6 +259,9 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     if selected_files.get('file_log_likelihood_tsv', False):
         result.update({'Log-likelihood (tsv)':
                        newick_tree.likelihood_to_tsv(file_name=f'{file_path}/LogLikelihood.tsv')})
+    if newick_tree.single_coefficient_fit is not None:
+        result.update({'Branch length models (tsv)':
+                       newick_tree.branch_length_models_to_tsv(file_name=f'{file_path}/BranchLengthModels.tsv')})
     if selected_files.get('file_table_of_attributes_tsv', False):
         result.update({'Tree attributes (tsv)':
                        newick_tree.attributes_to_tsv(file_name=f'{file_path}/TreeAttributes.tsv')})
@@ -356,6 +360,7 @@ def check_data(*args) -> List[Tuple[str, str]]:
     file_phylogenetic_tree_nwk = bool(args[30])
     rooting_method = args[31].strip()
     leaf = args[32].strip()
+    is_optimize_bl_per_branch = bool(args[33]) if len(args) > 33 else False
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -399,6 +404,10 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not isinstance(is_optimize_bl, bool):
         err_list.append((f'Optimize branch lengths coefficient value error [ {is_optimize_bl} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(is_optimize_bl_per_branch, bool):
+        err_list.append((f'Optimize every branch length value error [ {is_optimize_bl_per_branch} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(is_do_not_use_copap, bool):
