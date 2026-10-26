@@ -226,7 +226,7 @@ Model parameters:
 
     --is_optimize_bl_per_branch <type=int>
         Optimize every branch length separately by maximum likelihood, instead of one coefficient (0/1).
-        When set, it replaces --is_optimize_bl and also writes BranchLengthModels.tsv. Slower than the
+        When set, it replaces --is_optimize_bl. Slower than the
         coefficient. Default is 0.
 ```
 
@@ -252,22 +252,23 @@ CoPAP parameters:
 Output files (each flag is 0/1 and turns one output file on or off; see [Output files](#output-files)):
 
 ```text
-    --file_interactive_tree_html <type=int>                          Default is 0.
-    --file_newick_tree_png <type=int>                                Default is 0.
+    --file_log_likelihood_tsv <type=int>                             Default is 1.
+    --file_table_of_nodes_tsv <type=int>                             Default is 1.
+    --file_table_of_branches_tsv <type=int>                          Default is 1.
+    --file_branch_position_probabilities_tsv <type=int>              Default is 1.
     --file_table_of_coevolution_tsv <type=int>                       Default is 1.
-    --file_simulated_datasets_fastas <type=int>                      Default is 1.
-    --file_barplot_of_correlation_svg <type=int>                     Default is 1.
-    --file_plot_distribution_of_correlation_svg <type=int>           Default is 1.
-    --file_plot_correlation_by_rate_bin_svg <type=int>               Default is 1.
+    --file_table_of_parsimony_and_homoplasy_scores_tsv <type=int>    Default is 1.
     --file_table_of_posterior_rates_tsv <type=int>                   Default is 1.
     --file_table_of_pearson_correlation_tsv <type=int>               Default is 1.
-    --file_table_of_nodes_tsv <type=int>                             Default is 1.
-    --file_branch_position_probabilities_tsv <type=int>              Default is 1.
-    --file_table_of_branches_tsv <type=int>                          Default is 1.
-    --file_log_likelihood_tsv <type=int>                             Default is 1.
     --file_table_of_attributes_tsv <type=int>                        Default is 1.
-    --file_table_of_parsimony_and_homoplasy_scores_tsv <type=int>    Default is 1.
+    --file_branch_length_models_tsv <type=int>                       Default is 1.
     --file_phylogenetic_tree_nwk <type=int>                          Default is 1.
+    --file_simulated_datasets_fastas <type=int>                      Default is 1.
+    --file_barplot_of_correlation_svg <type=int>                     Default is 1.
+    --file_plot_correlation_by_rate_bin_svg <type=int>               Default is 1.
+    --file_plot_distribution_of_correlation_svg <type=int>           Default is 1.
+    --file_interactive_tree_html <type=int>                          Default is 0.
+    --file_newick_tree_png <type=int>                                Default is 0.
 ```
 
 ## Output files
@@ -288,7 +289,7 @@ one rate category.
 | `LogLikelihood.tsv`    | Log-likelihood (natural log) of each position, plus a `TOTAL` row with the log-likelihood of the whole dataset. Positions with very low values fit the model poorly.                      |
 | `PosteriorRates.tsv`   | `POS`, `rate`: posterior mean evolutionary rate of each position. Rates above 1 mean the character changes faster than average, rates near 0 mean it is nearly conserved.                 |
 | `PhylogeneticTree.nwk` | The rooted tree used in the analysis, with internal node names and branch lengths after scaling by the coefficient (or the fitted branch lengths, with per-branch branch lengths). |
-| `BranchLengthModels.tsv` | Written only with `--is_optimize_bl_per_branch`. Compares the single-coefficient fit with the per-branch fit, see below. |
+| `BranchLengthModels.tsv` | Compares the single-coefficient fit with the per-branch fit, see below. |
 
 #### Per-branch branch lengths
 

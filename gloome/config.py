@@ -84,6 +84,7 @@ class Config:
     def get_selected_files(self) -> Dict[str, bool]:
         selected_files = {'file_interactive_tree_html': self.CURRENT_ARGS.file_interactive_tree_html,
                           'file_newick_tree_png': self.CURRENT_ARGS.file_newick_tree_png,
+                          'file_branch_length_models_tsv': self.CURRENT_ARGS.file_branch_length_models_tsv,
                           'file_table_of_coevolution_tsv': self.CURRENT_ARGS.file_table_of_coevolution_tsv,
                           'file_simulated_datasets_fastas': self.CURRENT_ARGS.file_simulated_datasets_fastas,
                           'file_barplot_of_correlation_svg': self.CURRENT_ARGS.file_barplot_of_correlation_svg,
@@ -106,8 +107,8 @@ class Config:
         return selected_files
 
     def get_form_data(self) -> Dict[str, Union[str, int]]:
-        form_data = {'msaText': self.CALCULATED_ARGS.msa,
-                     'newickText': self.CALCULATED_ARGS.newick_text,
+        form_data = {'msaText': self.get_text(self.MSA_FILE),
+                     'newickText': self.get_text(self.TREE_FILE),
                      'isOptimizePi': int(self.CURRENT_ARGS.is_optimize_pi),
                      'isOptimizePiAverage': int(self.CURRENT_ARGS.is_optimize_pi_average),
                      'isOptimizeAlpha': int(self.CURRENT_ARGS.is_optimize_alpha),
@@ -116,6 +117,7 @@ class Config:
                      'isDoNotUseCoPAP': int(self.CURRENT_ARGS.is_do_not_use_copap),
                      'fileInteractiveTreeHtml': int(self.CURRENT_ARGS.file_interactive_tree_html),
                      'fileNewickTreePng': int(self.CURRENT_ARGS.file_newick_tree_png),
+                     'fileBranchLengthModelsTsv': int(self.CURRENT_ARGS.file_branch_length_models_tsv),
                      'fileTableOfCoevolutionTsv': int(self.CURRENT_ARGS.file_table_of_coevolution_tsv),
                      'fileSimulatedDatasetsFastas': int(self.CURRENT_ARGS.file_simulated_datasets_fastas),
                      'fileBarplotOfCorrelationSvg': int(DEFAULT_ARGUMENTS.file_barplot_of_correlation_svg),
@@ -240,7 +242,8 @@ class Config:
                                         self.CURRENT_ARGS.file_phylogenetic_tree_nwk,
                                         self.CURRENT_ARGS.rooting_method,
                                         self.CURRENT_ARGS.leaf,
-                                        self.CURRENT_ARGS.is_optimize_bl_per_branch))
+                                        self.CURRENT_ARGS.is_optimize_bl_per_branch,
+                                        self.CURRENT_ARGS.file_branch_length_models_tsv))
 
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('set_root', False):
             try:
@@ -419,6 +422,11 @@ class Config:
                             help=f'Specify file_newick_tree_png (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_newick_tree_png)}.',
                             default=int(self.CURRENT_ARGS.file_newick_tree_png))
+        parser.add_argument('--file_branch_length_models_tsv',
+                            dest='file_branch_length_models_tsv', type=int, required=False,
+                            help=f'Specify file_branch_length_models_tsv (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_branch_length_models_tsv)}.',
+                            default=int(self.CURRENT_ARGS.file_branch_length_models_tsv))
         parser.add_argument('--file_table_of_coevolution_tsv',
                             dest='file_table_of_coevolution_tsv', type=int, required=False,
                             help=f'Specify file_table_of_coevolution_tsv (optional). Default is '
@@ -505,6 +513,7 @@ class Config:
                                   'is_do_not_use_copap',
                                   'file_interactive_tree_html',
                                   'file_newick_tree_png',
+                                  'file_branch_length_models_tsv',
                                   'file_table_of_coevolution_tsv',
                                   'file_simulated_datasets_fastas',
                                   'file_barplot_of_correlation_svg',
@@ -534,3 +543,8 @@ class Config:
     @staticmethod
     def get_new_process_id():
         return f'{round(time())}{randint(1000, 9999)}'
+
+    @staticmethod
+    def get_text(file_path: Union[Path, str]) -> str:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return f.read().strip()

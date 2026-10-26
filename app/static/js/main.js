@@ -47,7 +47,7 @@ document.querySelectorAll('.copy-button').forEach(button => {
 
 let jsonTreeData = null
 let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isOptimizeBLPerBranch`,
-                  `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfCoevolutionTsv`,
+                  `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileBranchLengthModelsTsv`, `fileTableOfCoevolutionTsv`,
                   `fileSimulatedDatasetsFastas`, `fileBarplotOfCorrelationSvg`, `filePlotDistributionOfCorrelationSvg`,
                   `filePlotCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`,
                   `fileTableOfNodesTsv`, `fileBranchPositionProbabilitiesTsv`, `fileTableOfBranchesTsv`,
@@ -73,6 +73,7 @@ let objectsDependence = {
     'isDoNotUseCoPAP': {'dependence': '', 'value': ''},
     'fileInteractiveTreeHtml': {'dependence': '', 'value': ''},
     'fileNewickTreePng': {'dependence': '', 'value': ''},
+    'fileBranchLengthModelsTsv': {'dependence': '', 'value': ''},
     'fileTableOfCoevolutionTsv': {'dependence': '', 'value': ''},
     'fileSimulatedDatasetsFastas': {'dependence': '', 'value': ''},
     'fileBarplotOfCorrelationSvg': {'dependence': '', 'value': ''},
@@ -610,6 +611,7 @@ function makeTree(mode = 0) {
     const isDoNotUseCoPAP = document.getElementById(`isDoNotUseCoPAP`)
     const fileInteractiveTreeHtml = document.getElementById(`fileInteractiveTreeHtml`)
     const fileNewickTreePng = document.getElementById(`fileNewickTreePng`)
+    const fileBranchLengthModelsTsv = document.getElementById(`fileBranchLengthModelsTsv`)
     const fileTableOfCoevolutionTsv = document.getElementById(`fileTableOfCoevolutionTsv`)
     const fileSimulatedDatasetsFastas = document.getElementById(`fileSimulatedDatasetsFastas`)
     const fileBarplotOfCorrelationSvg = document.getElementById(`fileBarplotOfCorrelationSvg`)
@@ -661,6 +663,7 @@ function makeTree(mode = 0) {
     formData.append(`rootingMethod`, rootingMethod.value.trim());
     formData.append(`leaf`, leaf.value.trim());
     formData.append(`isOptimizeBLPerBranch`, `${+isOptimizeBLPerBranch.checked}`);
+    formData.append(`fileBranchLengthModelsTsv`, `${+fileBranchLengthModelsTsv.checked}`);
 
     jsonTreeData = null
 
@@ -728,10 +731,10 @@ function gedIdentifiers(id = ``) {
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `probabilityLG`, `numberLG`,
             `numberDatasets`, `eMail`, `isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`,
             `isOptimizeBLPerBranch`, `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`,
-            `fileTableOfCoevolutionTsv`, `fileSimulatedDatasetsFastas`, `fileBarplotOfCorrelationSvg`,
-            `filePlotDistributionOfCorrelationSvg`, `filePlotCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`,
-            `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`, `fileBranchPositionProbabilitiesTsv`,
-            `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`,
+            `fileTableOfCoevolutionTsv`, `fileBranchLengthModelsTsv`, `fileSimulatedDatasetsFastas`,
+            `fileBarplotOfCorrelationSvg`, `filePlotDistributionOfCorrelationSvg`, `filePlotCorrelationByRateBinSvg`,
+            `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`,
+            `fileBranchPositionProbabilitiesTsv`, `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`,
             `fileTableOfParsimonyAndHomoplasyScores`, 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
     }
 }
@@ -798,6 +801,12 @@ function onChangingRootingMethod(delLeaf = true) {
     setAccessibility(`leaf`, document.getElementById(`rootingMethod`).value !== `outgroup`);
 }
 
+function onLoadResultsFiles(id) {
+    let element = document.getElementById(id);
+    if (id === 'isOptimizeBLPerBranch') {setDisplay('blockFileBranchLengthModelsTsv', element.checked === true);}
+    if (id === 'isOptimizeBL') {setDisplay('blockFileBranchLengthModelsTsv', document.getElementById('isOptimizeBLPerBranch').checked);}
+}
+
 function onChangingCheckbox(id, value) {
     let element = document.getElementById(id);
     let checkboxesAccessibilityGroups = {
@@ -822,18 +831,48 @@ function onChangingCheckbox(id, value) {
                 valueList.forEach(elementId => id !== elementId ? document.getElementById(elementId).checked = false : element.checked = Boolean(value));
                 setAccessibility(key, element.checked);
             }
-
         });
         Object.entries(checkboxesDisplayGroups).forEach(([key, valueList]) => {
             if (valueList.includes(id)) {
                 valueList.forEach(elementId => id !== elementId ? document.getElementById(elementId).checked = false : element.checked = Boolean(value));
                 setDisplay(key, !element.checked);
             }
-
         });
+        onLoadResultsFiles(id);
     } else {
         element.value = value;
     }
+    // let checkboxesDisplayGroups = {
+    //     'blockFileTableOfPosteriorRatesTsv': {'isDoNotUseCoPAP': 1},
+    //     'blockFileTableOfPearsonCorrelationTsv': {'isDoNotUseCoPAP': 1},
+    //     'blockFileSimulatedDatasetsFastas': {'isDoNotUseCoPAP': 1},
+    //     'blockFileTableOfCoevolutionTsv': {'isDoNotUseCoPAP': 1},
+    //     'blockFileBarplotOfCorrelationSvg': {'isDoNotUseCoPAP': 1},
+    //     'blockFilePlotDistributionOfCorrelationSvg': {'isDoNotUseCoPAP': 1},
+    //     'blockFilePlotCorrelationByRateBinSvg': {'isDoNotUseCoPAP': 1},
+    //     'blockFileBranchLengthModelsTsv': {'isOptimizeBLPerBranch': 0}};
+    // if (checkboxes.includes(id)) {
+    //     Object.entries(checkboxesAccessibilityGroups).forEach(([key, valueList]) => {
+    //         if (valueList.includes(id)) {
+    //             valueList.forEach(elementId => id !== elementId ? document.getElementById(elementId).checked = false : element.checked = Boolean(value));
+    //             setAccessibility(key, element.checked);
+    //         }
+    //     });
+    //     Object.entries(checkboxesDisplayGroups).forEach(([key, valueList]) => {
+    //         if (valueList[0].includes(id)) {
+    //             valueList[0].forEach(elementId => {
+    //                 if (id !== elementId) {
+    //                     document.getElementById(elementId).checked = false;
+    //                 } else {
+    //                     element.checked = Boolean(value)
+    //                     setDisplay(key, Boolean(-valueList[1]+document.getElementById(elementId).checked))
+    //                 }
+    //             });
+    //         }
+    //     });
+    // } else {
+    //     element.value = value;
+    // }
 }
 
 function setAccessibility(id = ``, value = null) {

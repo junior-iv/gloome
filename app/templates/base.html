@@ -22,7 +22,7 @@
 {%- if data -%}
     <body onload="showResponse({{data}})">
 {% else -%}
-    <body>
+    <body onload="onLoadResultsFiles('isOptimizeBL')">
 {% endif -%}
 {%- block menu -%}
 <header class="sticky-top bg-white">

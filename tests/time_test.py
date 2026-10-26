@@ -10,6 +10,7 @@ from gloome.services.service_functions import recompile_json, execute_all_action
 
 SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_newick_tree_png': True,
+                  'file_branch_length_models_tsv': True,
                   'file_table_of_coevolution_tsv': True,
                   'file_simulated_datasets_fastas': True,
                   'file_table_of_posterior_rates_tsv': True,

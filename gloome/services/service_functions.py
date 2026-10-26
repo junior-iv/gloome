@@ -37,6 +37,7 @@ FILE_LIST = [
 ]
 SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_newick_tree_png': True,
+                  'file_branch_length_models_tsv': True,
                   'file_table_of_coevolution_tsv': True,
                   'file_simulated_datasets_fastas': True,
                   'file_table_of_posterior_rates_tsv': True,
@@ -259,7 +260,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     if selected_files.get('file_log_likelihood_tsv', False):
         result.update({'Log-likelihood (tsv)':
                        newick_tree.likelihood_to_tsv(file_name=f'{file_path}/LogLikelihood.tsv')})
-    if newick_tree.single_coefficient_fit is not None:
+    if (selected_files.get('file_branch_length_models_tsv', False) and
+            newick_tree.single_coefficient_fit is not None):
         result.update({'Branch length models (tsv)':
                        newick_tree.branch_length_models_to_tsv(file_name=f'{file_path}/BranchLengthModels.tsv')})
     if selected_files.get('file_table_of_attributes_tsv', False):
@@ -360,7 +362,8 @@ def check_data(*args) -> List[Tuple[str, str]]:
     file_phylogenetic_tree_nwk = bool(args[30])
     rooting_method = args[31].strip()
     leaf = args[32].strip()
-    is_optimize_bl_per_branch = bool(args[33]) if len(args) > 33 else False
+    is_optimize_bl_per_branch = bool(args[33])
+    file_branch_length_models_tsv = bool(args[34])
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -422,8 +425,13 @@ def check_data(*args) -> List[Tuple[str, str]]:
         err_list.append((f'Newick tree (png) value error [ {file_newick_tree_png} ]',
                          f'The value must be boolean type.'))
 
+    if not isinstance(file_branch_length_models_tsv, bool):
+        err_list.append((f'Branch length models (tsv) value error '
+                         f'[ {file_branch_length_models_tsv} ]',
+                         f'The value must be boolean type.'))
+
     if not isinstance(file_table_of_coevolution_tsv, bool):
-        err_list.append((f'Coevolution (tsv) value error '
+        err_list.append((f'Table of coevolution (tsv) value error '
                          f'[ {file_table_of_coevolution_tsv} ]',
                          f'The value must be boolean type.'))
 

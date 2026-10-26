@@ -171,6 +171,7 @@ DEFAULT_FORM_ARGUMENTS = {
     'is_do_not_use_copap': False,
     'file_interactive_tree_html': False,
     'file_newick_tree_png': False,
+    'file_branch_length_models_tsv': True,
     'file_table_of_coevolution_tsv': True,
     'file_simulated_datasets_fastas': True,
     'file_barplot_of_correlation_svg': True,
@@ -274,12 +275,13 @@ USAGE = '''\tRequired parameters:
 \t\t--is_optimize_bl <type=int> 
 \t\t\tSpecify is_optimize_bl. Default is 1.
 \t\t--is_optimize_bl_per_branch <type=int> 
-\t\t\tSpecify is_optimize_bl_per_branch (optimize every branch length instead of one coefficient; also writes 
-\t\t\tBranchLengthModels.tsv). Default is 0.
+\t\t\tSpecify is_optimize_bl_per_branch. Default is 0.
 \t\t--file_interactive_tree_html <type=int> 
 \t\t\tSpecify file_interactive_tree_html. Default is 0.
 \t\t--file_newick_tree_png <type=int> 
 \t\t\tSpecify file_newick_tree_png. Default is 0.
+\t\t--file_branch_length_models_tsv <type=int>
+\t\t\tSpecify file_branch_length_models_tsv. Default is 1.
 \t\t--file_table_of_coevolution_tsv <type=int>
 \t\t\tSpecify file_table_of_coevolution_tsv. Default is 1.
 \t\t--file_simulated_datasets_fastas <type=int>
