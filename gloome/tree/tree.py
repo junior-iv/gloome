@@ -24,7 +24,7 @@ from .npencoder import NpEncoder
 eps = 5e-324
 eps2 = 1e-10
 # Bounds of every optimized branch length (per-branch optimization).
-branch_length_bounds = (1e-6, 50.0)
+# branch_length_bounds = (1e-4, 2.0)
 # Per-branch optimization: starting points (input lengths, single-coefficient fit, the rest random) and the cap on
 # branch-lengths <-> pi_1 / alpha rounds per start.
 branch_length_starts_quantity = 5
@@ -65,6 +65,7 @@ class Tree:
     site_patterns_source: Optional[Tuple[Tuple[str, ...], int]] = None
     branch_length_starts: Optional[List[Dict[str, Any]]] = None
     single_coefficient_fit: Optional[Dict[str, Any]] = None
+    branch_length_bounds = (1e-4, 2.0)
 
     def __init__(self, data: Optional[Union[str, Node]] = None, node_name: Optional[str] = None, **kwargs) -> None:
         """
@@ -1474,8 +1475,7 @@ class Tree:
 
         return gradient
 
-    def optimize_branch_lengths(self, is_optimize_bl_per_branch: Optional[bool] = None,
-                                bounds: Tuple[float, float] = branch_length_bounds, max_iterations: int = 2000,
+    def optimize_branch_lengths(self, is_optimize_bl_per_branch: Optional[bool] = None, max_iterations: int = 2000,
                                 tolerance: float = 1e-5) -> bool:
         """
         Maximum-likelihood length for every branch at once: L-BFGS-B over the branch lengths with the analytic
@@ -1494,7 +1494,7 @@ class Tree:
 
         branch_nodes = self.all_nodes_objects[1:]
         lengths = np.asarray([current_node.distance_to_father for current_node in branch_nodes], dtype=np.float64)
-        lengths = np.clip(lengths * self.coefficient_bl, *bounds)
+        lengths = np.clip(lengths * self.coefficient_bl, *self.branch_length_bounds)
         self.set_coefficient_bl(1.0)
 
         free = np.ones(len(branch_nodes), dtype=bool)
@@ -1526,7 +1526,7 @@ class Tree:
         # Stop when an iteration gains less than `tolerance` log-likelihood units (scipy's ftol is relative to |f|).
         start_value, _ = negative_log_likelihood(lengths[free])
         result = minimize(negative_log_likelihood, lengths[free], jac=True, method='L-BFGS-B',
-                          bounds=[bounds] * int(free.sum()),
+                          bounds=[self.branch_length_bounds] * int(free.sum()),
                           options={'maxiter': max_iterations,
                                    'maxcor': 20,
                                    'ftol': tolerance / max(abs(start_value), 1.0),
@@ -1598,7 +1598,7 @@ class Tree:
             random_generator = np.random.default_rng(0 if seed is None else seed)
             for number in range(1, starts_quantity - 1):
                 lengths = single_state[0] * np.exp(random_generator.standard_normal(len(single_state[0])))
-                starts.append((f'random {number}', (np.clip(lengths, *branch_length_bounds), ) + single_state[1:]))
+                starts.append((f'random {number}', (np.clip(lengths, *self.branch_length_bounds), ) + single_state[1:]))
 
         self.branch_length_starts, best_state = [], None
         for name, state in starts:
@@ -1685,8 +1685,8 @@ class Tree:
                          'alpha': alpha,
                          'coefficient of branch lengths': coefficient_bl,
                          'total tree length': lengths.sum(),
-                         'branches at lower bound': int(np.sum(lengths <= branch_length_bounds[0] * (1 + 1e-9))),
-                         'branches at upper bound': int(np.sum(lengths >= branch_length_bounds[1] * (1 - 1e-9))),
+                         'branches at lower bound': int(np.sum(lengths <= self.branch_length_bounds[0] * (1 + 1e-9))),
+                         'branches at upper bound': int(np.sum(lengths >= self.branch_length_bounds[1] * (1 - 1e-9))),
                          **summary})
 
         likelihood_ratio = max(2 * (rows[1]['log-likelihood'] - rows[0]['log-likelihood']), 0.0)
