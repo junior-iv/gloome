@@ -23,6 +23,7 @@ FILE_LIST = [
     'Tree attributes (tsv)',
     'Branch length models (tsv)',
     'Phylogenetic tree (nwk)',
+    'All-nodes (fasta)',
     'Simulated datasets (fastas)',
     'Log-File (log)',
     'JSON response file (json)',

@@ -290,12 +290,13 @@ one rate category.
 
 ### Model and likelihood
 
-| File                   | Contents                                                                                                                                                                                  |
-|------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `TreeAttributes.tsv`   | Final model parameters after optimization: π1, gamma α, number of rate categories, branch-length coefficient, the rate of each gamma category, the alphabet and the total log-likelihood. With per-branch branch lengths the coefficient is 1. |
-| `LogLikelihood.tsv`    | Log-likelihood (natural log) of each position, plus a `TOTAL` row with the log-likelihood of the whole dataset. Positions with very low values fit the model poorly.                      |
-| `PosteriorRates.tsv`   | `POS`, `rate`: posterior mean evolutionary rate of each position. Rates above 1 mean the character changes faster than average, rates near 0 mean it is nearly conserved.                 |
-| `PhylogeneticTree.nwk` | The rooted tree used in the analysis, with internal node names and branch lengths after scaling by the coefficient (or the fitted branch lengths, with per-branch branch lengths). |
+| File                     | Contents                                                                                                                                                                                  |
+|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `TreeAttributes.tsv`     | Final model parameters after optimization: π1, gamma α, number of rate categories, branch-length coefficient, the rate of each gamma category, the alphabet and the total log-likelihood. With per-branch branch lengths the coefficient is 1. |
+| `LogLikelihood.tsv`      | Log-likelihood (natural log) of each position, plus a `TOTAL` row with the log-likelihood of the whole dataset. Positions with very low values fit the model poorly.                      |
+| `PosteriorRates.tsv`     | `POS`, `rate`: posterior mean evolutionary rate of each position. Rates above 1 mean the character changes faster than average, rates near 0 mean it is nearly conserved.                 |
+| `PhylogeneticTree.nwk`   | The rooted tree used in the analysis, with internal node names and branch lengths after scaling by the coefficient (or the fitted branch lengths, with per-branch branch lengths). |
+| `AllNodes.fasta`         | A comprehensive FASTA file containing sequences for all tree components, covering both internal ancestral nodes and terminal leaf nodes used in the study. |
 | `BranchLengthModels.tsv` | Compares the single-coefficient fit with the per-branch fit, see below. |
 
 #### Per-branch branch lengths
