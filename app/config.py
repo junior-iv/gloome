@@ -92,7 +92,8 @@ class WebConfig:
                    'fileTableOfPearsonCorrelationTsv', 'fileTableOfNodesTsv', 'fileBranchPositionProbabilitiesTsv',
                    'fileTableOfBranchesTsv', 'fileLogLikelihoodTsv', 'fileTableOfAttributesTsv',
                    'fileTableOfParsimonyAndHomoplasyScores', 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf',
-                   'isOptimizeBLPerBranch', 'fileBranchLengthModelsTsv'),
+                   'isOptimizeBLPerBranch', 'fileBranchLengthModelsTsv', 'branchLengthMinBound', 'branchLengthMaxBound',
+                   'fileAllNodesFasta'),
                   ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'probability_lg', 'number_lg',
                    'number_datasets', 'e_mail', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_bl',
                    'is_optimize_alpha', 'is_do_not_use_copap', 'file_interactive_tree_html',
@@ -103,12 +104,13 @@ class WebConfig:
                    'file_branch_position_probabilities_tsv', 'file_table_of_branches_tsv', 'file_log_likelihood_tsv',
                    'file_table_of_attributes_tsv', 'file_table_of_parsimony_and_homoplasy_scores_tsv',
                    'file_phylogenetic_tree_nwk', 'rooting_method', 'leaf', 'is_optimize_bl_per_branch',
-                   'file_branch_length_models_tsv'),
+                   'file_branch_length_models_tsv', 'branch_length_min_bound', 'branch_length_max_bound',
+                   'file_all_nodes_fasta'),
                   ((int, ), (float, ), (float, ), (float, ), (float, ), (int, ), (int, ), (str, ), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
-                   (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (str, ), (str, ),
-                   (int, bool), (int, bool)))
+                   (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (str, ),
+                   (str, ), (int, bool), (int, bool), (float, ), (float, ), (int, bool)))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -126,6 +128,8 @@ class WebConfig:
                              f'\n\talpha: {self.CURRENT_ARGS.alpha}'
                              f'\n\tpi_1: {self.CURRENT_ARGS.pi_1}'
                              f'\n\tcoefficient_bl: {self.CURRENT_ARGS.coefficient_bl}'
+                             f'\n\tbranch_length_min_bound: {self.CURRENT_ARGS.branch_length_min_bound}'
+                             f'\n\tbranch_length_max_bound: {self.CURRENT_ARGS.branch_length_max_bound}'
                              f'\n\tprobability_lg: {self.CURRENT_ARGS.probability_lg}'
                              f'\n\tnumber_lg: {self.CURRENT_ARGS.number_lg}'
                              f'\n\tnumber_datasets: {self.CURRENT_ARGS.number_datasets}'
@@ -159,6 +163,7 @@ class WebConfig:
                              f'\n\tfile_table_of_parsimony_and_homoplasy_scores_tsv: '
                              f'{self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv}'
                              f'\n\tfile_phylogenetic_tree_nwk: {self.CURRENT_ARGS.file_phylogenetic_tree_nwk}'
+                             f'\n\tfile_all_nodes_fasta: {self.CURRENT_ARGS.file_all_nodes_fasta}'
                              f'\n\tnewick_text: {self.CALCULATED_ARGS.newick_text}'
                              f'\n\tmsa: {self.CALCULATED_ARGS.msa}'
                              f'\n\trooting_method: {self.CURRENT_ARGS.rooting_method}'
@@ -197,6 +202,8 @@ class WebConfig:
             f'--alpha {self.CURRENT_ARGS.alpha} '
             f'--pi_1 {self.CURRENT_ARGS.pi_1} '
             f'--coefficient_bl {self.CURRENT_ARGS.coefficient_bl} '
+            f'--branch_length_min_bound {self.CURRENT_ARGS.branch_length_min_bound} '
+            f'--branch_length_max_bound {self.CURRENT_ARGS.branch_length_max_bound} '
             f'--probability_lg {self.CURRENT_ARGS.probability_lg} '
             f'--number_lg {self.CURRENT_ARGS.number_lg} '
             f'--number_datasets {self.CURRENT_ARGS.number_datasets} '
@@ -227,6 +234,7 @@ class WebConfig:
             f'--file_table_of_parsimony_and_homoplasy_scores_tsv '
             f'{int(self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv)} '
             f'--file_phylogenetic_tree_nwk {int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk)} '
+            f'--file_all_nodes_fasta {int(self.CURRENT_ARGS.file_all_nodes_fasta)} '
             f'--rooting_method {self.CURRENT_ARGS.rooting_method} '
             f'{leaf}')
         self.JOB_LOGGER.info(f'\n\tcreate a command line: '

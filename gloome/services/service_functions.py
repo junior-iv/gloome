@@ -51,7 +51,8 @@ SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_log_likelihood_tsv': True,
                   'file_table_of_attributes_tsv': True,
                   'file_table_of_parsimony_and_homoplasy_scores_tsv': True,
-                  'file_phylogenetic_tree_nwk': True}
+                  'file_phylogenetic_tree_nwk': True,
+                  'file_all_nodes_fasta': True}
 PREFERRED_URL_SCHEME = 'https'
 WEBSERVER_NAME = 'gloome.tau.ac.il'
 WEBSERVER_URL = f'{PREFERRED_URL_SCHEME}://{WEBSERVER_NAME}'
@@ -276,6 +277,10 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                                                        taking_into_coefficient=taking_into_coefficient,
                                                        with_internal_nodes=with_internal_nodes,
                                                        decimal_length=0)})
+    if selected_files.get('file_all_nodes_fasta', False):
+        result.update({'All-nodes (fasta)':
+                       newick_tree.tree_to_fasta_file(file_name=f'{file_path}/AllNodes.fasta',
+                                                      with_internal_nodes=True)})
     if any((use_simulated_datasets_file, use_coevolution_file, use_barplot_of_corr_file,
             use_plot_distribution_of_corr_file, use_plot_corr_by_rate_bin_file)) and use_copap:
         result.update(
@@ -364,6 +369,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
     leaf = args[32].strip()
     is_optimize_bl_per_branch = bool(args[33])
     file_branch_length_models_tsv = bool(args[34])
+    branch_length_min_bound = float(args[35])
+    branch_length_max_bound = float(args[36])
+    file_all_nodes_fasta = bool(args[37])
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -378,6 +386,14 @@ def check_data(*args) -> List[Tuple[str, str]]:
     if not isinstance(coefficient_bl, float) or not 0.1 <= coefficient_bl <= 10:
         err_list.append((f'Branch lengths (BL) coefficient value error [ {coefficient_bl} ]',
                          f'The value must be between 0.1 and 10.'))
+
+    if not isinstance(branch_length_min_bound, float) or not 0.0001 <= branch_length_min_bound <= 1.0:
+        err_list.append((f'Minimum branch length value error [ {branch_length_min_bound} ]',
+                         f'The value must be between 0.0001 and 1.'))
+
+    if not isinstance(branch_length_max_bound, float) or not 1.0 <= branch_length_max_bound <= 2.0:
+        err_list.append((f'Maximum branch length value error [ {branch_length_max_bound} ]',
+                         f'The value must be between 1.0 and 2.0.'))
 
     if not isinstance(probability_lg, float) or not 0.01 <= probability_lg <= 0.99:
         err_list.append((f'Probability of loss/gain event value error [ {probability_lg} ]',
@@ -490,6 +506,10 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not isinstance(file_phylogenetic_tree_nwk, bool):
         err_list.append((f'Phylogenetic tree (nwk) value error [ {file_phylogenetic_tree_nwk} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_all_nodes_fasta, bool):
+        err_list.append((f'All-nodes (fasta) value error [ {file_all_nodes_fasta} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(rooting_method, str):

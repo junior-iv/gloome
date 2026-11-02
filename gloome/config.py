@@ -103,7 +103,8 @@ class Config:
                           'file_table_of_attributes_tsv': self.CURRENT_ARGS.file_table_of_attributes_tsv,
                           'file_table_of_parsimony_and_homoplasy_scores_tsv':
                               self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv,
-                          'file_phylogenetic_tree_nwk': self.CURRENT_ARGS.file_phylogenetic_tree_nwk}
+                          'file_phylogenetic_tree_nwk': self.CURRENT_ARGS.file_phylogenetic_tree_nwk,
+                          'file_all_nodes_fasta': self.CURRENT_ARGS.file_all_nodes_fasta}
         return selected_files
 
     def get_form_data(self) -> Dict[str, Union[str, int]]:
@@ -135,10 +136,13 @@ class Config:
                      'fileTableOfParsimonyAndHomoplasyScores':
                          int(self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv),
                      'filePhylogeneticTreeNwk': int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk),
+                     'fileAllNodesFasta': int(self.CURRENT_ARGS.file_all_nodes_fasta),
                      'numberDatasets': self.CURRENT_ARGS.number_datasets,
                      'numberLG': self.CURRENT_ARGS.number_lg,
                      'probabilityLG': self.CURRENT_ARGS.probability_lg,
                      'coefficientBL': self.CURRENT_ARGS.coefficient_bl,
+                     'branchLengthMinBound': self.CURRENT_ARGS.branch_length_min_bound,
+                     'branchLengthMaxBound': self.CURRENT_ARGS.branch_length_max_bound,
                      'pi1': self.CURRENT_ARGS.pi_1,
                      'alpha': self.CURRENT_ARGS.alpha,
                      'categoriesQuantity': self.CURRENT_ARGS.categories_quantity,
@@ -243,7 +247,10 @@ class Config:
                                         self.CURRENT_ARGS.rooting_method,
                                         self.CURRENT_ARGS.leaf,
                                         self.CURRENT_ARGS.is_optimize_bl_per_branch,
-                                        self.CURRENT_ARGS.file_branch_length_models_tsv))
+                                        self.CURRENT_ARGS.file_branch_length_models_tsv,
+                                        self.CURRENT_ARGS.branch_length_min_bound,
+                                        self.CURRENT_ARGS.branch_length_max_bound,
+                                        self.CURRENT_ARGS.file_all_nodes_fasta))
 
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('set_root', False):
             try:
@@ -265,6 +272,8 @@ class Config:
                                            categories_quantity=self.CURRENT_ARGS.categories_quantity,
                                            alpha=self.CURRENT_ARGS.alpha, pi_1=self.CURRENT_ARGS.pi_1,
                                            coefficient_bl=self.CURRENT_ARGS.coefficient_bl,
+                                           branch_length_min_bound=self.CURRENT_ARGS.branch_length_min_bound,
+                                           branch_length_max_bound=self.CURRENT_ARGS.branch_length_max_bound,
                                            is_optimize_pi=self.CURRENT_ARGS.is_optimize_pi,
                                            is_optimize_pi_average=self.CURRENT_ARGS.is_optimize_pi_average,
                                            is_optimize_alpha=self.CURRENT_ARGS.is_optimize_alpha,
@@ -293,6 +302,8 @@ class Config:
                                                   self.CURRENT_ARGS.is_optimize_bl_per_branch):
             try:
                 self.CURRENT_ARGS.coefficient_bl = self.CALCULATED_ARGS.newick_tree.coefficient_bl
+                self.CURRENT_ARGS.branch_length_min_bound = self.CALCULATED_ARGS.newick_tree.branch_length_bounds[0]
+                self.CURRENT_ARGS.branch_length_max_bound = self.CALCULATED_ARGS.newick_tree.branch_length_bounds[1]
             except ValueError:
                 self.CALCULATED_ARGS.err_list.append((f'Strange error',
                                                       f'Strange error.'))
@@ -369,6 +380,14 @@ class Config:
         parser.add_argument('--coefficient_bl', dest='coefficient_bl', type=float, required=False,
                             help=f'Specify coefficient_bl (optional). Default is {self.CURRENT_ARGS.coefficient_bl}.',
                             default=self.CURRENT_ARGS.coefficient_bl)
+        parser.add_argument('--branch_length_min_bound', dest='branch_length_min_bound', type=float, required=False,
+                            help=f'Specify branch_length_min_bound (optional). Default is '
+                            f'{self.CURRENT_ARGS.branch_length_min_bound}.',
+                            default=self.CURRENT_ARGS.branch_length_min_bound)
+        parser.add_argument('--branch_length_max_bound', dest='branch_length_max_bound', type=float, required=False,
+                            help=f'Specify branch_length_max_bound (optional). Default is '
+                            f'{self.CURRENT_ARGS.branch_length_max_bound}.',
+                            default=self.CURRENT_ARGS.branch_length_max_bound)
         parser.add_argument('--probability_lg', dest='probability_lg', type=float, required=False,
                             help=f'Specify probability_lg (optional). Default is {self.CURRENT_ARGS.probability_lg}.',
                             default=self.CURRENT_ARGS.probability_lg)
@@ -492,6 +511,10 @@ class Config:
                             required=False, help=f'Specify file_phylogenetic_tree_nwk (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk)}.',
                             default=int(self.CURRENT_ARGS.file_phylogenetic_tree_nwk))
+        parser.add_argument('--file_all_nodes_fasta', dest='file_all_nodes_fasta', type=int,
+                            required=False, help=f'Specify file_all_nodes_fasta (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_all_nodes_fasta)}.',
+                            default=int(self.CURRENT_ARGS.file_all_nodes_fasta))
 
         args = parser.parse_args()
 
@@ -527,7 +550,8 @@ class Config:
                                   'file_log_likelihood_tsv',
                                   'file_table_of_attributes_tsv',
                                   'file_table_of_parsimony_and_homoplasy_scores_tsv',
-                                  'file_phylogenetic_tree_nwk'):
+                                  'file_phylogenetic_tree_nwk',
+                                  'file_all_nodes_fasta'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))
                 else:

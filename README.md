@@ -211,6 +211,12 @@ Model parameters:
     --coefficient_bl <type=float>
         Scaling coefficient applied to all branch lengths, between 0.1 and 10. Default is 1.0.
 
+    --branch_length_min_bound <type=float>
+        Minimum branch length, between 0.0001 and 1. Default is 0.0001.
+
+    --branch_length_max_bound <type=float>
+        Maximum branch length, between 1.0 and 2.0. Default is 2.0.
+
     --is_optimize_pi <type=int>
         Optimize π1 by maximum likelihood (0/1). Default is 1.
 
@@ -263,6 +269,7 @@ Output files (each flag is 0/1 and turns one output file on or off; see [Output 
     --file_table_of_attributes_tsv <type=int>                        Default is 1.
     --file_branch_length_models_tsv <type=int>                       Default is 1.
     --file_phylogenetic_tree_nwk <type=int>                          Default is 1.
+    --file_all_nodes_fasta <type=int>                                Default is 1.
     --file_simulated_datasets_fastas <type=int>                      Default is 1.
     --file_barplot_of_correlation_svg <type=int>                     Default is 1.
     --file_plot_correlation_by_rate_bin_svg <type=int>               Default is 1.

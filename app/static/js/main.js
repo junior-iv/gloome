@@ -46,13 +46,14 @@ document.querySelectorAll('.copy-button').forEach(button => {
 });
 
 let jsonTreeData = null
-let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isOptimizeBLPerBranch`,
-                  `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileBranchLengthModelsTsv`, `fileTableOfCoevolutionTsv`,
-                  `fileSimulatedDatasetsFastas`, `fileBarplotOfCorrelationSvg`, `filePlotDistributionOfCorrelationSvg`,
+let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`,
+                  `isOptimizeBLPerBranch`, `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`,
+                  `fileBranchLengthModelsTsv`, `fileTableOfCoevolutionTsv`, `fileSimulatedDatasetsFastas`,
+                  `fileBarplotOfCorrelationSvg`, `filePlotDistributionOfCorrelationSvg`,
                   `filePlotCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`,
                   `fileTableOfNodesTsv`, `fileBranchPositionProbabilitiesTsv`, `fileTableOfBranchesTsv`,
                   `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, `fileTableOfParsimonyAndHomoplasyScores`,
-                  `filePhylogeneticTreeNwk`];
+                  `filePhylogeneticTreeNwk`, `fileAllNodesFasta`];
 let lists = [`rootingMethods`, `leaves`]
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
@@ -61,6 +62,8 @@ let objectsDependence = {
     'alpha': {'dependence': ['isOptimizeAlpha'], 'value': ''},
     'categoriesQuantity': {'dependence': '', 'value': ''},
     'coefficientBL': {'dependence': ['isOptimizeBL', 'isOptimizeBLPerBranch'], 'value': ''},
+    'branchLengthMinBound': {'dependence': ['isOptimizeBL', 'isOptimizeBLPerBranch'], 'value': ''},
+    'branchLengthMaxBound': {'dependence': ['isOptimizeBL', 'isOptimizeBLPerBranch'], 'value': ''},
     'probabilityLG': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
     'numberLG': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
     'numberDatasets': {'dependence': ['isDoNotUseCoPAP'], 'value': ''},
@@ -75,6 +78,7 @@ let objectsDependence = {
     'fileNewickTreePng': {'dependence': '', 'value': ''},
     'fileBranchLengthModelsTsv': {'dependence': '', 'value': ''},
     'fileTableOfCoevolutionTsv': {'dependence': '', 'value': ''},
+    'fileAllNodesFasta': {'dependence': '', 'value': ''},
     'fileSimulatedDatasetsFastas': {'dependence': '', 'value': ''},
     'fileBarplotOfCorrelationSvg': {'dependence': '', 'value': ''},
     'filePlotDistributionOfCorrelationSvg': {'dependence': '', 'value': ''},
@@ -600,6 +604,8 @@ function makeTree(mode = 0) {
     const pi1 = document.getElementById(`pi1`);
     const coefficientBL = document.getElementById(`coefficientBL`);
     const probabilityLG = document.getElementById(`probabilityLG`);
+    const branchLengthMinBound = document.getElementById(`branchLengthMinBound`);
+    const branchLengthMaxBound = document.getElementById(`branchLengthMaxBound`);
     const numberLG = document.getElementById(`numberLG`);
     const numberDatasets = document.getElementById(`numberDatasets`);
     const eMail = document.getElementById(`eMail`);
@@ -613,6 +619,7 @@ function makeTree(mode = 0) {
     const fileNewickTreePng = document.getElementById(`fileNewickTreePng`)
     const fileBranchLengthModelsTsv = document.getElementById(`fileBranchLengthModelsTsv`)
     const fileTableOfCoevolutionTsv = document.getElementById(`fileTableOfCoevolutionTsv`)
+    const fileAllNodesFasta = document.getElementById(`fileAllNodesFasta`)
     const fileSimulatedDatasetsFastas = document.getElementById(`fileSimulatedDatasetsFastas`)
     const fileBarplotOfCorrelationSvg = document.getElementById(`fileBarplotOfCorrelationSvg`)
     const filePlotDistributionOfCorrelationSvg = document.getElementById(`filePlotDistributionOfCorrelationSvg`)
@@ -664,6 +671,9 @@ function makeTree(mode = 0) {
     formData.append(`leaf`, leaf.value.trim());
     formData.append(`isOptimizeBLPerBranch`, `${+isOptimizeBLPerBranch.checked}`);
     formData.append(`fileBranchLengthModelsTsv`, `${+fileBranchLengthModelsTsv.checked}`);
+    formData.append(`branchLengthMinBound`, branchLengthMinBound.value.trim());
+    formData.append(`branchLengthMaxBound`, branchLengthMaxBound.value.trim());
+    formData.append(`fileAllNodesFasta`, `${+fileAllNodesFasta.checked}`);
 
     jsonTreeData = null
 
@@ -728,14 +738,15 @@ function gedIdentifiers(id = ``) {
         return [id];
     } else {
         return [`theButton`, `theСleaningButton`, `theExampleButton`, `msaText`, `msaTextFile`, `newickText`,
-            `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `probabilityLG`, `numberLG`,
-            `numberDatasets`, `eMail`, `isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`,
-            `isOptimizeBLPerBranch`, `isDoNotUseCoPAP`, `fileInteractiveTreeHtml`, `fileNewickTreePng`,
-            `fileTableOfCoevolutionTsv`, `fileBranchLengthModelsTsv`, `fileSimulatedDatasetsFastas`,
-            `fileBarplotOfCorrelationSvg`, `filePlotDistributionOfCorrelationSvg`, `filePlotCorrelationByRateBinSvg`,
-            `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`,
-            `fileBranchPositionProbabilitiesTsv`, `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`,
-            `fileTableOfParsimonyAndHomoplasyScores`, 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf'];
+            `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `branchLengthMinBound`,
+            `branchLengthMaxBound`, `probabilityLG`, `numberLG`, `numberDatasets`, `eMail`, `isOptimizePi`,
+            `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isOptimizeBLPerBranch`, `isDoNotUseCoPAP`,
+            `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfCoevolutionTsv`, `fileBranchLengthModelsTsv`,
+            `fileSimulatedDatasetsFastas`, `fileBarplotOfCorrelationSvg`, `filePlotDistributionOfCorrelationSvg`,
+            `filePlotCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`,
+            `fileTableOfNodesTsv`, `fileBranchPositionProbabilitiesTsv`, `fileTableOfBranchesTsv`,
+            `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, `fileTableOfParsimonyAndHomoplasyScores`,
+            `filePhylogeneticTreeNwk`, `fileAllNodesFasta`, 'rootingMethod', 'leaf'];
     }
 }
 
@@ -815,7 +826,13 @@ function onChangingCheckbox(id, value) {
         'coefficientBL': ['isOptimizeBL', 'isOptimizeBLPerBranch'],
         'probabilityLG': ['isDoNotUseCoPAP'],
         'numberLG': ['isDoNotUseCoPAP'],
-        'numberDatasets': ['isDoNotUseCoPAP']
+        'numberDatasets': ['isDoNotUseCoPAP'],
+        'branchLengthMinBound': ['isOptimizeBL'],
+        'branchLengthMaxBound': ['isOptimizeBL']
+    };
+    let checkboxesAccessibilityGroupsNot = {
+        'branchLengthMinBound': ['isOptimizeBLPerBranch'],
+        'branchLengthMaxBound': ['isOptimizeBLPerBranch']
     };
     let checkboxesDisplayGroups = {
         'blockFileTableOfPosteriorRatesTsv': ['isDoNotUseCoPAP'],
@@ -829,7 +846,13 @@ function onChangingCheckbox(id, value) {
         Object.entries(checkboxesAccessibilityGroups).forEach(([key, valueList]) => {
             if (valueList.includes(id)) {
                 valueList.forEach(elementId => id !== elementId ? document.getElementById(elementId).checked = false : element.checked = Boolean(value));
-                setAccessibility(key, element.checked);
+                setAccessibility(key, key in checkboxesAccessibilityGroupsNot ? true : element.checked);
+            }
+        });
+        Object.entries(checkboxesAccessibilityGroupsNot).forEach(([key, valueList]) => {
+            if (valueList.includes(id)) {
+                valueList.forEach(elementId => id !== elementId ? document.getElementById(elementId).checked = false : element.checked = Boolean(value));
+                setAccessibility(key, !element.checked);
             }
         });
         Object.entries(checkboxesDisplayGroups).forEach(([key, valueList]) => {

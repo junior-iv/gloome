@@ -155,6 +155,8 @@ DEFAULT_FORM_ARGUMENTS = {
     'alpha': 0.5,
     'pi_1': 0.5,
     'coefficient_bl': 1.0,
+    'branch_length_min_bound': 0.0001,
+    'branch_length_max_bound': 2.0,
     'probability_lg': 0.5,
     'number_lg': 1,
     'number_datasets': 100,
@@ -185,7 +187,8 @@ DEFAULT_FORM_ARGUMENTS = {
     'file_log_likelihood_tsv': True,
     'file_table_of_attributes_tsv': True,
     'file_table_of_parsimony_and_homoplasy_scores_tsv': True,
-    'file_phylogenetic_tree_nwk': True
+    'file_phylogenetic_tree_nwk': True,
+    'file_all_nodes_fasta': True
 }
 
 DEFAULT_ARGUMENTS = DefaultArgs(**{
@@ -258,6 +261,10 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify pi_1. Default is 0.5.
 \t\t--coefficient_bl <type=float> 
 \t\t\tSpecify coefficient_bl. Default is 1.0.
+\t\t--branch_length_min_bound <type=float> 
+\t\t\tSpecify branch_length_min_bound. Default is 0.0001.
+\t\t--branch_length_max_bound <type=float> 
+\t\t\tSpecify branch_length_max_bound. Default is 2.0.
 \t\t--probability_lg <type=float> 
 \t\t\tSpecify probability_lg. Default is 0.5.
 \t\t--number_lg <type=int> 
@@ -310,6 +317,8 @@ USAGE = '''\tRequired parameters:
 \t\t\tSpecify file_table_of_parsimony_and_homoplasy_scores_tsv. Default is 1.
 \t\t--file_phylogenetic_tree_nwk <type=int> 
 \t\t\tSpecify file_phylogenetic_tree_nwk. Default is 1.
+\t\t--file_all_nodes_fasta <type=int> 
+\t\t\tSpecify file_all_nodes_fasta. Default is 1.
 \t\t--rooting_method <type=str> 
 \t\t\tSpecify tree rooting method. Possible options: ('mad', 'mvr', 'midpoint', 'outgroup').
 \t\t\tmad - Minimal Ancestor Deviation

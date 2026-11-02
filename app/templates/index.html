@@ -149,20 +149,6 @@
                                 </summary>
                                 <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
-                                        <label for="pi1" class="h6 text-success-emphasis ms-3">π1 value</label>
-                                    </div>
-                                    <div class="w-48 text-start">
-                                        <input value="{{pi_1}}" id="pi1" name="pi1" type="number" min="0.001" max="0.999" step="0.001"
-                                               title="The value must be between 0.001 and 0.999" onchange="validateInput(this.id, {{pi_1}})"
-                                               class="form-control rounded-pill"
-                                            {%- if is_optimize_pi or is_optimize_pi_average -%}
-                                                disabled
-                                            {% endif -%}
-                                        />
-                                    </div>
-                                </div>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
                                         <label for="isOptimizePi" class="h6 text-start text-success-emphasis ms-3">optimize π1 value (algorithmic)</label>
                                     </div>
                                     <div class="w-48 text-start">
@@ -187,6 +173,20 @@
                                         />
                                     </div>
                                 </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="pi1" class="h6 text-success-emphasis ms-3">π1 value</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input value="{{pi_1}}" id="pi1" name="pi1" type="number" min="0.001" max="0.999" step="0.001"
+                                               title="The value must be between 0.001 and 0.999" onchange="validateInput(this.id, {{pi_1}})"
+                                               class="form-control rounded-pill"
+                                            {%- if is_optimize_pi or is_optimize_pi_average -%}
+                                                disabled
+                                            {% endif -%}
+                                        />
+                                    </div>
+                                </div>
                             </details>
                         </div>
                         <div class="box flex-column h-auto w-100 p-2">
@@ -195,6 +195,19 @@
                                 <span class="subarrow">▽</span>
                                 Γ (Gamma) distribution
                                 </summary>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="isOptimizeAlpha" class="h6 text-start text-success-emphasis ms-3">optimize α value</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="isOptimizeAlpha" name="isOptimizeAlpha" onchange="onChangingCheckbox(this.id, this.checked)"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                            {%- if is_optimize_alpha -%}
+                                                checked
+                                            {% endif -%}
+                                        />
+                                    </div>
+                                </div>
                                 <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
                                         <label for="alpha" class="h6 text-start text-success-emphasis ms-3">Γ distribution α value</label>
@@ -206,19 +219,6 @@
                                                class="form-control rounded-pill"
                                             {%- if is_optimize_alpha -%}
                                                 disabled
-                                            {% endif -%}
-                                        />
-                                    </div>
-                                </div>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
-                                        <label for="isOptimizeAlpha" class="h6 text-start text-success-emphasis ms-3">optimize α value</label>
-                                    </div>
-                                    <div class="w-48 text-start">
-                                        <input id="isOptimizeAlpha" name="isOptimizeAlpha" onchange="onChangingCheckbox(this.id, this.checked)"
-                                               type="checkbox" class="form-check-input rounded-1"
-                                            {%- if is_optimize_alpha -%}
-                                                checked
                                             {% endif -%}
                                         />
                                     </div>
@@ -244,6 +244,19 @@
                                 </summary>
                                 <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
+                                        <label for="isOptimizeBL" class="h6 text-start text-success-emphasis ms-3">optimize BL coefficient</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="isOptimizeBL" name="isOptimizeBL" onchange="onChangingCheckbox(this.id, this.checked)"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if is_optimize_bl -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
                                         <label for="coefficientBL" class="h6 text-start text-success-emphasis ms-3">BL coefficient</label>
                                     </div>
                                     <div class="w-48 text-start">
@@ -254,19 +267,6 @@
                                             {%- if is_optimize_bl or is_optimize_bl_per_branch -%}
                                                 disabled
                                             {% endif -%}
-                                        />
-                                    </div>
-                                </div>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
-                                        <label for="isOptimizeBL" class="h6 text-start text-success-emphasis ms-3">optimize BL coefficient</label>
-                                    </div>
-                                    <div class="w-48 text-start">
-                                        <input id="isOptimizeBL" name="isOptimizeBL" onchange="onChangingCheckbox(this.id, this.checked)"
-                                               type="checkbox" class="form-check-input rounded-1"
-                                               {%- if is_optimize_bl -%}
-                                                   checked
-                                               {% endif -%}
                                         />
                                     </div>
                                 </div>
@@ -284,6 +284,33 @@
                                         />
                                     </div>
                                 </div>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="branch_length_bounds" class="h6 text-start text-success-emphasis ms-3">branch length bounds</label>
+                                    </div>
+                                    <div class="w-48 input-container" id="branch_length_bounds">
+                                        <div class="w-50">
+                                        <input value="{{branch_length_min_bound}}" id="branchLengthMinBound" name="branchLengthMinBound"
+                                               title="The value must be between 0.0001 and 1" type="number" min="0.0001" max="1" step="0.0001"
+                                               onchange="validateInput(this.id, {{branch_length_min_bound}})"
+                                               class="form-control rounded-pill"
+                                            {%- if not is_optimize_bl_per_branch -%}
+                                                disabled
+                                            {% endif -%}
+                                        />
+                                        </div>
+                                        <div class="w-50">
+                                        <input value="{{branch_length_max_bound}}" id="branchLengthMaxBound" name="branchLengthMaxBound"
+                                               title="The value must be between 1 and 2" type="number" min="1" max="2" step="0.0001"
+                                               onchange="validateInput(this.id, {{branch_length_max_bound}})"
+                                               class="form-control rounded-pill"
+                                            {%- if not is_optimize_bl_per_branch -%}
+                                                disabled
+                                            {% endif -%}
+                                        />
+                                        </div>
+                                    </div>
+                                </div>
                             </details>
                         </div>
                         <div class="box flex-column h-auto w-100 p-2">
@@ -292,6 +319,19 @@
                                 <span class="subarrow">▽</span>
                                     CoPAP (Co-evolution of presence-absence patterns)
                                 </summary>
+                                <div class="box flex-row h-auto w-100 m-2">
+                                    <div class="w-48 text-start">
+                                        <label for="isDoNotUseCoPAP" class="h6 text-start text-success-emphasis ms-3">don`t use CoPAP</label>
+                                    </div>
+                                    <div class="w-48 text-start">
+                                        <input id="isDoNotUseCoPAP" name="isDoNotUseCoPAP" onchange="onChangingCheckbox(this.id, this.checked)"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if is_do_not_use_copap -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
                                 <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
                                         <label for="probabilityLG" class="h6 text-start text-success-emphasis ms-3">probability of loss/gain event</label>
@@ -331,19 +371,6 @@
                                                title="The value must be between 1 and 1000" type="number" min="1" max="1000" step="1"
                                                onchange="validateInput(this.id, {{number_datasets}})"
                                                class="form-control rounded-pill"
-                                        />
-                                    </div>
-                                </div>
-                                <div class="box flex-row h-auto w-100 m-2">
-                                    <div class="w-48 text-start">
-                                        <label for="isDoNotUseCoPAP" class="h6 text-start text-success-emphasis ms-3">don`t use CoPAP</label>
-                                    </div>
-                                    <div class="w-48 text-start">
-                                        <input id="isDoNotUseCoPAP" name="isDoNotUseCoPAP" onchange="onChangingCheckbox(this.id, this.checked)"
-                                               type="checkbox" class="form-check-input rounded-1"
-                                               {%- if is_do_not_use_copap -%}
-                                                   checked
-                                               {% endif -%}
                                         />
                                     </div>
                                 </div>
@@ -574,7 +601,7 @@
                                 </div>
                                 <div id="blockFileBranchLengthModelsTsv" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
                                     <div class="w-72 text-start">
-                                        <label for="fileBranchLengthModelsTsv" class="h6 text-start text-success-emphasis ms-3">branch length models (tsv</label>
+                                        <label for="fileBranchLengthModelsTsv" class="h6 text-start text-success-emphasis ms-3">branch length models (tsv)</label>
                                     </div>
                                     <div class="w-24 text-end">
                                         <input id="fileBranchLengthModelsTsv" name="fileBranchLengthModelsTsv"
@@ -593,6 +620,19 @@
                                         <input id="filePhylogeneticTreeNwk" name="filePhylogeneticTreeNwk"
                                                type="checkbox" class="form-check-input rounded-1"
                                                {%- if file_phylogenetic_tree_nwk -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div id="blockFileAllNodesFasta" class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
+                                        <label for="fileAllNodesFasta" class="h6 text-start text-success-emphasis ms-3">all-nodes (fasta)</label>
+                                    </div>
+                                    <div class="w-24 text-end">
+                                        <input id="fileAllNodesFasta" name="fileAllNodesFasta"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_all_nodes_fasta -%}
                                                    checked
                                                {% endif -%}
                                         />

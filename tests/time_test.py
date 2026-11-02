@@ -24,7 +24,8 @@ SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_log_likelihood_tsv': True,
                   'file_table_of_attributes_tsv': True,
                   'file_table_of_parsimony_and_homoplasy_scores_tsv': True,
-                  'file_phylogenetic_tree_nwk': True}
+                  'file_phylogenetic_tree_nwk': True,
+                  'file_all_nodes_fasta': True}
 MAIN_ACTIONS = {'compute_likelihood_of_tree': False,
                 'draw_tree': True,
                 'create_all_file_types': False}
@@ -127,6 +128,7 @@ form_data = {'msaText': fasta_text,
              'fileTableOfAttributesTsv': 0,
              'fileTableOfParsimonyAndHomoplasyScores': 0,
              'filePhylogeneticTreeNwk': 0,
+             'fileAllNodesFasta': 0,
              'numberDatasets': number_datasets,
              'numberLG': number_lg,
              'probabilityLG': probability_lg,

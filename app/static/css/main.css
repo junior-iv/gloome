@@ -32,6 +32,13 @@
   scroll-margin-top: 80px;
 }
 
+.input-container {
+  display: flex;       /* Перетворює дів на флекс-контейнер */
+  width: 100%;         /* Дів розтягується на всю доступну ширину */
+  gap: 8px;            /* Маленький проміжок між інпутами (можна змінити на 4px, 10px тощо) */
+  box-sizing: border-box;
+}
+
 .highlight {
     position: relative !important;
 }

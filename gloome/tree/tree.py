@@ -23,10 +23,6 @@ from .npencoder import NpEncoder
 
 eps = 5e-324
 eps2 = 1e-10
-# Bounds of every optimized branch length (per-branch optimization).
-# branch_length_bounds = (1e-4, 2.0)
-# Per-branch optimization: starting points (input lengths, single-coefficient fit, the rest random) and the cap on
-# branch-lengths <-> pi_1 / alpha rounds per start.
 branch_length_starts_quantity = 5
 branch_length_max_rounds = 10
 
@@ -79,6 +75,8 @@ class Tree:
             pi_0 (float, np.float64, int, optional): `None` (default)
             pi_1 (float, np.float64, int, optional): `None` (default)
             coefficient_bl (float, np.float64, int, optional): `None` (default)
+            branch_length_min_bound (float, np.float64, int, optional): `None` (default)
+            branch_length_max_bound (float, np.float64, int, optional): `None` (default)
             is_optimize_pi (bool, optional): `None` (default)
             is_optimize_pi_average (bool, optional): `None` (default)
             is_optimize_alpha (bool, optional): `None` (default)
@@ -89,8 +87,9 @@ class Tree:
             seed (int, optional): `None` (default)
         """
         available_parameters = {'data', 'node_name', 'msa', 'categories_quantity', 'alpha', 'beta', 'pi_0', 'pi_1',
-                                'coefficient_bl', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_alpha',
-                                'is_optimize_bl', 'is_optimize_bl_per_branch', 'bl_starts_quantity', 'seed'}
+                                'coefficient_bl', 'branch_length_min_bound', 'branch_length_max_bound',
+                                'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_alpha', 'is_optimize_bl',
+                                'is_optimize_bl_per_branch', 'bl_starts_quantity', 'seed'}
         invalid_parameters = set(kwargs.keys()) - available_parameters
         for key in invalid_parameters:
             del kwargs[key]
@@ -215,6 +214,8 @@ class Tree:
                       pi_0: Optional[Union[float, np.float64, int]] = None,
                       pi_1: Optional[Union[float, np.float64, int]] = None,
                       coefficient_bl: Optional[Union[float, np.float64, int]] = None,
+                      branch_length_min_bound: Optional[Union[float, np.float64, int]] = None,
+                      branch_length_max_bound: Optional[Union[float, np.float64, int]] = None,
                       is_optimize_pi: Optional[bool] = None,
                       is_optimize_pi_average: Optional[bool] = None,
                       is_optimize_alpha: Optional[bool] = None,
@@ -243,6 +244,10 @@ class Tree:
         self.alphabet_length = len(self.alphabet)
 
         self.set_all(categories_quantity, alpha, beta, pi_0, pi_1, coefficient_bl)
+
+        branch_length_min_bound = branch_length_min_bound if branch_length_min_bound else self.branch_length_bounds[0]
+        branch_length_max_bound = branch_length_max_bound if branch_length_max_bound else self.branch_length_bounds[1]
+        self.branch_length_bounds = (branch_length_min_bound, branch_length_max_bound)
 
         if is_optimize_bl_per_branch:
             self.optimize_branch_lengths_and_parameters(is_optimize_pi, is_optimize_pi_average, is_optimize_alpha,
@@ -785,9 +790,13 @@ class Tree:
             self.clean_all()
             self.calculate_up()
 
-    def get_fasta_text(self, msa: Optional[Dict[str, str]] = None) -> str:
+    def get_fasta_text(self, msa: Optional[Dict[str, str]] = None, with_internal_nodes: Optional[bool] = None) -> str:
+        if with_internal_nodes:
+            result = ''.join(f'>{n.name}\n{n.sequence}\n' for n in self.all_nodes_objects).strip()
+        else:
+            result = ''.join(f'>{k}\n{v}\n' for k, v in (self.msa if msa is None else msa).items()).strip()
 
-        return ''.join(f'>{k}\n{v}\n' for k, v in (self.msa if msa is None else msa).items()).strip()
+        return result
 
     def get_json_structure(self, return_table: bool = False,
                            columns: Optional[Dict[str, str]] = None,
@@ -822,8 +831,8 @@ class Tree:
 
         return loads(dumps(dict_json, cls=NpEncoder))
 
-    def tree_to_fasta_file(self, file_name: str = 'file.fasta') -> str:
-        fasta_text = self.get_fasta_text()
+    def tree_to_fasta_file(self, file_name: str = 'file.fasta', with_internal_nodes: Optional[bool] = None) -> str:
+        fasta_text = self.get_fasta_text(with_internal_nodes=with_internal_nodes)
 
         return self.write_file(file_name, fasta_text)
 
