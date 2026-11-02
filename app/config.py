@@ -341,7 +341,7 @@ class WebConfig:
                                                       use_attachments=self.USE_ATTACHMENTS,
                                                       log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
                                                       included=('.json', '.zip', '.log', '.html', '.png', '.tsv',
-                                                                '.nwk', '.fastas', '.svg', ))
+                                                                '.nwk', '.fasta', '.fastas', '.svg', ))
 
                 return 'OK'
 
