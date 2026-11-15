@@ -53,7 +53,8 @@ let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isO
                   `filePlotCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`,
                   `fileTableOfNodesTsv`, `fileBranchPositionProbabilitiesTsv`, `fileTableOfBranchesTsv`,
                   `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, `fileTableOfParsimonyAndHomoplasyScores`,
-                  `filePhylogeneticTreeNwk`, `fileAllNodesFasta`];
+                  `filePhylogeneticTreeNwk`, `fileAllNodesFasta`, `filePhylogeneticDistanceMatrixSvg`,
+                  `fileSequenceIdentityMatrixSvg`, `fileBinaryMappingSvg`];
 let lists = [`rootingMethods`, `leaves`]
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
@@ -76,6 +77,9 @@ let objectsDependence = {
     'isDoNotUseCoPAP': {'dependence': '', 'value': ''},
     'fileInteractiveTreeHtml': {'dependence': '', 'value': ''},
     'fileNewickTreePng': {'dependence': '', 'value': ''},
+    'filePhylogeneticDistanceMatrixSvg': {'dependence': '', 'value': ''},
+    'fileSequenceIdentityMatrixSvg': {'dependence': '', 'value': ''},
+    'fileBinaryMappingSvg': {'dependence': '', 'value': ''},
     'fileBranchLengthModelsTsv': {'dependence': '', 'value': ''},
     'fileTableOfCoevolutionTsv': {'dependence': '', 'value': ''},
     'fileAllNodesFasta': {'dependence': '', 'value': ''},
@@ -617,6 +621,9 @@ function makeTree(mode = 0) {
     const isDoNotUseCoPAP = document.getElementById(`isDoNotUseCoPAP`)
     const fileInteractiveTreeHtml = document.getElementById(`fileInteractiveTreeHtml`)
     const fileNewickTreePng = document.getElementById(`fileNewickTreePng`)
+    const filePhylogeneticDistanceMatrixSvg = document.getElementById(`filePhylogeneticDistanceMatrixSvg`)
+    const fileSequenceIdentityMatrixSvg = document.getElementById(`fileSequenceIdentityMatrixSvg`)
+    const fileBinaryMappingSvg = document.getElementById(`fileBinaryMappingSvg`)
     const fileBranchLengthModelsTsv = document.getElementById(`fileBranchLengthModelsTsv`)
     const fileTableOfCoevolutionTsv = document.getElementById(`fileTableOfCoevolutionTsv`)
     const fileAllNodesFasta = document.getElementById(`fileAllNodesFasta`)
@@ -674,6 +681,9 @@ function makeTree(mode = 0) {
     formData.append(`branchLengthMinBound`, branchLengthMinBound.value.trim());
     formData.append(`branchLengthMaxBound`, branchLengthMaxBound.value.trim());
     formData.append(`fileAllNodesFasta`, `${+fileAllNodesFasta.checked}`);
+    formData.append(`filePhylogeneticDistanceMatrixSvg`, `${+filePhylogeneticDistanceMatrixSvg.checked}`);
+    formData.append(`fileSequenceIdentityMatrixSvg`, `${+fileSequenceIdentityMatrixSvg.checked}`);
+    formData.append(`fileBinaryMappingSvg`, `${+fileBinaryMappingSvg.checked}`);
 
     jsonTreeData = null
 
@@ -741,12 +751,14 @@ function gedIdentifiers(id = ``) {
             `newickTextFile`, 'alpha', `categoriesQuantity`, `pi1`, `coefficientBL`, `branchLengthMinBound`,
             `branchLengthMaxBound`, `probabilityLG`, `numberLG`, `numberDatasets`, `eMail`, `isOptimizePi`,
             `isOptimizePiAverage`, `isOptimizeAlpha`, `isOptimizeBL`, `isOptimizeBLPerBranch`, `isDoNotUseCoPAP`,
-            `fileInteractiveTreeHtml`, `fileNewickTreePng`, `fileTableOfCoevolutionTsv`, `fileBranchLengthModelsTsv`,
-            `fileSimulatedDatasetsFastas`, `fileBarplotOfCorrelationSvg`, `filePlotDistributionOfCorrelationSvg`,
-            `filePlotCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`, `fileTableOfPearsonCorrelationTsv`,
-            `fileTableOfNodesTsv`, `fileBranchPositionProbabilitiesTsv`, `fileTableOfBranchesTsv`,
-            `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, `fileTableOfParsimonyAndHomoplasyScores`,
-            `filePhylogeneticTreeNwk`, `fileAllNodesFasta`, 'rootingMethod', 'leaf'];
+            `fileInteractiveTreeHtml`, `fileNewickTreePng`, `filePhylogeneticDistanceMatrixSvg`,
+            `fileSequenceIdentityMatrixSvg`, `fileBinaryMappingSvg`, `fileTableOfCoevolutionTsv`,
+            `fileBranchLengthModelsTsv`, `fileSimulatedDatasetsFastas`, `fileBarplotOfCorrelationSvg`,
+            `filePlotDistributionOfCorrelationSvg`, `filePlotCorrelationByRateBinSvg`, `fileTableOfPosteriorRatesTsv`,
+            `fileTableOfPearsonCorrelationTsv`, `fileTableOfNodesTsv`, `fileBranchPositionProbabilitiesTsv`,
+            `fileTableOfBranchesTsv`, `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`,
+            `fileTableOfParsimonyAndHomoplasyScores`, `filePhylogeneticTreeNwk`, `fileAllNodesFasta`, 'rootingMethod',
+            'leaf'];
     }
 }
 

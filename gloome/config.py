@@ -104,7 +104,11 @@ class Config:
                           'file_table_of_parsimony_and_homoplasy_scores_tsv':
                               self.CURRENT_ARGS.file_table_of_parsimony_and_homoplasy_scores_tsv,
                           'file_phylogenetic_tree_nwk': self.CURRENT_ARGS.file_phylogenetic_tree_nwk,
-                          'file_all_nodes_fasta': self.CURRENT_ARGS.file_all_nodes_fasta}
+                          'file_all_nodes_fasta': self.CURRENT_ARGS.file_all_nodes_fasta,
+                          'file_phylogenetic_distance_matrix_svg':
+                              self.CURRENT_ARGS.file_phylogenetic_distance_matrix_svg,
+                          'file_sequence_identity_matrix_svg': self.CURRENT_ARGS.file_sequence_identity_matrix_svg,
+                          'file_binary_mapping_svg': self.CURRENT_ARGS.file_binary_mapping_svg}
         return selected_files
 
     def get_form_data(self) -> Dict[str, Union[str, int]]:
@@ -118,6 +122,9 @@ class Config:
                      'isDoNotUseCoPAP': int(self.CURRENT_ARGS.is_do_not_use_copap),
                      'fileInteractiveTreeHtml': int(self.CURRENT_ARGS.file_interactive_tree_html),
                      'fileNewickTreePng': int(self.CURRENT_ARGS.file_newick_tree_png),
+                     'filePhylogeneticDistanceMatrixSvg': int(self.CURRENT_ARGS.file_phylogenetic_distance_matrix_svg),
+                     'fileSequenceIdentityMatrixSvg': int(self.CURRENT_ARGS.file_sequence_identity_matrix_svg),
+                     'fileBinaryMappingSvg': int(self.CURRENT_ARGS.file_binary_mapping_svg),
                      'fileBranchLengthModelsTsv': int(self.CURRENT_ARGS.file_branch_length_models_tsv),
                      'fileTableOfCoevolutionTsv': int(self.CURRENT_ARGS.file_table_of_coevolution_tsv),
                      'fileSimulatedDatasetsFastas': int(self.CURRENT_ARGS.file_simulated_datasets_fastas),
@@ -250,7 +257,10 @@ class Config:
                                         self.CURRENT_ARGS.file_branch_length_models_tsv,
                                         self.CURRENT_ARGS.branch_length_min_bound,
                                         self.CURRENT_ARGS.branch_length_max_bound,
-                                        self.CURRENT_ARGS.file_all_nodes_fasta))
+                                        self.CURRENT_ARGS.file_all_nodes_fasta,
+                                        self.CURRENT_ARGS.file_phylogenetic_distance_matrix_svg,
+                                        self.CURRENT_ARGS.file_sequence_identity_matrix_svg,
+                                        self.CURRENT_ARGS.file_binary_mapping_svg))
 
         if not self.CALCULATED_ARGS.err_list and self.VALIDATION_ACTIONS.get('set_root', False):
             try:
@@ -515,6 +525,19 @@ class Config:
                             required=False, help=f'Specify file_all_nodes_fasta (optional). Default is '
                             f'{int(self.CURRENT_ARGS.file_all_nodes_fasta)}.',
                             default=int(self.CURRENT_ARGS.file_all_nodes_fasta))
+        parser.add_argument('--file_phylogenetic_distance_matrix_svg', dest='file_phylogenetic_distance_matrix_svg',
+                            help=f'Specify file_phylogenetic_distance_matrix_svg (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_phylogenetic_distance_matrix_svg)}.',
+                            type=int, required=False,
+                            default=int(self.CURRENT_ARGS.file_phylogenetic_distance_matrix_svg))
+        parser.add_argument('--file_sequence_identity_matrix_svg', dest='file_sequence_identity_matrix_svg', type=int,
+                            required=False, help=f'Specify file_sequence_identity_matrix_svg (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_sequence_identity_matrix_svg)}.',
+                            default=int(self.CURRENT_ARGS.file_sequence_identity_matrix_svg))
+        parser.add_argument('--file_binary_mapping_svg', dest='file_binary_mapping_svg', type=int,
+                            required=False, help=f'Specify file_binary_mapping_svg (optional). Default is '
+                            f'{int(self.CURRENT_ARGS.file_binary_mapping_svg)}.',
+                            default=int(self.CURRENT_ARGS.file_binary_mapping_svg))
 
         args = parser.parse_args()
 
@@ -551,7 +574,10 @@ class Config:
                                   'file_table_of_attributes_tsv',
                                   'file_table_of_parsimony_and_homoplasy_scores_tsv',
                                   'file_phylogenetic_tree_nwk',
-                                  'file_all_nodes_fasta'):
+                                  'file_all_nodes_fasta',
+                                  'file_phylogenetic_distance_matrix_svg',
+                                  'file_sequence_identity_matrix_svg',
+                                  'file_binary_mapping_svg'):
                     if hasattr(self.CURRENT_ARGS, arg_name):
                         setattr(self.CURRENT_ARGS, arg_name, bool(arg_value))
                 else:

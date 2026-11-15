@@ -274,6 +274,9 @@ Output files (each flag is 0/1 and turns one output file on or off; see [Output 
     --file_barplot_of_correlation_svg <type=int>                     Default is 1.
     --file_plot_correlation_by_rate_bin_svg <type=int>               Default is 1.
     --file_plot_distribution_of_correlation_svg <type=int>           Default is 1.
+    --file_phylogenetic_distance_matrix_svg <type=int>               Default is 1.
+    --file_sequence_identity_matrix_svg <type=int>                   Default is 1.
+    --file_binary_mapping_svg <type=int>                             Default is 1.
     --file_interactive_tree_html <type=int>                          Default is 0.
     --file_newick_tree_png <type=int>                                Default is 0.
 ```

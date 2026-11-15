@@ -692,6 +692,45 @@
                                 </div>
                                 <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
                                     <div class="w-72 text-start">
+                                        <label for="filePhylogeneticDistanceMatrixPng" class="h6 text-start text-success-emphasis ms-3">phylogenetic distance matrix (svg)</label>
+                                    </div>
+                                    <div class="w-24 text-end">
+                                        <input id="filePhylogeneticDistanceMatrixPng" name="filePhylogeneticDistanceMatrixPng"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_phylogenetic_distance_matrix_svg -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
+                                        <label for="fileSequenceIdentityMatrixPng" class="h6 text-start text-success-emphasis ms-3">sequence identity matrix (svg)</label>
+                                    </div>
+                                    <div class="w-24 text-end">
+                                        <input id="fileSequenceIdentityMatrixPng" name="fileSequenceIdentityMatrixPng"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_sequence_identity_matrix_svg -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
+                                        <label for="fileBinaryMappingPng" class="h6 text-start text-success-emphasis ms-3">binary mapping (svg)</label>
+                                    </div>
+                                    <div class="w-24 text-end">
+                                        <input id="fileBinaryMappingPng" name="fileBinaryMappingPng"
+                                               type="checkbox" class="form-check-input rounded-1"
+                                               {%- if file_binary_mapping_svg -%}
+                                                   checked
+                                               {% endif -%}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="box flex-row h-auto w-98 m-2 border-3 border-bottom rounded-pill border-light-subtle">
+                                    <div class="w-72 text-start">
                                         <label for="fileInteractiveTreeHtml" class="h6 text-start text-success-emphasis ms-3">interactive tree (html)</label>
                                     </div>
                                     <div class="w-24 text-end">

@@ -30,6 +30,9 @@ FILE_LIST = [
     'Barplot of correlation (svg)',
     'Plot of correlation by rate-bin (svg)',
     'Plot of distribution of correlation (svg)',
+    'Phylogenetic distance matrix (svg)',
+    'Sequence identity matrix (svg)',
+    'Binary mapping (svg)',
     'Interactive tree (html)',
     'Newick tree (svg)',
     'Newick tree (png)',
@@ -38,6 +41,9 @@ FILE_LIST = [
 ]
 SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_newick_tree_png': True,
+                  'file_phylogenetic_distance_matrix_svg': True,
+                  'file_sequence_identity_matrix_svg': True,
+                  'file_binary_mapping_svg': True,
                   'file_branch_length_models_tsv': True,
                   'file_table_of_coevolution_tsv': True,
                   'file_simulated_datasets_fastas': True,
@@ -282,6 +288,15 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
         result.update({'All-nodes (fasta)':
                        newick_tree.tree_to_fasta_file(file_name=f'{file_path}/AllNodes.fasta',
                                                       with_internal_nodes=True)})
+    if selected_files.get('file_phylogenetic_distance_matrix_svg', False):
+        result.update({'Phylogenetic distance matrix (svg)': newick_tree.tree_to_phylogenetic_distance_matrix(
+                           file_name=f'{file_path}/PhylogeneticDistanceMatrix.svg')})
+    if selected_files.get('file_sequence_identity_matrix_svg', False):
+        result.update({'Sequence identity matrix (svg)': newick_tree.tree_to_sequence_identity_matrix(
+                           file_name=f'{file_path}/SequenceIdentityMatrix.svg')})
+    if selected_files.get('file_binary_mapping_svg', False):
+        result.update({'Binary mapping (svg)': newick_tree.tree_to_binary_mapping(
+                           file_name=f'{file_path}/BinaryMapping.svg')})
     if any((use_simulated_datasets_file, use_coevolution_file, use_barplot_of_corr_file,
             use_plot_distribution_of_corr_file, use_plot_corr_by_rate_bin_file)) and use_copap:
         result.update(
@@ -373,6 +388,9 @@ def check_data(*args) -> List[Tuple[str, str]]:
     branch_length_min_bound = float(args[35])
     branch_length_max_bound = float(args[36])
     file_all_nodes_fasta = bool(args[37])
+    file_phylogenetic_distance_matrix_svg = bool(args[38])
+    file_sequence_identity_matrix_svg = bool(args[39])
+    file_binary_mapping_svg = bool(args[40])
 
     if not isinstance(categories_quantity, int) or not 1 <= categories_quantity <= 16:
         err_list.append((f'Number of rate categories value error [ {categories_quantity} ]',
@@ -511,6 +529,18 @@ def check_data(*args) -> List[Tuple[str, str]]:
 
     if not isinstance(file_all_nodes_fasta, bool):
         err_list.append((f'All-nodes (fasta) value error [ {file_all_nodes_fasta} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_phylogenetic_distance_matrix_svg, bool):
+        err_list.append((f'Phylogenetic distance matrix (svg) value error [ {file_phylogenetic_distance_matrix_svg} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_sequence_identity_matrix_svg, bool):
+        err_list.append((f'Sequence identity matrix (svg) value error [ {file_sequence_identity_matrix_svg} ]',
+                         f'The value must be boolean type.'))
+
+    if not isinstance(file_binary_mapping_svg, bool):
+        err_list.append((f'Binary mapping (svg) value error [ {file_binary_mapping_svg} ]',
                          f'The value must be boolean type.'))
 
     if not isinstance(rooting_method, str):

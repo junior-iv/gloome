@@ -93,7 +93,8 @@ class WebConfig:
                    'fileTableOfBranchesTsv', 'fileLogLikelihoodTsv', 'fileTableOfAttributesTsv',
                    'fileTableOfParsimonyAndHomoplasyScores', 'filePhylogeneticTreeNwk', 'rootingMethod', 'leaf',
                    'isOptimizeBLPerBranch', 'fileBranchLengthModelsTsv', 'branchLengthMinBound', 'branchLengthMaxBound',
-                   'fileAllNodesFasta'),
+                   'fileAllNodesFasta', 'filePhylogeneticDistanceMatrixSvg', 'fileSequenceIdentityMatrixSvg',
+                   'fileBinaryMappingSvg'),
                   ('categories_quantity', 'alpha', 'pi_1', 'coefficient_bl', 'probability_lg', 'number_lg',
                    'number_datasets', 'e_mail', 'is_optimize_pi', 'is_optimize_pi_average', 'is_optimize_bl',
                    'is_optimize_alpha', 'is_do_not_use_copap', 'file_interactive_tree_html',
@@ -105,12 +106,14 @@ class WebConfig:
                    'file_table_of_attributes_tsv', 'file_table_of_parsimony_and_homoplasy_scores_tsv',
                    'file_phylogenetic_tree_nwk', 'rooting_method', 'leaf', 'is_optimize_bl_per_branch',
                    'file_branch_length_models_tsv', 'branch_length_min_bound', 'branch_length_max_bound',
-                   'file_all_nodes_fasta'),
+                   'file_all_nodes_fasta', 'file_phylogenetic_distance_matrix_svg', 'file_sequence_identity_matrix_svg',
+                   'file_binary_mapping_svg'),
                   ((int, ), (float, ), (float, ), (float, ), (float, ), (int, ), (int, ), (str, ), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool),
                    (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (int, bool), (str, ),
-                   (str, ), (int, bool), (int, bool), (float, ), (float, ), (int, bool)))
+                   (str, ), (int, bool), (int, bool), (float, ), (float, ), (int, bool), (int, bool), (int, bool),
+                   (int, bool)))
         for in_key, out_key, current_types in dct:
             current_value = arguments.get(in_key)
             if current_value is not None:
@@ -142,6 +145,11 @@ class WebConfig:
                              f'\n\tis_do_not_use_copap: {self.CURRENT_ARGS.is_do_not_use_copap}'
                              f'\n\tfile_interactive_tree_html: {self.CURRENT_ARGS.file_interactive_tree_html}'
                              f'\n\tfile_newick_tree_png: {self.CURRENT_ARGS.file_newick_tree_png}'
+                             f'\n\tfile_phylogenetic_distance_matrix_svg: '
+                             f'{self.CURRENT_ARGS.file_phylogenetic_distance_matrix_svg}'
+                             f'\n\tfile_sequence_identity_matrix_svg: '
+                             f'{self.CURRENT_ARGS.file_sequence_identity_matrix_svg}'
+                             f'\n\tfile_binary_mapping_svg: {self.CURRENT_ARGS.file_binary_mapping_svg}'
                              f'\n\tfile_branch_length_models_tsv: {self.CURRENT_ARGS.file_branch_length_models_tsv}'
                              f'\n\tfile_table_of_coevolution_tsv: {self.CURRENT_ARGS.file_table_of_coevolution_tsv}'
                              f'\n\tfile_simulated_datasets_fastas: {self.CURRENT_ARGS.file_simulated_datasets_fastas}'
@@ -216,6 +224,9 @@ class WebConfig:
             f'--is_optimize_bl_per_branch {int(self.CURRENT_ARGS.is_optimize_bl_per_branch)} '
             f'--file_interactive_tree_html {int(self.CURRENT_ARGS.file_interactive_tree_html)} '
             f'--file_newick_tree_png {int(self.CURRENT_ARGS.file_newick_tree_png)} '
+            f'--file_phylogenetic_distance_matrix_svg {int(self.CURRENT_ARGS.file_phylogenetic_distance_matrix_svg)} '
+            f'--file_sequence_identity_matrix_svg {int(self.CURRENT_ARGS.file_sequence_identity_matrix_svg)} '
+            f'--file_binary_mapping_svg {int(self.CURRENT_ARGS.file_binary_mapping_svg)} '
             f'--file_branch_length_models_tsv {int(self.CURRENT_ARGS.file_branch_length_models_tsv)} '
             f'--file_table_of_coevolution_tsv {int(self.CURRENT_ARGS.file_table_of_coevolution_tsv)} '
             f'--file_simulated_datasets_fastas {int(self.CURRENT_ARGS.file_simulated_datasets_fastas)} '

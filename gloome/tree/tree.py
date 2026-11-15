@@ -10,13 +10,14 @@ from json import loads, dumps
 from pathlib import Path
 from d3blocks import D3Blocks
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
-from Bio import Phylo
+from Bio import Phylo, AlignIO
 from Bio.Phylo.NewickIO import Writer
 from numpy import ndarray, dtype, void
 from scipy.stats import gamma, pearsonr, distributions, beta as sp_beta, kstest
 from scipy.special import gammainc
 from scipy.optimize import minimize, minimize_scalar
 from io import StringIO
+from pymsaviz import MsaViz
 
 from .node import Node
 from .npencoder import NpEncoder
@@ -836,6 +837,172 @@ class Tree:
 
         return self.write_file(file_name, fasta_text)
 
+    def tree_to_phylogenetic_distance_matrix(self, file_name: str = 'PhylogeneticDistanceMatrix.svg') -> str:
+        def gat_all_parents(cur_leaf: Node) -> Dict[str, Node]:
+            parents = dict()
+            father = cur_leaf.father
+            while father:
+                parents.update({father.name: father})
+                father = father.father
+
+            return parents
+
+        def gat_common_parent(parents: Dict[str, Node], cur_leaf: Node) -> Node:
+            father = cur_leaf.father
+            while father:
+                cur_parent = parents.get(father.name, None)
+                if cur_parent:
+                    return cur_parent
+                father = father.father
+
+        self.make_dir(file_name)
+        num_leaves = len(self.leaves_objects)
+        fontsize = min((12 * max((1, round(num_leaves // 10))), 14 * max((1, round(self.msa_length // 10)))))
+        alignment = AlignIO.read(StringIO(self.get_fasta_text()), 'fasta')
+        labels = [record.id for record in alignment]
+
+        rows = dict()
+        for row_name in labels:
+            cur_leaf_row = self.all_nodes.get(row_name)
+            all_parents = gat_all_parents(cur_leaf_row)
+            row = dict()
+            for col_name in labels:
+                if col_name != row_name:
+                    cur_leaf_col = self.all_nodes.get(col_name)
+                    common_parent = gat_common_parent(all_parents, cur_leaf_col)
+                    distance_to_root = common_parent.distance_to_root
+                    distance = cur_leaf_row.distance_to_root + cur_leaf_col.distance_to_root - 2 * distance_to_root
+                else:
+                    distance = 0.0
+                row.update({col_name: distance})
+
+            rows.update({row_name: row})
+
+        df = pd.DataFrame(
+            data=rows,
+        )
+
+        fig = plt.figure(figsize=(num_leaves, num_leaves))
+        fig.text(
+            x=0.5,
+            y=0.95,
+            # s='Pairwise Evolutionary Distances',
+            s='Phylogenetic Distance Matrix\n(Species Pairwise Evolutionary Distances)',
+            fontsize=fontsize,
+            horizontalalignment='center',
+            verticalalignment='top')
+
+        sns.heatmap(
+            df,
+            annot=True,
+            fmt='.4f',
+            cmap='GnBu',
+        )
+
+        plt.savefig(
+            file_name,
+            format='svg',
+            dpi=300,
+            bbox_inches='tight')
+
+        plt.close()
+
+        return file_name
+
+    def tree_to_sequence_identity_matrix(self, file_name: str = 'SequenceIdentityMatrix.svg') -> str:
+        def calculate_identity(seq1, seq2):
+            matches = sum(
+                1
+                for a, b in zip(seq1, seq2)
+                if a == b and a not in ('-', '?') and b not in ('-', '?')
+            )
+            total = sum(
+                1
+                for a, b in zip(seq1, seq2)
+                if a not in ('-', '?') or b not in ('-', '?')
+            )
+            return (matches / total) * 100 if total > 0 else 0
+
+        self.make_dir(file_name)
+        num_leaves = len(self.leaves_objects)
+        fontsize = min((12 * max((1, round(num_leaves // 10))), 14 * max((1, round(self.msa_length // 10)))))
+        alignment = AlignIO.read(StringIO(self.get_fasta_text()), 'fasta')
+        labels = [record.id for record in alignment]
+
+        matrix = np.zeros((num_leaves, num_leaves))
+
+        for i in range(num_leaves):
+            for j in range(num_leaves):
+                matrix[i, j] = calculate_identity(alignment[i].seq, alignment[j].seq)
+
+        fig = plt.figure(figsize=(num_leaves, num_leaves))
+        fig.text(
+            x=0.5,
+            y=0.95,
+            s='Sequence Identity Matrix\n(Species Pairwise Similarity Profile)',
+            fontsize=fontsize,
+            horizontalalignment='center',
+            verticalalignment='top')
+
+        sns.heatmap(
+            matrix,
+            annot=True,
+            fmt='.1f',
+            xticklabels=labels,
+            yticklabels=labels,
+            cmap='GnBu',
+        )
+
+        plt.savefig(
+            file_name,
+            format='svg',
+            dpi=300,
+            bbox_inches='tight')
+        plt.close()
+
+        return file_name
+
+    def tree_to_binary_mapping(self, file_name: str = 'BinaryMapping.svg') -> str:
+        self.make_dir(file_name)
+        num_leaves = len(self.leaves_objects)
+        fontsize = min((12 * max((1, round(num_leaves // 10))), 14 * max((1, round(self.msa_length // 10)))))
+
+        mv = MsaViz(
+            AlignIO.read(StringIO(self.get_fasta_text()), 'fasta'),
+            wrap_length=None,
+            show_label=True,
+            show_seq_char=True,
+            show_grid=True,
+            show_consensus=True,
+            show_count=True
+        )
+
+        binary_color_dict = {
+            '0': 'snow',
+            '1': 'salmon',
+            '-': 'silver',
+            '?': 'silver'
+        }
+        mv.set_custom_color_scheme(binary_color_dict)
+
+        fig = mv.plotfig()
+        fig.set_size_inches(self.msa_length / 3, num_leaves / 2)
+        fig.text(
+            x=0.5,
+            y=1.05,
+            s='Mapping of Binary Character Evolution',
+            fontsize=fontsize,
+            horizontalalignment='center',
+            verticalalignment='top')
+        plt.savefig(
+            file_name,
+            format='svg',
+            dpi=300,
+            bbox_inches='tight')
+        plt.close()
+
+        return file_name
+
     def probability_to_tsv(self, file_name: str = 'BranchPositionProbabilities.tsv', sep: str = '\t',
                            taking_into_coefficient: bool = True) -> str:
         self.make_dir(file_name)
@@ -1410,7 +1577,7 @@ class Tree:
             if file_extension in ('svg', 'png'):
                 nx.draw(graph, with_labels=True, font_color='Maroon', node_color='Gold', node_size=1000//size_factor,
                         font_size=12//size_factor, font_weight='bold')
-                plt.savefig(file_name, **{'format': file_extension, 'bbox_inches': 'tight', 'dpi': 300})
+                plt.savefig(file_name, format=file_extension, bbox_inches='tight', dpi=300)
                 plt.close()
             if file_extension in ('dot', ):
                 nx.drawing.nx_pydot.write_dot(graph, file_name)
@@ -1558,6 +1725,7 @@ class Tree:
             current_node.distance_to_father = length
         self.clean_all()
         self.set_all(categories_quantity=self.categories_quantity, alpha=alpha, pi_1=pi_1, coefficient_bl=1.0)
+        self.get_distances_to_leaves()
         self.set_distances_to_root()
 
     def optimize_branch_lengths_and_parameters(self, is_optimize_pi: Optional[bool] = None,
@@ -1717,6 +1885,11 @@ class Tree:
         self.get_branch_length_models_table().to_csv(file_name, index=False, sep=sep, float_format='%.8f')
 
         return file_name
+
+    def get_distances_to_leaves(self) -> np.ndarray:
+        self.get_leaves()
+
+        return np.asarray(self.get_branch_lengths())
 
     def set_distances_to_root(self) -> None:
         for current_node in self.all_nodes_objects:

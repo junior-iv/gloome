@@ -25,16 +25,19 @@ SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_table_of_attributes_tsv': True,
                   'file_table_of_parsimony_and_homoplasy_scores_tsv': True,
                   'file_phylogenetic_tree_nwk': True,
-                  'file_all_nodes_fasta': True}
+                  'file_all_nodes_fasta': True,
+                  'file_phylogenetic_distance_matrix_svg': True,
+                  'file_sequence_identity_matrix_svg': True,
+                  'file_binary_mapping_svg': True}
 MAIN_ACTIONS = {'compute_likelihood_of_tree': False,
                 'draw_tree': True,
                 'create_all_file_types': False}
 MODE = ['draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types', 'execute_all_actions']
 ROOTING_METHODS = [('mad', 'Minimal Ancestor Deviation'), ('mvr', 'Minimum Variance Rooting'),
                    ('midpoint', 'Midpoint Rooting'), ('outgroup', 'Outgroup Rooting')]
-BIN_DIR = Path.cwd()
+BIN_DIR = Path.cwd().parent
 
-use_line_profiler = True
+use_line_profiler = False
 
 check_file_creation_time = True
 check_correlation_calculation_time = True
@@ -103,6 +106,7 @@ tree_data = {'pi_1': pi_1,
              'is_optimize_pi_average': is_optimize_pi_average,
              'is_optimize_alpha': is_optimize_alpha,
              'is_optimize_bl': is_optimize_bl,
+             'is_optimize_bl_per_branch': is_optimize_bl_per_branch,
              }
 
 form_data = {'msaText': fasta_text,
@@ -147,9 +151,10 @@ def main():
     Tree.rename_nodes(gloome_tree)
     form_data.update({'leaves': list(gloome_tree.msa.keys())})
 
-    gloome_tree.calculate_likelihood()
-    gloome_tree.calculate_down()
-    gloome_tree.calculate_marginal()
+    gloome_tree.calculate_tree()
+    # gloome_tree.calculate_likelihood()
+    # gloome_tree.calculate_down()
+    # gloome_tree.calculate_marginal()
 
     if check_ancestral_sequence_calculation_time:
         gloome_tree.calculate_ancestral_sequence()
@@ -183,6 +188,9 @@ def main():
                                         taking_into_coefficient=taking_into_coefficient,
                                         with_internal_nodes=with_internal_nodes,
                                         decimal_length=0)
+        gloome_tree.tree_to_phylogenetic_distance_matrix(file_name=f'{file_path}/PhylogeneticDistanceMatrix.svg')
+        gloome_tree.tree_to_sequence_identity_matrix(file_name=f'{file_path}/SequenceIdentityMatrix.svg')
+        gloome_tree.tree_to_binary_mapping(file_name=f'{file_path}/BinaryMapping.svg')
     if check_dataset_simulation_time:
         gloome_tree.simulate_datasets(file_path=f'{file_path}',
                                       number_datasets=number_datasets,
