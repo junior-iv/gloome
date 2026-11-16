@@ -1,4 +1,6 @@
 import argparse
+import errno
+import json
 import traceback
 
 from sys import exit
@@ -79,7 +81,8 @@ class Config:
                 for error_type, error in self.CALCULATED_ARGS.err_list:
                     print(f'{error_type}: {error}')
                 print(self.USAGE)
-                exit()
+                self.write_error_result()
+                exit(1)
 
     def get_selected_files(self) -> Dict[str, bool]:
         selected_files = {'file_interactive_tree_html': self.CURRENT_ARGS.file_interactive_tree_html,
@@ -166,10 +169,37 @@ class Config:
             val = func(*args, **kwargs)
             if val:
                 self.JOB_LOGGER.info(f'\n\tSuccessfully Command \'{func.__name__}\' executed successfully. -> {val}\n')
-        except ValueError:
+        except Exception as exception:
             format_exc = f'{traceback.format_exc()}'
             self.JOB_LOGGER.info(f'Failed to execute the command \'{func.__name__}\' -> {format_exc}')
-            self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'{func.__name__}\'', format_exc))
+            self.CALCULATED_ARGS.err_list.append((f'Failed to execute the command \'{func.__name__}\'',
+                                                  self.describe_exception(exception)))
+
+    @staticmethod
+    def describe_exception(exception: BaseException) -> str:
+        """One-line, user-facing description of why a job step failed (the full traceback goes to the job log)."""
+        if isinstance(exception, MemoryError):
+            return 'The job ran out of memory.'
+        if isinstance(exception, OSError) and exception.errno == errno.ENOSPC:
+            return 'The server ran out of disk space while writing the results.'
+
+        return f'{type(exception).__name__}: {exception}'
+
+    def write_error_result(self) -> None:
+        """
+        Write result.json describing the failure, so the web app can show the error instead of finding no results.
+        Never raises: this runs while the job is already failing.
+        """
+        try:
+            message = '\n'.join(f'{error_type}: {error}' for error_type, error in self.CALCULATED_ARGS.err_list)
+            result = {'action_name': 'error', 'title': self.PROCESS_ID,
+                      'error_message': message or 'The job failed.'}
+            with open(self.OUT_DIR.joinpath('result.json'), 'w', encoding='utf-8') as file:
+                file.write(json.dumps(result))
+            self.JOB_LOGGER.info(f'\n\tJob failed, error written to result.json:\n\t{message}\n')
+        except Exception:
+            if self.JOB_LOGGER is not None:
+                self.JOB_LOGGER.info(f'Failed to write the error result -> {traceback.format_exc()}')
 
     def execute_calculation(self):
         if not self.CALCULATED_ARGS.err_list and self.DEFAULT_ACTIONS.get('calculate_tree', False):
@@ -199,6 +229,11 @@ class Config:
                                 output_file=self.OUT_DIR.joinpath('result.json'),
                                 process_id=self.PROCESS_ID,
                                 create_link=False)
+        if self.CALCULATED_ARGS.err_list:
+            for error_type, error in self.CALCULATED_ARGS.err_list:
+                print(f'{error_type}: {error}')
+            self.write_error_result()
+            exit(1)
 
     def check_arguments_for_errors(self) -> bool:
         if self.TREE_FILE.is_file():

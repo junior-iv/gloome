@@ -503,8 +503,10 @@ function drawFileList(jsonData) {
             const downloadBtn = `<a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-warning zoomable-element border-1 rounded-pill" href="${file['download_url']}" target="_blank">download</a>`
             const viewBtn = `<a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-info zoomable-element border-1 rounded-pill" href="${file['view_url']}" target="_blank">view</a>`
 
+            const note = file['note'] ? `<br><small class="text-danger">${file['note']}</small>` : ``;
+
             container += `<div class="grid-container-2">
-                    <div class="p-1 w-auto text-secondary">${file['name']}</div>
+                    <div class="p-1 w-auto text-secondary">${file['name']}${note}</div>
                     <div class="p-1 w-auto">${downloadBtn}</div>
                     <div class="p-1 w-auto">${viewBtn}</div>
                 </div>`;
@@ -586,10 +588,15 @@ async function makeRequest(absolutePath, formData, mode) {
                 console.log(jobResult.status);
 
                 if ([`failed`, `finished`].includes(jobResult.status)) {
-                    clearInterval(interval); // Важливо: очищуємо інтервал ОДРАЗУ, до виклику інших функцій
+                    clearInterval(interval);
                     setVisibilityLoader(false);
                     setAccessibility(``, false);
-                    showResponse(jobResult.result, mode);
+                    if (jobResult.status === `failed`) {
+                        setVisibility(`result`, false);
+                        showMessage(jobResult.error ?? `The job failed.`, 1);
+                    } else {
+                        showResponse(jobResult.result, mode);
+                    }
                 }
             }, 5000);
         } else {
@@ -713,7 +720,6 @@ function uploadFile(textAreaId = `newickText`, textFileId = `newickTextFile`) {
 function readJson(id = `jsonFile`) {
     let jsonFile = document.getElementById(id).files[0];
     let actions = ['execute_all_actions', 'draw_tree', 'compute_likelihood_of_tree', 'create_all_file_types'];
-    // const formData = new FormData();
     const promise = new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = function () {
@@ -877,37 +883,6 @@ function onChangingCheckbox(id, value) {
     } else {
         element.value = value;
     }
-    // let checkboxesDisplayGroups = {
-    //     'blockFileTableOfPosteriorRatesTsv': {'isDoNotUseCoPAP': 1},
-    //     'blockFileTableOfPearsonCorrelationTsv': {'isDoNotUseCoPAP': 1},
-    //     'blockFileSimulatedDatasetsFastas': {'isDoNotUseCoPAP': 1},
-    //     'blockFileTableOfCoevolutionTsv': {'isDoNotUseCoPAP': 1},
-    //     'blockFileBarplotOfCorrelationSvg': {'isDoNotUseCoPAP': 1},
-    //     'blockFilePlotDistributionOfCorrelationSvg': {'isDoNotUseCoPAP': 1},
-    //     'blockFilePlotCorrelationByRateBinSvg': {'isDoNotUseCoPAP': 1},
-    //     'blockFileBranchLengthModelsTsv': {'isOptimizeBLPerBranch': 0}};
-    // if (checkboxes.includes(id)) {
-    //     Object.entries(checkboxesAccessibilityGroups).forEach(([key, valueList]) => {
-    //         if (valueList.includes(id)) {
-    //             valueList.forEach(elementId => id !== elementId ? document.getElementById(elementId).checked = false : element.checked = Boolean(value));
-    //             setAccessibility(key, element.checked);
-    //         }
-    //     });
-    //     Object.entries(checkboxesDisplayGroups).forEach(([key, valueList]) => {
-    //         if (valueList[0].includes(id)) {
-    //             valueList[0].forEach(elementId => {
-    //                 if (id !== elementId) {
-    //                     document.getElementById(elementId).checked = false;
-    //                 } else {
-    //                     element.checked = Boolean(value)
-    //                     setDisplay(key, Boolean(-valueList[1]+document.getElementById(elementId).checked))
-    //                 }
-    //             });
-    //         }
-    //     });
-    // } else {
-    //     element.value = value;
-    // }
 }
 
 function setAccessibility(id = ``, value = null) {

@@ -6,3 +6,6 @@ PREFERRED_URL_SCHEME = PREFERRED_URL_SCHEME
 SERVER_NAME = WEBSERVER_NAME
 APPLICATION_ROOT = APPLICATION_ROOT
 MAX_CONTENT_LENGTH = MAX_CONTENT_LENGTH
+# Flask/Werkzeug >= 3.1 caps non-file form fields (msaText/newickText) at 500 KB by default and
+# returns an HTML 413, which the front end then fails to parse as JSON.
+MAX_FORM_MEMORY_SIZE = MAX_CONTENT_LENGTH

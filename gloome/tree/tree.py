@@ -12,7 +12,6 @@ from d3blocks import D3Blocks
 from typing import Optional, List, Union, Dict, Tuple, Set, Any, Callable
 from Bio import Phylo, AlignIO
 from Bio.Phylo.NewickIO import Writer
-from numpy import ndarray, dtype, void
 from scipy.stats import gamma, pearsonr, distributions, beta as sp_beta, kstest
 from scipy.special import gammainc
 from scipy.optimize import minimize, minimize_scalar
@@ -20,6 +19,7 @@ from io import StringIO
 from pymsaviz import MsaViz
 
 from .node import Node
+from . import pairs
 from .npencoder import NpEncoder
 
 eps = 5e-324
@@ -43,6 +43,7 @@ class Tree:
     likelihood: Optional[Union[float, np.float64]] = None
     posterior_rates: Optional[np.ndarray] = None
     correlation_vector: Optional[np.ndarray] = None
+    correlation_stream: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]] = None
     calculated_ancestor_sequence: bool = False
     calculated_tree: bool = False
     calculated_likelihood: bool = False
@@ -117,6 +118,7 @@ class Tree:
         self.rate_vector_length = 1
         self.pi_1, self.coefficient_bl = None, 1
         self.log_likelihood_vector = self.likelihood_vector = self.correlation_vector = self.posterior_rates = None
+        self.correlation_stream = None
         self.log_likelihood = self.likelihood = 0.0
         self.site_pattern_index = self.pattern_weights = self.leaf_pattern_vectors = self.site_patterns_source = None
         self.branch_length_starts = self.single_coefficient_fit = None
@@ -962,13 +964,32 @@ class Tree:
 
         return file_name
 
+    # Width cap for the binary mapping plot. The figure is ~0.14 in per site, and matplotlib refuses images wider
+    # than 2^16 px (the job crashed at ~4,700 sites); well before that the SVG becomes too heavy to open
+    # (1,000 sites: ~35 s and ~33 MB for 63 taxa).
+    BINARY_MAPPING_MAX_SITES = 1000
+
+    def get_binary_mapping_note(self) -> str:
+        """Empty string, or a note saying the binary mapping plot was cut to `BINARY_MAPPING_MAX_SITES` sites."""
+        if self.msa_length <= self.BINARY_MAPPING_MAX_SITES:
+            return ''
+
+        return (f'Showing sites 1-{self.BINARY_MAPPING_MAX_SITES:,} of {self.msa_length:,}: '
+                f'cut due to the plot width limit of {self.BINARY_MAPPING_MAX_SITES:,} sites.')
+
     def tree_to_binary_mapping(self, file_name: str = 'BinaryMapping.svg') -> str:
         self.make_dir(file_name)
         num_leaves = len(self.leaves_objects)
-        fontsize = min((12 * max((1, round(num_leaves // 10))), 14 * max((1, round(self.msa_length // 10)))))
+        shown_sites = min(self.msa_length, self.BINARY_MAPPING_MAX_SITES)
+        fontsize = min((12 * max((1, round(num_leaves // 10))), 14 * max((1, round(shown_sites // 10)))))
+        title = 'Mapping of Binary Character Evolution'
+        note = self.get_binary_mapping_note()
+        if note:
+            title = f'{title}\n{note}'
 
         mv = MsaViz(
             AlignIO.read(StringIO(self.get_fasta_text()), 'fasta'),
+            end=shown_sites,
             wrap_length=None,
             show_label=True,
             show_seq_char=True,
@@ -986,11 +1007,11 @@ class Tree:
         mv.set_custom_color_scheme(binary_color_dict)
 
         fig = mv.plotfig()
-        fig.set_size_inches(self.msa_length / 3, num_leaves / 2)
+        fig.set_size_inches(shown_sites / 3, num_leaves / 2)
         fig.text(
             x=0.5,
             y=1.05,
-            s='Mapping of Binary Character Evolution',
+            s=title,
             fontsize=fontsize,
             horizontalalignment='center',
             verticalalignment='top')
@@ -1084,17 +1105,6 @@ class Tree:
 
         return site_matrix, candidates, categories
 
-    def get_bins(self, site_matrix: np.ndarray, candidates: np.ndarray, categories: np.ndarray
-                 ) -> Tuple[ndarray[Any, dtype[Any]], ndarray[Any, Any], List[Tuple[Union[Union[ndarray[Any, Any],
-                            ndarray[Any, dtype[Any]], ndarray[Any, dtype[void]]], Any], ...]]]:
-        correlations = self.get_row_correlations(site_matrix[candidates])
-        i_idx, j_idx = np.triu_indices(len(candidates), k=1)
-        pairs = np.column_stack((candidates[i_idx], candidates[j_idx]))
-        r_values = correlations[i_idx, j_idx]
-        bins = [tuple(sorted((categories[a], categories[b]))) for a, b in pairs]
-
-        return pairs, r_values, bins
-
     def simulate_datasets(self, file_path: str = '',
                           sep: str = '\t',
                           number_datasets: int = 100,
@@ -1109,27 +1119,31 @@ class Tree:
         """
         Simulates multiple datasets to perform evolutionary analysis and build null distributions.
 
+        Memory does not grow with the number of site pairs (see ``gloome.tree.pairs``): correlations
+        are computed in BLAS blocks, the simulated null is kept exactly while it is small (results
+        identical to an unbounded null) and as fixed-size per-rate-bin histograms of r (resolution
+        ~1e-6 for 4 rate categories, p-values conservative by at most one cell) once it is large. When the
+        observed pairs exceed ``pairs.PAIRS_IN_MEMORY_LIMIT`` they are streamed in two passes and
+        Coevolution.tsv keeps the ``pairs.MAX_TABLE_ROWS`` most significant pairs; q-values are
+        still computed over all pairs.
+
         Args:
             file_path: Target directory path where output files and plots will be created.
             sep: Delimiter character used to save the coevolution table (e.g., '\t' for TSV).
             number_datasets: Total number of iterations/MSA datasets to simulate.
             event_threshold: The actual per-site candidate filter used for the coevolution table.
-            p_value_mode: 'empirical' (default, rank-based against the raw per-bin null --
-                resolution floored at 1/(n_in_bin + 1)) or 'beta' (fit a Beta(a, b) to each bin's
-                null and read the tail off the fitted CDF, removing that floor; bins that don't
-                fit/pass goodness-of-fit fall back to 'empirical' automatically -- see
-                ``fit_beta_null``).
+            p_value_mode: 'empirical' (default, rank-based against the per-bin null -- resolution
+                floored at 1/(n_in_bin + 1)) or 'beta' (fit a Beta(a, b) to each bin's null and read
+                the tail off the fitted CDF, removing that floor; bins that don't fit/pass
+                goodness-of-fit fall back to 'empirical' automatically -- see ``fit_beta_null``).
             min_fit: Minimum number of data points required in a bin to attempt fitting a Beta distribution.
             use_simulated_datasets_file: If True, writes the generated MSA datasets into
                 '{file_path}/SimulatedDatasets.fastas'.
             use_coevolution_file: If True, calculates statistics (p-values, q-values, directions)
                 and saves the table into '{file_path}/Coevolution.tsv'.
-            use_barplot_of_correlation_file: If True, triggers coevolution analysis and reserves
-                the logic for generating '{file_path}/BarplotOfCorrelation.svg'.
-            use_plot_distribution_of_correlation_file: If True, triggers coevolution analysis and reserves
-                the logic for generating '{file_path}/DistributionOfCorrelation.svg'.
-            use_plot_correlation_by_rate_bin_file: If True, triggers coevolution analysis and reserves
-                the logic for generating '{file_path}/CorrelationByRateBin.svg'.
+            use_barplot_of_correlation_file: If True, writes '{file_path}/BarplotOfCorrelation.svg'.
+            use_plot_distribution_of_correlation_file: If True, writes '{file_path}/DistributionOfCorrelation.svg'.
+            use_plot_correlation_by_rate_bin_file: If True, writes '{file_path}/CorrelationByRateBin.svg'.
 
         Returns:
             Dict[str, str]: A dictionary containing paths to the generated files.
@@ -1146,10 +1160,6 @@ class Tree:
 
         result = {}
         file_simulated_datasets = f'{file_path}/SimulatedDatasets.fastas'
-        file_coevolution = f'{file_path}/Coevolution.tsv'
-        file_distribution_of_correlation = f'{file_path}/DistributionOfCorrelation.svg'
-        file_barplot_of_correlation = f'{file_path}/BarplotOfCorrelation.svg'
-        file_correlation_by_rate_bin = f'{file_path}/CorrelationByRateBin.svg'
 
         site_rate = np.asarray(self.posterior_rates, dtype=np.float64)
         branch_length = np.asarray([n.distance_to_father for n in self.all_nodes_objects[1:]], dtype=np.float64)
@@ -1164,17 +1174,27 @@ class Tree:
 
         newick_text = self.get_newick(with_internal_nodes=True)
 
-        null_pool, pairs, r_values, bins = {}, None, None, None
-
-        if any((use_coevolution_file, use_barplot_of_correlation_file, use_plot_distribution_of_correlation_file,
-                use_plot_correlation_by_rate_bin_file)):
+        use_analysis = any((use_coevolution_file, use_barplot_of_correlation_file,
+                            use_plot_distribution_of_correlation_file, use_plot_correlation_by_rate_bin_file))
+        categories_quantity = len(self.rate_vector)
+        observed, null = None, None
+        if use_analysis:
             site_matrix, candidates, categories = self.identify_event_candidates(event_threshold)
-            pairs, r_values, bins = self.get_bins(site_matrix, candidates, categories)
-
-            null_pool = {current_bin: [] for current_bin in set(bins)}
+            centered, norms = pairs.centered_rows(site_matrix[candidates])
+            del site_matrix
+            observed = {'candidates': candidates, 'categories': categories[candidates],
+                        'centered': centered, 'norms': norms}
+            total_pairs = len(candidates) * (len(candidates) - 1) // 2
+            observed['in_memory'] = total_pairs <= pairs.PAIRS_IN_MEMORY_LIMIT
+            observed['total_pairs'] = total_pairs
+            null = pairs.NullDistribution(categories_quantity,
+                                          exact_limit=pairs.EXACT_NULL_LIMIT if observed['in_memory'] else 0)
 
         phylo_tree = Tree(newick_text, categories_quantity=self.categories_quantity, alpha=self.alpha,
                           pi_1=self.pi_1, coefficient_bl=self.coefficient_bl)
+
+        if use_simulated_datasets_file:
+            open(file_simulated_datasets, 'w', encoding='utf-8').close()
 
         for i in range(number_datasets):
             header = f'iterations = {i}'
@@ -1190,168 +1210,270 @@ class Tree:
             phylo_tree.calculate_tree()
             phylo_tree.set_posterior_rates_vector()
 
-            if any((use_coevolution_file, use_barplot_of_correlation_file, use_plot_distribution_of_correlation_file,
-                    use_plot_correlation_by_rate_bin_file)):
+            if use_analysis:
                 current_site_matrix, current_candidates, current_categories = (
                     phylo_tree.identify_event_candidates(event_threshold))
-                current_pairs, current_r_values, current_bins = phylo_tree.get_bins(current_site_matrix,
-                                                                                    current_candidates,
-                                                                                    current_categories)
-                for current_bin, r_value in zip(current_bins, current_r_values):
-                    null_pool.setdefault(current_bin, []).append(r_value)
+                current_centered, current_norms = pairs.centered_rows(current_site_matrix[current_candidates])
+                del current_site_matrix
+                for code, r_values in pairs.iter_bin_blocks(current_centered, current_norms,
+                                                            current_categories[current_candidates],
+                                                            categories_quantity):
+                    null.add(code, r_values)
+                del current_centered, current_norms
 
             if use_simulated_datasets_file:
-                current_content = f'{header}\n\n{current_msa}\n\n\n'
                 with open(file_simulated_datasets, 'a', encoding='utf-8') as file:
-                    file.write(current_content)
+                    file.write(f'{header}\n\n{current_msa}\n\n\n')
 
         if use_simulated_datasets_file:
             result.update({'Simulated datasets (fastas)': file_simulated_datasets})
 
-        if any((use_coevolution_file, use_barplot_of_correlation_file, use_plot_distribution_of_correlation_file,
-                use_plot_correlation_by_rate_bin_file)):
-            pos1_list = []
-            pos2_list = []
-            rate_bin_list = []
-            r_list = []
-            p_value_list = []
-            direction_list = []
+        del phylo_tree  # its per-node likelihood vectors are no longer needed
+        gc.collect()
 
-            abs_null_by_bin = {k: np.abs(np.asarray(v, dtype=float)) for k, v in null_pool.items()}
-            beta_by_bin: Dict[Any, Optional[Tuple[float, float]]] = {}
-            pooled_beta = None
-            if p_value_mode == 'beta' and abs_null_by_bin:
-                pooled_signed = np.concatenate([np.asarray(v, dtype=float) for v in null_pool.values() if v])
-                pooled_beta = self.fit_beta_null(pooled_signed, min_fit=min_fit) if pooled_signed.size else None
+        if use_analysis:
+            if observed['in_memory']:
+                table, sample_r, sample_codes = self._coevolution_table_in_memory(observed, null, p_value_mode,
+                                                                                  min_fit, categories_quantity)
+            else:
+                table, sample_r, sample_codes = self._coevolution_table_streamed(observed, null, p_value_mode,
+                                                                                 min_fit, categories_quantity)
+            del observed, null
+            gc.collect()
 
-            for current_pair, current_r_value, current_bin in zip(pairs, r_values, bins):
-                params = None
-                if p_value_mode == 'beta':
-                    if current_bin not in beta_by_bin:
-                        beta_by_bin[current_bin] = self.fit_beta_null(
-                            np.asarray(null_pool.get(current_bin, []), dtype=float), min_fit=min_fit)
-                    params = beta_by_bin[current_bin] or pooled_beta
+            result.update(self._coevolution_outputs(file_path, sep, table, sample_r, sample_codes,
+                                                    categories_quantity, use_coevolution_file,
+                                                    use_barplot_of_correlation_file,
+                                                    use_plot_distribution_of_correlation_file,
+                                                    use_plot_correlation_by_rate_bin_file))
+
+        return result
+
+    def _null_beta_params(self, null: 'pairs.NullDistribution', codes_present: np.ndarray, min_fit: int
+                          ) -> Dict[int, Optional[Tuple[float, float]]]:
+        """Per-code Beta fit, falling back to the fit pooled over every code (None: use empirical)."""
+        if null.exact:
+            samples = null.samples()
+            pooled_values = [v for v in samples.values() if v.size]
+            pooled = self.fit_beta_null(np.concatenate(pooled_values), min_fit=min_fit) if pooled_values else None
+            return {int(c): self.fit_beta_null(samples.get(int(c), np.zeros(0)), min_fit=min_fit) or pooled
+                    for c in codes_present}
+        pooled = null.fit_beta(None, min_fit=min_fit) if null.size else None
+
+        return {int(c): null.fit_beta(int(c), min_fit=min_fit) or pooled for c in codes_present}
+
+    def _coevolution_table_in_memory(self, observed: Dict[str, Any], null: 'pairs.NullDistribution',
+                                     p_value_mode: str, min_fit: int, categories_quantity: int
+                                     ) -> Tuple[pd.DataFrame, np.ndarray, np.ndarray]:
+        chunks = list(pairs.iter_upper_pairs(observed['centered'], observed['norms']))
+        i_idx = np.concatenate([c[0] for c in chunks]) if chunks else np.zeros(0, dtype=np.int64)
+        j_idx = np.concatenate([c[1] for c in chunks]) if chunks else np.zeros(0, dtype=np.int64)
+        r_values = np.concatenate([c[2] for c in chunks]) if chunks else np.zeros(0)
+        del chunks
+        codes = pairs.pair_codes(observed['categories'][i_idx], observed['categories'][j_idx], categories_quantity)
+        abs_r = np.abs(r_values)
+        codes_present = np.unique(codes)
+
+        beta_params = (self._null_beta_params(null, codes_present, min_fit) if p_value_mode == 'beta'
+                       else {int(c): None for c in codes_present})
+        p_values = np.ones(r_values.size, dtype=np.float64)
+        if null.exact:
+            samples = null.samples()
+            for code in codes_present:
+                mask = codes == code
+                params = beta_params[int(code)]
+                p_values[mask] = (pairs.beta_tail(abs_r[mask], params) if params is not None else
+                                  pairs.empirical_p_exact(abs_r[mask], samples.get(int(code))))
+        else:
+            p_table = null.empirical_p_table()
+            h_idx = pairs.abs_index(r_values, null.hist_bins)
+            for code in codes_present:
+                mask = codes == code
+                params = beta_params[int(code)]
+                p_values[mask] = (pairs.beta_tail(abs_r[mask], params) if params is not None else
+                                  p_table[code, h_idx[mask]])
+            del p_table, h_idx
+
+        q_values = self.benjamini_hochberg(p_values) if p_values.size else p_values
+        candidates = observed['candidates']
+        table = self._coevolution_frame(candidates[i_idx], candidates[j_idx], r_values, codes, p_values, q_values,
+                                        categories_quantity)
+        sample = (np.random.default_rng(0).choice(r_values.size, pairs.PLOT_SAMPLE, replace=False)
+                  if r_values.size > pairs.PLOT_SAMPLE else slice(None))
+
+        return table, r_values[sample], codes[sample]
+
+    def _coevolution_table_streamed(self, observed: Dict[str, Any], null: 'pairs.NullDistribution',
+                                    p_value_mode: str, min_fit: int, categories_quantity: int
+                                    ) -> Tuple[pd.DataFrame, np.ndarray, np.ndarray]:
+        """
+        Two passes over the observed pairs. Every p-value is a function of the key
+        (rate-bin code, |r| histogram cell), so pass 1 only counts pairs per key; BH q-values are
+        computed exactly over all pairs from those counts; pass 2 keeps the most significant
+        ``pairs.MAX_TABLE_ROWS`` pairs.
+        """
+        hist_bins = null.hist_bins
+        n_codes = categories_quantity * categories_quantity
+        cats, total_pairs = observed['categories'], observed['total_pairs']
+        rng = np.random.default_rng(0)
+        keep_probability = min(1.0, pairs.PLOT_SAMPLE / max(1, total_pairs))
+
+        key_counts = np.zeros(n_codes * hist_bins, dtype=np.int64)
+        sample_r, sample_codes = [], []
+        for i_idx, j_idx, r_values in pairs.iter_upper_pairs(observed['centered'], observed['norms']):
+            codes = pairs.pair_codes(cats[i_idx], cats[j_idx], categories_quantity)
+            key_counts += np.bincount(codes.astype(np.int64) * hist_bins + pairs.abs_index(r_values, hist_bins),
+                                      minlength=n_codes * hist_bins)
+            keep = rng.random(r_values.size) < keep_probability
+            sample_r.append(r_values[keep])
+            sample_codes.append(codes[keep])
+
+        p_key = null.empirical_p_table()
+        if p_value_mode == 'beta':
+            codes_present = np.flatnonzero(key_counts.reshape(n_codes, hist_bins).sum(axis=1))
+            edges = np.arange(hist_bins) / hist_bins
+            for code, params in self._null_beta_params(null, codes_present, min_fit).items():
                 if params is not None:
-                    current_p_value = self.beta_p(current_r_value, params)
-                else:
-                    abs_null = abs_null_by_bin.get(current_bin, np.zeros(0))
-                    n_bin = abs_null.size
-                    current_p_value = ((1 + int(np.count_nonzero(abs_null >= abs(current_r_value)))) / (1 + n_bin)
-                                       if n_bin else 1.0)
-                pos1_list.append(current_pair[0])
-                pos2_list.append(current_pair[1])
-                r_list.append(current_r_value)
-                rate_bin_list.append(current_bin)
-                p_value_list.append(current_p_value)
-                direction_list.append('co-occurrence' if current_r_value >= 0 else 'avoidance')
+                    p_key[code] = pairs.beta_tail(edges, params)
+        p_key = p_key.ravel()
 
-            p_values = np.asarray(p_value_list)
-            q_values = self.benjamini_hochberg(p_values)
-            df = pd.DataFrame({'POS1': np.asarray(pos1_list, np.int32),
-                               'POS2': np.asarray(pos2_list, np.int32),
-                               'r': np.round(np.asarray(r_list), decimals=14),
-                               'rate-bin': rate_bin_list,
-                               'p-value': np.round(p_values, decimals=14),
-                               'q-value': np.round(q_values, decimals=14),
-                               'direction': direction_list})
-            df.sort_values(by=['q-value', 'p-value', 'r'], key=lambda x: x.abs() if x.name == 'r' else x, inplace=True,
-                           ascending=[True, True, False])
+        used = np.flatnonzero(key_counts)
+        q_key = np.ones(p_key.size)
+        q_key[used] = pairs.benjamini_hochberg_weighted(p_key[used], key_counts[used])
 
-            del pos1_list, pos2_list, rate_bin_list, r_list, p_value_list, direction_list
-            gc.collect()
+        key_state = np.zeros(p_key.size, dtype=np.int8)
+        need = 0
+        if total_pairs <= pairs.MAX_TABLE_ROWS:
+            key_state[used] = 1
+        else:
+            order = np.lexsort((-(used % hist_bins), p_key[used], q_key[used]))
+            cumulative = np.cumsum(key_counts[used][order])
+            boundary = int(np.searchsorted(cumulative, pairs.MAX_TABLE_ROWS))
+            key_state[used[order[:boundary]]] = 1
+            key_state[used[order[boundary]]] = 2
+            need = pairs.MAX_TABLE_ROWS - (int(cumulative[boundary - 1]) if boundary else 0)
 
-            r_data = df['r'].dropna().to_numpy()
-            np.clip(r_data, -1 + eps2, 1 - eps2, out=r_data)
-            alpha_est, beta_est, loc_est, scale_est = sp_beta.fit(r_data, floc=-1, fscale=2)
+        kept = {'i': [], 'j': [], 'r': [], 'key': []}
+        edge = {'i': [], 'j': [], 'r': [], 'key': []}
+        for i_idx, j_idx, r_values in pairs.iter_upper_pairs(observed['centered'], observed['norms']):
+            codes = pairs.pair_codes(cats[i_idx], cats[j_idx], categories_quantity)
+            keys = codes.astype(np.int64) * hist_bins + pairs.abs_index(r_values, hist_bins)
+            state = key_state[keys]
+            for target, mask in ((kept, state == 1), (edge, state == 2)):
+                if mask.any():
+                    target['i'].append(i_idx[mask].astype(np.int32))
+                    target['j'].append(j_idx[mask].astype(np.int32))
+                    target['r'].append(r_values[mask])
+                    target['key'].append(keys[mask])
+
+        def joined(store: Dict[str, List[np.ndarray]], name: str, dtype_: Any) -> np.ndarray:
+            return np.concatenate(store[name]) if store[name] else np.zeros(0, dtype=dtype_)
+
+        columns = {name: np.concatenate((joined(kept, name, dtype_), joined(edge, name, dtype_)[
+            np.argsort(-np.abs(joined(edge, 'r', float)), kind='stable')[:need]]))
+            for name, dtype_ in (('i', np.int32), ('j', np.int32), ('r', float), ('key', np.int64))}
+
+        candidates = observed['candidates']
+        table = self._coevolution_frame(candidates[columns['i']], candidates[columns['j']], columns['r'],
+                                        columns['key'] // hist_bins, p_key[columns['key']], q_key[columns['key']],
+                                        categories_quantity)
+
+        return table, np.concatenate(sample_r), np.concatenate(sample_codes)
+
+    @staticmethod
+    def _coevolution_frame(pos1: np.ndarray, pos2: np.ndarray, r_values: np.ndarray, codes: np.ndarray,
+                           p_values: np.ndarray, q_values: np.ndarray, categories_quantity: int) -> pd.DataFrame:
+        codes_present, code_index = np.unique(codes, return_inverse=True)
+        labels = [str(pairs.code_label(c, categories_quantity)) for c in codes_present]
+        df = pd.DataFrame({'POS1': np.asarray(pos1, np.int32),
+                           'POS2': np.asarray(pos2, np.int32),
+                           'r': np.round(np.asarray(r_values, dtype=np.float64), decimals=14),
+                           'rate-bin': pd.Categorical.from_codes(code_index.astype(np.int32), categories=labels),
+                           'p-value': np.round(p_values, decimals=14),
+                           'q-value': np.round(q_values, decimals=14),
+                           'direction': pd.Categorical.from_codes((np.asarray(r_values) < 0).astype(np.int8),
+                                                                  categories=['co-occurrence', 'avoidance'])})
+        df.sort_values(by=['q-value', 'p-value', 'r'], key=lambda x: x.abs() if x.name == 'r' else x, inplace=True,
+                       ascending=[True, True, False])
+
+        return df
+
+    @staticmethod
+    def _coevolution_outputs(file_path: str, sep: str, table: pd.DataFrame, sample_r: np.ndarray,
+                             sample_codes: np.ndarray, categories_quantity: int, use_coevolution_file: bool,
+                             use_barplot_of_correlation_file: bool, use_plot_distribution_of_correlation_file: bool,
+                             use_plot_correlation_by_rate_bin_file: bool) -> Dict[str, str]:
+        """Writes Coevolution.tsv and the plots. Plots and the descriptive Beta fit use at most
+        pairs.PLOT_SAMPLE observed correlations (all of them for smaller inputs)."""
+        result = {}
+        file_coevolution = f'{file_path}/Coevolution.tsv'
+        file_distribution_of_correlation = f'{file_path}/DistributionOfCorrelation.svg'
+        file_barplot_of_correlation = f'{file_path}/BarplotOfCorrelation.svg'
+        file_correlation_by_rate_bin = f'{file_path}/CorrelationByRateBin.svg'
+
+        if use_coevolution_file:
+            table.to_csv(file_coevolution, sep=sep, index=False, float_format='%.8f', chunksize=50000)
+            result.update({'Table of coevolution (tsv)': file_coevolution})
+        del table
+        gc.collect()
+
+        r_data = np.clip(np.round(np.asarray(sample_r, dtype=np.float64), decimals=14), -1 + eps2, 1 - eps2)
+        if r_data.size > 1:
+            alpha_est, beta_est, _, _ = sp_beta.fit(r_data, floc=-1, fscale=2)
             info_text = f'Alpha: {alpha_est:.4f}\nBeta: {beta_est:.4f}'
+        else:
+            info_text = 'Alpha: n/a\nBeta: n/a'
+        r_series = pd.Series(np.round(np.asarray(sample_r, dtype=np.float64), decimals=14), name='r')
 
-            del r_data
-            gc.collect()
+        if use_plot_distribution_of_correlation_file:
+            fig, ax = plt.subplots(figsize=(7, 5))
+            ax.tick_params(axis='both', labelsize=8)
+            if r_series.size > 1:
+                sns.kdeplot(r_series, fill=True, color='blue', ax=ax)
+            ax.set_xlim(-1, 1)
+            ax.set_xlabel('Correlation (r)')
+            ax.set_ylabel('Density')
+            ax.set_title('Distribution of original correlation coefficients')
+            ax.text(0.05, 0.95, info_text, transform=ax.transAxes, fontsize=9, verticalalignment='top',
+                    bbox={'boxstyle': 'round,pad=0.5', 'facecolor': 'white', 'alpha': 0.6, 'edgecolor': 'gray'})
+            fig.savefig(file_distribution_of_correlation, dpi=300, bbox_inches='tight')
+            plt.close(fig)
+            result.update({'Plot of distribution of correlation (svg)': file_distribution_of_correlation})
 
-            if use_coevolution_file:
-                df.to_csv(file_coevolution, sep=sep, index=False, float_format='%.8f', chunksize=50000)
-                result.update({'Table of coevolution (tsv)': file_coevolution})
+        if use_barplot_of_correlation_file:
+            fig, ax = plt.subplots(figsize=(7, 5))
+            ax.tick_params(axis='both', labelsize=8)
+            sns.histplot(r_series, bins=20, kde=r_series.size > 1, color='green', ax=ax)
+            ax.set_xlim(-1, 1)
+            ax.set_xlabel('Correlation (r)')
+            ax.set_ylabel('Count')
+            ax.set_title('Barplot of original correlation coefficients')
+            ax.text(0.05, 0.95, info_text, transform=ax.transAxes, fontsize=8, verticalalignment='top',
+                    bbox={'boxstyle': 'round,pad=0.5', 'facecolor': 'white', 'alpha': 0.6, 'edgecolor': 'gray'})
+            fig.savefig(file_barplot_of_correlation, dpi=300, bbox_inches='tight')
+            plt.close(fig)
+            result.update({'Barplot of correlation (svg)': file_barplot_of_correlation})
 
-            if use_plot_distribution_of_correlation_file:
-                fig, ax = plt.subplots(figsize=(7, 5))
-                ax.tick_params(axis='both', labelsize=8)
-                sns.kdeplot(df['r'], fill=True, color='blue', ax=ax)
-                ax.set_xlim(-1, 1)
-                ax.set_xlabel('Correlation (r)')
-                ax.set_ylabel('Density')
-                ax.set_title('Distribution of original correlation coefficients')
-
-                ax.text(0.05, 0.95, info_text,
-                        transform=ax.transAxes,
-                        fontsize=9,
-                        verticalalignment='top',
-                        bbox={'boxstyle': 'round,pad=0.5',
-                              'facecolor': 'white',
-                              'alpha': 0.6,
-                              'edgecolor': 'gray'})
-
-                fig.savefig(file_distribution_of_correlation, dpi=300, bbox_inches='tight')
-                plt.close(fig)
-
-                result.update({'Plot of distribution of correlation (svg)': file_distribution_of_correlation})
-
-            if use_barplot_of_correlation_file:
-                fig, ax = plt.subplots(figsize=(7, 5))
-                ax.tick_params(axis='both', labelsize=8)
-                sns.histplot(df['r'], bins=20, kde=True, color='green', ax=ax)
-                ax.set_xlim(-1, 1)
-                ax.set_xlabel('Correlation (r)')
-                ax.set_ylabel('Count')
-                ax.set_title('Barplot of original correlation coefficients')
-
-                ax.text(0.05, 0.95, info_text,
-                        transform=ax.transAxes,
-                        fontsize=8,
-                        verticalalignment='top',
-                        bbox={'boxstyle': 'round,pad=0.5',
-                              'facecolor': 'white',
-                              'alpha': 0.6,
-                              'edgecolor': 'gray'})
-
-                fig.savefig(file_barplot_of_correlation, dpi=300, bbox_inches='tight')
-                plt.close(fig)
-
-                result.update({'Barplot of correlation (svg)': file_barplot_of_correlation})
-
-            if use_plot_correlation_by_rate_bin_file:
-                def make_clean_label(tup):
-                    if isinstance(tup, tuple) and len(tup) == 2:
-                        return f'({tup[0]:.0f}, {tup[1]:.0f})'
-                    return str(tup)
-
-                df['bin_clean'] = df['rate-bin'].apply(make_clean_label)
-                unique_bins_sorted = sorted(df['rate-bin'].dropna().unique())
-                categories_order = [make_clean_label(b) for b in unique_bins_sorted]
-                bins_quantity = len(unique_bins_sorted)
-
-                fig, ax = plt.subplots(figsize=(max(7, int(np.round(bins_quantity * 0.7))), 5))
-                ax.tick_params(axis='both', labelsize=8)
-
-                sns.stripplot(x='bin_clean',
-                              y='r',
-                              data=df,
-                              order=categories_order,
-                              palette='muted',
-                              hue='bin_clean',
-                              size=6,
-                              jitter=0.15,
-                              alpha=0.7,
-                              ax=ax,
-                              )
-
-                ax.set_xlabel('Rate-bin categories')
-                ax.set_ylabel('Correlation (r)')
-                ax.set_title('Distribution of original correlation coefficients by rate-bin categories')
-
-                fig.savefig(file_correlation_by_rate_bin, dpi=300, bbox_inches='tight')
-                plt.close(fig)
-
-                result.update({'Plot of correlation by rate-bin (svg)': file_correlation_by_rate_bin})
+        if use_plot_correlation_by_rate_bin_file:
+            strip = np.arange(r_series.size)
+            if strip.size > pairs.STRIPPLOT_SAMPLE:
+                strip = np.sort(np.random.default_rng(1).choice(strip, pairs.STRIPPLOT_SAMPLE, replace=False))
+            codes_sorted = np.unique(sample_codes)
+            labels = {int(c): '({:.0f}, {:.0f})'.format(*pairs.code_label(c, categories_quantity))
+                      for c in codes_sorted}
+            strip_df = pd.DataFrame({'bin_clean': [labels[int(c)] for c in np.asarray(sample_codes)[strip]],
+                                     'r': r_series.to_numpy()[strip]})
+            categories_order = [labels[int(c)] for c in codes_sorted]
+            fig, ax = plt.subplots(figsize=(max(7, int(np.round(len(categories_order) * 0.7))), 5))
+            ax.tick_params(axis='both', labelsize=8)
+            sns.stripplot(x='bin_clean', y='r', data=strip_df, order=categories_order, palette='muted',
+                          hue='bin_clean', size=6, jitter=0.15, alpha=0.7, ax=ax)
+            ax.set_xlabel('Rate-bin categories')
+            ax.set_ylabel('Correlation (r)')
+            ax.set_title('Distribution of original correlation coefficients by rate-bin categories')
+            fig.savefig(file_correlation_by_rate_bin, dpi=300, bbox_inches='tight')
+            plt.close(fig)
+            result.update({'Plot of correlation by rate-bin (svg)': file_correlation_by_rate_bin})
 
         return result
 
@@ -1372,8 +1494,19 @@ class Tree:
                                    number_lg: Union[float, np.float64, int] = 1) -> str:
 
         self.make_dir(file_name)
-        if self.correlation_vector is None:
+        if self.correlation_vector is None and self.correlation_stream is None:
             self.calculate_correlation(probability_lg=probability_lg, number_lg=number_lg)
+
+        if self.correlation_vector is None and self.correlation_stream is not None:
+            sites, centered, norms = self.correlation_stream
+            with open(file_name, 'w', encoding='utf-8', newline='') as file:
+                file.write(f'POS1{sep}POS2{sep}correlation\n')
+                for i_idx, j_idx, r_values in pairs.iter_upper_pairs(centered, norms):
+                    pd.DataFrame({'POS1': sites[i_idx].astype(np.int32),
+                                  'POS2': sites[j_idx].astype(np.int32),
+                                  'correlation': r_values}
+                                 ).to_csv(file, sep=sep, index=False, header=False, float_format='%.8f')
+            return file_name
 
         df = pd.DataFrame({'POS1': np.int32(self.correlation_vector[0]),
                            'POS2': np.int32(self.correlation_vector[1]),
@@ -1924,6 +2057,7 @@ class Tree:
         for current_node in self.all_nodes_objects:
             current_node.clean_all()
         self.log_likelihood_vector = self.likelihood_vector = self.correlation_vector = self.posterior_rates = None
+        self.correlation_stream = None
         self.log_likelihood = self.likelihood = 0.0
 
     def set_all(self, categories_quantity: Optional[int] = None, alpha: Optional[float] = None,
@@ -2072,6 +2206,15 @@ class Tree:
         couples = np.column_stack((unique_item[idx1], unique_item[idx2]))
 
         filtered_probs = site_probs_matrix[:, unique_item]
+
+        if len(couples) > pairs.PAIRS_IN_MEMORY_LIMIT:
+            # Too many pairs to hold (4 x float64 per pair): keep only what is needed to stream them
+            # block by block into PearsonCorrelation.tsv, in the same (triu) order.
+            del couples, idx1, idx2
+            self.correlation_vector = None
+            self.correlation_stream = (unique_item, *pairs.centered_rows(filtered_probs.T))
+            return None
+        self.correlation_stream = None
 
         corr_matrix = np.corrcoef(filtered_probs.T)
         r_coefficients = corr_matrix[idx1, idx2]
@@ -2422,9 +2565,9 @@ class Tree:
             columns = columns if columns else {'node': 'Name', 'father_name': 'Parent', distance_name:
                                                'Distance to parent', 'children': 'Children', 'sequence': 'Sequence',
                                                'pmatrix': 'P matrix',
-                                               'up_vector': 'Up vector',
-                                               'down_vector': 'Down vector',
-                                               'marginal_vector': 'Marginal vector',
+                                               # 'up_vector': 'Up vector',
+                                               # 'down_vector': 'Down vector',
+                                               # 'marginal_vector': 'Marginal vector',
                                                'probabilities_sequence_characters': 'Probability coefficient',
                                                'ancestral_sequence': 'Ancestral comparison',
                                                'likelihood': 'Current conditional likelihood (subtree)',

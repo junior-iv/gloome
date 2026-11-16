@@ -191,7 +191,7 @@ DEFAULT_FORM_ARGUMENTS = {
     'file_all_nodes_fasta': True,
     'file_phylogenetic_distance_matrix_svg': True,
     'file_sequence_identity_matrix_svg': True,
-    'file_binary_mapping_svg': True
+    'file_binary_mapping_svg': False
 }
 
 DEFAULT_ARGUMENTS = DefaultArgs(**{
@@ -295,7 +295,7 @@ USAGE = '''\tRequired parameters:
 \t\t--file_sequence_identity_matrix_svg <type=int> 
 \t\t\tSpecify file_sequence_identity_matrix_svg. Default is 1.
 \t\t--file_binary_mapping_svg <type=int> 
-\t\t\tSpecify file_binary_mapping_svg. Default is 1.
+\t\t\tSpecify file_binary_mapping_svg. Default is 0.
 \t\t--file_branch_length_models_tsv <type=int>
 \t\t\tSpecify file_branch_length_models_tsv. Default is 1.
 \t\t--file_table_of_coevolution_tsv <type=int>

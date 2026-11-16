@@ -11,6 +11,7 @@ from numpy import ndarray
 from gloome.tree.tree import Tree
 from gloome.services.design_functions import *
 
+FILE_NOTES_KEY = 'File notes'
 FILE_LIST = [
     'Log-likelihood (tsv)',
     'Table of nodes (tsv)',
@@ -43,7 +44,7 @@ SELECTED_FILES = {'file_interactive_tree_html': True,
                   'file_newick_tree_png': True,
                   'file_phylogenetic_distance_matrix_svg': True,
                   'file_sequence_identity_matrix_svg': True,
-                  'file_binary_mapping_svg': True,
+                  'file_binary_mapping_svg': False,
                   'file_branch_length_models_tsv': True,
                   'file_table_of_coevolution_tsv': True,
                   'file_simulated_datasets_fastas': True,
@@ -218,6 +219,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                           ) -> Union[Dict[str, str], str]:
     selected_files = (SELECTED_FILES if selected_files is None else selected_files)
     result = {}
+    # Per-file notes shown under the file's name in the results list, keyed like FILE_LIST (e.g. a plot was cut).
+    notes = {}
     newick_tree = Tree.check_tree(newick_tree)
     taking_into_coefficient = newick_tree.coefficient_bl != 1
     use_correlation = newick_tree.msa_length > 1
@@ -297,6 +300,9 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     if selected_files.get('file_binary_mapping_svg', False):
         result.update({'Binary mapping (svg)': newick_tree.tree_to_binary_mapping(
                            file_name=f'{file_path}/BinaryMapping.svg')})
+        binary_mapping_note = newick_tree.get_binary_mapping_note()
+        if binary_mapping_note:
+            notes.update({'Binary mapping (svg)': binary_mapping_note})
     if any((use_simulated_datasets_file, use_coevolution_file, use_barplot_of_corr_file,
             use_plot_distribution_of_corr_file, use_plot_corr_by_rate_bin_file)) and use_copap:
         result.update(
@@ -317,6 +323,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
 
     if log_file is not None:
         result.update({'Log-File (log)': f'{log_file}'})
+    if notes:
+        result.update({FILE_NOTES_KEY: notes})
 
     return result
 
@@ -689,14 +697,18 @@ def get_response_design(json_object: Optional[Any], action_name: str, create_lin
         if output_file:
             json_object.update({'JSON response file (json)': output_file})
 
+        notes = json_object.get(FILE_NOTES_KEY, {})
         url_list = []
         for key in FILE_LIST:
             current_file = json_object.get(key, '')
             if not current_file:
                 continue
-            url_list.append({'name': key,
-                             'download_url': create_url(file_path=current_file, mode="download"),
-                             'view_url': create_url(file_path=current_file, mode="view")})
+            item = {'name': key,
+                    'download_url': create_url(file_path=current_file, mode="download"),
+                    'view_url': create_url(file_path=current_file, mode="view")}
+            if notes.get(key):
+                item.update({'note': notes[key]})
+            url_list.append(item)
         return url_list
 
     return json_object

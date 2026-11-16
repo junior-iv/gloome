@@ -6,6 +6,31 @@ from typing import Set, Any
 from gloome.services.service_functions import read_file, loads_json, create_file
 from mail.mail import *
 
+# Terminal Slurm job states other than COMPLETED, with the message shown to the user when the job did not leave its
+# own error in result.json (e.g. the scheduler killed it). Without these, a job killed for memory or time was polled
+# as if still running until REQUESTS_NUMBER ran out.
+JOB_FAILURE_STATES = {
+    'OUT_OF_MEMORY': 'The job ran out of memory and was stopped by the server.',
+    'TIMEOUT': 'The job exceeded its time limit and was stopped by the server.',
+    'CANCELLED': 'The job was cancelled on the server.',
+    'NODE_FAIL': 'The job failed because of a server node failure.',
+    'BOOT_FAIL': 'The job failed because a server node failed to start.',
+    'PREEMPTED': 'The job was preempted on the server.',
+    'DEADLINE': 'The job reached its deadline and was stopped by the server.',
+    'FAILED': 'The job failed.',
+}
+JOB_EXPIRED_MESSAGE = 'No answer from the job scheduler in time; the job status is unknown.'
+
+
+def match_job_state(job_state: str, states: Union[Tuple[str, ...], List[str], Set[str], str]) -> Optional[str]:
+    """The first state of `states` contained in `job_state` (Slurm may report e.g. 'CANCELLED by 123'), or None."""
+    states = (states, ) if isinstance(states, str) else states
+    for state in states:
+        if state in job_state:
+            return state
+
+    return None
+
 
 class WebConfig:
     def __init__(self, **attributes):
@@ -41,6 +66,7 @@ class WebConfig:
         self.HISTORY = list()
         self.CURRENT_JOB = None
         self.OUTPUT_FILE = None
+        self.FAIL_MESSAGE = ''
         self.MODE = None
         self.COMMAND_LINE = None
 
@@ -342,7 +368,8 @@ class WebConfig:
 
         if job_state:
             self.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
-            if job_state in ('COMPLETED', ):
+            job_error = self.read_job_error()
+            if job_state in ('COMPLETED', ) and job_error is None:
                 recompile_json(self.OUTPUT_FILE, self.PROCESS_ID, True)
                 if self.CURRENT_ARGS.e_mail:
                     mail_sender.send_results_by_email(job_state=job_state,
@@ -356,17 +383,45 @@ class WebConfig:
 
                 return 'OK'
 
-            if job_state in ('FAILED', 'EXPIRED', ):
-                if self.CURRENT_ARGS.e_mail:
-                    mail_sender.send_results_by_email(job_state=job_state,
-                                                      name=self.PROCESS_ID,
-                                                      results_files=self.OUT_DIR,
-                                                      receiver=self.CURRENT_ARGS.e_mail,
-                                                      use_attachments=self.USE_ATTACHMENTS,
-                                                      log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
-                                                      included=('.log', ))
+            # The job's own error (written to result.json by gloome) is the most precise; otherwise explain the
+            # scheduler state.
+            if job_error:
+                self.FAIL_MESSAGE = job_error
+            elif job_state == 'EXPIRED':
+                self.FAIL_MESSAGE = JOB_EXPIRED_MESSAGE
+            elif job_state == 'COMPLETED':
+                self.FAIL_MESSAGE = 'The job ended without producing results.'
+            else:
+                self.FAIL_MESSAGE = JOB_FAILURE_STATES.get(match_job_state(job_state, tuple(JOB_FAILURE_STATES)),
+                                                           JOB_FAILURE_STATES['FAILED'])
+            self.JOB_LOGGER.info(f'\n\tJob failed: {self.FAIL_MESSAGE}\n')
+            if self.CURRENT_ARGS.e_mail:
+                mail_sender.send_results_by_email(job_state=job_state,
+                                                  name=self.PROCESS_ID,
+                                                  results_files=self.OUT_DIR,
+                                                  receiver=self.CURRENT_ARGS.e_mail,
+                                                  use_attachments=self.USE_ATTACHMENTS,
+                                                  log_file=Path(self.JOB_LOGGER.handlers[-1].baseFilename),
+                                                  included=('.log', ))
 
         return 'FAIL'
+
+    def read_job_error(self) -> Optional[str]:
+        """
+        None when the job left a normal result.json. Otherwise the reason it did not: the error gloome wrote to
+        result.json, '' when the job was killed before writing anything (the caller then falls back to the scheduler
+        state), or a message when the file exists but cannot be read.
+        """
+        if not self.OUTPUT_FILE.is_file():
+            return ''
+        try:
+            result = loads_json(read_file(file_path=self.OUTPUT_FILE))
+        except Exception:
+            return 'The job ended without writing a readable result.'
+        if isinstance(result, dict) and result.get('action_name') == 'error':
+            return str(result.get('error_message', '')) or JOB_FAILURE_STATES['FAILED']
+
+        return None
 
 
 class SawSubmiter:
@@ -488,10 +543,9 @@ class SawSubmiter:
                 conf.JOB_LOGGER.info(f'\n\t{msg}\n')
                 job_state = 'FAILED'
 
-            state_filter = ['FAILED']
+            state_filter = list(JOB_FAILURE_STATES)
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
-            if job_state in state_filter:
-                # conf.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
+            if match_job_state(job_state, state_filter):
                 return job_state
             count -= 1
             sleep(waiting_time)
@@ -633,10 +687,9 @@ class SlurmSubmiter:
                 conf.JOB_LOGGER.info(f'\n\t{msg}\n')
                 job_state = 'FAILED'
 
-            state_filter = ['FAILED']
+            state_filter = list(JOB_FAILURE_STATES)
             state_filter.append(state) if isinstance(state, str) else state_filter.extend(state)
-            if job_state in state_filter:
-                # conf.JOB_LOGGER.info(f'\n\tJob state: {job_state}\n')
+            if match_job_state(job_state, state_filter):
                 return job_state
             count -= 1
             sleep(waiting_time)

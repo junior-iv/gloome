@@ -1,16 +1,19 @@
 import traceback
 import multiprocessing as mp
 
+from html import escape
+
 from app.app import *
 from app.config import *
 from gloome.services.service_functions import (get_variables, check_data, get_error, loads_json, read_file,
                                                del_bootstrap_values, get_leaves)
 
 
-def write_end_file(process_id: Union[int, str], process_status: str, result_dir: Path) -> Path:
+def write_end_file(process_id: Union[int, str], process_status: str, result_dir: Path, message: str = '') -> Path:
+    """Marks the job as finished; for END_FAIL the file holds the error message shown to the user."""
     file_path = result_dir.joinpath(f'GLOOME_{process_id}.END_{process_status}')
     with open(file_path, 'w', encoding='utf-8') as file:
-        file.write('')
+        file.write(message)
 
     return file_path
 
@@ -27,10 +30,20 @@ def get_job_status(process_id: Union[int, str], result: bool = True) -> Dict[str
             if result:
                 job_status.update(result=loads_json(read_file(file_path=conf.OUTPUT_FILE)))
         elif not ok_file_path.exists() and fail_file_path.exists():
-            job_status = {'status': 'failed'}
+            job_status = {'status': 'failed', 'error': read_fail_message(fail_file_path, conf)}
         else:
             job_status = {'status': 'running'}
     return job_status
+
+
+def read_fail_message(fail_file_path: Path, conf: WebConfig) -> str:
+    try:
+        message = read_file(file_path=fail_file_path).strip()
+    except Exception:
+        message = ''
+    message = escape(message or 'The job failed.').replace('\n', '<br>')
+
+    return f'{message}<br>Process ID: {conf.PROCESS_ID}. Details are in the <a href="{conf.LOG_URL}" target="_blank">job log</a>.'
 
 
 def run_job(process_id, mode, **kwargs):
@@ -40,7 +53,8 @@ def run_job(process_id, mode, **kwargs):
     try:
         conf.arguments_filling(mode=mode, **kwargs)
         conf.create_tmp_data_files()
-        write_end_file(process_id, conf.get_response(), conf.OUT_DIR)
+        process_status = conf.get_response()
+        write_end_file(process_id, process_status, conf.OUT_DIR, conf.FAIL_MESSAGE if process_status == 'FAIL' else '')
     except Exception:
         exception_text = traceback.format_exc()
         header = f'\n\t--- EXCEPTION at execute_request ---'
@@ -50,7 +64,8 @@ def run_job(process_id, mode, **kwargs):
         conf.JOB_LOGGER.info(f'{header}{exception_text}')
         write_log(file_path=TMP_DIR.joinpath(f'execute_request_{conf.PROCESS_ID}_route_debug.log'), header=header,
                   exception_text=exception_text)
-        write_end_file(process_id, 'FAIL', conf.OUT_DIR)
+        write_end_file(process_id, 'FAIL', conf.OUT_DIR,
+                       conf.FAIL_MESSAGE or 'An internal server error occurred while processing the job.')
         raise  # Re-raise to still return 500
 
 

@@ -276,7 +276,7 @@ Output files (each flag is 0/1 and turns one output file on or off; see [Output 
     --file_plot_distribution_of_correlation_svg <type=int>           Default is 1.
     --file_phylogenetic_distance_matrix_svg <type=int>               Default is 1.
     --file_sequence_identity_matrix_svg <type=int>                   Default is 1.
-    --file_binary_mapping_svg <type=int>                             Default is 1.
+    --file_binary_mapping_svg <type=int>                             Default is 0.
     --file_interactive_tree_html <type=int>                          Default is 0.
     --file_newick_tree_png <type=int>                                Default is 0.
 ```
@@ -293,18 +293,18 @@ one rate category.
 
 ### Model and likelihood
 
-| File                     | Contents                                                                                                                                                                                  |
-|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| File                     | Contents                                                                                                                                                                                                                                       |
+|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `TreeAttributes.tsv`     | Final model parameters after optimization: π1, gamma α, number of rate categories, branch-length coefficient, the rate of each gamma category, the alphabet and the total log-likelihood. With per-branch branch lengths the coefficient is 1. |
-| `LogLikelihood.tsv`      | Log-likelihood (natural log) of each position, plus a `TOTAL` row with the log-likelihood of the whole dataset. Positions with very low values fit the model poorly.                      |
-| `PosteriorRates.tsv`     | `POS`, `rate`: posterior mean evolutionary rate of each position. Rates above 1 mean the character changes faster than average, rates near 0 mean it is nearly conserved.                 |
-| `PhylogeneticTree.nwk`   | The rooted tree used in the analysis, with internal node names and branch lengths after scaling by the coefficient (or the fitted branch lengths, with per-branch branch lengths). |
-| `AllNodes.fasta`         | A comprehensive FASTA file containing sequences for all tree components, covering both internal ancestral nodes and terminal leaf nodes used in the study. |
-| `BranchLengthModels.tsv` | Compares the single-coefficient fit with the per-branch fit, see below. |
+| `LogLikelihood.tsv`      | Log-likelihood (natural log) of each position, plus a `TOTAL` row with the log-likelihood of the whole dataset. Positions with very low values fit the model poorly.                                                                           |
+| `PosteriorRates.tsv`     | `POS`, `rate`: posterior mean evolutionary rate of each position. Rates above 1 mean the character changes faster than average, rates near 0 mean it is nearly conserved.                                                                      |
+| `PhylogeneticTree.nwk`   | The rooted tree used in the analysis, with internal node names and branch lengths after scaling by the coefficient (or the fitted branch lengths, with per-branch branch lengths).                                                             |
+| `AllNodes.fasta`         | A comprehensive FASTA file containing sequences for all tree components, covering both internal ancestral nodes and terminal leaf nodes used in the study.                                                                                     |
+| `BranchLengthModels.tsv` | Compares the single-coefficient fit with the per-branch fit, see below.                                                                                                                                                                        |
 
 #### Per-branch branch lengths
 
-By default GLOOME keeps the relative branch lengths of the input tree and fits one coefficient that scales all of them.
+By default, GLOOME keeps the relative branch lengths of the input tree and fits one coefficient that scales all of them.
 With `--is_optimize_bl_per_branch 1` (web form: **optimize each branch length**) every branch length is fitted
 separately, together with π1 and α. This is useful when the input branch lengths come from other data, for example
 from sequences, and may not describe how the presence/absence characters evolve.
@@ -320,16 +320,16 @@ from sequences, and may not describe how the presence/absence characters evolve.
 
 `BranchLengthModels.tsv` has three rows: `single coefficient`, `per-branch`, and their `difference`.
 
-| Column                                                         | Meaning                                                                                                                                                       |
-|----------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `log-likelihood`, `free parameters`, `AIC`, `BIC`              | Fit of each model. The per-branch model has one free parameter per branch instead of one coefficient. Lower AIC/BIC is better.                                 |
-| `pi_1`, `alpha`, `coefficient of branch lengths`               | Fitted parameters of each model.                                                                                                                               |
-| `total tree length`                                            | Sum of the branch lengths (after scaling).                                                                                                                     |
-| `branches at lower bound`, `branches at upper bound`           | Branches fitted to 0.000001 or to 50. A branch at the upper bound is saturated: the data cannot tell its length apart from a very long one.                    |
-| `starts`, `starts log-likelihood range`, `starts reaching the best`, `best start` | How many starts ran, how far apart their results ended, how many reached the best log-likelihood (within 0.1) and which start gave it. If few starts reach the best, the likelihood surface has several optima. |
-| `rounds`, `converged`                                          | Rounds used by the best start, and whether it converged or stopped at the 10-round limit.                                                                     |
-| `LRT statistic`, `LRT p-value`                                 | (difference row) Likelihood-ratio test of the single coefficient against per-branch lengths. A small p-value means per-branch lengths fit significantly better. The p-value is conservative when branches are at the lower bound. |
-| `preferred by AIC`, `preferred by BIC`                         | (difference row) The model with the lower AIC/BIC.                                                                                                             |
+| Column                                                                            | Meaning                                                                                                                                                                                                                           |
+|-----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `log-likelihood`, `free parameters`, `AIC`, `BIC`                                 | Fit of each model. The per-branch model has one free parameter per branch instead of one coefficient. Lower AIC/BIC is better.                                                                                                    |
+| `pi_1`, `alpha`, `coefficient of branch lengths`                                  | Fitted parameters of each model.                                                                                                                                                                                                  |
+| `total tree length`                                                               | Sum of the branch lengths (after scaling).                                                                                                                                                                                        |
+| `branches at lower bound`, `branches at upper bound`                              | Branches fitted to 0.000001 or to 50. A branch at the upper bound is saturated: the data cannot tell its length apart from a very long one.                                                                                       |
+| `starts`, `starts log-likelihood range`, `starts reaching the best`, `best start` | How many starts ran, how far apart their results ended, how many reached the best log-likelihood (within 0.1) and which start gave it. If few starts reach the best, the likelihood surface has several optima.                   |
+| `rounds`, `converged`                                                             | Rounds used by the best start, and whether it converged or stopped at the 10-round limit.                                                                                                                                         |
+| `LRT statistic`, `LRT p-value`                                                    | (difference row) Likelihood-ratio test of the single coefficient against per-branch lengths. A small p-value means per-branch lengths fit significantly better. The p-value is conservative when branches are at the lower bound. |
+| `preferred by AIC`, `preferred by BIC`                                            | (difference row) The model with the lower AIC/BIC.                                                                                                                                                                                |
 
 ### Gain and loss
 
