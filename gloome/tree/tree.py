@@ -119,6 +119,7 @@ class Tree:
         self.pi_1, self.coefficient_bl = None, 1
         self.log_likelihood_vector = self.likelihood_vector = self.correlation_vector = self.posterior_rates = None
         self.correlation_stream = None
+        self.pearson_correlation_note = ''
         self.log_likelihood = self.likelihood = 0.0
         self.site_pattern_index = self.pattern_weights = self.leaf_pattern_vectors = self.site_patterns_source = None
         self.branch_length_starts = self.single_coefficient_fit = None
@@ -1494,18 +1495,30 @@ class Tree:
                                    number_lg: Union[float, np.float64, int] = 1) -> str:
 
         self.make_dir(file_name)
+        self.pearson_correlation_note = ''
         if self.correlation_vector is None and self.correlation_stream is None:
             self.calculate_correlation(probability_lg=probability_lg, number_lg=number_lg)
 
         if self.correlation_vector is None and self.correlation_stream is not None:
             sites, centered, norms = self.correlation_stream
+            i_idx, j_idx, r_values, total_pairs = self._strongest_correlations(centered, norms, pairs.MAX_TABLE_ROWS)
             with open(file_name, 'w', encoding='utf-8', newline='') as file:
                 file.write(f'POS1{sep}POS2{sep}correlation\n')
-                for i_idx, j_idx, r_values in pairs.iter_upper_pairs(centered, norms):
+                if i_idx is None:  # few enough pairs: stream them all, as before
+                    for i_idx, j_idx, r_values in pairs.iter_upper_pairs(centered, norms):
+                        pd.DataFrame({'POS1': sites[i_idx].astype(np.int32),
+                                      'POS2': sites[j_idx].astype(np.int32),
+                                      'correlation': r_values}
+                                     ).to_csv(file, sep=sep, index=False, header=False, float_format='%.8f')
+                else:
                     pd.DataFrame({'POS1': sites[i_idx].astype(np.int32),
                                   'POS2': sites[j_idx].astype(np.int32),
                                   'correlation': r_values}
-                                 ).to_csv(file, sep=sep, index=False, header=False, float_format='%.8f')
+                                 ).to_csv(file, sep=sep, index=False, header=False, float_format='%.8f',
+                                          chunksize=500_000)
+                    self.pearson_correlation_note = (
+                        f'Showing the {r_values.size:,} pairs with the strongest correlation (largest |r|) out of '
+                        f'{total_pairs:,}: cut due to the table size limit of {pairs.MAX_TABLE_ROWS:,} rows.')
             return file_name
 
         df = pd.DataFrame({'POS1': np.int32(self.correlation_vector[0]),
@@ -1514,6 +1527,44 @@ class Tree:
         df.to_csv(file_name, sep=sep, index=False, float_format='%.8f', chunksize=50000)
 
         return file_name
+
+    @staticmethod
+    def _strongest_correlations(centered: np.ndarray, norms: np.ndarray, max_rows: int
+                                ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray], Optional[np.ndarray], int]:
+        """
+        The `max_rows` site pairs with the largest |r|, in their original (POS1, POS2) order, found in two passes
+        without holding all pairs: pass 1 builds a histogram of |r|; pass 2 keeps the pairs above the cut-off cell
+        plus the cut-off cell itself, and the strongest of those fill the remaining rows exactly.
+        Returns (None, None, None, total_pairs) when there are no more than `max_rows` pairs.
+        """
+        hist_bins = pairs.MAX_HIST_BINS
+        counts = np.zeros(hist_bins, dtype=np.int64)
+        for _, _, r_values in pairs.iter_upper_pairs(centered, norms):
+            counts += np.bincount(pairs.abs_index(r_values, hist_bins), minlength=hist_bins)
+        total_pairs = int(counts.sum())
+        if total_pairs <= max_rows:
+            return None, None, None, total_pairs
+
+        # Cut-off cell: every pair in a higher cell is kept; some pairs of this cell fill the rest.
+        from_top = np.cumsum(counts[::-1])
+        cutoff = hist_bins - 1 - int(np.searchsorted(from_top, max_rows))
+        need = max_rows - int(counts[cutoff + 1:].sum())
+
+        kept_i, kept_j, kept_r = [], [], []
+        for i_idx, j_idx, r_values in pairs.iter_upper_pairs(centered, norms):
+            mask = pairs.abs_index(r_values, hist_bins) >= cutoff
+            if mask.any():
+                kept_i.append(i_idx[mask].astype(np.int32))
+                kept_j.append(j_idx[mask].astype(np.int32))
+                kept_r.append(r_values[mask])
+        i_idx, j_idx, r_values = np.concatenate(kept_i), np.concatenate(kept_j), np.concatenate(kept_r)
+
+        in_cutoff = np.flatnonzero(pairs.abs_index(r_values, hist_bins) == cutoff)
+        keep = np.ones(r_values.size, dtype=bool)
+        keep[in_cutoff] = False
+        keep[in_cutoff[np.argsort(-np.abs(r_values[in_cutoff]), kind='stable')[:need]]] = True
+
+        return i_idx[keep], j_idx[keep], r_values[keep], total_pairs
 
     def attributes_to_tsv(self, file_name: str = 'TreeAttributes.tsv', sep: str = '\t') -> str:
 

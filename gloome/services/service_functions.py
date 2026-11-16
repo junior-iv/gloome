@@ -254,6 +254,8 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                        newick_tree.pearson_correlation_to_tsv(file_name=f'{file_path}/PearsonCorrelation.tsv',
                                                               probability_lg=probability_lg,
                                                               number_lg=number_lg)})
+        if newick_tree.pearson_correlation_note:
+            notes['Table of pearson correlation (tsv)'] = newick_tree.pearson_correlation_note
     if selected_files.get('file_table_of_nodes_tsv', False):
         result.update({'Table of nodes (tsv)':
                        newick_tree.tree_to_tsv(file_name=f'{file_path}/Nodes.tsv',
