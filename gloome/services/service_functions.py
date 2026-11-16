@@ -356,6 +356,12 @@ def get_leaves(data) -> List[str]:
     return Tree(data).get_leaves(only_node_list=False)
 
 
+def get_rooting_info(data: str) -> Dict[str, Any]:
+    """Leaves (for choosing a specific root) and whether the tree is already rooted (then it is kept as is)."""
+    tree = Tree(data)
+    return {'leaves': tree.get_leaves(only_node_list=False), 'rooted': tree.is_rooted()}
+
+
 def check_data(*args) -> List[Tuple[str, str]]:
     err_list = []
     newick_text = args[0].strip()

@@ -55,7 +55,9 @@ let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isO
                   `fileLogLikelihoodTsv`, `fileTableOfAttributesTsv`, `fileTableOfParsimonyAndHomoplasyScores`,
                   `filePhylogeneticTreeNwk`, `fileAllNodesFasta`, `filePhylogeneticDistanceMatrixSvg`,
                   `fileSequenceIdentityMatrixSvg`, `fileBinaryMappingSvg`];
-let lists = [`rootingMethods`, `leaves`]
+let lists = []
+// null = no tree yet, true = rooted (kept as is), false = unrooted (rooting method / root leaf apply)
+let treeIsRooted = null;
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
     'newickText': {'dependence': '', 'value': ''},
@@ -97,9 +99,7 @@ let objectsDependence = {
     'fileTableOfParsimonyAndHomoplasyScores': {'dependence': '', 'value': ''},
     'filePhylogeneticTreeNwk': {'dependence': '', 'value': ''},
     'rootingMethod': {'dependence': '', 'value': ''},
-    'leaf': {'dependence': '', 'value': ''},
-    'rootingMethods': {'dependence': '', 'value': ''},
-    'leaves': {'dependence': '', 'value': ''}
+    'leaf': {'dependence': '', 'value': ''}
 };
 
 function validateInputEMail(id) {
@@ -410,6 +410,7 @@ function drawPhylogeneticTree(jsonData) {
 function processError(error) {
     setVisibilityLoader(false);
     setAccessibility(``, false);
+    onChangingRootingMethod();
     setVisibility(`result`, false);
     console.log(`Error:`, error);
     typeof error === "object" && error.hasOwnProperty("message") ? showAlert(error.message, 8000) : showAlert(error, 8000);
@@ -563,7 +564,8 @@ function showResponse(jsonData, mode = 0) {
     }
 
     setVisibility(`result`, true);
-    onChangingRootingMethod(false)
+    // Rebuild the leaf list from the tree now in the form, keeping the job's chosen root leaf.
+    getLeaves(`newickText`, (jsonData['form_data'] ?? {})['leaf'] ?? ``);
 }
 
 async function getJobResult(processID) {
@@ -572,13 +574,34 @@ async function getJobResult(processID) {
     return await response.json();
 }
 
+// Sends the form as a gzip-compressed body ('Content-Encoding: gzip') so large MSAs stay under the
+// reverse proxy's body-size limit (nginx defaults to 1 MB). The server decompresses it in
+// app/gzip_request.py before Flask parses the form. Browsers without CompressionStream, and small
+// forms, are sent uncompressed as before. All fields are strings, so they are sent URL-encoded.
+async function buildRequestOptions(formData, minSize = 64 * 1024) {
+    const body = new URLSearchParams(formData).toString();
+    if (typeof CompressionStream === `undefined` || body.length < minSize) {
+        return {method: `POST`, body: formData};
+    }
+    const stream = new Blob([body]).stream().pipeThrough(new CompressionStream(`gzip`));
+    const compressed = await new Response(stream).blob();
+    return {
+        method: `POST`,
+        headers: {'Content-Type': `application/x-www-form-urlencoded`, 'Content-Encoding': `gzip`},
+        body: compressed,
+    };
+}
+
 async function makeRequest(absolutePath, formData, mode) {
     setVisibilityLoader(true);
     setAccessibility(``, true);
     setVisibility(`result`, false);
 
     try {
-        const response = await fetch(absolutePath, {method: `POST`, body: formData});
+        const response = await fetch(absolutePath, await buildRequestOptions(formData));
+        if (response.status === 413) {
+            throw new Error(`The uploaded data is too large for the server (HTTP 413 Request Entity Too Large).`);
+        }
         const data = await response.json();
         if (data.success) {
             const { processID } = data.data;
@@ -591,6 +614,7 @@ async function makeRequest(absolutePath, formData, mode) {
                     clearInterval(interval);
                     setVisibilityLoader(false);
                     setAccessibility(``, false);
+                    onChangingRootingMethod();
                     if (jobResult.status === `failed`) {
                         setVisibility(`result`, false);
                         showMessage(jobResult.error ?? `The job failed.`, 1);
@@ -793,28 +817,51 @@ function completeFormFilling(formData) {
     });
 }
 
-function getLeaves(id = `newickText`) {
-    let leaves = document.getElementById(`leaves`);
-    let leaf = document.getElementById(`leaf`);
-    let leavesText = ``;
-    let element = document.getElementById(id);
+function setLeafOptions(leaves = [], selected = ``) {
+    const leaf = document.getElementById(`leaf`);
+    leaf.innerHTML = ``;
+    leaf.add(new Option(leaves.length ? `Choose a leaf…` : `Add a tree first`, ``));
+    leaves.forEach(name => leaf.add(new Option(name, name)));
+    leaf.value = leaves.includes(selected) ? selected : ``;
+}
+
+function setRootingStatus() {
+    const status = document.getElementById(`rootingStatus`);
+    const messages = {
+        'null': `Add a tree to see whether it needs rooting. A rooted tree is always kept as is.`,
+        'true': `The tree is rooted: its root will be kept as is.`,
+        'false': `The tree is unrooted: choose a rooting method, or a specific leaf to root on.`,
+    };
+    status.innerText = messages[String(treeIsRooted)];
+}
+
+// Fetches the leaves of the tree currently in the form (never cached) and whether it is already rooted.
+function getLeaves(id = `newickText`, selectedLeaf = ``) {
+    const element = document.getElementById(id);
     const formData = new FormData();
     formData.append(id, element.value.trim());
-    leaf.value = ``;
-    leaves.innerHTML = ``;
+    treeIsRooted = null;
+    setLeafOptions([]);
+    onChangingRootingMethod();
     showMessage(``, -1);
 
+    if (!element.value.trim()) {
+        return;
+    }
     fetch(`/get_leaves`, {
         method: `POST`,
         body: formData
     })
         .then(response => response.json())
-        .then(data => data.message.data)
         .then(data => {
-            for (let i = 0; i < data.length; i++) {
-                leavesText += `<option value="${data[i]}">`;
+            if (!data.message.success) {
+                throw new Error(data.message.error.message);
             }
-            leaves.innerHTML = leavesText;
+            return data.message.data;
+        })
+        .then(data => {
+            treeIsRooted = data.rooted;
+            setLeafOptions(data.leaves, selectedLeaf);
             onChangingRootingMethod();
         })
         .catch(error => {
@@ -823,12 +870,29 @@ function getLeaves(id = `newickText`) {
         });
 }
 
-function onChangingRootingMethod(delLeaf = true) {
-    if (delLeaf) {
-        document.getElementById(`leaf`).value = ``;
+// Rooted tree: both choices are locked (the root is kept). Unrooted: the method is free (default midpoint)
+// and the leaf list is enabled only for "Specific root (outgroup leaf)".
+function onChangingRootingMethod() {
+    const rootingMethod = document.getElementById(`rootingMethod`);
+    const leaf = document.getElementById(`leaf`);
+    if (treeIsRooted) {
+        rootingMethod.value = `midpoint`;
+        leaf.value = ``;
     }
-    setAccessibility(`leaf`, document.getElementById(`rootingMethod`).value !== `outgroup`);
+    rootingMethod.disabled = treeIsRooted === true;
+    leaf.disabled = treeIsRooted !== false || rootingMethod.value !== `outgroup`;
+    if (leaf.disabled) {
+        leaf.value = ``;
+    }
+    setRootingStatus();
 }
+
+document.addEventListener(`DOMContentLoaded`, () => {
+    // The browser may restore the tree text on reload; re-read its leaves instead of trusting old ones.
+    if (document.getElementById(`newickText`)?.value.trim()) {
+        getLeaves(`newickText`);
+    }
+});
 
 function onLoadResultsFiles(id) {
     let element = document.getElementById(id);
@@ -916,8 +980,8 @@ function showMessage(message = null, variant = 1) {
 }
 
 function formCleaning(args) {
-    let elementNames = {'value': [`newickText`, `msaText`, `leaf`, `eMail`],
-        'innerHTML': [`tree`, 'branchInfo', `nodeInfo`, `logLikelihood`, `fileList`, `leaves`]};
+    let elementNames = {'value': [`newickText`, `msaText`, `eMail`],
+        'innerHTML': [`tree`, 'branchInfo', `nodeInfo`, `logLikelihood`, `fileList`]};
     for (let i = 0; i < elementNames.value.length; i++) {
         document.getElementById(elementNames.value[i]).value = ``;
     }
@@ -927,6 +991,9 @@ function formCleaning(args) {
     Object.entries(args).forEach(([key, value]) => {
         document.getElementById(key).value = value;
     });
+    treeIsRooted = null;
+    setLeafOptions([]);
+    onChangingRootingMethod();
     showMessage(``, -1);
 }
 //

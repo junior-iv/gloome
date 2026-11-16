@@ -6,7 +6,7 @@ from html import escape
 from app.app import *
 from app.config import *
 from gloome.services.service_functions import (get_variables, check_data, get_error, loads_json, read_file,
-                                               del_bootstrap_values, get_leaves)
+                                               del_bootstrap_values, get_rooting_info)
 
 
 def write_end_file(process_id: Union[int, str], process_status: str, result_dir: Path, message: str = '') -> Path:
@@ -43,7 +43,8 @@ def read_fail_message(fail_file_path: Path, conf: WebConfig) -> str:
         message = ''
     message = escape(message or 'The job failed.').replace('\n', '<br>')
 
-    return f'{message}<br>Process ID: {conf.PROCESS_ID}. Details are in the <a href="{conf.LOG_URL}" target="_blank">job log</a>.'
+    return (f'{message}<br>Process ID: {conf.PROCESS_ID}. Details are in the <a href="{conf.LOG_URL}" target="_blank">'
+            f'job log</a>.')
 
 
 def run_job(process_id, mode, **kwargs):
@@ -91,8 +92,8 @@ def write_log(file_path: Path, header: str = '', exception_text: str = '') -> No
 
 def get_all_leaves(data: str) -> Any:
     try:
-        leaves = get_leaves(data) if data else []
-        result = set_response_structure(leaves, True)
+        rooting_info = get_rooting_info(del_bootstrap_values(data)) if data else {'leaves': [], 'rooted': None}
+        result = set_response_structure(rooting_info, True)
         status = 200
     except Exception:
         result = set_response_structure(

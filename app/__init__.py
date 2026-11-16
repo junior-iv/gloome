@@ -18,7 +18,9 @@ def testing():
 
 @app.route('/results/<process_id>', methods=['GET'])
 def get_results(process_id):
-    return render_template('index.html', menu=MENU, title=(':', ), data=get_response(process_id=process_id))
+    return render_template('index.html', menu=MENU, title=(':', ), data=get_response(process_id=process_id),
+                           rooting_methods=DEFAULT_FORM_ARGUMENTS['rooting_methods'],
+                           rooting_method=DEFAULT_FORM_ARGUMENTS['rooting_method'])
 
 
 @app.route('/logs/<process_id>', methods=['GET'])

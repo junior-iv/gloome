@@ -413,39 +413,35 @@
                                     Rooting method
                                 </summary>
                                 <div class="box flex-row h-auto w-100 m-2">
+                                    <small id="rootingStatus" class="text-start text-secondary ms-3">
+                                        Add a tree to see whether it needs rooting. A rooted tree is always kept as is.
+                                    </small>
+                                </div>
+                                <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
                                         <label for="rootingMethod" class="h6 text-start text-success-emphasis ms-3">rooting method</label>
                                     </div>
                                     <div class="w-48 text-start">
-                                        <input value="{{rooting_method}}" id="rootingMethod" name="rootingMethod"
-                                               title="Rooting method" type="text" required placeholder="Select or type.."
-                                               class="form-control rounded-pill" list="rootingMethods"
-                                                onchange="onChangingRootingMethod()"
-                                        />
-                                        <datalist id="rootingMethods">
+                                        <select id="rootingMethod" name="rootingMethod" title="Rooting method (used only for unrooted trees)"
+                                                autocomplete="off" class="form-select rounded-pill"
+                                                onchange="onChangingRootingMethod()">
                                             {%- for method in rooting_methods -%}
-                                              <option value="{{method[0]}}">{{method[1]}}</option>
+                                              <option value="{{method[0]}}" {% if method[0] == rooting_method %}selected{% endif %}>
+                                                  {%- if method[0] == "outgroup" -%}Specific root (outgroup leaf){%- else -%}{{method[1]}}{%- endif -%}
+                                              </option>
                                             {% endfor -%}
-                                        </datalist>
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="box flex-row h-auto w-100 m-2">
                                     <div class="w-48 text-start">
-                                        <label for="leaf" class="h6 text-start text-success-emphasis ms-3">leaf</label>
+                                        <label for="leaf" class="h6 text-start text-success-emphasis ms-3">root leaf</label>
                                     </div>
                                     <div class="w-48 text-start">
-                                        <input value="{{leaf}}" id="leaf" name="leaf"
-                                               title="Leaf" type="text" required placeholder="Select or type.."
-                                               class="form-control rounded-pill" list="leaves"
-                                            {%- if rooting_method != "outgroup" -%}
-                                                disabled
-                                            {% endif -%}
-                                        />
-                                        <datalist id="leaves">
-                                            {%- for l in leaves -%}
-                                              <option value="{{l}}"></option>
-                                            {% endfor -%}
-                                        </datalist>
+                                        <select id="leaf" name="leaf" title="Leaf to root the tree on (outgroup)"
+                                                autocomplete="off" class="form-select rounded-pill" disabled>
+                                            <option value="">Choose a leaf…</option>
+                                        </select>
                                     </div>
                                 </div>
                             </details>

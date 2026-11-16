@@ -2358,6 +2358,20 @@ class Tree:
 
         phylo_tree.root_with_outgroup(leaf_name)
 
+        # Alternative (not active): put the root in the middle of the outgroup leaf's branch. The current
+        # Biopython default above puts the root at the leaf itself (leaf branch length 0, the whole branch moved
+        # to the other side), so the root's reconstructed state is almost that leaf's state.
+        # To use it, replace `phylo_tree.root_with_outgroup(leaf_name)` above with:
+        #
+        # outgroup = phylo_tree.find_any(name=leaf_name)
+        # if outgroup is None:
+        #     raise ValueError(f'Leaf {leaf_name} not found.')
+        # half_length = (outgroup.branch_length or 0.0) / 2
+        # phylo_tree.root_with_outgroup(outgroup, outgroup_branch_length=half_length)
+        # for clade in phylo_tree.root.clades:
+        #     if clade is not outgroup:
+        #         clade.branch_length = half_length
+
         return ''.join(Writer((phylo_tree, )).to_strings(format_branch_length='%1.10f'))
 
     @staticmethod
@@ -2390,54 +2404,56 @@ class Tree:
 
     @staticmethod
     def calculate_mad_score(clade, x: float, dists: Dict[Any, Dict[Any, float]]) -> float:
+        """Branch ancestor deviation (Tria, Landan & Dagan 2017) with the root on the branch above `clade`, at
+        distance x from it: the root mean square, over ALL leaf pairs (i, j), of r_ij = 2 * d(i, a_ij) / d_ij - 1,
+        where a_ij is the ancestor of i and j in the tree rooted there. Pairs on the same side of the branch count
+        too, because the root decides which node is their ancestor. With D_i the root-to-tip distance,
+        d(i, a_ij) = (D_i + d_ij - D_j) / 2, so r_ij = (D_i - D_j) / d_ij."""
         clade_leaves = clade.get_terminals()
+        clade_leaf_set = set(clade_leaves)
         all_leaves = list(dists.keys())
-        different_leaves = [Leaf for Leaf in all_leaves if Leaf not in clade_leaves]
 
-        deviations = []
+        # Root-to-tip distances. A leaf j outside the clade is reached from a reference leaf i0 inside it via
+        # the clade node: d(i0, j) = d(i0, clade) + d(clade, j), and the root sits x above the clade node.
+        ref_leaf = clade_leaves[0]
+        d_ref = clade.distance(ref_leaf)
+        root_distances = np.array([clade.distance(leaf) + x if leaf in clade_leaf_set
+                                   else dists[ref_leaf][leaf] - d_ref - x for leaf in all_leaves])
+        pair_distances = np.array([[dists[a][b] for b in all_leaves] for a in all_leaves])
 
-        for i in clade_leaves:
-            d_node_i = clade.distance(i)
-            d_root_i = d_node_i + x
-
-            for j in different_leaves:
-                d_ij = dists[i][j]
-
-                if d_ij != 0:
-                    dev = (2 * d_root_i / d_ij) - 1
-                    deviations.append(dev ** 2)
-
-        if not deviations:
+        upper = np.triu_indices(len(all_leaves), k=1)
+        d_ij = pair_distances[upper]
+        diff = (root_distances[:, None] - root_distances[None, :])[upper]
+        valid = d_ij != 0
+        if not valid.any():
             return float('inf')
 
-        return np.sqrt(np.mean(deviations))
+        return float(np.sqrt(np.mean((diff[valid] / d_ij[valid]) ** 2)))
 
     @staticmethod
     def calculate_mvr_x(phylo_tree, clade, dists: Dict[Any, Dict[Any, float]]) -> float:
-        clade_leaves = clade.get_terminals()
+        """Position of the root on the branch above `clade` (distance x from `clade`) that minimises the variance
+        of root-to-tip distances. With the root at x, a leaf inside the clade is at d(clade, leaf) + x and a leaf
+        outside it is at d(clade, leaf) - x (its path from `clade` runs through the whole branch). The variance
+        is minimal when both sides have the same mean root-to-tip distance: x = (mu_out - mu_in) / 2."""
+        clade_leaves = set(clade.get_terminals())
         all_leaves = list(dists.keys())
         different_leaves = [Leaf for Leaf in all_leaves if Leaf not in clade_leaves]
 
         branch_length = clade.branch_length or 0
 
-        n = len(all_leaves)
-        n1 = len(clade_leaves)
+        mu_in = np.mean([clade.distance(Leaf) for Leaf in clade_leaves])
+        mu_out = np.mean([phylo_tree.distance(clade, Leaf) for Leaf in different_leaves])
 
-        mu1 = np.mean([clade.distance(Leaf) for Leaf in clade_leaves])
-        mu2 = np.mean([phylo_tree.distance(clade, Leaf) for Leaf in different_leaves])
-
-        beta = n1 / n
-
-        x = (mu2 - mu1 + branch_length * (1 - 2 * beta)) / (2 * (1 - beta))
+        x = (mu_out - mu_in) / 2
 
         return max(0, min(branch_length, x))
 
     @staticmethod
     def calculate_mvr_score(phylo_tree, clade, x: float, dists: Dict[Any, Dict[Any, float]]) -> float:
-        clade_leaves = clade.get_terminals()
+        """Variance of root-to-tip distances with the root on the branch above `clade`, at distance x from it."""
+        clade_leaves = set(clade.get_terminals())
         all_leaves = list(dists.keys())
-
-        ref_leaf = clade_leaves[0]
 
         root_distances = []
 
@@ -2445,7 +2461,7 @@ class Tree:
             if leaf in clade_leaves:
                 d_root = clade.distance(leaf) + x
             else:
-                d_root = phylo_tree.distance(ref_leaf, leaf) - x
+                d_root = phylo_tree.distance(clade, leaf) - x
             root_distances.append(d_root)
 
         return np.var(root_distances)
@@ -2978,6 +2994,11 @@ class Tree:
         else:
             plt.show()
 
+    def is_rooted(self) -> bool:
+        """A tree is treated as rooted when its root is bifurcating (the same rule `set_root` uses:
+        only trees whose root has more than two children are re-rooted)."""
+        return len(self.root.children) <= 2
+
     @classmethod
     def set_root(cls, newick_data: str, rooting_method: str = 'midpoint', leaf: Optional[Union[str, Node]] = None
                  ) -> str:
@@ -2992,7 +3013,7 @@ class Tree:
             str: A Newick formatted string representing the tree structure.
         """
         phylo_tree = cls(newick_data)
-        if len(phylo_tree.root.children) > 2:
+        if not phylo_tree.is_rooted():
             rooting_method = rooting_method.strip().lower()
             if leaf and rooting_method == 'outgroup':
                 newick_data = cls.set_root_by_outgroup(newick_data, leaf.name if isinstance(leaf, Node) else leaf)
