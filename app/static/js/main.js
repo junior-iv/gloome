@@ -507,10 +507,10 @@ function drawFileList(jsonData) {
             const downloadBtn = `<a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-warning zoomable-element border-1 rounded-pill" href="${file['download_url']}" target="_blank">download</a>`
             const viewBtn = `<a class="w-auto mw-auto form-control bg-secondary-subtle btn btn-info zoomable-element border-1 rounded-pill" href="${file['view_url']}" target="_blank">view</a>`
 
-            const note = file['note'] ? `<br><small class="text-danger">${file['note']}</small>` : ``;
+            const note = file['note'] ? `${file['note']}` : ``;
 
-            container += `<div class="grid-container-2">
-                    <div class="p-1 w-auto text-secondary">${file['name']}${note}</div>
+            container += `<div class="grid-container-2" title="${note}">
+                    <div class="p-1 w-auto text-secondary">${file['name']}</div>
                     <div class="p-1 w-auto">${downloadBtn}</div>
                     <div class="p-1 w-auto">${viewBtn}</div>
                 </div>`;
@@ -1043,6 +1043,13 @@ function formCleaning(args) {
     Object.entries(args).forEach(([key, value]) => {
         document.getElementById(key).value = value;
     });
+    // Forget chosen files and any read / leaves request still in flight.
+    [`msaTextFile`, `newickTextFile`].forEach(fileId => document.getElementById(fileId).value = ``);
+    Object.values(fileReads).forEach(reader => reader.abort());
+    document.getElementById('title').innerHTML = `Gain Loss Mapping Engine`;
+    fileReads = {};
+    leavesRequest += 1;
+    leavesPending = false;
     treeIsRooted = null;
     setLeafOptions([]);
     onChangingRootingMethod();
