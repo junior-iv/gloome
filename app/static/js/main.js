@@ -58,6 +58,9 @@ let checkboxes = [`isOptimizePi`, `isOptimizePiAverage`, `isOptimizeAlpha`, `isO
 let lists = []
 // null = no tree yet, true = rooted (kept as is), false = unrooted (rooting method / root leaf apply)
 let treeIsRooted = null;
+// Only the answer to the latest leaves request is used; older (slower) answers are ignored.
+let leavesRequest = 0;
+let leavesPending = false;
 let objectsDependence = {
     'msaText': {'dependence': '', 'value': ''},
     'newickText': {'dependence': '', 'value': ''},
@@ -574,22 +577,25 @@ async function getJobResult(processID) {
     return await response.json();
 }
 
-// Sends the form as a gzip-compressed body ('Content-Encoding: gzip') so large MSAs stay under the
-// reverse proxy's body-size limit (nginx defaults to 1 MB). The server decompresses it in
-// app/gzip_request.py before Flask parses the form. Browsers without CompressionStream, and small
-// forms, are sent uncompressed as before. All fields are strings, so they are sent URL-encoded.
-async function buildRequestOptions(formData, minSize = 64 * 1024) {
-    const body = new URLSearchParams(formData).toString();
-    if (typeof CompressionStream === `undefined` || body.length < minSize) {
+// Large MSA / tree texts are gzipped and sent as file parts of the normal multipart form, so the request
+// stays under the reverse proxy's body-size limit (nginx 1 MB). The server decompresses them in
+// app/http_utils.py:read_form. A gzip-encoded request body ('Content-Encoding: gzip') is NOT used: the
+// TAU firewall rejects it with a 404 "Support-Page". Small texts and browsers without
+// CompressionStream are sent as plain text fields, as before.
+async function buildRequestOptions(formData, minSize = 64 * 1024, fields = [`newickText`, `msaText`]) {
+    if (typeof CompressionStream === `undefined`) {
         return {method: `POST`, body: formData};
     }
-    const stream = new Blob([body]).stream().pipeThrough(new CompressionStream(`gzip`));
-    const compressed = await new Response(stream).blob();
-    return {
-        method: `POST`,
-        headers: {'Content-Type': `application/x-www-form-urlencoded`, 'Content-Encoding': `gzip`},
-        body: compressed,
-    };
+    for (const field of fields) {
+        const text = formData.get(field);
+        if (typeof text !== `string` || text.length < minSize) {
+            continue;
+        }
+        const stream = new Blob([text]).stream().pipeThrough(new CompressionStream(`gzip`));
+        const compressed = await new Response(stream).blob();
+        formData.set(field, new Blob([compressed], {type: `application/gzip`}), `${field}.gz`);
+    }
+    return {method: `POST`, body: formData};
 }
 
 async function makeRequest(absolutePath, formData, mode) {
@@ -601,6 +607,10 @@ async function makeRequest(absolutePath, formData, mode) {
         const response = await fetch(absolutePath, await buildRequestOptions(formData));
         if (response.status === 413) {
             throw new Error(`The uploaded data is too large for the server (HTTP 413 Request Entity Too Large).`);
+        }
+        if (!(response.headers.get(`Content-Type`) ?? ``).includes(`application/json`)) {
+            throw new Error(`The server rejected the request (HTTP ${response.status}). ` +
+                `If this keeps happening, please contact us with the time of the request.`);
         }
         const data = await response.json();
         if (data.success) {
@@ -725,20 +735,49 @@ function makeTree(mode = 0) {
         .catch(error => console.error(error));
 }
 
-function uploadFile(textAreaId = `newickText`, textFileId = `newickTextFile`) {
-    let textFile = document.getElementById(textFileId).files[0];
-    let textArea = document.getElementById(textAreaId);
-    if (textFile) {
-        let reader = new FileReader();
+// Latest file read per text area: a slow read of an earlier (big) file must not overwrite a newer choice.
+let fileReads = {};
 
-        reader.onload = function(event) {
-            textArea.value = event.target.result.trim();
-            if (textAreaId === `newickText`){
-                getLeaves(textAreaId);
-            }
-        };
-        reader.readAsText(textFile);
+function uploadFile(textAreaId = `newickText`, textFileId = `newickTextFile`) {
+    const textFile = document.getElementById(textFileId).files[0];
+    const textArea = document.getElementById(textAreaId);
+    if (!textFile) {
+        return;
     }
+    fileReads[textAreaId]?.abort();
+    const reader = new FileReader();
+    fileReads[textAreaId] = reader;
+    if (textAreaId === `newickText`) {
+        // The old tree's leaves are no longer valid while the new file is being read.
+        leavesRequest += 1;
+        treeIsRooted = null;
+        leavesPending = true;
+        setLeafOptions([]);
+        onChangingRootingMethod();
+    }
+
+    reader.onload = function(event) {
+        if (fileReads[textAreaId] !== reader) {
+            return;
+        }
+        delete fileReads[textAreaId];
+        textArea.value = event.target.result.trim();
+        if (textAreaId === `newickText`) {
+            getLeaves(textAreaId);
+        }
+    };
+    reader.onerror = function() {
+        if (fileReads[textAreaId] !== reader) {
+            return;
+        }
+        delete fileReads[textAreaId];
+        if (textAreaId === `newickText`) {
+            leavesPending = false;
+            onChangingRootingMethod();
+        }
+        showAlert(`Could not read the file ${textFile.name}.`, 8000);
+    };
+    reader.readAsText(textFile);
 }
 
 function readJson(id = `jsonFile`) {
@@ -832,7 +871,7 @@ function setRootingStatus() {
         'true': `The tree is rooted: its root will be kept as is.`,
         'false': `The tree is unrooted: choose a rooting method, or a specific leaf to root on.`,
     };
-    status.innerText = messages[String(treeIsRooted)];
+    status.innerText = leavesPending ? `Reading the tree…` : messages[String(treeIsRooted)];
 }
 
 // Fetches the leaves of the tree currently in the form (never cached) and whether it is already rooted.
@@ -840,19 +879,24 @@ function getLeaves(id = `newickText`, selectedLeaf = ``) {
     const element = document.getElementById(id);
     const formData = new FormData();
     formData.append(id, element.value.trim());
+    const request = ++leavesRequest;
     treeIsRooted = null;
+    leavesPending = Boolean(element.value.trim());
     setLeafOptions([]);
     onChangingRootingMethod();
     showMessage(``, -1);
 
-    if (!element.value.trim()) {
+    if (!leavesPending) {
         return;
     }
-    fetch(`/get_leaves`, {
-        method: `POST`,
-        body: formData
-    })
-        .then(response => response.json())
+    buildRequestOptions(formData)
+        .then(options => fetch(`/get_leaves`, options))
+        .then(response => {
+            if (!(response.headers.get(`Content-Type`) ?? ``).includes(`application/json`)) {
+                throw new Error(`Could not read the leaves of the tree: the server answered HTTP ${response.status}.`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (!data.message.success) {
                 throw new Error(data.message.error.message);
@@ -860,11 +904,19 @@ function getLeaves(id = `newickText`, selectedLeaf = ``) {
             return data.message.data;
         })
         .then(data => {
+            if (request !== leavesRequest) {
+                return;  // a newer tree was loaded meanwhile
+            }
+            leavesPending = false;
             treeIsRooted = data.rooted;
             setLeafOptions(data.leaves, selectedLeaf);
             onChangingRootingMethod();
         })
         .catch(error => {
+            if (request !== leavesRequest) {
+                return;
+            }
+            leavesPending = false;
             showAlert(error.message, 8000);
             onChangingRootingMethod();
         });

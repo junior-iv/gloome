@@ -89,7 +89,7 @@
                 </div>
                 <div class="d-flex flex-row justify-content-end">
                     <input id="msaTextFile" name="msaTextFile" type="file" accept="*.*"
-                          class="form-control rounded-pill" onchange="uploadFile('msaText', this.id)"/>
+                          class="form-control rounded-pill" onclick="this.value = null" onchange="uploadFile('msaText', this.id)"/>
                 </div>
                 <textarea spellcheck="false" id="msaText" name="msaText" autocomplete="on" rows="auto" class="form-control btn-light font-verdana"
                           placeholder="please provide a phyletic MSA here (allowed characters: 0, 1 and ? for missing data)"></textarea>
@@ -100,7 +100,7 @@
                 </div>
                 <div class="d-flex flex-row justify-content-end">
                     <input id="newickTextFile" name="newickTextFile" type="file" accept="*.*"
-                           class="form-control rounded-pill" onchange="uploadFile('newickText', this.id)"/>
+                           class="form-control rounded-pill" onclick="this.value = null" onchange="uploadFile('newickText', this.id)"/>
                 </div>
                 <textarea spellcheck="false" id="newickText" name="newickText" autocomplete="on" rows="auto" class="form-control btn-light font-verdana"
                           placeholder="please provide a phylogenetic tree here" onchange="getLeaves(this.id)"></textarea>

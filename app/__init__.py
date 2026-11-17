@@ -84,7 +84,11 @@ def get_exemple():
 def get_leaves():
     if request.method == 'POST':
 
-        return get_all_leaves(request.form.get('newickText'))
+        try:
+            form = read_form()  # the tree may arrive gzipped, like in execute_request
+        except (zlib.error, ValueError, UnicodeDecodeError):
+            form = {}
+        return get_all_leaves(form.get('newickText'))
 
 
 @app.route('/get_file', methods=['GET'])

@@ -1,4 +1,5 @@
 import traceback
+import zlib
 import multiprocessing as mp
 
 from html import escape
@@ -142,9 +143,42 @@ def set_response_structure(data: Any, success: bool) -> Any:
         return {'success': success, 'error': {'message': data}}
 
 
+COMPRESSED_TEXT_FIELDS = ('newickText', 'msaText')
+MAX_DECOMPRESSED_TEXT_SIZE = 1024 ** 3  # 1 GiB per field; guards against gzip bombs
+
+
+def read_form() -> Dict[str, str]:
+    """The posted form fields. The front end sends large MSA / tree texts gzipped as file parts (to stay under
+    the proxy's request-size limit); they are decompressed back into plain text fields here.
+    get_variables / check_data read the fields by position and the form always starts with newickText, msaText,
+    so those two are put first whether they came as text fields or as (compressed) file parts."""
+    kwargs = {}
+    for field in COMPRESSED_TEXT_FIELDS:
+        uploaded = request.files.get(field)
+        if uploaded is None:
+            if field in request.form:
+                kwargs[field] = request.form[field]
+            continue
+        decompressor = zlib.decompressobj(wbits=16 + zlib.MAX_WBITS)  # gzip container
+        data = decompressor.decompress(uploaded.read(), MAX_DECOMPRESSED_TEXT_SIZE)
+        if decompressor.unconsumed_tail:
+            raise ValueError(f'{field} is larger than {MAX_DECOMPRESSED_TEXT_SIZE:,} bytes after decompression')
+        if not decompressor.eof:
+            raise ValueError(f'{field}: the compressed data is truncated')
+        kwargs[field] = data.decode('utf-8')
+    for key, value in request.form.items():
+        kwargs.setdefault(key, value)
+    return kwargs
+
+
 def execute_request(mode: Optional[Tuple[str, ...]] = None) -> Response:
     if request.method == 'POST':
-        kwargs = dict(request.form)
+        try:
+            kwargs = read_form()
+        except (zlib.error, ValueError, UnicodeDecodeError) as e:
+            return Response(response=jsonify(set_response_structure(f'Could not read the uploaded data: {e}',
+                                                                    False)).response,
+                            status=400, mimetype='application/json')
         kwargs.update({'newickText': del_bootstrap_values(kwargs.get('newickText', ''))})
         args = get_variables(kwargs)
         err_list = check_data(*args)
