@@ -885,83 +885,93 @@ class Tree:
             data=rows,
         )
 
-        fig = plt.figure(figsize=(num_leaves, num_leaves))
+        self._save_matrix_heatmap(df, file_name, num_leaves, fontsize, fmt='.4f',
+                                  title='Phylogenetic Distance Matrix\n(Species Pairwise Evolutionary Distances)')
+
+        return file_name
+
+    # Matrix heatmaps (distance / identity) are num_leaves x num_leaves. Up to this many leaves they are drawn as
+    # before: one inch per leaf and the value printed in every cell. Above it, a figure of num_leaves inches and
+    # num_leaves^2 printed values exhausts memory (480 leaves: 230,400 labels, OOM at 16 GB) and exceeds
+    # matplotlib's 2^16-pixel limit, so the values are left out and the figure is scaled to fit.
+    MATRIX_ANNOTATION_MAX_LEAVES = 100
+    MATRIX_LARGE_INCHES_PER_LEAF = 0.15
+    MATRIX_LARGE_MAX_INCHES = 150
+    MATRIX_LARGE_RASTER_PIXELS = 8000
+    MATRIX_LARGE_TITLE_FONTSIZE = 28
+
+    @classmethod
+    def _save_matrix_heatmap(cls, data: Any, file_name: str, num_leaves: int, fontsize: Union[int, float],
+                             title: str, fmt: str, labels: Optional[List[str]] = None) -> None:
+        tick_labels = {} if labels is None else {'xticklabels': labels, 'yticklabels': labels}
+        if num_leaves <= cls.MATRIX_ANNOTATION_MAX_LEAVES:
+            side, dpi, annotate, rasterized = num_leaves, 300, True, False
+        else:
+            side = min(max(num_leaves * cls.MATRIX_LARGE_INCHES_PER_LEAF, 15), cls.MATRIX_LARGE_MAX_INCHES)
+            # The cells are embedded as one image of at most MATRIX_LARGE_RASTER_PIXELS per side; labels stay vector.
+            dpi = min(300, cls.MATRIX_LARGE_RASTER_PIXELS / side)
+            annotate, rasterized = False, True
+            fontsize = min(fontsize, cls.MATRIX_LARGE_TITLE_FONTSIZE)
+            every_label = labels if labels is not None else True  # seaborn would otherwise skip some names
+            tick_labels = {'xticklabels': every_label, 'yticklabels': every_label}
+
+        fig = plt.figure(figsize=(side, side))
         fig.text(
             x=0.5,
             y=0.95,
-            # s='Pairwise Evolutionary Distances',
-            s='Phylogenetic Distance Matrix\n(Species Pairwise Evolutionary Distances)',
+            s=title,
             fontsize=fontsize,
             horizontalalignment='center',
             verticalalignment='top')
 
-        sns.heatmap(
-            df,
-            annot=True,
-            fmt='.4f',
+        ax = sns.heatmap(
+            data,
+            annot=annotate,
+            fmt=fmt,
             cmap='GnBu',
+            rasterized=rasterized,
+            **tick_labels,
         )
+        if rasterized:
+            label_size = max(2.0, min(10.0, side / num_leaves * 72 * 0.8))
+            ax.tick_params(axis='both', labelsize=label_size)
 
         plt.savefig(
             file_name,
             format='svg',
-            dpi=300,
+            dpi=dpi,
             bbox_inches='tight')
-
         plt.close()
 
-        return file_name
+    @staticmethod
+    def sequence_identity_matrix(sequences: List[str], missing: Tuple[str, ...] = ('-', '?')) -> np.ndarray:
+        """
+        Pairwise % identity: matches / compared positions * 100, where a match is the same character at a position
+        that is missing in neither sequence, and a position is compared unless it is missing in both (0 if no
+        position is compared). Same definition as the former per-pair Python loop, computed with matrix products.
+        """
+        codes = np.array([np.frombuffer(seq.encode('latin-1'), dtype=np.uint8) for seq in sequences])
+        valid = ~np.isin(codes, np.frombuffer(''.join(missing).encode('latin-1'), dtype=np.uint8))
+        matches = np.zeros((len(sequences), len(sequences)))
+        for character in np.unique(codes[valid]):
+            present = ((codes == character) & valid).astype(np.float64)
+            matches += present @ present.T
+        missing_mask = (~valid).astype(np.float64)
+        compared = codes.shape[1] - missing_mask @ missing_mask.T
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(compared > 0, matches / compared * 100, 0.0)
 
     def tree_to_sequence_identity_matrix(self, file_name: str = 'SequenceIdentityMatrix.svg') -> str:
-        def calculate_identity(seq1, seq2):
-            matches = sum(
-                1
-                for a, b in zip(seq1, seq2)
-                if a == b and a not in ('-', '?') and b not in ('-', '?')
-            )
-            total = sum(
-                1
-                for a, b in zip(seq1, seq2)
-                if a not in ('-', '?') or b not in ('-', '?')
-            )
-            return (matches / total) * 100 if total > 0 else 0
-
         self.make_dir(file_name)
         num_leaves = len(self.leaves_objects)
         fontsize = min((12 * max((1, round(num_leaves // 10))), 14 * max((1, round(self.msa_length // 10)))))
         alignment = AlignIO.read(StringIO(self.get_fasta_text()), 'fasta')
         labels = [record.id for record in alignment]
 
-        matrix = np.zeros((num_leaves, num_leaves))
+        matrix = self.sequence_identity_matrix([str(record.seq) for record in alignment])
 
-        for i in range(num_leaves):
-            for j in range(num_leaves):
-                matrix[i, j] = calculate_identity(alignment[i].seq, alignment[j].seq)
-
-        fig = plt.figure(figsize=(num_leaves, num_leaves))
-        fig.text(
-            x=0.5,
-            y=0.95,
-            s='Sequence Identity Matrix\n(Species Pairwise Similarity Profile)',
-            fontsize=fontsize,
-            horizontalalignment='center',
-            verticalalignment='top')
-
-        sns.heatmap(
-            matrix,
-            annot=True,
-            fmt='.1f',
-            xticklabels=labels,
-            yticklabels=labels,
-            cmap='GnBu',
-        )
-
-        plt.savefig(
-            file_name,
-            format='svg',
-            dpi=300,
-            bbox_inches='tight')
-        plt.close()
+        self._save_matrix_heatmap(matrix, file_name, num_leaves, fontsize, fmt='.1f', labels=labels,
+                                  title='Sequence Identity Matrix\n(Species Pairwise Similarity Profile)')
 
         return file_name
 
@@ -1008,7 +1018,10 @@ class Tree:
         mv.set_custom_color_scheme(binary_color_dict)
 
         fig = mv.plotfig()
-        fig.set_size_inches(shown_sites / 3, num_leaves / 2)
+        # Height grows by half an inch per leaf; keep it under matplotlib's 2^16-pixel limit (at the figure's own
+        # dpi) so trees with several hundred leaves do not crash. Smaller trees keep the original size.
+        max_inches = 0.95 * (1 << 16) / fig.dpi
+        fig.set_size_inches(shown_sites / 3, min(num_leaves / 2, max_inches))
         fig.text(
             x=0.5,
             y=1.05,
