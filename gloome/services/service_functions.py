@@ -211,8 +211,9 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree]) -> Union[List[Unio
 
 def print_dict(curren_dict: Dict[str, str]) -> None:
     if curren_dict:
+        print()
         for key, value in curren_dict.items():
-            print(f'\n{key}: {value}')
+            print(f'{key}: {value}')
 
 
 def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, Path],

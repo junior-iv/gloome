@@ -17,6 +17,9 @@ from scipy.special import gammainc
 from scipy.optimize import minimize, minimize_scalar
 from io import StringIO
 from pymsaviz import MsaViz
+from matplotlib.colors import ListedColormap
+from matplotlib.patches import Patch
+from matplotlib.transforms import offset_copy
 
 from .node import Node
 from . import pairs
@@ -927,24 +930,37 @@ class Tree:
             horizontalalignment='center',
             verticalalignment='top')
 
-        ax = sns.heatmap(
-            data,
-            annot=annotate,
-            fmt=fmt,
-            cmap='GnBu',
-            rasterized=rasterized,
-            **tick_labels,
-        )
         if rasterized:
+            # One image instead of seaborn's mesh of num_leaves^2 cells (much less memory); names stay vector text.
+            # interpolation='none' lets the SVG embed the num_leaves x num_leaves image as is; rasterizing or
+            # resampling it at the figure's dpi costs GBs.
+            values = np.asarray(data, dtype=np.float64)
+            names = list(labels) if labels is not None else [str(name) for name in getattr(data, 'columns', [])]
+            ax = fig.add_subplot(1, 1, 1)
+            image = ax.imshow(values, cmap='GnBu', aspect='auto', interpolation='none')
+            fig.colorbar(image, ax=ax, fraction=0.03, pad=0.01)
             label_size = max(2.0, min(10.0, side / num_leaves * 72 * 0.8))
-            ax.tick_params(axis='both', labelsize=label_size)
+            ax.set_xticks(np.arange(len(names)))
+            ax.set_xticklabels(names, rotation=90, fontsize=label_size)
+            ax.set_yticks(np.arange(len(names)))
+            ax.set_yticklabels(names, fontsize=label_size)
+        else:
+            sns.heatmap(
+                data,
+                annot=annotate,
+                fmt=fmt,
+                cmap='GnBu',
+                **tick_labels,
+            )
 
-        plt.savefig(
+        # fig.savefig, not plt.savefig: pyplot's version redraws the whole figure on screen after saving, which for
+        # a figure this size needs a multi-GB pixel buffer (4.7 GB vs 0.4 GB for 880 leaves). Same file either way.
+        fig.savefig(
             file_name,
             format='svg',
             dpi=dpi,
             bbox_inches='tight')
-        plt.close()
+        plt.close(fig)
 
     @staticmethod
     def sequence_identity_matrix(sequences: List[str], missing: Tuple[str, ...] = ('-', '?')) -> np.ndarray:
@@ -988,16 +1004,16 @@ class Tree:
 
     def get_binary_mapping_note(self) -> str:
         """Empty string, or a note saying the binary mapping plot was cut to `BINARY_MAPPING_MAX_SITES` sites
-        and / or its rows were squeezed to fit the height limit."""
+        and / or drawn in the compact form used above `BINARY_MAPPING_FULL_MAX_LEAVES` leaves."""
         notes = []
         if self.msa_length > self.BINARY_MAPPING_MAX_SITES:
             notes.append(f'Showing sites 1-{self.BINARY_MAPPING_MAX_SITES:,} of {self.msa_length:,}: '
                          f'cut due to the plot width limit of {self.BINARY_MAPPING_MAX_SITES:,} sites.')
         num_leaves = len(self.leaves_objects)
-        max_leaves = int(2 * self.BINARY_MAPPING_MAX_HEIGHT_INCHES)
-        if num_leaves > max_leaves:
-            notes.append(f'All {num_leaves:,} genomes are shown, but the rows are squeezed (labels may overlap): '
-                         f'the plot height is limited to the size of {max_leaves:,} genomes.')
+        if num_leaves > self.BINARY_MAPPING_FULL_MAX_LEAVES:
+            notes.append(f'Compact drawing for more than {self.BINARY_MAPPING_FULL_MAX_LEAVES:,} genomes '
+                         f'({num_leaves:,} here): cells are coloured by state, without the character in each cell '
+                         f'or the consensus / count rows.')
 
         return ' '.join(notes)
 
@@ -1010,12 +1026,24 @@ class Tree:
         return (f'Values are not printed in the cells for more than {self.MATRIX_ANNOTATION_MAX_LEAVES:,} genomes '
                 f'({num_leaves:,} here): the colour scale shows the values.')
 
+    # Above this many leaves the binary mapping is drawn as one image (see _save_large_binary_mapping) instead of
+    # MsaViz's rectangle + character per cell: 880 leaves x 282 sites took ~6 GB locally and >16 GB on the cluster.
+    BINARY_MAPPING_FULL_MAX_LEAVES = 100
+    BINARY_MAPPING_COLORS = {'0': 'snow', '1': 'salmon', '-': 'silver', '?': 'silver'}
+
     def tree_to_binary_mapping(self, file_name: str = 'BinaryMapping.svg') -> str:
         self.make_dir(file_name)
         num_leaves = len(self.leaves_objects)
         shown_sites = min(self.msa_length, self.BINARY_MAPPING_MAX_SITES)
         fontsize = min((12 * max((1, round(num_leaves // 10))), 14 * max((1, round(shown_sites // 10)))))
         title = 'Mapping of Binary Character Evolution'
+
+        if num_leaves > self.BINARY_MAPPING_FULL_MAX_LEAVES:
+            alignment = AlignIO.read(StringIO(self.get_fasta_text()), 'fasta')
+            self._save_large_binary_mapping([record.id for record in alignment],
+                                            [str(record.seq)[:shown_sites] for record in alignment],
+                                            file_name, min(fontsize, self.MATRIX_LARGE_TITLE_FONTSIZE), title)
+            return file_name
 
         mv = MsaViz(
             AlignIO.read(StringIO(self.get_fasta_text()), 'fasta'),
@@ -1028,33 +1056,64 @@ class Tree:
             show_count=True
         )
 
-        binary_color_dict = {
-            '0': 'snow',
-            '1': 'salmon',
-            '-': 'silver',
-            '?': 'silver'
-        }
-        mv.set_custom_color_scheme(binary_color_dict)
+        mv.set_custom_color_scheme(self.BINARY_MAPPING_COLORS)
 
         fig = mv.plotfig(dpi=self.BINARY_MAPPING_DPI)
         # Height grows by half an inch per leaf; keep it under matplotlib's 2^16-pixel limit (at the figure's own
         # dpi) so trees with several hundred leaves do not crash. Smaller trees keep the original size.
         fig.set_size_inches(shown_sites / 3, min(num_leaves / 2, self.BINARY_MAPPING_MAX_HEIGHT_INCHES))
+        # The title sits on top of the highest panel and grows upwards, so it never covers the plot even at a large
+        # font size or over several lines; bbox_inches='tight' makes room for it.
+        top = max(ax.get_position().y1 for ax in fig.axes)
         fig.text(
             x=0.5,
-            y=1.05,
+            y=top,
             s=title,
             fontsize=fontsize,
             horizontalalignment='center',
-            verticalalignment='top')
-        plt.savefig(
+            verticalalignment='bottom',
+            transform=offset_copy(fig.transFigure, fig=fig, y=fontsize * 0.5, units='points'))
+        fig.savefig(  # not plt.savefig: see _save_matrix_heatmap
             file_name,
             format='svg',
             dpi=300,
             bbox_inches='tight')
-        plt.close()
+        plt.close(fig)
 
         return file_name
+
+    @classmethod
+    def _save_large_binary_mapping(cls, labels: List[str], sequences: List[str], file_name: str,
+                                   fontsize: Union[int, float], title: str) -> None:
+        """Binary mapping for many leaves: the cells are one embedded image (colours as in the MsaViz version,
+        no character per cell, no consensus / count rows); leaf names and site numbers stay vector text."""
+        num_leaves, num_sites = len(sequences), len(sequences[0]) if sequences else 0
+        codes = np.array([np.frombuffer(seq.encode('latin-1'), dtype=np.uint8) for seq in sequences])
+        colours = {'0': 0, '1': 1, '-': 2, '?': 2}
+        cells = np.full(codes.shape, 2, dtype=np.uint8)  # anything else is shown like missing data
+        for character, index in colours.items():
+            cells[codes == ord(character)] = index
+        cmap = ListedColormap([cls.BINARY_MAPPING_COLORS['0'], cls.BINARY_MAPPING_COLORS['1'],
+                               cls.BINARY_MAPPING_COLORS['-']])
+
+        width = min(max(num_sites * cls.MATRIX_LARGE_INCHES_PER_LEAF, 15), cls.MATRIX_LARGE_MAX_INCHES)
+        height = min(max(num_leaves * cls.MATRIX_LARGE_INCHES_PER_LEAF, 15), cls.MATRIX_LARGE_MAX_INCHES)
+        dpi = min(300, cls.MATRIX_LARGE_RASTER_PIXELS / max(width, height))
+        fig, ax = plt.subplots(figsize=(width, height))
+        ax.imshow(cells, cmap=cmap, vmin=0, vmax=2, aspect='auto', interpolation='none')  # embedded as is
+        ax.set_yticks(np.arange(num_leaves))
+        ax.set_yticklabels(labels, fontsize=max(2.0, min(10.0, height / num_leaves * 72 * 0.8)))
+        site_step = max(1, int(np.ceil(num_sites / 50)))
+        ax.set_xticks(np.arange(0, num_sites, site_step))
+        ax.set_xticklabels([str(i + 1) for i in range(0, num_sites, site_step)], fontsize=8)
+        ax.set_xlabel('Site')
+        ax.legend(handles=[Patch(facecolor=cls.BINARY_MAPPING_COLORS['0'], edgecolor='gray', label='0'),
+                           Patch(facecolor=cls.BINARY_MAPPING_COLORS['1'], edgecolor='gray', label='1'),
+                           Patch(facecolor=cls.BINARY_MAPPING_COLORS['-'], edgecolor='gray', label='missing')],
+                  loc='upper left', bbox_to_anchor=(1.01, 1), fontsize=10)
+        ax.set_title(title, fontsize=fontsize)
+        fig.savefig(file_name, format='svg', dpi=dpi, bbox_inches='tight')
+        plt.close(fig)
 
     def probability_to_tsv(self, file_name: str = 'BranchPositionProbabilities.tsv', sep: str = '\t',
                            taking_into_coefficient: bool = True) -> str:
