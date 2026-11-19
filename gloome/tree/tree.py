@@ -53,9 +53,11 @@ class Tree:
     nodes_objects: Optional[List[Node]] = None
     nodes_objects_post_order: Optional[List[Node]] = None
     leaves_objects: Optional[List[Node]] = None
-    alphabet_length: int
-    msa_length: int
-    rate_vector_length: int
+    alphabet_length: int = 2
+    msa_length: int = 1
+    rate_vector_length: int = 1
+    pearson_correlation_note: str = ''
+    coevolution_notes: Dict[str, str] = {}
     site_pattern_index: Optional[np.ndarray] = None
     pattern_weights: Optional[np.ndarray] = None
     patterns_length: int = 0
@@ -120,6 +122,7 @@ class Tree:
         self.log_likelihood_vector = self.likelihood_vector = self.correlation_vector = self.posterior_rates = None
         self.correlation_stream = None
         self.pearson_correlation_note = ''
+        self.coevolution_notes = {}
         self.log_likelihood = self.likelihood = 0.0
         self.site_pattern_index = self.pattern_weights = self.leaf_pattern_vectors = self.site_patterns_source = None
         self.branch_length_starts = self.single_coefficient_fit = None
@@ -979,14 +982,33 @@ class Tree:
     # than 2^16 px (the job crashed at ~4,700 sites); well before that the SVG becomes too heavy to open
     # (1,000 sites: ~35 s and ~33 MB for 63 taxa).
     BINARY_MAPPING_MAX_SITES = 1000
+    # Height cap: half an inch per leaf, kept under matplotlib's 2^16-pixel limit at the figure's dpi.
+    BINARY_MAPPING_DPI = 100
+    BINARY_MAPPING_MAX_HEIGHT_INCHES = 0.95 * (1 << 16) / BINARY_MAPPING_DPI
 
     def get_binary_mapping_note(self) -> str:
-        """Empty string, or a note saying the binary mapping plot was cut to `BINARY_MAPPING_MAX_SITES` sites."""
-        if self.msa_length <= self.BINARY_MAPPING_MAX_SITES:
+        """Empty string, or a note saying the binary mapping plot was cut to `BINARY_MAPPING_MAX_SITES` sites
+        and / or its rows were squeezed to fit the height limit."""
+        notes = []
+        if self.msa_length > self.BINARY_MAPPING_MAX_SITES:
+            notes.append(f'Showing sites 1-{self.BINARY_MAPPING_MAX_SITES:,} of {self.msa_length:,}: '
+                         f'cut due to the plot width limit of {self.BINARY_MAPPING_MAX_SITES:,} sites.')
+        num_leaves = len(self.leaves_objects)
+        max_leaves = int(2 * self.BINARY_MAPPING_MAX_HEIGHT_INCHES)
+        if num_leaves > max_leaves:
+            notes.append(f'All {num_leaves:,} genomes are shown, but the rows are squeezed (labels may overlap): '
+                         f'the plot height is limited to the size of {max_leaves:,} genomes.')
+
+        return ' '.join(notes)
+
+    def get_matrix_note(self) -> str:
+        """Empty string, or a note saying the matrix plots do not print the value in each cell (too many leaves)."""
+        num_leaves = len(self.leaves_objects)
+        if num_leaves <= self.MATRIX_ANNOTATION_MAX_LEAVES:
             return ''
 
-        return (f'Showing sites 1-{self.BINARY_MAPPING_MAX_SITES:,} of {self.msa_length:,}: '
-                f'cut due to the plot width limit of {self.BINARY_MAPPING_MAX_SITES:,} sites.')
+        return (f'Values are not printed in the cells for more than {self.MATRIX_ANNOTATION_MAX_LEAVES:,} genomes '
+                f'({num_leaves:,} here): the colour scale shows the values.')
 
     def tree_to_binary_mapping(self, file_name: str = 'BinaryMapping.svg') -> str:
         self.make_dir(file_name)
@@ -994,9 +1016,6 @@ class Tree:
         shown_sites = min(self.msa_length, self.BINARY_MAPPING_MAX_SITES)
         fontsize = min((12 * max((1, round(num_leaves // 10))), 14 * max((1, round(shown_sites // 10)))))
         title = 'Mapping of Binary Character Evolution'
-        note = self.get_binary_mapping_note()
-        if note:
-            title = f'{title}\n{note}'
 
         mv = MsaViz(
             AlignIO.read(StringIO(self.get_fasta_text()), 'fasta'),
@@ -1017,11 +1036,10 @@ class Tree:
         }
         mv.set_custom_color_scheme(binary_color_dict)
 
-        fig = mv.plotfig()
+        fig = mv.plotfig(dpi=self.BINARY_MAPPING_DPI)
         # Height grows by half an inch per leaf; keep it under matplotlib's 2^16-pixel limit (at the figure's own
         # dpi) so trees with several hundred leaves do not crash. Smaller trees keep the original size.
-        max_inches = 0.95 * (1 << 16) / fig.dpi
-        fig.set_size_inches(shown_sites / 3, min(num_leaves / 2, max_inches))
+        fig.set_size_inches(shown_sites / 3, min(num_leaves / 2, self.BINARY_MAPPING_MAX_HEIGHT_INCHES))
         fig.text(
             x=0.5,
             y=1.05,
@@ -1173,6 +1191,7 @@ class Tree:
             self.set_posterior_rates_vector()
 
         result = {}
+        self.coevolution_notes = {}
         file_simulated_datasets = f'{file_path}/SimulatedDatasets.fastas'
 
         site_rate = np.asarray(self.posterior_rates, dtype=np.float64)
@@ -1252,16 +1271,44 @@ class Tree:
             else:
                 table, sample_r, sample_codes = self._coevolution_table_streamed(observed, null, p_value_mode,
                                                                                  min_fit, categories_quantity)
+            total_pairs = observed['total_pairs']
             del observed, null
             gc.collect()
 
-            result.update(self._coevolution_outputs(file_path, sep, table, sample_r, sample_codes,
-                                                    categories_quantity, use_coevolution_file,
-                                                    use_barplot_of_correlation_file,
-                                                    use_plot_distribution_of_correlation_file,
-                                                    use_plot_correlation_by_rate_bin_file))
+            table_rows, sample_size = len(table), int(np.asarray(sample_r).size)
+            outputs = self._coevolution_outputs(file_path, sep, table, sample_r, sample_codes, categories_quantity,
+                                                use_coevolution_file,
+                                                use_barplot_of_correlation_file,
+                                                use_plot_distribution_of_correlation_file,
+                                                use_plot_correlation_by_rate_bin_file)
+            result.update(outputs)
+            self.coevolution_notes = self._coevolution_notes(outputs, total_pairs, table_rows, sample_size)
 
         return result
+
+    @staticmethod
+    def _coevolution_notes(outputs: Dict[str, str], total_pairs: int, table_rows: int, sample_size: int
+                           ) -> Dict[str, str]:
+        """Notes for the coevolution outputs that do not show every site pair: Coevolution.tsv keeps the
+        pairs.MAX_TABLE_ROWS most significant pairs, the plots draw a random sample of pairs."""
+        notes = {}
+        if 'Table of coevolution (tsv)' in outputs and table_rows < total_pairs:
+            notes['Table of coevolution (tsv)'] = (
+                f'Showing the {table_rows:,} most significant pairs (lowest q-value) out of {total_pairs:,}: cut due '
+                f'to the table size limit of {pairs.MAX_TABLE_ROWS:,} rows. The q-values are computed over all pairs.')
+        if sample_size < total_pairs:
+            for key in ('Plot of distribution of correlation (svg)', 'Barplot of correlation (svg)'):
+                if key in outputs:
+                    notes[key] = (f'Drawn from a random sample of {sample_size:,} of {total_pairs:,} pairs: sampled '
+                                  f'due to the plot size limit of {pairs.PLOT_SAMPLE:,} pairs (the Alpha / Beta fit '
+                                  f'uses the same sample).')
+        shown_points = min(sample_size, pairs.STRIPPLOT_SAMPLE)
+        if 'Plot of correlation by rate-bin (svg)' in outputs and shown_points < total_pairs:
+            notes['Plot of correlation by rate-bin (svg)'] = (
+                f'Showing a random sample of {shown_points:,} of {total_pairs:,} pairs: sampled due to the plot '
+                f'point limit of {pairs.STRIPPLOT_SAMPLE:,} points.')
+
+        return notes
 
     def _null_beta_params(self, null: 'pairs.NullDistribution', codes_present: np.ndarray, min_fit: int
                           ) -> Dict[int, Optional[Tuple[float, float]]]:

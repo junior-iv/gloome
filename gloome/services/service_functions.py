@@ -28,6 +28,7 @@ FILE_LIST = [
     'Simulated datasets (fastas)',
     'Log-File (log)',
     'JSON response file (json)',
+    'Notes file (json)',
     'Barplot of correlation (svg)',
     'Plot of correlation by rate-bin (svg)',
     'Plot of distribution of correlation (svg)',
@@ -208,6 +209,12 @@ def compute_likelihood_of_tree(newick_tree: Union[str, Tree]) -> Union[List[Unio
     return result
 
 
+def print_dict(curren_dict: Dict[str, str]) -> None:
+    if curren_dict:
+        for key, value in curren_dict.items():
+            print(f'\n{key}: {value}')
+
+
 def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, Path],
                           log_file: Optional[Union[str, Path]] = None,
                           with_internal_nodes: Optional[bool] = True,
@@ -296,9 +303,15 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     if selected_files.get('file_phylogenetic_distance_matrix_svg', False):
         result.update({'Phylogenetic distance matrix (svg)': newick_tree.tree_to_phylogenetic_distance_matrix(
                            file_name=f'{file_path}/PhylogeneticDistanceMatrix.svg')})
+        matrix_note = newick_tree.get_matrix_note()
+        if matrix_note:
+            notes['Phylogenetic distance matrix (svg)'] = matrix_note
     if selected_files.get('file_sequence_identity_matrix_svg', False):
         result.update({'Sequence identity matrix (svg)': newick_tree.tree_to_sequence_identity_matrix(
                            file_name=f'{file_path}/SequenceIdentityMatrix.svg')})
+        matrix_note = newick_tree.get_matrix_note()
+        if matrix_note:
+            notes['Sequence identity matrix (svg)'] = matrix_note
     if selected_files.get('file_binary_mapping_svg', False):
         result.update({'Binary mapping (svg)': newick_tree.tree_to_binary_mapping(
                            file_name=f'{file_path}/BinaryMapping.svg')})
@@ -315,6 +328,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
                                           use_barplot_of_correlation_file=use_barplot_of_corr_file,
                                           use_plot_distribution_of_correlation_file=use_plot_distribution_of_corr_file,
                                           use_plot_correlation_by_rate_bin_file=use_plot_corr_by_rate_bin_file))
+        notes.update(newick_tree.coevolution_notes)
 
     if result:
         file_path = get_path(file_path)
@@ -325,7 +339,14 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
 
     if log_file is not None:
         result.update({'Log-File (log)': f'{log_file}'})
+
+    print_dict(result)
+    print_dict(notes)
+
     if notes:
+        notes_file = file_path.joinpath('notes.json')
+        save_file(file_path=notes_file, data=notes, mode='w')
+        result.update({'Notes file (json)': notes_file})
         result.update({FILE_NOTES_KEY: notes})
 
     return result
@@ -687,9 +708,9 @@ def recompile_json(output_file: Union[str, Path], process_id: int, create_link: 
 
     if 'execute_all_actions' in action_name:
         for key, value in data.items():
-            data.update({key: get_response_design(value, key, create_link, output_file)})
+            data.update({key: get_response_design(value, key, create_link)})
     else:
-        data = get_response_design(data, action_name, create_link, output_file)
+        data = get_response_design(data, action_name, create_link)
 
     data.update({'title': process_id})
     data.update({'form_data': json_object.pop('form_data')})
