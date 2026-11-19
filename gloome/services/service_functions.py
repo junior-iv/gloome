@@ -346,7 +346,7 @@ def create_all_file_types(newick_tree: Union[str, Tree], file_path: Union[str, P
     if notes:
         notes_file = file_path.joinpath('notes.json')
         save_file(file_path=notes_file, data=notes, mode='w')
-        result.update({'Notes file (json)': notes_file})
+        result.update({'Notes file (json)': f'{notes_file}'})
         result.update({FILE_NOTES_KEY: notes})
 
     return result
