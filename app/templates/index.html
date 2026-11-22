@@ -79,6 +79,23 @@
                     </div>
                 </div>
             </div>
+            <div class="tree-tools text-success mt-2">
+                <div class="tree-tool tree-position rounded-3 bg-success-subtle"
+                     title="Show a single position (POS, numbered from 0 as in the result tables) on the tree: node colours give the state, branch colours the gain / loss event, and the labels give the probabilities. Clear the field or press 'all' to show all positions.">
+                    <label for="treePosition" class="h6 m-0">Position</label>
+                    <input id="treePosition" name="treePosition" type="number" min="0" step="1" inputmode="numeric"
+                           placeholder="all" onchange="onChangingTreePosition()" disabled
+                           class="form-control rounded-pill text-center"/>
+                    <input id="treePositionClear" name="treePositionClear" type="button" value="all" disabled
+                           onclick="setTreePosition(null)"
+                           class="form-control btn btn-outline-success rounded-pill"/>
+                </div>
+                <div class="tree-tool">
+                    <input id="saveTreePng" name="saveTreePng" type="button" value="Save as PNG" disabled
+                           onclick="saveTreeAsPng()" title="Download the tree exactly as it is shown now (zoom, layout, selected position) as a PNG image"
+                           class="w-100 h-100 form-control btn btn-outline-success bg-success-subtle rounded-3 h6 m-0"/>
+                </div>
+            </div>
         </div>
         <div  class="box flex-column w-50 h-auto bg-light rounded-3 p-3 me-3 ms-1 my-3">
             <div class="box gap-2  flex-column d-flex h-70 w-100 bg-white align-content-center rounded-2 p-3">

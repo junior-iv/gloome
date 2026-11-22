@@ -906,6 +906,21 @@ class Tree:
     MATRIX_LARGE_RASTER_PIXELS = 8000
     MATRIX_LARGE_TITLE_FONTSIZE = 28
 
+    @staticmethod
+    def _add_title_above_axes(fig: Any, title: str, fontsize: Union[int, float], pad_points: float = 8) -> None:
+        """Figure title sitting `pad_points` above the highest panel and growing upwards, so it neither covers the
+        plot (at any font size or number of lines) nor floats far above it, as a title at a fixed fraction of a tall
+        figure does (several inches above the heatmap of a 100+ leaf matrix). bbox_inches='tight' makes room."""
+        top = max(ax.get_position().y1 for ax in fig.axes)
+        fig.text(
+            x=0.5,
+            y=top,
+            s=title,
+            fontsize=fontsize,
+            horizontalalignment='center',
+            verticalalignment='bottom',
+            transform=offset_copy(fig.transFigure, fig=fig, y=pad_points, units='points'))
+
     @classmethod
     def _save_matrix_heatmap(cls, data: Any, file_name: str, num_leaves: int, fontsize: Union[int, float],
                              title: str, fmt: str, labels: Optional[List[str]] = None) -> None:
@@ -922,13 +937,6 @@ class Tree:
             tick_labels = {'xticklabels': every_label, 'yticklabels': every_label}
 
         fig = plt.figure(figsize=(side, side))
-        fig.text(
-            x=0.5,
-            y=0.95,
-            s=title,
-            fontsize=fontsize,
-            horizontalalignment='center',
-            verticalalignment='top')
 
         if rasterized:
             # One image instead of seaborn's mesh of num_leaves^2 cells (much less memory); names stay vector text.
@@ -952,6 +960,7 @@ class Tree:
                 cmap='GnBu',
                 **tick_labels,
             )
+        cls._add_title_above_axes(fig, title, fontsize)
 
         # fig.savefig, not plt.savefig: pyplot's version redraws the whole figure on screen after saving, which for
         # a figure this size needs a multi-GB pixel buffer (4.7 GB vs 0.4 GB for 880 leaves). Same file either way.
@@ -1062,17 +1071,7 @@ class Tree:
         # Height grows by half an inch per leaf; keep it under matplotlib's 2^16-pixel limit (at the figure's own
         # dpi) so trees with several hundred leaves do not crash. Smaller trees keep the original size.
         fig.set_size_inches(shown_sites / 3, min(num_leaves / 2, self.BINARY_MAPPING_MAX_HEIGHT_INCHES))
-        # The title sits on top of the highest panel and grows upwards, so it never covers the plot even at a large
-        # font size or over several lines; bbox_inches='tight' makes room for it.
-        top = max(ax.get_position().y1 for ax in fig.axes)
-        fig.text(
-            x=0.5,
-            y=top,
-            s=title,
-            fontsize=fontsize,
-            horizontalalignment='center',
-            verticalalignment='bottom',
-            transform=offset_copy(fig.transFigure, fig=fig, y=fontsize * 0.5, units='points'))
+        self._add_title_above_axes(fig, title, fontsize)
         fig.savefig(  # not plt.savefig: see _save_matrix_heatmap
             file_name,
             format='svg',

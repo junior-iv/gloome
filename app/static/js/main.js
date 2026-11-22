@@ -268,14 +268,174 @@ function getNodeStyle(d, nodeType, mode = 0, sizeFactor = 1){
     }
 }
 
+// Single-position view of the interactive tree: null = all positions, otherwise a POS (0-based, as in the tables).
+let treePosition = null;
+// Zoom / pan of the tree, kept while the same tree is redrawn in the same layout (e.g. another position).
+let treeZoom = null;
+let treeZoomRadial = null;
+// Same colours as BinaryMapping.svg for the states; branch colours for the gain / loss events.
+const POSITION_STATE_COLORS = {'1': `salmon`, '0': `snow`};
+const POSITION_MISSING_COLOR = `silver`;
+const POSITION_EVENT_COLORS = {'G': `forestgreen`, 'L': `crimson`, 'P': `lightsalmon`, 'A': `gainsboro`};
+const POSITION_EVENT_NAMES = {'G': `gain`, 'L': `loss`, 'P': `presence kept`, 'A': `absence kept`};
+// Branch labels give the gain / loss probability from this value on (the cut-off of BranchPositionProbabilities.tsv).
+const POSITION_PROBABILITY_LABEL_MIN = 0.05;
+
+function valueAtPosition(value, position) {
+    return Array.isArray(value) ? value[position] : value;
+}
+
+// The node / branch record with every per-position list cut down to the one position.
+function recordAtPosition(record, position) {
+    const result = {};
+    Object.entries(record).forEach(([key, value]) => {
+        result[key] = Array.isArray(value) ? [value[position]] : value;
+    });
+    return result;
+}
+
+function getSequenceLength(jsonData = jsonTreeData) {
+    return jsonData ? jsonData[6][`Sequence length`] : 0;
+}
+
+function setTreeControls(enabled = true) {
+    const position = document.getElementById(`treePosition`);
+    position.disabled = !enabled;
+    position.max = enabled ? Math.max(getSequenceLength() - 1, 0) : ``;
+    position.value = treePosition === null ? `` : treePosition;
+    document.getElementById(`treePositionClear`).disabled = !enabled || treePosition === null;
+    document.getElementById(`saveTreePng`).disabled = !enabled;
+}
+
+function setTreePosition(position = null) {
+    treePosition = position;
+    if (jsonTreeData !== null) {
+        reDrawPhylogeneticTree();
+    } else {
+        setTreeControls(false);
+    }
+}
+
+function onChangingTreePosition() {
+    const element = document.getElementById(`treePosition`);
+    const text = element.value.trim();
+    if (text === ``) {
+        setTreePosition(null);
+        return;
+    }
+    const lastPosition = getSequenceLength() - 1;
+    let position = Number(text);
+    if (!Number.isInteger(position) || position < 0 || position > lastPosition) {
+        showAlert(`The position must be a whole number from 0 to ${lastPosition} (POS, as in the result tables).`);
+        position = Number.isFinite(position) ? Math.min(Math.max(Math.round(position), 0), lastPosition) : null;
+    }
+    setTreePosition(position);
+}
+
 function reDrawPhylogeneticTree() {
     if (jsonTreeData !== null){
         setVisibility(`result`, true);
-        setLoader(`result`, false)
+        setLoader(`result`, false);
         showMessage(``, -1);
         document.getElementById(`tree`).innerText = ``;
         drawPhylogeneticTree(jsonTreeData);
     }
+}
+
+// Saves the tree exactly as shown (layout, zoom, selected position and its legend) as a PNG.
+function saveTreeAsPng(pixelRatio = 3) {
+    const svgElement = document.querySelector(`#tree svg`);
+    if (!svgElement) {
+        showAlert(`There is no tree to save yet.`);
+        return;
+    }
+    const {width, height} = svgElement.getBoundingClientRect();
+    const clone = svgElement.cloneNode(true);
+    clone.setAttribute(`xmlns`, `http://www.w3.org/2000/svg`);
+    clone.setAttribute(`width`, `${width}`);
+    clone.setAttribute(`height`, `${height}`);
+    clone.removeAttribute(`style`);
+    const source = new XMLSerializer().serializeToString(clone);
+
+    const image = new Image();
+    image.onload = () => {
+        const canvas = document.createElement(`canvas`);
+        canvas.width = Math.round(width * pixelRatio);
+        canvas.height = Math.round(height * pixelRatio);
+        const context = canvas.getContext(`2d`);
+        context.fillStyle = `white`;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(blob => {
+            if (!blob) {
+                showAlert(`The tree view could not be converted to PNG.`);
+                return;
+            }
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement(`a`);
+            link.href = url;
+            link.download = treePosition === null ? `tree_view.png` : `tree_view_POS_${treePosition}.png`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }, `image/png`);
+    };
+    image.onerror = () => showAlert(`The tree view could not be converted to PNG.`);
+    image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(source)}`;
+}
+
+function drawPositionLegend(svgRoot, origin, position) {
+    const items = [
+        ...Object.entries(POSITION_STATE_COLORS).map(([state, color]) => ({shape: `circle`, color, text: `state ${state}`})),
+        {shape: `circle`, color: POSITION_MISSING_COLOR, text: `missing`},
+        ...[`G`, `L`, `P`, `A`].map(event => ({shape: `line`, color: POSITION_EVENT_COLORS[event], text: POSITION_EVENT_NAMES[event]})),
+    ];
+    const rowHeight = 11;
+    const legend = svgRoot.append(`g`)
+        .attr(`class`, `position-legend`)
+        .attr(`transform`, `translate(${origin[0] + 4}, ${origin[1] + 4})`);
+    legend.append(`rect`)
+        .attr(`width`, 92)
+        .attr(`height`, rowHeight * (items.length + 1) + 10)
+        .attr(`rx`, 4)
+        .style(`fill`, `white`)
+        .style(`fill-opacity`, .85)
+        .style(`stroke`, `gainsboro`);
+    legend.append(`text`)
+        .attr(`x`, 6)
+        .attr(`y`, 13)
+        .style(`font-size`, `10px`)
+        .style(`font-family`, `sans-serif`)
+        .style(`font-weight`, `bold`)
+        .style(`fill`, `black`)
+        .text(`POS ${position}`);
+    items.forEach((item, i) => {
+        const y = 13 + rowHeight * (i + 1);
+        if (item.shape === `circle`) {
+            legend.append(`circle`)
+                .attr(`cx`, 12)
+                .attr(`cy`, y - 3)
+                .attr(`r`, 4)
+                .style(`fill`, item.color)
+                .style(`stroke`, `steelblue`);
+        } else {
+            legend.append(`line`)
+                .attr(`x1`, 6)
+                .attr(`x2`, 18)
+                .attr(`y1`, y - 3)
+                .attr(`y2`, y - 3)
+                .style(`stroke`, item.color)
+                .style(`stroke-width`, 3);
+        }
+        legend.append(`text`)
+            .attr(`x`, 24)
+            .attr(`y`, y)
+            .style(`font-size`, `9px`)
+            .style(`font-family`, `sans-serif`)
+            .style(`fill`, `black`)
+            .text(item.text);
+    });
 }
 
 function drawPhylogeneticTree(jsonData) {
@@ -291,7 +451,28 @@ function drawPhylogeneticTree(jsonData) {
     const showDistance = document.getElementById(`showDistanceToParent`);
     const isRadialTree = isRadial.checked;
     const showDistanceToParent = showDistance.checked;
+    if (jsonData !== jsonTreeData) {
+        treePosition = null;  // a new result starts with all positions
+    }
+    if (jsonData !== jsonTreeData || isRadialTree !== treeZoomRadial) {
+        treeZoom = null;  // a new tree or another layout starts from the default view
+    }
+    treeZoomRadial = isRadialTree;
     jsonTreeData = jsonData
+    const sequenceLength = jsonData[6][`Sequence length`];
+    const position = treePosition;
+    const byPosition = position !== null;
+    setTreeControls(true);
+
+    const nodeRecord = name => byPosition ? recordAtPosition(jsonData[1][name], position) : jsonData[1][name];
+    const branchRecord = name => byPosition ? recordAtPosition(jsonData[4][name], position) : jsonData[4][name];
+    const nodeState = name => getShownCharacter(valueAtPosition(jsonData[1][name][`Sequence`], position));
+    const nodeFill = d => byPosition ? POSITION_STATE_COLORS[nodeState(d.data.name)] ?? POSITION_MISSING_COLOR
+        : getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 0, sizeFactor);
+    const branchEvent = d => getShownCharacter(valueAtPosition(jsonData[1][d.target.data.name][`Ancestral Comparison`], position));
+    const branchStroke = d => byPosition ? POSITION_EVENT_COLORS[branchEvent(d)] ?? `silver` : `silver`;
+    const branchWidth = d => byPosition && [`G`, `L`].includes(branchEvent(d)) ? 3 : 1.5;
+    const informationArguments = byPosition ? [1, position] : [sequenceLength, 0];
 
     const tree = d3.tree()
     if (isRadialTree) {
@@ -304,17 +485,20 @@ function drawPhylogeneticTree(jsonData) {
     const root = tree(d3.hierarchy(jsonData[0])
         .sort((a, b) => d3.ascending(a.data.name, b.data.name)));
 
-    const svg =  d3.select(`#tree`)
+    const svgRoot = d3.select(`#tree`)
         .append(`svg`)
         .attr(`width`, width + margin.left + margin.right)
         .attr(`height`, height + margin.top + margin.bottom)
         .attr(`viewBox`, isRadialTree ? [-cx, -cy, width, height] : [0, 0, width, height])
-        .attr(`style`, `width: 100%; height: 100%;`)
-        .call(d3.zoom().on(`zoom`, function (event) {
-            svg.attr(`transform`, event.transform);
-        }))
-        .append(`g`)
-        .attr(`transform`, `translate(${margin.left}, ${margin.top}) scale(${scale})`);
+        .attr(`style`, `width: 100%; height: 100%;`);
+    const svg = svgRoot.append(`g`);
+    const zoom = d3.zoom().on(`zoom`, function (event) {
+        treeZoom = event.transform;
+        svg.attr(`transform`, event.transform);
+    });
+    // The zoom starts from the default view, so the first drag / pinch no longer jumps.
+    svgRoot.call(zoom)
+        .call(zoom.transform, treeZoom ?? d3.zoomIdentity.translate(margin.left, margin.top).scale(scale));
 
     const links = svg.selectAll(`.link`)
         .data(root.links())
@@ -323,8 +507,8 @@ function drawPhylogeneticTree(jsonData) {
     links
         .attr(`d`, isRadialTree ? d3.linkRadial().angle(d => d.x).radius(d => d.y) : d3.linkHorizontal().x(d => d.y).y(d => d.x))
         .style(`fill`, `none`)
-        .style(`stroke`, `silver`)
-        .style(`stroke-width`, 1.5)
+        .style(`stroke`, branchStroke)
+        .style(`stroke-width`, branchWidth)
         .on(`mouseover`, function(event, d) {
             d3.select(this)
                 .style(`stroke`, `maroon`)
@@ -333,19 +517,54 @@ function drawPhylogeneticTree(jsonData) {
                 .style(`top`, `${event.pageY - 20}px`)
                 .style(`opacity`, .9)
                 .style(`visibility`,  `visible`)
-                .html(drawInformation(jsonData[4][d.target.data.name], jsonData[5][`List for sorting`], false, 1, jsonData[6][`Sequence length`]));
+                .html(drawInformation(branchRecord(d.target.data.name), jsonData[5][`List for sorting`], false, 1, ...informationArguments));
         })
-        .on(`mouseout`, function() {
+        .on(`mouseout`, function(event, d) {
             d3.select(this)
-                .style(`stroke`, `silver`)
+                .style(`stroke`, branchStroke(d))
             d3.select(`#tooltip`)
                 .style(`opacity`, 0)
                 .style(`visibility`,  `hidden`);
         })
         .on(`click`, function(event, d) {
-            document.getElementById('branchInfo').innerHTML = drawInformation(jsonData[4][d.target.data.name], jsonData[5][`List for sorting`], true, 1, jsonData[6][`Sequence length`]);
+            document.getElementById('branchInfo').innerHTML = drawInformation(branchRecord(d.target.data.name), jsonData[5][`List for sorting`], true, 1, ...informationArguments);
             delayedWrapper();
         });
+
+    if (byPosition) {
+        // Gain / loss probability of the position on each branch, at the middle of the branch.
+        const branchProbabilities = d => {
+            const branch = jsonData[4][d.target.data.name] ?? {};
+            return [Number(valueAtPosition(branch[`Gain probability`], position)),
+                    Number(valueAtPosition(branch[`Loss probability`], position))];
+        };
+        const branchLabel = d => {
+            const [gain, loss] = branchProbabilities(d);
+            const parts = [];
+            if (gain >= POSITION_PROBABILITY_LABEL_MIN) parts.push(`G ${gain.toFixed(2)}`);
+            if (loss >= POSITION_PROBABILITY_LABEL_MIN) parts.push(`L ${loss.toFixed(2)}`);
+            return parts.join(` `);
+        };
+        const branchMiddle = d => isRadialTree
+            ? d3.pointRadial((d.source.x + d.target.x) / 2, (d.source.y + d.target.y) / 2)
+            : [(d.source.y + d.target.y) / 2, (d.source.x + d.target.x) / 2];
+        svg.selectAll(`.branch-label`)
+            .data(root.links().filter(d => branchLabel(d) !== ``))
+            .enter().append(`text`)
+            .attr(`class`, `branch-label`)
+            .attr(`x`, d => branchMiddle(d)[0])
+            .attr(`y`, d => branchMiddle(d)[1])
+            .attr(`dy`, -Math.max(2, Math.trunc(3 / sizeFactor)))
+            .style(`font-size`, Math.max(3, Math.trunc(10 / sizeFactor)))
+            .style(`font-family`, `sans-serif`)
+            .style(`font-weight`, `bold`)
+            .style(`text-anchor`, `middle`)
+            .style(`pointer-events`, `none`)
+            .style(`fill`, d => branchProbabilities(d)[0] >= branchProbabilities(d)[1]
+                ? POSITION_EVENT_COLORS[`G`] : POSITION_EVENT_COLORS[`L`])
+            .text(branchLabel);
+        drawPositionLegend(svgRoot, isRadialTree ? [-cx, -cy] : [0, 0], position);
+    }
     const nodes = svg.selectAll(`.node`)
         .data(root.descendants())
         .enter().append(`g`)
@@ -355,32 +574,54 @@ function drawPhylogeneticTree(jsonData) {
     nodes
         .append(`circle`)
         .attr(`r`, d => getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 2, sizeFactor))
-        .style(`fill`, d => getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 0, sizeFactor))
+        .style(`fill`, nodeFill)
         .style(`stroke`, `steelblue`)
         .style(`stroke-width`, 2)
         .on(`mouseover`, function(event, d) {
             d3.select(this)
-                .style(`fill`, getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 1, sizeFactor))
+                .style(`fill`, byPosition ? nodeFill(d) : getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 1, sizeFactor))
                 .attr(`r`, getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 3, sizeFactor))
             d3.select(`#tooltip`)
                 .style(`left`, `${event.pageX + 10}px`)
                 .style(`top`, `${event.pageY - 20}px`)
                 .style(`opacity`, .9)
                 .style(`visibility`,  `visible`)
-                .html(drawInformation(jsonData[1][d.data.name], jsonData[2][`List for sorting`], false, 0, jsonData[6][`Sequence length`]));
+                .html(drawInformation(nodeRecord(d.data.name), jsonData[2][`List for sorting`], false, 0, ...informationArguments));
         })
         .on(`mouseout`, function(event, d) {
             d3.select(this)
-                .style(`fill`, getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 0, sizeFactor))
+                .style(`fill`, nodeFill(d))
                 .attr(`r`, getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 2, sizeFactor))
             d3.select(`#tooltip`)
                 .style(`opacity`, 0)
                 .style(`visibility`,  `hidden`);
         })
         .on(`click`, function(event, d) {
-            document.getElementById('nodeInfo').innerHTML = drawInformation(jsonData[1][d.data.name], jsonData[2][`List for sorting`], true, 0, jsonData[6][`Sequence length`]);
+            document.getElementById('nodeInfo').innerHTML = drawInformation(nodeRecord(d.data.name), jsonData[2][`List for sorting`], true, 0, ...informationArguments);
             delayedWrapper();
         });
+
+    if (byPosition) {
+        // State of the position above each node; for ancestral nodes also the probability of that state.
+        nodes
+            .append(`text`)
+            .attr(`class`, `node-state-label`)
+            .style(`font-size`, Math.max(3, Math.trunc(10 / sizeFactor)))
+            .style(`font-family`, `sans-serif`)
+            .style(`text-anchor`, `middle`)
+            .style(`pointer-events`, `none`)
+            .style(`fill`, `dimgray`)
+            .attr(`dy`, d => -getNodeStyle(d, jsonData[1][d.data.name][`Node type`], 2, sizeFactor) - 2)
+            .text(d => {
+                const record = jsonData[1][d.data.name];
+                const state = valueAtPosition(record[`Sequence`], position);
+                if (d.children) {
+                    const probability = Number(valueAtPosition(record[`Probability coefficient`], position));
+                    return Number.isFinite(probability) ? `${state} (${probability.toFixed(2)})` : `${state}`;
+                }
+                return `${state}`;
+            });
+    }
 
     nodes
         .append(`text`)
@@ -419,11 +660,12 @@ function processError(error) {
     typeof error === "object" && error.hasOwnProperty("message") ? showAlert(error.message, 8000) : showAlert(error, 8000);
 }
 
-function drawInformation(jsonData, sortingList, summary = true, mode = 0, sequenceLength = 0) {
-    const fullColorList = ["crimson", "orangered", "darkorange", "gold", "yellowgreen", "forestgreen", "mediumturquoise",
-        "dodgerblue", "slateblue", "darkviolet"];
-    const shortColorList = {"A": "crimson", "L": "darkorange", "G": "forestgreen", "P": "slateblue"}
-    const headersForShortColorList = ["Ancestral Comparison", ]
+// sequenceLength columns are shown, numbered from firstIndex (a single position: sequenceLength 1, firstIndex POS).
+function drawInformation(jsonData, sortingList, summary = true, mode = 0, sequenceLength = 0, firstIndex = 0) {
+    const fullColorList = ['crimson', 'orangered', 'darkorange', 'gold', 'yellowgreen', 'forestgreen', 'mediumturquoise',
+        'dodgerblue', 'slateblue', 'darkviolet'];
+    const shortColorList = {'A': 'crimson', 'L': 'darkorange', 'G': 'forestgreen', 'P': 'slateblue'}
+    const headersForShortColorList = ['Ancestral Comparison', ]
     const informationObjects = ['Node', 'Branch']
     let table;
     let result = '';
@@ -432,12 +674,12 @@ function drawInformation(jsonData, sortingList, summary = true, mode = 0, sequen
         let value = ``;
         let jsonValue = jsonData[header];
         result += `<tr><th class="p-2 w-auto tborder-2">${header}</th>`;
-        if (typeof jsonValue === "object" && !headersForShortColorList.includes(header))
+        if (typeof jsonValue === 'object' && !headersForShortColorList.includes(header))
             {Object.values(jsonValue).forEach(i => {
                 value += `<td style="color: ${fullColorList[getInteger(getShownCharacter(i))]}" class="w-auto text-center">${i}</td>`;
                 })
             }
-        else if (typeof jsonValue === "object" && headersForShortColorList.includes(header))
+        else if (typeof jsonValue === 'object' && headersForShortColorList.includes(header))
             {Object.values(jsonValue).forEach(i => {
                 value += `<td style="color: ${shortColorList[getShownCharacter(i)]}" class="w-auto text-center">${i}</td>`;
         }
@@ -451,7 +693,7 @@ function drawInformation(jsonData, sortingList, summary = true, mode = 0, sequen
         result += `<th class="p-2 w-auto tborder-2">Index</th>`;
         result += `<th class="p-2 w-auto"></th>`;
         for (let i = 0; i < sequenceLength; i++) {
-            result += `<td style="color: darkcyan"  class="w-auto text-center">${i}</td>`;
+            result += `<td style="color: darkcyan"  class="w-auto text-center">${firstIndex + i}</td>`;
         }
     }
     result += `</tr>`;
@@ -800,6 +1042,7 @@ function readJson(id = `jsonFile`) {
 function setVisibilityLoader(visible = true) {
     setLoader('result', visible)
     document.getElementById('tree').innerText = ``;
+    setTreeControls(false);
     document.getElementById('branchInfo').innerText = ``;
     document.getElementById('nodeInfo').innerText = ``;
     document.getElementById('logLikelihood').innerText = ``;
@@ -1033,20 +1276,24 @@ function showMessage(message = null, variant = 1) {
 
 function formCleaning(args) {
     let elementNames = {'value': [`newickText`, `msaText`, `eMail`],
-        'innerHTML': [`tree`, 'branchInfo', `nodeInfo`, `logLikelihood`, `fileList`]};
+        'innerHTML': [`tree`, `branchInfo`, `nodeInfo`, `logLikelihood`, `fileList`]};
     for (let i = 0; i < elementNames.value.length; i++) {
         document.getElementById(elementNames.value[i]).value = ``;
     }
     for (let i = 0; i < elementNames.innerHTML.length; i++) {
         document.getElementById(elementNames.innerHTML[i]).innerHTML = ``;
     }
+    jsonTreeData = null;
+    treePosition = null;
+    setTreeControls(false);
     Object.entries(args).forEach(([key, value]) => {
         document.getElementById(key).value = value;
     });
     // Forget chosen files and any read / leaves request still in flight.
     [`msaTextFile`, `newickTextFile`].forEach(fileId => document.getElementById(fileId).value = ``);
     Object.values(fileReads).forEach(reader => reader.abort());
-    document.getElementById('title').innerHTML = `Gain Loss Mapping Engine`;
+    document.getElementById(`title`).innerHTML = `Gain Loss Mapping Engine`;
+    setVisibility(`result`, false);
     fileReads = {};
     leavesRequest += 1;
     leavesPending = false;
