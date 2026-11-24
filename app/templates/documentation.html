@@ -46,7 +46,13 @@ distribution and Benjamini-Hochberg q-values</li>
 <li><strong>Parameter optimization</strong> of π1 (frequency of presence), the gamma α parameter and a branch-length scaling coefficient,
 or of every branch length separately (see <a href="#per-branch-branch-lengths">Per-branch branch lengths</a>)</li>
 <li><strong>Parsimony and homoplasy scores</strong> per character (parsimony score, minimum steps, homoplasy, consistency index)</li>
-<li><strong>Tree rooting</strong> by MAD, MVR, midpoint or outgroup</li>
+<li><strong>Tree rooting</strong> by MAD, MVR, midpoint or outgroup (trees that are already rooted are kept as they are)</li>
+<li><strong>Plots of the data</strong>: phylogenetic distance matrix, sequence identity matrix and binary mapping of the
+presence/absence patterns (see <a href="#plots">Plots</a>), alongside the CoPAP correlation plots</li>
+<li><strong>Interactive tree</strong> on the results page, with a single-position view (state at every node, gain/loss on every
+branch) and export of the current view as a PNG (see <a href="#results-page">Results page</a>)</li>
+<li><strong>Large datasets</strong>: outputs that would be too large are capped or drawn in a compact form, and every such case is
+explained in a note (see <a href="#notes-on-capped-outputs">Notes on capped outputs</a>)</li>
 <li><strong>High-performance computing</strong> powered by NumPy vectorization</li>
 </ul>
 <div class="markdown-heading d-flex" dir="auto"><a id="project-structure" class="anchor" aria-label="Permalink: Project structure" href="#project-structure"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Project structure</h3></div>
@@ -89,7 +95,8 @@ or of every branch length separately (see <a href="#per-branch-branch-lengths">P
 │   │       │   ├── newickTree7.tree
 │   │       │   ├── newickTree8.tree
 │   │       │   ├── newickTree9.tree
-│   │       │   └── newickTree10.tree
+│   │       │   ├── newickTree10.tree
+│   │       │   └── newickTree11.tree
 │   │       └── msa
 │   │           ├── patternMSA0.msa
 │   │           ├── patternMSA1.msa
@@ -101,7 +108,8 @@ or of every branch length separately (see <a href="#per-branch-branch-lengths">P
 │   │           ├── patternMSA7.msa
 │   │           ├── patternMSA8.msa
 │   │           ├── patternMSA9.msa
-│   │           └── patternMSA10.msa
+│   │           ├── patternMSA10.msa
+│   │           └── patternMSA11.msa
 │   ├── services
 │   │   ├── __init__.py
 │   │   ├── design_functions.py
@@ -110,6 +118,7 @@ or of every branch length separately (see <a href="#per-branch-branch-lengths">P
 │   │   ├── __init__.py
 │   │   ├── node.py
 │   │   ├── npencoder.py
+│   │   ├── pairs.py                        # CoPAP site-pair statistics (null distribution, p/q-values)
 │   │   └── tree.py
 │   ├── __init__.py
 │   ├── __main__.py
@@ -131,6 +140,7 @@ or of every branch length separately (see <a href="#per-branch-branch-lengths">P
 ├── tests
 │   ├── __init__.py
 │   ├── correlation_test.py
+│   ├── pairs_test.py
 │   └── time_test.py
 ├── Pipfile
 ├── README.md
@@ -175,7 +185,8 @@ or of every branch length separately (see <a href="#per-branch-branch-lengths">P
 │   │       │   ├── newickTree7.tree
 │   │       │   ├── newickTree8.tree
 │   │       │   ├── newickTree9.tree
-│   │       │   └── newickTree10.tree
+│   │       │   ├── newickTree10.tree
+│   │       │   └── newickTree11.tree
 │   │       └── msa
 │   │           ├── patternMSA0.msa
 │   │           ├── patternMSA1.msa
@@ -187,7 +198,8 @@ or of every branch length separately (see <a href="#per-branch-branch-lengths">P
 │   │           ├── patternMSA7.msa
 │   │           ├── patternMSA8.msa
 │   │           ├── patternMSA9.msa
-│   │           └── patternMSA10.msa
+│   │           ├── patternMSA10.msa
+│   │           └── patternMSA11.msa
 │   ├── services
 │   │   ├── __init__.py
 │   │   ├── design_functions.py
@@ -196,6 +208,7 @@ or of every branch length separately (see <a href="#per-branch-branch-lengths">P
 │   │   ├── __init__.py
 │   │   ├── node.py
 │   │   ├── npencoder.py
+│   │   ├── pairs.py                        # CoPAP site-pair statistics (null distribution, p/q-values)
 │   │   └── tree.py
 │   ├── __init__.py
 │   ├── __main__.py
@@ -217,6 +230,7 @@ or of every branch length separately (see <a href="#per-branch-branch-lengths">P
 ├── tests
 │   ├── __init__.py
 │   ├── correlation_test.py
+│   ├── pairs_test.py
 │   └── time_test.py
 ├── Pipfile
 ├── README.md
@@ -238,7 +252,8 @@ or of every branch length separately (see <a href="#per-branch-branch-lengths">P
 (<code>1</code> = presence, <code>0</code> = absence, <code>?</code> = missing data). All sequences must have the same length, and sequence names
 must match the leaf names of the tree.</li>
 <li><strong>Tree</strong> (<code>--tree_file</code>): a phylogenetic tree in Newick format with branch lengths. Bootstrap values are removed
-automatically, and the tree is rooted with the selected <code>--rooting_method</code>.</li>
+automatically. A tree that is already rooted (its root has two children) is kept as it is. An unrooted tree (three
+or more children at the root) is rooted with the selected <code>--rooting_method</code>.</li>
 </ul>
 <p dir="auto">Example:</p>
 <div class="snippet-clipboard-content notranslate position-relative overflow-auto d-flex"><pre lang="text" class="notranslate"><code>&gt;A
@@ -344,7 +359,7 @@ automatically, and the tree is rooted with the selected <code>--rooting_method</
         mvr - Minimum Variance Rooting
         midpoint - Midpoint Rooting
         outgroup - Outgroup Rooting
-        Default is 'midpoint'.
+        Used only for unrooted trees; a rooted tree is kept as it is. Default is 'midpoint'.
 
     --leaf &lt;type=str&gt;
         Leaf to use as the outgroup when --rooting_method is 'outgroup'. Default is ''.
@@ -364,7 +379,7 @@ automatically, and the tree is rooted with the selected <code>--rooting_method</
         mvr - Minimum Variance Rooting
         midpoint - Midpoint Rooting
         outgroup - Outgroup Rooting
-        Default is 'midpoint'.
+        Used only for unrooted trees; a rooted tree is kept as it is. Default is 'midpoint'.
 
     --leaf &lt;type=str&gt;
         Leaf to use as the outgroup when --rooting_method is 'outgroup'. Default is ''.
@@ -771,6 +786,89 @@ give finer p-values.</li>
 </tr>
 </tbody>
 </table>
+<div  class="markdown-heading d-flex" dir="auto"><a id="plots" class="anchor" aria-label="Permalink: Plots" href="#plots"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Plots</h3></div>
+<p dir="auto">These plots describe the input data (the tree and the presence/absence patterns of the leaves). They are on by
+default and can be turned off one by one.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PhylogeneticDistanceMatrix.svg</code></td>
+<td>Heatmap of the phylogenetic (patristic) distance between every pair of leaves: the sum of the branch lengths on the path that joins them through their most recent common ancestor. Darker cells are more distant pairs. Up to 100 leaves the value is printed in every cell (4 decimals).</td>
+</tr>
+<tr>
+<td><code>SequenceIdentityMatrix.svg</code></td>
+<td>Heatmap of the % identity between the presence/absence patterns of every pair of leaves: matching positions divided by compared positions × 100. Missing data (<code>?</code> or <code>-</code>) never counts as a match, and a position is left out only when it is missing in both leaves. Up to 100 leaves the value is printed in every cell (1 decimal).</td>
+</tr>
+<tr>
+<td><code>BinaryMapping.svg</code></td>
+<td>The presence/absence matrix itself, one row per leaf and one column per position (numbered from 1 on the plot): <code>1</code> cells in salmon, <code>0</code> cells in white, missing data in grey. Up to 100 leaves each cell also shows its character, with a consensus row and a per-leaf count beside the matrix. Above 100 leaves the cells are coloured only (compact drawing).</td>
+</tr>
+</tbody>
+</table>
+<p dir="auto">The matrices and the binary mapping list the leaves in the order of the MSA. For large datasets these plots are
+simplified, see <a href="#notes-on-capped-outputs">Notes on capped outputs</a>.</p>
+<div  class="markdown-heading d-flex" dir="auto"><a id="notes-on-capped-outputs" class="anchor" aria-label="Permalink: Notes on capped outputs" href="#notes-on-capped-outputs"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Notes on capped outputs</h3></div>
+<p dir="auto">With large datasets some outputs would be too large to write or to open, so GLOOME caps them or draws them in a
+simpler form. Every time this happens the run records a short note for that file:</p>
+<ul dir="auto">
+<li>on the results page, hover over the file in <strong>View/Download Results</strong> to see its note;</li>
+<li>all notes of a run are also written to <code>notes.json</code> (file name → note).</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Output</th>
+<th>When</th>
+<th>What is done</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PhylogeneticDistanceMatrix.svg</code>, <code>SequenceIdentityMatrix.svg</code></td>
+<td>more than 100 leaves</td>
+<td>The values are not printed in the cells (the colour scale gives them) and the figure is scaled to fit.</td>
+</tr>
+<tr>
+<td><code>BinaryMapping.svg</code></td>
+<td>more than 1,000 positions</td>
+<td>Only positions 1-1,000 are drawn (width limit).</td>
+</tr>
+<tr>
+<td><code>BinaryMapping.svg</code></td>
+<td>more than 100 leaves</td>
+<td>Compact drawing: cells coloured by state, without the character in each cell or the consensus / count rows.</td>
+</tr>
+<tr>
+<td><code>Coevolution.tsv</code></td>
+<td>more than 2,000,000 tested pairs</td>
+<td>Only the 2,000,000 most significant pairs (lowest q-value) are written. The q-values are still computed over all pairs.</td>
+</tr>
+<tr>
+<td><code>PearsonCorrelation.tsv</code></td>
+<td>more than 2,000,000 pairs</td>
+<td>Only the 2,000,000 pairs with the strongest correlation (largest |r|) are written.</td>
+</tr>
+<tr>
+<td><code>DistributionOfCorrelation.svg</code>, <code>BarplotOfCorrelation.svg</code></td>
+<td>more than 200,000 tested pairs</td>
+<td>Drawn from a random sample of 200,000 pairs; the α / β of the Beta fit use the same sample.</td>
+</tr>
+<tr>
+<td><code>CorrelationByRateBin.svg</code></td>
+<td>more than 20,000 tested pairs</td>
+<td>Shows a random sample of 20,000 pairs.</td>
+</tr>
+</tbody>
+</table>
+<p dir="auto">Each note gives the actual numbers of the run, for example: "Showing the 2,000,000 most significant pairs (lowest
+q-value) out of N: cut due to the table size limit of 2,000,000 rows.", where N is the number of pairs tested in
+that run.</p>
 <div  class="markdown-heading d-flex" dir="auto"><a id="other-files" class="anchor" aria-label="Permalink: Other files" href="#other-files"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Other files</h3></div>
 <table>
 <thead>
@@ -789,8 +887,8 @@ give finer p-values.</li>
 <td>Static picture of the tree (off by default).</td>
 </tr>
 <tr>
-<td><code>result.json</code></td>
-<td>Full JSON response of the run. It can be loaded back into the webserver to view the results again (see below).</td>
+<td><code>notes.json</code></td>
+<td>Notes for the outputs that were capped or simplified, see <a href="#notes-on-capped-outputs">Notes on capped outputs</a>. Written only when there is at least one note.</td>
 </tr>
 <tr>
 <td><code>*.log</code></td>
@@ -807,14 +905,23 @@ give finer p-values.</li>
 <div  class="markdown-heading d-flex" dir="auto"><a id="running-an-analysis" class="anchor" aria-label="Permalink: Running an analysis" href="#running-an-analysis"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Running an analysis</h3></div>
 <ol dir="auto">
 <li>Paste a phyletic pattern MSA (FASTA) and a Newick tree into the text boxes, or upload files. <strong>Load an example</strong>
-fills in an example dataset, <strong>Clear</strong> resets the form.</li>
+fills in an example dataset, <strong>Clear</strong> resets the form. Large inputs are compressed by the browser before they are
+sent, so files of several MB can be submitted.</li>
 <li>Optionally adjust the model parameters (<strong>optimize BL coefficient</strong> and <strong>optimize each branch length</strong> are
-alternatives: checking one unchecks the other), the CoPAP parameters, the rooting method (for outgroup rooting, choose a
-leaf from the list, which fills in from the tree) and the output files. These options match the
-<a href="#command-line-usage">command-line parameters</a>.</li>
+alternatives: checking one unchecks the other), the CoPAP parameters, the rooting method and the output files.
+These options match the <a href="#command-line-usage">command-line parameters</a>.
+<ul dir="auto">
+<li><strong>Rooting.</strong> Under the rooting options the page says whether the tree you entered is already rooted. A rooted
+tree is kept as it is, and the rooting options are locked. For an unrooted tree, choose a rooting method; for
+outgroup rooting, choose the leaf from the list, which fills in from the tree.</li>
+<li><strong>Output files</strong> include the <a href="#plots">plots</a> <strong>phylogenetic distance matrix</strong>, <strong>sequence identity matrix</strong> and
+<strong>binary mapping</strong> (all on by default).</li>
+</ul>
+</li>
 <li>Optionally enter an e-mail address to get a notification when the job finishes.</li>
 <li>Click <strong>SUBMIT</strong>. The page checks the job status every few seconds and shows the results when it finishes.
-Each run has its own results page at <code>/results/&lt;process_id&gt;</code>, which you can bookmark.</li>
+Each run has its own results page at <code>/results/&lt;process_id&gt;</code>, which you can bookmark. If the job fails, the page
+shows the reason (for example, that the job ran out of memory) with the process ID and a link to the job log.</li>
 </ol>
 <div  class="markdown-heading d-flex" dir="auto"><a id="results-page" class="anchor" aria-label="Permalink: Results page" href="#results-page"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Results page</h3></div>
 <p dir="auto">The results page has four parts.</p>
@@ -829,7 +936,35 @@ Each run has its own results page at <code>/results/&lt;process_id&gt;</code>, w
 <li>Zoom with the mouse wheel or a two-finger trackpad pinch, and drag to move the tree.</li>
 <li><strong>show distance to parent</strong> writes each branch length next to its node.</li>
 <li><strong>show radial tree</strong> switches between a rectangular and a circular layout.</li>
+<li><strong>Position</strong> shows a single position on the tree (see below). <strong>all</strong> returns to all positions.</li>
+<li><strong>Save as PNG</strong> downloads the tree exactly as it is shown, see <a href="#saving-the-tree-as-png">Saving the tree as PNG</a>.</li>
 </ul>
+<div  class="markdown-heading d-flex" dir="auto"><a id="single-position-view" class="anchor" aria-label="Permalink: Single-position view" href="#single-position-view"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h4 tabindex="-1" class="heading-element" dir="auto">Single-position view</h4></div>
+<p dir="auto">Enter a position in the <strong>Position</strong> field to see the evolution of that one character on the tree. Positions are
+numbered from 0, as in the result tables (<code>POS</code> column and <code>Index</code> row); the field accepts 0 to (MSA length − 1).
+Clear the field or click <strong>all</strong> to show all positions again.</p>
+<ul dir="auto">
+<li><strong>Nodes</strong> are coloured by their state at that position, with the same colours as <code>BinaryMapping.svg</code>: salmon = <code>1</code>
+(present), white = <code>0</code> (absent), grey = missing data. The state is written above each node; for internal nodes it is
+followed by the posterior probability of that state, for example <code>1 (0.97)</code>.</li>
+<li><strong>Branches</strong> are coloured by the event on them, from the <code>Ancestral Comparison</code> of the node below: green = gain,
+red = loss, light salmon = presence kept, light grey = absence kept. Gains and losses are drawn thicker.</li>
+<li><strong>Branch labels</strong> give the posterior probability of a gain (<code>G 0.83</code>) and/or a loss (<code>L 0.12</code>) on the branch,
+when it is at least 0.05 (the same cut-off as <code>BranchPositionProbabilities.tsv</code>). Branches with smaller
+probabilities have no label.</li>
+<li>A <strong>legend</strong> in the corner of the tree shows the position and the colours.</li>
+<li>The hover tooltips and the <strong>Node information</strong> / <strong>Branch information</strong> tables show only that position, with its
+number in the <code>Index</code> row.</li>
+<li>Zoom and pan are kept while you switch from one position to another. A new result or switching to/from the radial layout starts
+again from the default view.</li>
+</ul>
+<p dir="auto">Some uses: follow where a gene family was gained or lost, check how certain the reconstruction is at the internal
+nodes, or look at a pair of positions from <code>Coevolution.tsv</code> one after the other.</p>
+<div  class="markdown-heading d-flex" dir="auto"><a id="saving-the-tree-as-png" class="anchor" aria-label="Permalink: Saving the tree as PNG" href="#saving-the-tree-as-png"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h4 tabindex="-1" class="heading-element" dir="auto">Saving the tree as PNG</h4></div>
+<p dir="auto"><strong>Save as PNG</strong> downloads the tree as it is shown at that moment: the layout (rectangular or radial), zoom and pan,
+branch lengths if shown, and, in the single-position view, the colours, labels and legend. The image is saved at
+3× the on-screen size on a white background, as <code>tree_view.png</code>, or <code>tree_view_POS_&lt;position&gt;.png</code> in the
+single-position view. Zoom in before saving to get a close-up of part of a large tree.</p>
 <p dir="auto"><strong>Node information table</strong> (one column per position; the last row, <code>Index</code>, gives the 0-based position):</p>
 <table>
 <thead>
@@ -892,10 +1027,9 @@ Each run has its own results page at <code>/results/&lt;process_id&gt;</code>, w
 <p dir="auto">Probabilities are colored from red (near 0) to violet (near 1), so likely events stand out when you scan a row.
 These rows contain the same values as <code>Branches.tsv</code>.</p>
 <p dir="auto"><strong>View/Download Results.</strong> Lists every output file described in <a href="#output-files">Output files</a>.
-<strong>view</strong> opens a file in the browser, <strong>download</strong> saves it. The archive (zip) contains all files.</p>
-<div  class="markdown-heading d-flex" dir="auto"><a id="loading-previous-results" class="anchor" aria-label="Permalink: Loading previous results" href="#loading-previous-results"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h3 tabindex="-1" class="heading-element" dir="auto">Loading previous results</h3></div>
-<p dir="auto">Use <strong>read JSON response file</strong> to upload the <code>result.json</code> from an earlier run. The page then shows that run's tree,
-tables and log-likelihood again without recomputing anything.</p>
+<strong>view</strong> opens a file in the browser, <strong>download</strong> saves it. The archive (zip) contains all files. When a file was
+capped or simplified because of the size of the data, hover over it to read the note that explains what it shows
+(see <a href="#notes-on-capped-outputs">Notes on capped outputs</a>).</p>
 <div  class="markdown-heading d-flex" dir="auto"><a id="citing" class="anchor" aria-label="Permalink: Citing" href="#citing"><svg data-component="Octicon" class="octicon octicon-link m-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a><h2 tabindex="-1" class="heading-element" dir="auto">Citing</h2></div>
 <p dir="auto">If you use GLOOME for your research, please cite the following publication:</p>
 <p dir="auto">Cohen, O., Ashkenazy, H., Belinky, F., Huchon, D., and Pupko, T. 2010. GLOOME: gain loss mapping engine.

@@ -25,7 +25,13 @@ rate variation among sites.
 * **Parameter optimization** of π1 (frequency of presence), the gamma α parameter and a branch-length scaling coefficient,
   or of every branch length separately (see [Per-branch branch lengths](#per-branch-branch-lengths))
 * **Parsimony and homoplasy scores** per character (parsimony score, minimum steps, homoplasy, consistency index)
-* **Tree rooting** by MAD, MVR, midpoint or outgroup
+* **Tree rooting** by MAD, MVR, midpoint or outgroup (trees that are already rooted are kept as they are)
+* **Plots of the data**: phylogenetic distance matrix, sequence identity matrix and binary mapping of the
+  presence/absence patterns (see [Plots](#plots)), alongside the CoPAP correlation plots
+* **Interactive tree** on the results page, with a single-position view (state at every node, gain/loss on every
+  branch) and export of the current view as a PNG (see [Results page](#results-page))
+* **Large datasets**: outputs that would be too large are capped or drawn in a compact form, and every such case is
+  explained in a note (see [Notes on capped outputs](#notes-on-capped-outputs))
 * **High-performance computing** powered by NumPy vectorization
 
 ### Project structure
@@ -70,7 +76,8 @@ gloome
 │   │       │   ├── newickTree7.tree
 │   │       │   ├── newickTree8.tree
 │   │       │   ├── newickTree9.tree
-│   │       │   └── newickTree10.tree
+│   │       │   ├── newickTree10.tree
+│   │       │   └── newickTree11.tree
 │   │       └── msa
 │   │           ├── patternMSA0.msa
 │   │           ├── patternMSA1.msa
@@ -82,7 +89,8 @@ gloome
 │   │           ├── patternMSA7.msa
 │   │           ├── patternMSA8.msa
 │   │           ├── patternMSA9.msa
-│   │           └── patternMSA10.msa
+│   │           ├── patternMSA10.msa
+│   │           └── patternMSA11.msa
 │   ├── services
 │   │   ├── __init__.py
 │   │   ├── design_functions.py
@@ -91,6 +99,7 @@ gloome
 │   │   ├── __init__.py
 │   │   ├── node.py
 │   │   ├── npencoder.py
+│   │   ├── pairs.py                        # CoPAP site-pair statistics (null distribution, p/q-values)
 │   │   └── tree.py
 │   ├── __init__.py
 │   ├── __main__.py
@@ -112,6 +121,7 @@ gloome
 ├── tests
 │   ├── __init__.py
 │   ├── correlation_test.py
+│   ├── pairs_test.py
 │   └── time_test.py
 ├── Pipfile
 ├── README.md
@@ -126,7 +136,8 @@ This manual covers input formats, command-line usage, the webserver, and how to 
   (`1` = presence, `0` = absence, `?` = missing data). All sequences must have the same length, and sequence names
   must match the leaf names of the tree.
 * **Tree** (`--tree_file`): a phylogenetic tree in Newick format with branch lengths. Bootstrap values are removed
-  automatically, and the tree is rooted with the selected `--rooting_method`.
+  automatically. A tree that is already rooted (its root has two children) is kept as it is. An unrooted tree (three
+  or more children at the root) is rooted with the selected `--rooting_method`.
 
 Example:
 
@@ -190,7 +201,7 @@ Results are written to `<out_dir>/<process_id>/`. If `--process_id` is not given
         mvr - Minimum Variance Rooting
         midpoint - Midpoint Rooting
         outgroup - Outgroup Rooting
-        Default is 'midpoint'.
+        Used only for unrooted trees; a rooted tree is kept as it is. Default is 'midpoint'.
 
     --leaf <type=str>
         Leaf to use as the outgroup when --rooting_method is 'outgroup'. Default is ''.
@@ -379,15 +390,51 @@ How to read `Coevolution.tsv`:
 |-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `ParsimonyAndHomoplasyScores.tsv` | Per position: `Minimum Possible Number Of Steps (M)` (number of states observed minus 1), `Parsimony Score (S)` (minimum number of changes on this tree, Fitch algorithm), `Homoplasy Score (H = S - M)` (extra changes caused by convergence or reversal), `Consistency Index (CI = M/S)` (1 means no homoplasy). A `TOTAL` row sums M, S and H over all positions and gives the ensemble CI. |
 
+### Plots
+
+These plots describe the input data (the tree and the presence/absence patterns of the leaves). They are on by
+default and can be turned off one by one.
+
+| File                             | Contents                                                                                                                                                                                                                                                                                                                                                         |
+|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `PhylogeneticDistanceMatrix.svg` | Heatmap of the phylogenetic (patristic) distance between every pair of leaves: the sum of the branch lengths on the path that joins them through their most recent common ancestor. Darker cells are more distant pairs. Up to 100 leaves the value is printed in every cell (4 decimals).                                                                       |
+| `SequenceIdentityMatrix.svg`     | Heatmap of the % identity between the presence/absence patterns of every pair of leaves: matching positions divided by compared positions × 100. Missing data (`?` or `-`) never counts as a match, and a position is left out only when it is missing in both leaves. Up to 100 leaves the value is printed in every cell (1 decimal).                          |
+| `BinaryMapping.svg`              | The presence/absence matrix itself, one row per leaf and one column per position (numbered from 1 on the plot): `1` cells in salmon, `0` cells in white, missing data in grey. Up to 100 leaves each cell also shows its character, with a consensus row and a per-leaf count beside the matrix. Above 100 leaves the cells are coloured only (compact drawing). |
+
+The matrices and the binary mapping list the leaves in the order of the MSA. For large datasets these plots are
+simplified, see [Notes on capped outputs](#notes-on-capped-outputs).
+
+### Notes on capped outputs
+
+With large datasets some outputs would be too large to write or to open, so GLOOME caps them or draws them in a
+simpler form. Every time this happens the run records a short note for that file:
+
+* on the results page, hover over the file in **View/Download Results** to see its note;
+* all notes of a run are also written to `notes.json` (file name → note).
+
+| Output                                                         | When                             | What is done                                                                                                            |
+|----------------------------------------------------------------|----------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| `PhylogeneticDistanceMatrix.svg`, `SequenceIdentityMatrix.svg` | more than 100 leaves             | The values are not printed in the cells (the colour scale gives them) and the figure is scaled to fit.                  |
+| `BinaryMapping.svg`                                            | more than 1,000 positions        | Only positions 1-1,000 are drawn (width limit).                                                                         |
+| `BinaryMapping.svg`                                            | more than 100 leaves             | Compact drawing: cells coloured by state, without the character in each cell or the consensus / count rows.             |
+| `Coevolution.tsv`                                              | more than 2,000,000 tested pairs | Only the 2,000,000 most significant pairs (lowest q-value) are written. The q-values are still computed over all pairs. |
+| `PearsonCorrelation.tsv`                                       | more than 2,000,000 pairs        | Only the 2,000,000 pairs with the strongest correlation (largest \|r\|) are written.                                    |
+| `DistributionOfCorrelation.svg`, `BarplotOfCorrelation.svg`    | more than 200,000 tested pairs   | Drawn from a random sample of 200,000 pairs; the α / β of the Beta fit use the same sample.                             |
+| `CorrelationByRateBin.svg`                                     | more than 20,000 tested pairs    | Shows a random sample of 20,000 pairs.                                                                                  |
+
+Each note gives the actual numbers of the run, for example: "Showing the 2,000,000 most significant pairs (lowest
+q-value) out of N: cut due to the table size limit of 2,000,000 rows.", where N is the number of pairs tested in
+that run.
+
 ### Other files
 
-| File                   | Contents                                                                                                       |
-|------------------------|----------------------------------------------------------------------------------------------------------------|
-| `InteractiveTree.html` | Standalone interactive tree that opens in a browser (off by default).                                          |
-| `VisualTree.png`       | Static picture of the tree (off by default).                                                                   |
-| `result.json`          | Full JSON response of the run. It can be loaded back into the webserver to view the results again (see below). |
-| `*.log`                | Log of the run, with parameters and timings.                                                                   |
-| `<process_id>.zip`     | Archive of all output files.                                                                                   |
+| File                   | Contents                                                                                                                                                     |
+|------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `InteractiveTree.html` | Standalone interactive tree that opens in a browser (off by default).                                                                                        |
+| `VisualTree.png`       | Static picture of the tree (off by default).                                                                                                                 |
+| `notes.json`           | Notes for the outputs that were capped or simplified, see [Notes on capped outputs](#notes-on-capped-outputs). Written only when there is at least one note. |                    
+| `*.log`                | Log of the run, with parameters and timings.                                                                                                                 |
+| `<process_id>.zip`     | Archive of all output files.                                                                                                                                 |
 
 ## Webserver
 
@@ -396,14 +443,20 @@ GLOOME is available as a webserver at [gloome.tau.ac.il](https://gloome.tau.ac.i
 ### Running an analysis
 
 1. Paste a phyletic pattern MSA (FASTA) and a Newick tree into the text boxes, or upload files. **Load an example**
-   fills in an example dataset, **Clear** resets the form.
+   fills in an example dataset, **Clear** resets the form. Large inputs are compressed by the browser before they are
+   sent, so files of several MB can be submitted.
 2. Optionally adjust the model parameters (**optimize BL coefficient** and **optimize each branch length** are
-   alternatives: checking one unchecks the other), the CoPAP parameters, the rooting method (for outgroup rooting, choose a
-   leaf from the list, which fills in from the tree) and the output files. These options match the
-   [command-line parameters](#command-line-usage).
+   alternatives: checking one unchecks the other), the CoPAP parameters, the rooting method and the output files.
+   These options match the [command-line parameters](#command-line-usage).
+   * **Rooting.** Under the rooting options the page says whether the tree you entered is already rooted. A rooted
+     tree is kept as it is, and the rooting options are locked. For an unrooted tree, choose a rooting method; for
+     outgroup rooting, choose the leaf from the list, which fills in from the tree.
+   * **Output files** include the [plots](#plots) **phylogenetic distance matrix**, **sequence identity matrix** and
+     **binary mapping** (all on by default).
 3. Optionally enter an e-mail address to get a notification when the job finishes.
 4. Click **SUBMIT**. The page checks the job status every few seconds and shows the results when it finishes.
-   Each run has its own results page at `/results/<process_id>`, which you can bookmark.
+   Each run has its own results page at `/results/<process_id>`, which you can bookmark. If the job fails, the page
+   shows the reason (for example, that the job ran out of memory) with the process ID and a link to the job log.
 
 ### Results page
 
@@ -421,6 +474,38 @@ The results page has four parts.
 * Zoom with the mouse wheel or a two-finger trackpad pinch, and drag to move the tree.
 * **show distance to parent** writes each branch length next to its node.
 * **show radial tree** switches between a rectangular and a circular layout.
+* **Position** shows a single position on the tree (see below). **all** returns to all positions.
+* **Save as PNG** downloads the tree exactly as it is shown, see [Saving the tree as PNG](#saving-the-tree-as-png).
+
+#### Single-position view
+
+Enter a position in the **Position** field to see the evolution of that one character on the tree. Positions are
+numbered from 0, as in the result tables (`POS` column and `Index` row); the field accepts 0 to (MSA length − 1).
+Clear the field or click **all** to show all positions again.
+
+* **Nodes** are coloured by their state at that position, with the same colours as `BinaryMapping.svg`: salmon = `1`
+  (present), white = `0` (absent), grey = missing data. The state is written above each node; for internal nodes it is
+  followed by the posterior probability of that state, for example `1 (0.97)`.
+* **Branches** are coloured by the event on them, from the `Ancestral Comparison` of the node below: green = gain,
+  red = loss, light salmon = presence kept, light grey = absence kept. Gains and losses are drawn thicker.
+* **Branch labels** give the posterior probability of a gain (`G 0.83`) and/or a loss (`L 0.12`) on the branch,
+  when it is at least 0.05 (the same cut-off as `BranchPositionProbabilities.tsv`). Branches with smaller
+  probabilities have no label.
+* A **legend** in the corner of the tree shows the position and the colours.
+* The hover tooltips and the **Node information** / **Branch information** tables show only that position, with its
+  number in the `Index` row.
+* Zoom and pan are kept while you switch from one position to another. A new result or switching to/from the radial layout starts
+  again from the default view.
+
+Some uses: follow where a gene family was gained or lost, check how certain the reconstruction is at the internal
+nodes, or look at a pair of positions from `Coevolution.tsv` one after the other.
+
+#### Saving the tree as PNG
+
+**Save as PNG** downloads the tree as it is shown at that moment: the layout (rectangular or radial), zoom and pan,
+branch lengths if shown, and, in the single-position view, the colours, labels and legend. The image is saved at
+3× the on-screen size on a white background, as `tree_view.png`, or `tree_view_POS_<position>.png` in the
+single-position view. Zoom in before saving to get a close-up of part of a large tree.
 
 **Node information table** (one column per position; the last row, `Index`, gives the 0-based position):
 
@@ -447,12 +532,9 @@ Probabilities are colored from red (near 0) to violet (near 1), so likely events
 These rows contain the same values as `Branches.tsv`.
 
 **View/Download Results.** Lists every output file described in [Output files](#output-files).
-**view** opens a file in the browser, **download** saves it. The archive (zip) contains all files.
-
-### Loading previous results
-
-Use **read JSON response file** to upload the `result.json` from an earlier run. The page then shows that run's tree,
-tables and log-likelihood again without recomputing anything.
+**view** opens a file in the browser, **download** saves it. The archive (zip) contains all files. When a file was
+capped or simplified because of the size of the data, hover over it to read the note that explains what it shows
+(see [Notes on capped outputs](#notes-on-capped-outputs)).
 
 ## Citing
 If you use GLOOME for your research, please cite the following publication:
